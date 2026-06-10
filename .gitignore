@@ -25,3 +25,6 @@ dist-ssr
 
 # Conductor workspace context
 .context
+
+# Private notes — not for the public repo
+private/
