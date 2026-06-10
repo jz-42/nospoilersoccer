@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "validate:data": "tsx src/data/validate-cli.ts",
-    "build": "npm run validate:data && tsc -b && vite build",
+    "test:logic": "tsx src/logic/spoilers.smoke.ts",
+    "check": "npm run validate:data && npm run test:logic",
+    "build": "npm run check && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
