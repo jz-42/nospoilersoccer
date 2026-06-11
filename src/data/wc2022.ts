@@ -229,6 +229,7 @@ export const wc2022: Tournament = {
           home: { type: 'match-winner', match: 'm61' }, away: { type: 'match-winner', match: 'm62' },
           homeTeam: 'ARG', awayTeam: 'FRA', score: { home: 3, away: 3 },
           afterExtraTime: true, penalties: { home: 4, away: 2 },
+          videos: [{ youtubeId: 'Mxkg3qLIPC8', kind: 'normal', durationSeconds: 299 }],
         },
       ],
     },
