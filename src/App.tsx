@@ -26,11 +26,31 @@ function BallMark({ size = 22 }: { size?: number }) {
   )
 }
 
+const TOURNAMENT_KEY = 'nss-tournament'
+
 function App() {
-  const t = tournaments[defaultTournamentId]
+  const [tournamentId, setTournamentId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(TOURNAMENT_KEY)
+      return saved && tournaments[saved] ? saved : defaultTournamentId
+    } catch {
+      return defaultTournamentId
+    }
+  })
+  const t = tournaments[tournamentId]
   const progress = useProgress(t)
   const [tab, setTab] = useState<Tab>('groups')
   const [modal, setModal] = useState<ModalTarget | null>(null)
+
+  const selectTournament = (id: string) => {
+    setTournamentId(id)
+    setModal(null)
+    try {
+      localStorage.setItem(TOURNAMENT_KEY, id)
+    } catch {
+      // Private browsing: selection just won't persist.
+    }
+  }
 
   const marked = Object.keys(progress.marks).length
   const total = totalMatches(t)
@@ -41,7 +61,18 @@ function App() {
         <div className="app-brand">
           <BallMark />
           <span className="app-name">No Spoiler Soccer</span>
-          <span className="app-tournament">{t.name}</span>
+          <nav className="seg seg-mini" aria-label="Tournament">
+            {Object.values(tournaments).map((tt) => (
+              <button
+                key={tt.id}
+                type="button"
+                className={`seg-btn ${tournamentId === tt.id ? 'active' : ''}`}
+                onClick={() => selectTournament(tt.id)}
+              >
+                {tt.year}
+              </button>
+            ))}
+          </nav>
         </div>
 
         <nav className="seg" aria-label="View">
