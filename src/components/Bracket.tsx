@@ -241,7 +241,7 @@ export function Bracket({
   const finalRoundName = t.knockoutRounds.find((r) => r.id !== 'third-place' && r.matches.includes(final))?.name ?? 'Final'
 
   return (
-    <div className="bracket">
+    <div className={`bracket ${leftCols.length > 3 ? 'bracket-deep' : ''}`}>
       {leftCols.map((col, i) => (
         <Column
           key={`l${i}`}

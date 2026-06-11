@@ -74,6 +74,21 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
+.seg-mini {
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.seg-mini .seg-btn {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.seg-mini .seg-btn.active {
+  color: var(--accent);
+}
+
 .app-progress {
   margin-left: auto;
   display: flex;
@@ -338,11 +353,38 @@
 }
 
 .b-col {
+  --bgap: 12px;
   display: flex;
   flex-direction: column;
   flex: 1 1 0;
   min-width: 168px;
-  padding: 0 12px;
+  padding: 0 var(--bgap);
+}
+
+/* R32-deep brackets (9 columns) squeeze tighter to stay on one screen. */
+.bracket-deep .b-col {
+  --bgap: 8px;
+  min-width: 142px;
+}
+
+.bracket-deep .ko-card {
+  font-size: 11.5px;
+  padding: 6px 9px 8px;
+  border-radius: 8px;
+}
+
+.bracket-deep .ko-meta {
+  font-size: 9.5px;
+  margin-bottom: 2px;
+}
+
+.bracket-deep .ko-placeholder {
+  font-size: 10.5px;
+}
+
+.bracket-deep .b-round-name {
+  font-size: 10px;
+  letter-spacing: 0.05em;
 }
 
 .b-round-name {
@@ -384,9 +426,9 @@
 .b-center .b-slot.has-in-right::after {
   content: '';
   position: absolute;
-  right: -12px;
+  right: calc(-1 * var(--bgap));
   top: 50%;
-  width: 12px;
+  width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
 }
@@ -394,9 +436,9 @@
 .b-center .b-slot.has-in-left::before {
   content: '';
   position: absolute;
-  left: -12px;
+  left: calc(-1 * var(--bgap));
   top: 50%;
-  width: 12px;
+  width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
 }
@@ -404,9 +446,9 @@
 .side-left .b-slot.has-in::before {
   content: '';
   position: absolute;
-  left: -12px;
+  left: calc(-1 * var(--bgap));
   top: 50%;
-  width: 12px;
+  width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
 }
@@ -414,7 +456,7 @@
 .side-left .b-pair::after {
   content: '';
   position: absolute;
-  right: -12px;
+  right: calc(-1 * var(--bgap));
   top: 25%;
   height: 50%;
   width: 2px;
@@ -424,9 +466,9 @@
 .side-right .b-slot.has-out::after {
   content: '';
   position: absolute;
-  left: -12px;
+  left: calc(-1 * var(--bgap));
   top: 50%;
-  width: 12px;
+  width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
 }
@@ -434,9 +476,9 @@
 .side-right .b-slot.has-in::before {
   content: '';
   position: absolute;
-  right: -12px;
+  right: calc(-1 * var(--bgap));
   top: 50%;
-  width: 12px;
+  width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
 }
@@ -444,7 +486,7 @@
 .side-right .b-pair::after {
   content: '';
   position: absolute;
-  left: -12px;
+  left: calc(-1 * var(--bgap));
   top: 25%;
   height: 50%;
   width: 2px;
