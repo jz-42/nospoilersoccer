@@ -1,57 +1,56 @@
 import type { Group, GroupMatch, Tournament } from '../data/types'
 import { groupStandings } from '../data/standings'
-import { groupComplete } from '../logic/spoilers'
+import { groupComplete, isPlayed } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
-import { MarkBadge, MarkButtons } from './MatchControls'
+import type { ModalTarget } from './MatchModal'
+import { formatDate } from './format'
 
-function formatDate(iso: string): string {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-  })
-}
-
-function MatchRow({ t, m, progress }: { t: Tournament; m: GroupMatch; progress: Progress }) {
+function MatchRow({
+  t,
+  m,
+  progress,
+  onOpen,
+}: {
+  t: Tournament
+  m: GroupMatch
+  progress: Progress
+  onOpen: (target: ModalTarget) => void
+}) {
   const mark = progress.marks[m.id]
   const home = t.teams[m.home]
   const away = t.teams[m.away]
-  const homeWon = m.score.home > m.score.away
-  const awayWon = m.score.away > m.score.home
+  const played = isPlayed(m)
+  const homeWon = mark && m.score && m.score.home > m.score.away
+  const awayWon = mark && m.score && m.score.away > m.score.home
 
   return (
-    <div className="match-row">
-      <span className={`team team-home ${mark && homeWon ? 'winner' : ''}`}>
+    <button
+      type="button"
+      className={`match-row ${mark ? 'is-marked' : ''}`}
+      onClick={() => onOpen({ kind: 'group', match: m })}
+    >
+      <span className={`team team-home ${homeWon ? 'winner' : ''}`}>
         {home.name} <span className="flag">{home.flag}</span>
       </span>
-      <span className="match-center">
-        {mark ? (
-          <span className="score">
-            {m.score.home}–{m.score.away}
-          </span>
-        ) : (
-          <MarkButtons onMark={(x) => progress.setMark(m.id, x)} />
-        )}
-        <span className="match-date">{formatDate(m.date)}</span>
+      <span className={`match-chip ${mark ? 'chip-score' : played ? 'chip-vs' : 'chip-future'}`}>
+        {mark && m.score ? `${m.score.home}–${m.score.away}` : played ? 'vs' : '—'}
       </span>
-      <span className={`team team-away ${mark && awayWon ? 'winner' : ''}`}>
+      <span className={`team team-away ${awayWon ? 'winner' : ''}`}>
         <span className="flag">{away.flag}</span> {away.name}
       </span>
-      {mark && (
-        <span className="match-mark">
-          <MarkBadge mark={mark} onUndo={() => progress.unmark(m.id)} />
-        </span>
-      )}
-    </div>
+    </button>
   )
 }
 
-function Standings({ t, group }: { t: Tournament; group: Group }) {
-  const rows = groupStandings(t, group.id)
+function Standings({ t, group, progress }: { t: Tournament; group: Group; progress: Progress }) {
+  const live = groupStandings(t, group.id, (id) => progress.marks[id] !== undefined)
+  const complete = groupComplete(t, group.id, progress.marks)
+
   return (
     <table className="standings">
       <thead>
         <tr>
-          <th className="pos">#</th>
+          <th className="pos" aria-label="Position"></th>
           <th className="name">Team</th>
           <th>P</th>
           <th>GD</th>
@@ -59,9 +58,9 @@ function Standings({ t, group }: { t: Tournament; group: Group }) {
         </tr>
       </thead>
       <tbody>
-        {rows.map((row, i) => {
+        {live.map((row, i) => {
           const team = t.teams[row.team]
-          const advances = t.advancingRanks.includes(i + 1)
+          const advances = complete && t.advancingRanks.includes(i + 1)
           return (
             <tr key={row.team} className={advances ? 'advances' : ''}>
               <td className="pos">{i + 1}</td>
@@ -69,7 +68,7 @@ function Standings({ t, group }: { t: Tournament; group: Group }) {
                 <span className="flag">{team.flag}</span> {team.name}
               </td>
               <td>{row.played}</td>
-              <td>{row.goalsFor - row.goalsAgainst}</td>
+              <td>{row.goalsFor - row.goalsAgainst > 0 ? '+' : ''}{row.goalsFor - row.goalsAgainst}</td>
               <td className="pts">{row.points}</td>
             </tr>
           )
@@ -79,30 +78,38 @@ function Standings({ t, group }: { t: Tournament; group: Group }) {
   )
 }
 
-function GroupCard({ t, group, progress }: { t: Tournament; group: Group; progress: Progress }) {
+function GroupCard({
+  t,
+  group,
+  progress,
+  onOpen,
+}: {
+  t: Tournament
+  group: Group
+  progress: Progress
+  onOpen: (target: ModalTarget) => void
+}) {
   const matches = t.groupMatches.filter((m) => m.group === group.id)
-  const complete = groupComplete(t, group.id, progress.marks)
-  const remaining = matches.filter((m) => progress.marks[m.id] === undefined).length
-  const matchdays = [...new Set(matches.map((m) => m.matchday))].sort((a, b) => a - b)
+  const seen = matches.filter((m) => progress.marks[m.id] !== undefined).length
+  const dates = [...new Set(matches.map((m) => m.date))].sort()
 
   return (
     <section className="group-card">
-      <h3>Group {group.id}</h3>
-      {complete ? (
-        <Standings t={t} group={group} />
-      ) : (
-        <div className="standings-locked">
-          🔒 Standings reveal when every match is marked — {remaining} to go
-        </div>
-      )}
+      <header className="group-card-header">
+        <h3>Group {group.id}</h3>
+        <span className={`group-progress ${seen === matches.length ? 'done' : ''}`}>
+          {seen}/{matches.length}
+        </span>
+      </header>
+      <Standings t={t} group={group} progress={progress} />
       <div className="group-matches">
-        {matchdays.map((md) => (
-          <div key={md}>
-            <div className="matchday-caption">Matchday {md}</div>
+        {dates.map((date) => (
+          <div key={date} className="match-day">
+            <div className="date-caption">{formatDate(date)}</div>
             {matches
-              .filter((m) => m.matchday === md)
+              .filter((m) => m.date === date)
               .map((m) => (
-                <MatchRow key={m.id} t={t} m={m} progress={progress} />
+                <MatchRow key={m.id} t={t} m={m} progress={progress} onOpen={onOpen} />
               ))}
           </div>
         ))}
@@ -111,11 +118,19 @@ function GroupCard({ t, group, progress }: { t: Tournament; group: Group; progre
   )
 }
 
-export function GroupStage({ t, progress }: { t: Tournament; progress: Progress }) {
+export function GroupStage({
+  t,
+  progress,
+  onOpen,
+}: {
+  t: Tournament
+  progress: Progress
+  onOpen: (target: ModalTarget) => void
+}) {
   return (
     <div className="group-grid">
       {t.groups.map((g) => (
-        <GroupCard key={g.id} t={t} group={g} progress={progress} />
+        <GroupCard key={g.id} t={t} group={g} progress={progress} onOpen={onOpen} />
       ))}
     </div>
   )

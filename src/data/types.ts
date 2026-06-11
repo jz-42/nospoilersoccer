@@ -44,7 +44,8 @@ export interface GroupMatch {
   date: string
   home: TeamId
   away: TeamId
-  score: Score
+  /** Absent while the match hasn't been played yet (live tournaments). */
+  score?: Score
   videos?: HighlightVideo[]
 }
 
@@ -70,11 +71,12 @@ export interface KnockoutMatch {
    * The teams that actually filled the slots. Derivable from refs + results,
    * but stored explicitly: best-third resolution isn't derivable from scores
    * alone, and the redundancy lets the validator cross-check the bracket.
+   * Absent while the feeding games haven't decided them (live tournaments).
    */
-  homeTeam: TeamId
-  awayTeam: TeamId
-  /** Result after 90' (or 120' when afterExtraTime is set). */
-  score: Score
+  homeTeam?: TeamId
+  awayTeam?: TeamId
+  /** Result after 90' (or 120' when afterExtraTime is set). Absent = unplayed. */
+  score?: Score
   afterExtraTime?: boolean
   penalties?: Score
   videos?: HighlightVideo[]
@@ -107,13 +109,15 @@ export interface Tournament {
   knockoutRounds: KnockoutRound[]
 }
 
-/** Winner of a knockout match, accounting for penalty shootouts. */
-export function matchWinner(m: KnockoutMatch): TeamId {
+/** Winner of a knockout match (null while unplayed), accounting for shootouts. */
+export function matchWinner(m: KnockoutMatch): TeamId | null {
   const decider = m.penalties ?? m.score
+  if (!decider || m.homeTeam === undefined || m.awayTeam === undefined) return null
   return decider.home > decider.away ? m.homeTeam : m.awayTeam
 }
 
-export function matchLoser(m: KnockoutMatch): TeamId {
+export function matchLoser(m: KnockoutMatch): TeamId | null {
   const winner = matchWinner(m)
-  return winner === m.homeTeam ? m.awayTeam : m.homeTeam
+  if (winner === null) return null
+  return winner === m.homeTeam ? m.awayTeam! : m.homeTeam!
 }
