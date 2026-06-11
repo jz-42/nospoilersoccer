@@ -9,6 +9,7 @@ import {
   slotLabel,
 } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
+import { HighlightPlayer } from './HighlightPlayer'
 import { formatDateLong } from './format'
 
 export type ModalTarget =
@@ -149,6 +150,9 @@ export function MatchModal({
           ) : mark ? (
             <>
               {summary && <div className="modal-summary">{summary}</div>}
+              {m.videos && m.videos.length > 0 && (
+                <HighlightPlayer videos={m.videos} marked onReveal={() => {}} />
+              )}
               <button
                 type="button"
                 className="btn-ghost btn-subtle"
@@ -160,10 +164,18 @@ export function MatchModal({
             </>
           ) : ready ? (
             <>
-              <div className="modal-video-placeholder">
-                <span className="modal-video-icon">🎬</span>
-                <span>Highlights coming soon</span>
-              </div>
+              {m.videos && m.videos.length > 0 ? (
+                <HighlightPlayer
+                  videos={m.videos}
+                  marked={false}
+                  onReveal={() => progress.setMark(m.id, 'watched')}
+                />
+              ) : (
+                <div className="modal-video-placeholder">
+                  <span className="modal-video-icon">🎬</span>
+                  <span>Highlights coming soon</span>
+                </div>
+              )}
               <button
                 type="button"
                 className="btn-primary"
