@@ -41,6 +41,29 @@ export function validateTournament(t: Tournament): string[] {
     }
   }
 
+  // Goal lists must reconcile with scores.
+  const checkGoals = (
+    m: { id: string; score?: { home: number; away: number }; goals?: { team: string }[] },
+    homeTeam?: string,
+    awayTeam?: string,
+  ) => {
+    if (!m.goals) return
+    if (!m.score || homeTeam === undefined || awayTeam === undefined) {
+      err(`match ${m.id} has goals but no score/teams`)
+      return
+    }
+    const h = m.goals.filter((g) => g.team === homeTeam).length
+    const a = m.goals.filter((g) => g.team === awayTeam).length
+    if (h !== m.score.home || a !== m.score.away)
+      err(`match ${m.id}: goals tally ${h}-${a} disagrees with score ${m.score.home}-${m.score.away}`)
+    for (const g of m.goals) {
+      if (g.team !== homeTeam && g.team !== awayTeam)
+        err(`match ${m.id}: goal credited to ${g.team}, who isn't playing`)
+    }
+  }
+  for (const m of t.groupMatches) checkGoals(m, m.home, m.away)
+  for (const r of t.knockoutRounds) for (const m of r.matches) checkGoals(m, m.homeTeam, m.awayTeam)
+
   // Every pair in a group should meet exactly once.
   for (const g of t.groups) {
     const expected = (g.teams.length * (g.teams.length - 1)) / 2

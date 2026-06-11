@@ -7,7 +7,7 @@ import type { GroupMatch, KnockoutMatch } from '../data/types'
 import { isPlayed, knockoutReady, resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
-import { formatDate, formatDuration } from './format'
+import { formatDate, formatDuration, formatKickoffPT } from './format'
 
 export interface RailEntry {
   target: ModalTarget
@@ -64,7 +64,7 @@ export function PreviewCard({
       ? `${m.score.home}–${m.score.away}`
       : null
     : !played
-      ? 'Upcoming'
+      ? (formatKickoffPT(m.kickoff) ?? 'Upcoming')
       : best
         ? `${best.kind === 'extended' ? 'Extended' : 'Highlights'}${formatDuration(best.durationSeconds) ? ` · ${formatDuration(best.durationSeconds)}` : ''}`
         : watchable
