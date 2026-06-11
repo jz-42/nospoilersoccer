@@ -6,17 +6,23 @@
  * must bump CURRENT_VERSION and add a migration step in `migrate`, never
  * change the shape silently: old saves must keep loading forever.
  */
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { Tournament } from '../data/types'
 import type { Mark, Marks } from '../logic/spoilers'
 import { withUnmarked } from '../logic/spoilers'
 
 const STORAGE_KEY = 'nss-progress'
-const CURRENT_VERSION = 1
+const CURRENT_VERSION = 2
+
+interface TournamentProgress {
+  marks: Marks
+  /** Knockout matches whose teams the user force-revealed ("jump ahead"). */
+  revealed: string[]
+}
 
 interface ProgressState {
   version: number
-  tournaments: Record<string, { marks: Marks }>
+  tournaments: Record<string, TournamentProgress>
 }
 
 function emptyState(): ProgressState {
@@ -29,7 +35,13 @@ function migrate(raw: unknown): ProgressState {
   if (typeof state.version !== 'number' || typeof state.tournaments !== 'object') {
     return emptyState()
   }
-  // Future: if (state.version === 1) { ...upgrade to 2... }
+  if (state.version === 1) {
+    // v1 → v2: tournaments gained the `revealed` list.
+    for (const tp of Object.values(state.tournaments)) {
+      tp.revealed ??= []
+    }
+    state.version = 2
+  }
   if (state.version > CURRENT_VERSION) {
     // Saved by a newer build (e.g. another tab). Keep what we understand.
     return { ...state, version: CURRENT_VERSION }
@@ -56,10 +68,14 @@ function save(state: ProgressState) {
   }
 }
 
+const EMPTY: TournamentProgress = { marks: {}, revealed: [] }
+
 export interface Progress {
   marks: Marks
+  revealed: ReadonlySet<string>
   setMark: (matchId: string, mark: Mark) => void
   unmark: (matchId: string) => void
+  reveal: (matchId: string) => void
   reset: () => void
 }
 
@@ -67,12 +83,12 @@ export function useProgress(t: Tournament): Progress {
   const [state, setState] = useState<ProgressState>(load)
 
   const update = useCallback(
-    (updater: (marks: Marks) => Marks) => {
+    (updater: (tp: TournamentProgress) => TournamentProgress) => {
       setState((prev) => {
-        const marks = updater(prev.tournaments[t.id]?.marks ?? {})
+        const tp = updater(prev.tournaments[t.id] ?? EMPTY)
         const next: ProgressState = {
           ...prev,
-          tournaments: { ...prev.tournaments, [t.id]: { marks } },
+          tournaments: { ...prev.tournaments, [t.id]: tp },
         }
         save(next)
         return next
@@ -82,14 +98,26 @@ export function useProgress(t: Tournament): Progress {
   )
 
   const setMark = useCallback(
-    (matchId: string, mark: Mark) => update((marks) => ({ ...marks, [matchId]: mark })),
+    (matchId: string, mark: Mark) =>
+      update((tp) => ({ ...tp, marks: { ...tp.marks, [matchId]: mark } })),
     [update],
   )
   const unmark = useCallback(
-    (matchId: string) => update((marks) => withUnmarked(t, marks, matchId)),
+    (matchId: string) =>
+      update((tp) => ({ ...tp, marks: withUnmarked(t, tp.marks, matchId, new Set(tp.revealed)) })),
     [update, t],
   )
-  const reset = useCallback(() => update(() => ({})), [update])
+  const reveal = useCallback(
+    (matchId: string) =>
+      update((tp) =>
+        tp.revealed.includes(matchId) ? tp : { ...tp, revealed: [...tp.revealed, matchId] },
+      ),
+    [update],
+  )
+  const reset = useCallback(() => update(() => ({ marks: {}, revealed: [] })), [update])
 
-  return { marks: state.tournaments[t.id]?.marks ?? {}, setMark, unmark, reset }
+  const tp = state.tournaments[t.id] ?? EMPTY
+  const revealed = useMemo(() => new Set(tp.revealed), [tp.revealed])
+
+  return { marks: tp.marks, revealed, setMark, unmark, reveal, reset }
 }
