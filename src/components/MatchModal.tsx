@@ -103,7 +103,8 @@ export function MatchModal({
         </button>
 
         <div className="modal-context">
-          {context} · {formatDateLong(m.date)}
+          <span className="modal-context-strong">{context}</span>
+          <span className="modal-context-date">{formatDateLong(m.date)}</span>
         </div>
 
         <div className="modal-teams">
@@ -159,7 +160,7 @@ export function MatchModal({
                 onClick={() => progress.unmark(m.id)}
                 title="Anything that depended on this result will be hidden again too"
               >
-                Hide result again
+                Hide Result
               </button>
             </>
           ) : ready ? (
@@ -181,11 +182,11 @@ export function MatchModal({
                 className="btn-primary"
                 onClick={() => progress.setMark(m.id, 'watched')}
               >
-                Reveal result
+                Reveal Result
               </button>
-              <p className="modal-hint modal-hint-small">
-                Reveals the score and advances the winner in the bracket.
-              </p>
+              {Object.keys(progress.marks).length < 3 && (
+                <p className="modal-hint modal-hint-small">Reveals the score and team progression.</p>
+              )}
             </>
           ) : null}
         </div>
