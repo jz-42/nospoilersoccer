@@ -10,7 +10,7 @@ import {
 } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { HighlightPlayer } from './HighlightPlayer'
-import { formatDateLong } from './format'
+import { formatDateLong, formatKickoffPT } from './format'
 
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
@@ -104,7 +104,10 @@ export function MatchModal({
 
         <div className="modal-context">
           <span className="modal-context-strong">{context}</span>
-          <span className="modal-context-date">{formatDateLong(m.date)}</span>
+          <span className="modal-context-date">
+            {formatDateLong(m.date)}
+            {formatKickoffPT(m.kickoff) ? ` · ${formatKickoffPT(m.kickoff)}` : ''}
+          </span>
         </div>
 
         <div className="modal-teams">
@@ -130,6 +133,34 @@ export function MatchModal({
           </div>
           <TeamSide t={t} teamId={awayTeam} placeholder={awayPlaceholder} />
         </div>
+
+        {mark && m.goals && m.goals.length > 0 && (
+          <div className="modal-goals">
+            <div className="goals-side goals-home">
+              {m.goals
+                .filter((g) => g.team === homeTeam)
+                .map((g, i) => (
+                  <span key={i}>
+                    {g.player} {g.minute}
+                    {g.penalty ? ' (P)' : ''}
+                    {g.ownGoal ? ' (OG)' : ''}
+                  </span>
+                ))}
+            </div>
+            <span className="goals-ball">⚽</span>
+            <div className="goals-side goals-away">
+              {m.goals
+                .filter((g) => g.team === awayTeam)
+                .map((g, i) => (
+                  <span key={i}>
+                    {g.player} {g.minute}
+                    {g.penalty ? ' (P)' : ''}
+                    {g.ownGoal ? ' (OG)' : ''}
+                  </span>
+                ))}
+            </div>
+          </div>
+        )}
 
         <div className="modal-body">
           {locked && km ? (
