@@ -1,35 +1,40 @@
+/* Design tokens — dark, calm, broadcast-graphics inspired. */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --accent: #1f9d55;
+  --bg: #0c0f14;
+  --bg-raised: #131820;
+  --panel: #151b24;
+  --panel-hover: #1a212c;
+  --border: #232c3a;
+  --border-strong: #2f3a4b;
+  --text: #aeb7c4;
+  --text-h: #f2f5f9;
+  --muted: #707d8f;
+  --accent: #3ddc84;
+  --accent-deep: #1d9d5a;
+  --accent-soft: rgba(61, 220, 132, 0.12);
+  --danger: #e5534b;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Inter Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  font: 15px/1.5 var(--sans);
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --accent: #34d399;
-  }
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
 }
 
 #root {
@@ -38,24 +43,24 @@
   flex-direction: column;
 }
 
-body {
-  margin: 0;
-}
-
 h1,
-h2 {
-  font-weight: 500;
+h2,
+h3,
+h4 {
+  font-weight: 600;
   color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-  }
+  margin: 0;
 }
 
 p {
   margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+::selection {
+  background: var(--accent-deep);
+  color: #fff;
 }

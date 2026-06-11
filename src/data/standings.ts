@@ -16,8 +16,16 @@ export interface StandingRow {
  * scored (FIFA's first three tiebreakers; later ones like head-to-head aren't
  * modeled — the data validator flags groups where these three don't settle
  * the advancing ranks, so ambiguity can't slip through silently).
+ *
+ * Pass `include` to restrict which matches count — the UI uses this to build
+ * "live" standings from only the matches the user has already revealed, so
+ * the table grows as you watch without ever leaking unseen results.
  */
-export function groupStandings(t: Tournament, group: GroupId): StandingRow[] {
+export function groupStandings(
+  t: Tournament,
+  group: GroupId,
+  include?: (matchId: string) => boolean,
+): StandingRow[] {
   const groupDef = t.groups.find((g) => g.id === group)
   if (!groupDef) return []
   const rows = new Map<TeamId, StandingRow>(
@@ -27,7 +35,8 @@ export function groupStandings(t: Tournament, group: GroupId): StandingRow[] {
     ]),
   )
   for (const m of t.groupMatches) {
-    if (m.group !== group) continue
+    if (m.group !== group || m.score === undefined) continue
+    if (include && !include(m.id)) continue
     const home = rows.get(m.home)
     const away = rows.get(m.away)
     if (!home || !away) continue

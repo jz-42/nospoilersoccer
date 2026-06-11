@@ -26,6 +26,22 @@ npm run build    # type-check + production build to dist/
 npm run lint
 ```
 
+## Curating highlight videos
+
+`scripts/curate.mjs` is the maintainer tool for finding and vetting
+spoiler-free highlights:
+
+```sh
+node scripts/curate.mjs playlist <youtubePlaylistId>   # list {videoId, title} per video
+node scripts/curate.mjs check <videoId> [...]          # title, duration, embeddable, channel
+```
+
+Curation rules: no scores or winners in the title or thumbnail (inspect
+thumbnails at `https://i.ytimg.com/vi/<id>/hqdefault.jpg`), video must be
+embeddable, prefer official rights-holder channels with a consistent
+spoiler-free format (FOX Soccer for US coverage). Add vetted entries to the
+match's `videos` array in `src/data/`.
+
 ## Deployment
 
 Deployed as a [Render Static Site](https://render.com/docs/static-sites).

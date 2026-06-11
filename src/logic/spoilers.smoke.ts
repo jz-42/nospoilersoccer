@@ -5,7 +5,9 @@
 import { wc2022 } from '../data/wc2022'
 import type { Marks } from './spoilers'
 import {
+  canForceReveal,
   groupComplete,
+  isPlayed,
   knockoutReady,
   resolveSlot,
   slotLabel,
@@ -58,4 +60,20 @@ assert(after['m49'] === undefined, 'cascade unmarked m49 (group B incomplete)')
 assert(after['m58'] === undefined, 'cascade unmarked m58 (depends on m49)')
 assert(after['m50'] === 'watched', 'm50 untouched (groups C+D still complete)')
 assert(totalMatches(t) === 64, '64 total matches')
+
+// Jump-ahead: force-revealing a match shows its teams without feeder progress
+const fresh: Marks = {}
+const revealed = new Set(['m58'])
+assert(canForceReveal(m58), 'm58 teams are in the data, so it can be force-revealed')
+assert(resolveSlot(t, m58, 'home', fresh, revealed) === 'NED', 'force-reveal shows home team')
+assert(resolveSlot(t, m58, 'away', fresh, revealed) === 'ARG', 'force-reveal shows away team')
+assert(knockoutReady(t, m58, fresh, revealed), 'force-revealed match is markable')
+assert(resolveSlot(t, m49, 'home', fresh, revealed) === null, 'other matches stay hidden')
+
+// Live tournaments: a match without a score can't be marked or force-revealed
+const future = { ...m49, score: undefined, penalties: undefined, homeTeam: undefined, awayTeam: undefined }
+assert(!isPlayed(future), 'match without score is not played')
+assert(!knockoutReady(t, future, fresh, new Set([future.id])), 'unplayed match is never ready')
+assert(!canForceReveal(future), 'unplayed match with unknown teams cannot be force-revealed')
+
 console.log('ALL PASS')
