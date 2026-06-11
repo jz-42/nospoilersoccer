@@ -145,6 +145,7 @@ function KnockoutCard({
     >
       <div className="ko-meta">
         <span>{formatDate(m.date)}</span>
+        {!mark && ready && (m.videos?.length ?? 0) > 0 && <span className="ko-play">▶</span>}
         {locked && <span className="ko-lock">🔒</span>}
         {mark && <span className="ko-check">✓</span>}
       </div>
