@@ -1,18 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2fbf71"/>
-      <stop offset="1" stop-color="#13693f"/>
-    </linearGradient>
+    <clipPath id="ball"><circle cx="32" cy="32" r="22"/></clipPath>
   </defs>
-  <rect width="64" height="64" rx="14" fill="url(#g)"/>
-  <circle cx="32" cy="32" r="17" fill="#f4f7fa"/>
-  <polygon points="32,25.5 38.2,30 35.8,37.3 28.2,37.3 25.8,30" fill="#0e1217"/>
-  <g stroke="#0e1217" stroke-width="2.6" stroke-linecap="round">
-    <line x1="32" y1="25.5" x2="32" y2="15.5"/>
-    <line x1="38.2" y1="30" x2="47.6" y2="26.9"/>
-    <line x1="35.8" y1="37.3" x2="41.6" y2="45.4"/>
-    <line x1="28.2" y1="37.3" x2="22.4" y2="45.4"/>
-    <line x1="25.8" y1="30" x2="16.4" y2="26.9"/>
+  <circle cx="32" cy="32" r="22" fill="#f2f5f9"/>
+  <g clip-path="url(#ball)" fill="#11151c">
+    <path d="M 32 27.5 L 38.18 32 L 35.82 39.26 L 28.18 39.26 L 25.82 32 Z"/>
+    <path d="M 32 9.52 L 37.69 13.66 L 35.51 20.34 L 28.49 20.34 L 26.31 13.66 Z"/>
+    <path d="M 49.6 22.32 L 55.29 26.46 L 53.11 33.14 L 46.09 33.14 L 43.91 26.46 Z" transform="rotate(72 49.6 28.3)"/>
+    <path d="M 42.9 43.02 L 48.59 47.16 L 46.41 53.84 L 39.39 53.84 L 37.21 47.16 Z" transform="rotate(144 42.9 49)"/>
+    <path d="M 21.1 43.02 L 26.79 47.16 L 24.61 53.84 L 17.59 53.84 L 15.41 47.16 Z" transform="rotate(216 21.1 49)"/>
+    <path d="M 14.4 22.32 L 20.09 26.46 L 17.91 33.14 L 10.89 33.14 L 8.71 26.46 Z" transform="rotate(288 14.4 28.3)"/>
   </g>
+  <g transform="rotate(-5 32 26)">
+    <rect x="9" y="20.5" width="46" height="11.5" rx="5.7" fill="#3ddc84"/>
+  </g>
+  <circle cx="52.5" cy="24.5" r="3.4" fill="#2aa863"/>
+  <path d="M 53.2 27.5 C 55.8 31.5 56.3 36.5 54.5 41" stroke="#3ddc84" stroke-width="4" fill="none" stroke-linecap="round"/>
 </svg>
