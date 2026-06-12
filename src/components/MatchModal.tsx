@@ -143,6 +143,23 @@ export function MatchModal({
           <TeamSide t={t} teamId={awayTeam} placeholder={awayPlaceholder} />
         </div>
 
+        {!mark && m.odds && homeTeam && awayTeam && (
+          <div className="modal-odds">
+            <span className="odds-chip">
+              {t.teams[homeTeam].id} {Math.round(m.odds.home * 100)}%
+            </span>
+            {m.odds.draw !== undefined && (
+              <span className="odds-chip odds-draw">Draw {Math.round(m.odds.draw * 100)}%</span>
+            )}
+            <span className="odds-chip">
+              {t.teams[awayTeam].id} {Math.round(m.odds.away * 100)}%
+            </span>
+            <a className="odds-credit" href={m.odds.url} target="_blank" rel="noreferrer">
+              Polymarket ↗
+            </a>
+          </div>
+        )}
+
         {mark && m.goals && m.goals.length > 0 && (
           <div className="modal-goals">
             <div className="goals-side goals-home">
