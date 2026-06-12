@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import './App.css'
 import { Bracket } from './components/Bracket'
+import { ConfirmDialog, Onboarding } from './components/Dialogs'
+import { FavoritesPanel } from './components/FavoritesPanel'
 import { GroupStage } from './components/GroupStage'
+import { Logo } from './components/Logo'
 import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
 import { defaultTournamentId, tournaments } from './data'
@@ -10,23 +13,8 @@ import { useProgress } from './state/progress'
 
 type Tab = 'groups' | 'bracket'
 
-function BallMark({ size = 22 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true">
-      <circle cx="16" cy="16" r="15" fill="#f2f5f9" />
-      <polygon points="16,11 20.8,14.5 19,20 13,20 11.2,14.5" fill="#0c0f14" />
-      <g stroke="#0c0f14" strokeWidth="1.8" strokeLinecap="round">
-        <line x1="16" y1="11" x2="16" y2="2.5" />
-        <line x1="20.8" y1="14.5" x2="28.8" y2="11.9" />
-        <line x1="19" y1="20" x2="23.9" y2="26.8" />
-        <line x1="13" y1="20" x2="8.1" y2="26.8" />
-        <line x1="11.2" y1="14.5" x2="3.2" y2="11.9" />
-      </g>
-    </svg>
-  )
-}
-
 const TOURNAMENT_KEY = 'nss-tournament'
+const ONBOARDED_KEY = 'nss-onboarded'
 
 function App() {
   const [tournamentId, setTournamentId] = useState<string>(() => {
@@ -41,6 +29,14 @@ function App() {
   const progress = useProgress(t)
   const [tab, setTab] = useState<Tab>('groups')
   const [modal, setModal] = useState<ModalTarget | null>(null)
+  const [confirmReset, setConfirmReset] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(ONBOARDED_KEY) === null
+    } catch {
+      return false
+    }
+  })
 
   const selectTournament = (id: string) => {
     setTournamentId(id)
@@ -52,6 +48,15 @@ function App() {
     }
   }
 
+  const dismissOnboarding = () => {
+    setShowOnboarding(false)
+    try {
+      localStorage.setItem(ONBOARDED_KEY, '1')
+    } catch {
+      // Fine — it'll show again next visit.
+    }
+  }
+
   const marked = Object.keys(progress.marks).length
   const total = totalMatches(t)
 
@@ -59,8 +64,8 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="app-brand">
-          <BallMark />
-          <span className="app-name">No Spoiler Soccer</span>
+          <Logo size={26} />
+          <span className="app-name">No-Spoiler Soccer</span>
           <nav className="seg seg-mini" aria-label="Tournament">
             {Object.values(tournaments).map((tt) => (
               <button
@@ -94,15 +99,28 @@ function App() {
 
         <div className="app-progress" title="Matches you've revealed">
           <span className="app-progress-num">
-            {marked}<span className="app-progress-total">/{total}</span>
+            {marked}
+            <span className="app-progress-total">/{total}</span>
           </span>
           <div className="app-progress-bar">
             <div className="app-progress-fill" style={{ width: `${(marked / total) * 100}%` }} />
           </div>
         </div>
+
+        <FavoritesPanel t={t} progress={progress} />
+
+        <button
+          type="button"
+          className="help-btn"
+          aria-label="How this works"
+          title="How this works"
+          onClick={() => setShowOnboarding(true)}
+        >
+          ?
+        </button>
       </header>
 
-      <main className="app-main">
+      <main className={`app-main ${tab === 'bracket' ? 'app-main-wide' : ''}`}>
         {tab === 'groups' ? (
           <GroupStage t={t} progress={progress} onOpen={setModal} />
         ) : (
@@ -111,19 +129,27 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <span>Progress is saved in this browser only — no account, no tracking.</span>
-        <button
-          type="button"
-          className="btn-ghost btn-danger"
-          onClick={() => {
-            if (window.confirm('Hide every score again and start over?')) progress.reset()
-          }}
-        >
+        <span className="app-footer-note">Progress is saved in this browser only — no account, no tracking.</span>
+        <button type="button" className="btn-ghost btn-danger btn-small" onClick={() => setConfirmReset(true)}>
           Reset progress
         </button>
       </footer>
 
       {modal && <MatchModal t={t} target={modal} progress={progress} onClose={() => setModal(null)} />}
+      {confirmReset && (
+        <ConfirmDialog
+          title="Start over?"
+          body={`Every revealed score in ${t.name} will be hidden again.`}
+          confirmLabel="Hide everything"
+          danger
+          onConfirm={() => {
+            progress.reset()
+            setConfirmReset(false)
+          }}
+          onCancel={() => setConfirmReset(false)}
+        />
+      )}
+      {showOnboarding && <Onboarding onClose={dismissOnboarding} />}
     </div>
   )
 }

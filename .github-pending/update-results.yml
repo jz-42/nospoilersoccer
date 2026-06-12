@@ -1,0 +1,46 @@
+name: Update World Cup results
+
+on:
+  schedule:
+    # 08:10 UTC daily — after the last North American kickoffs finish
+    # (late games end ~05:30 UTC). That's 1:10 AM PT.
+    - cron: '10 8 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fetch yesterday's results into the data
+        run: npx tsx scripts/update-results.ts
+
+      - name: Validate (bad data must never deploy)
+        run: npm run check
+
+      - name: Commit & push if anything changed
+        run: |
+          if git diff --quiet; then
+            echo "No new results."
+            exit 0
+          fi
+          git config user.name "results-bot"
+          git config user.email "actions@github.com"
+          git add src/data/wc2026.ts
+          git commit -m "Auto-update: World Cup 2026 results ($(date -u +%F))"
+          git push origin main
+          # Keep dev in step when it hasn't diverged; harmless if it has.
+          git push origin main:dev || echo "dev has diverged; skipping"

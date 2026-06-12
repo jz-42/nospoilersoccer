@@ -36,16 +36,43 @@ export interface Score {
   away: number
 }
 
+/**
+ * Pre-match win probabilities (0..1), snapshotted at curation time from a
+ * prediction market — never fetched live, so a resolved market can't leak a
+ * result to someone catching up days later.
+ */
+export interface MatchOdds {
+  home: number
+  draw?: number
+  away: number
+  /** Credit/source link, e.g. the Polymarket event page. */
+  url: string
+}
+
+/** One goal. `team` is the side credited (own goals count for the opponent). */
+export interface Goal {
+  team: TeamId
+  player: string
+  /** Display minute as broadcast, e.g. "23'" or "45'+7'". */
+  minute: string
+  penalty?: boolean
+  ownGoal?: boolean
+}
+
 export interface GroupMatch {
   id: string
   group: GroupId
   matchday: number
   /** Local match date, YYYY-MM-DD. */
   date: string
+  /** Exact kickoff as UTC instant, e.g. "2022-11-20T16:00Z". */
+  kickoff?: string
   home: TeamId
   away: TeamId
   /** Absent while the match hasn't been played yet (live tournaments). */
   score?: Score
+  goals?: Goal[]
+  odds?: MatchOdds
   videos?: HighlightVideo[]
 }
 
@@ -65,6 +92,8 @@ export type SlotRef =
 export interface KnockoutMatch {
   id: string
   date: string
+  /** Exact kickoff as UTC instant, e.g. "2022-12-18T15:00Z". */
+  kickoff?: string
   home: SlotRef
   away: SlotRef
   /**
@@ -77,6 +106,8 @@ export interface KnockoutMatch {
   awayTeam?: TeamId
   /** Result after 90' (or 120' when afterExtraTime is set). Absent = unplayed. */
   score?: Score
+  goals?: Goal[]
+  odds?: MatchOdds
   afterExtraTime?: boolean
   penalties?: Score
   videos?: HighlightVideo[]

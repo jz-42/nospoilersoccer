@@ -1,0 +1,41 @@
+/** The blindfolded ball — one mark, used in the header and as favicon. */
+export function Logo({ size = 26 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <clipPath id="nss-ball">
+          <circle cx="32" cy="32" r="22" />
+        </clipPath>
+      </defs>
+      <circle cx="32" cy="32" r="22" fill="#f2f5f9" />
+      <g clipPath="url(#nss-ball)" fill="#11151c">
+        <path d="M 32 27.5 L 38.18 32 L 35.82 39.26 L 28.18 39.26 L 25.82 32 Z" />
+        <path d="M 32 9.52 L 37.69 13.66 L 35.51 20.34 L 28.49 20.34 L 26.31 13.66 Z" transform="rotate(0 32 15.5)" />
+        <path d="M 49.6 22.32 L 55.29 26.46 L 53.11 33.14 L 46.09 33.14 L 43.91 26.46 Z" transform="rotate(72 49.6 28.3)" />
+        <path d="M 42.9 43.02 L 48.59 47.16 L 46.41 53.84 L 39.39 53.84 L 37.21 47.16 Z" transform="rotate(144 42.9 49)" />
+        <path d="M 21.1 43.02 L 26.79 47.16 L 24.61 53.84 L 17.59 53.84 L 15.41 47.16 Z" transform="rotate(216 21.1 49)" />
+        <path d="M 14.4 22.32 L 20.09 26.46 L 17.91 33.14 L 10.89 33.14 L 8.71 26.46 Z" transform="rotate(288 14.4 28.3)" />
+      </g>
+      {/* blindfold: shadow under the band so it hugs the ball, then band + knot + tails */}
+      <g transform="rotate(-5 32 26)">
+        <rect x="9.4" y="21.6" width="45.2" height="11.5" rx="5.7" fill="#0c0f14" opacity="0.35" />
+        <rect x="9" y="20.5" width="46" height="11.5" rx="5.7" fill="#3ddc84" />
+      </g>
+      <circle cx="52.5" cy="24.5" r="3.4" fill="#2aa863" />
+      <path
+        d="M 53.2 27.5 C 55.8 31.5 56.3 36.5 54.5 41"
+        stroke="#3ddc84"
+        strokeWidth="3.6"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <path
+        d="M 51 28 C 52.2 32.5 51.7 36 49.5 39.5"
+        stroke="#2aa863"
+        strokeWidth="3.1"
+        fill="none"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}

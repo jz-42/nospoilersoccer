@@ -5,6 +5,7 @@
  * Usage:
  *   node scripts/curate.mjs playlist <playlistId>   # list videos in a playlist
  *   node scripts/curate.mjs check <videoId>...      # vet specific videos
+ *   node scripts/curate.mjs search <query>          # search results: id, title, duration
  *
  * `playlist` emits one JSON line per video: { videoId, title }.
  * `check` fetches each watch page and reports:
@@ -60,6 +61,36 @@ async function listPlaylist(playlistId) {
   return out
 }
 
+function parseLength(text) {
+  // "18:24" or "1:02:33" → seconds
+  const parts = text.split(':').map(Number)
+  if (parts.some(Number.isNaN)) return null
+  return parts.reduce((acc, p) => acc * 60 + p, 0)
+}
+
+async function searchVideos(query) {
+  const html = await fetchText(
+    `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`,
+  )
+  const out = []
+  const seen = new Set()
+  for (const block of html.split('"videoRenderer":').slice(1)) {
+    const id = block.match(/^\{"videoId":"([^"]{11})"/)
+    const title = block.match(/"title":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/)
+    const len = block.match(/"lengthText":\{[^]*?"simpleText":"([\d:]+)"/)
+    const channel = block.match(/"ownerText":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/)
+    if (!id || !title || seen.has(id[1])) continue
+    seen.add(id[1])
+    out.push({
+      videoId: id[1],
+      title: JSON.parse(`"${title[1]}"`),
+      durationSeconds: len ? parseLength(len[1]) : null,
+      channel: channel ? JSON.parse(`"${channel[1]}"`) : null,
+    })
+  }
+  return out
+}
+
 const [, , cmd, ...args] = process.argv
 if (cmd === 'playlist' && args[0]) {
   const items = await listPlaylist(args[0])
@@ -70,7 +101,9 @@ if (cmd === 'playlist' && args[0]) {
     console.log(JSON.stringify(await checkVideo(id)))
     await new Promise((r) => setTimeout(r, 300))
   }
+} else if (cmd === 'search' && args.length > 0) {
+  for (const item of await searchVideos(args.join(' '))) console.log(JSON.stringify(item))
 } else {
-  console.error('usage: curate.mjs playlist <playlistId> | check <videoId>...')
+  console.error('usage: curate.mjs playlist <id> | check <videoId>... | search <query>')
   process.exit(1)
 }

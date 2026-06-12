@@ -16,6 +16,7 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import type { HighlightVideo } from '../data/types'
+import { formatDuration } from './format'
 
 interface YTPlayer {
   getCurrentTime(): number
@@ -66,16 +67,9 @@ function loadYouTubeApi(): Promise<YTNamespace> {
 /** Seconds before the end at which we cover the player. */
 const END_GUARD_SECONDS = 9
 
-function formatDuration(s?: number): string | null {
-  if (!s) return null
-  const min = Math.floor(s / 60)
-  const sec = s % 60
-  return `${min}:${String(sec).padStart(2, '0')}`
-}
-
 const KIND_LABEL: Record<HighlightVideo['kind'], string> = {
-  normal: 'Highlights',
-  extended: 'Extended highlights',
+  normal: 'Brief',
+  extended: 'Extended',
 }
 
 export function HighlightPlayer({
@@ -87,6 +81,9 @@ export function HighlightPlayer({
   marked: boolean
   onReveal: () => void
 }) {
+  // Extended is the default experience; brief is the catch-up option.
+  const defaultVideo = videos.find((v) => v.kind === 'extended') ?? videos[0]
+  const [selected, setSelected] = useState<HighlightVideo>(defaultVideo)
   const [active, setActive] = useState<HighlightVideo | null>(null)
   const [atEnd, setAtEnd] = useState(false)
   const [dismissed, setDismissed] = useState(false)
@@ -163,27 +160,45 @@ export function HighlightPlayer({
     )
   }
 
+  const play = (v: HighlightVideo) => {
+    setSelected(v)
+    setActive(v)
+    setAtEnd(false)
+    setDismissed(false)
+    setFailed(false)
+  }
+
+  const kindToggle = videos.length > 1 && (
+    <div className="kind-toggle" role="tablist">
+      {videos.map((v) => (
+        <button
+          key={v.youtubeId}
+          type="button"
+          className={`kind-chip ${selected.youtubeId === v.youtubeId ? 'active' : ''}`}
+          onClick={() => (active ? play(v) : setSelected(v))}
+        >
+          {KIND_LABEL[v.kind]}
+          {formatDuration(v.durationSeconds) && (
+            <span className="kind-chip-time">{formatDuration(v.durationSeconds)}</span>
+          )}
+        </button>
+      ))}
+    </div>
+  )
+
   if (!active) {
     return (
-      <div className="video-buttons">
-        {videos.map((v) => (
-          <button
-            key={v.youtubeId}
-            type="button"
-            className="video-button"
-            onClick={() => {
-              setActive(v)
-              setAtEnd(false)
-              setDismissed(false)
-            }}
-          >
-            <span className="video-play">▶</span>
-            <span className="video-button-label">{KIND_LABEL[v.kind]}</span>
-            {formatDuration(v.durationSeconds) && (
-              <span className="video-duration">{formatDuration(v.durationSeconds)}</span>
+      <div className="player-block">
+        <button type="button" className="player-poster" onClick={() => play(selected)}>
+          <span className="poster-play">▶</span>
+          <span className="poster-label">
+            Watch {KIND_LABEL[selected.kind].toLowerCase()} highlights
+            {formatDuration(selected.durationSeconds) && (
+              <span className="poster-time"> · {formatDuration(selected.durationSeconds)}</span>
             )}
-          </button>
-        ))}
+          </span>
+        </button>
+        {kindToggle}
       </div>
     )
   }
@@ -191,19 +206,22 @@ export function HighlightPlayer({
   const showOverlay = atEnd && !dismissed && !marked
 
   return (
-    <div className="player-wrap">
-      <div ref={hostRef} className="player-host" />
-      {showOverlay && (
-        <div className="player-overlay">
-          <p>That's the match.</p>
-          <button type="button" className="btn-primary" onClick={onReveal}>
-            Reveal result
-          </button>
-          <button type="button" className="btn-ghost btn-subtle" onClick={() => setDismissed(true)}>
-            Keep watching
-          </button>
-        </div>
-      )}
+    <div className="player-block">
+      <div className="player-wrap">
+        <div ref={hostRef} className="player-host" />
+        {showOverlay && (
+          <div className="player-overlay">
+            <p>That's the match.</p>
+            <button type="button" className="btn-primary" onClick={onReveal}>
+              Reveal Result
+            </button>
+            <button type="button" className="btn-ghost btn-subtle" onClick={() => setDismissed(true)}>
+              Keep watching
+            </button>
+          </div>
+        )}
+      </div>
+      {kindToggle}
     </div>
   )
 }

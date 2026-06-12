@@ -10,7 +10,7 @@ import {
 } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { HighlightPlayer } from './HighlightPlayer'
-import { formatDateLong } from './format'
+import { formatDateLong, formatKickoffPT } from './format'
 
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
@@ -101,9 +101,22 @@ export function MatchModal({
         <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>
           ✕
         </button>
+        <button
+          type="button"
+          className={`modal-pin ${progress.pins.has(m.id) ? 'pinned' : ''}`}
+          aria-label={progress.pins.has(m.id) ? 'Unpin this match' : 'Pin this match'}
+          title={progress.pins.has(m.id) ? 'Unpin this match' : 'Pin this match'}
+          onClick={() => progress.togglePin(m.id)}
+        >
+          {progress.pins.has(m.id) ? '★' : '☆'}
+        </button>
 
         <div className="modal-context">
-          {context} · {formatDateLong(m.date)}
+          <span className="modal-context-strong">{context}</span>
+          <span className="modal-context-date">
+            {formatDateLong(m.date)}
+            {formatKickoffPT(m.kickoff) ? ` · ${formatKickoffPT(m.kickoff)}` : ''}
+          </span>
         </div>
 
         <div className="modal-teams">
@@ -129,6 +142,51 @@ export function MatchModal({
           </div>
           <TeamSide t={t} teamId={awayTeam} placeholder={awayPlaceholder} />
         </div>
+
+        {!mark && m.odds && homeTeam && awayTeam && (
+          <div className="modal-odds">
+            <span className="odds-chip">
+              {t.teams[homeTeam].id} {Math.round(m.odds.home * 100)}%
+            </span>
+            {m.odds.draw !== undefined && (
+              <span className="odds-chip odds-draw">Draw {Math.round(m.odds.draw * 100)}%</span>
+            )}
+            <span className="odds-chip">
+              {t.teams[awayTeam].id} {Math.round(m.odds.away * 100)}%
+            </span>
+            <a className="odds-credit" href={m.odds.url} target="_blank" rel="noreferrer">
+              Polymarket ↗
+            </a>
+          </div>
+        )}
+
+        {mark && m.goals && m.goals.length > 0 && (
+          <div className="modal-goals">
+            <div className="goals-side goals-home">
+              {m.goals
+                .filter((g) => g.team === homeTeam)
+                .map((g, i) => (
+                  <span key={i}>
+                    {g.player} {g.minute}
+                    {g.penalty ? ' (P)' : ''}
+                    {g.ownGoal ? ' (OG)' : ''}
+                  </span>
+                ))}
+            </div>
+            <span className="goals-ball">⚽</span>
+            <div className="goals-side goals-away">
+              {m.goals
+                .filter((g) => g.team === awayTeam)
+                .map((g, i) => (
+                  <span key={i}>
+                    {g.player} {g.minute}
+                    {g.penalty ? ' (P)' : ''}
+                    {g.ownGoal ? ' (OG)' : ''}
+                  </span>
+                ))}
+            </div>
+          </div>
+        )}
 
         <div className="modal-body">
           {locked && km ? (
@@ -159,7 +217,7 @@ export function MatchModal({
                 onClick={() => progress.unmark(m.id)}
                 title="Anything that depended on this result will be hidden again too"
               >
-                Hide result again
+                Hide Result
               </button>
             </>
           ) : ready ? (
@@ -181,11 +239,11 @@ export function MatchModal({
                 className="btn-primary"
                 onClick={() => progress.setMark(m.id, 'watched')}
               >
-                Reveal result
+                Reveal Result
               </button>
-              <p className="modal-hint modal-hint-small">
-                Reveals the score and advances the winner in the bracket.
-              </p>
+              {Object.keys(progress.marks).length < 3 && (
+                <p className="modal-hint modal-hint-small">Reveals the score and team progression.</p>
+              )}
             </>
           ) : null}
         </div>
