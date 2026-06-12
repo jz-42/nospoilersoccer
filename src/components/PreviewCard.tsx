@@ -1,13 +1,17 @@
 /**
  * Custom video-forward match card — our artwork, zero YouTube pixels.
- * Used in the rail and as the player poster in the match modal.
+ *
+ * The card is a state machine the eye can read before the brain does:
+ * a solid green FT badge + play button means "watch this now", a quiet
+ * kickoff time means "not played yet", a big score means "you've seen it".
  */
 import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
-import { isPlayed, knockoutReady, resolveSlot, slotLabel } from '../logic/spoilers'
+import { resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
-import { formatDate, formatDuration, formatKickoffPT } from './format'
+import { matchState } from './status'
+import { formatDate, formatDuration, formatKickoffShort } from './format'
 
 export interface RailEntry {
   target: ModalTarget
@@ -19,16 +23,17 @@ export function PreviewCard({
   entry,
   progress,
   onOpen,
+  showDate = false,
 }: {
   t: Tournament
   entry: RailEntry
   progress: Progress
   onOpen: (target: ModalTarget) => void
+  showDate?: boolean
 }) {
   const { target } = entry
   const m = target.match
-  const mark = progress.marks[m.id]
-  const played = isPlayed(m)
+  const state = matchState(t, target, progress)
 
   let homeLabel: string
   let awayLabel: string
@@ -54,26 +59,38 @@ export function PreviewCard({
     context = target.roundName
   }
 
-  const best =
-    m.videos?.find((v) => v.kind === 'extended') ?? m.videos?.[0] ?? null
-  const watchable =
-    played && (target.kind === 'group' || knockoutReady(t, m as KnockoutMatch, progress.marks, progress.revealed))
+  const best = m.videos?.find((v) => v.kind === 'extended') ?? m.videos?.[0] ?? null
+  const kickoff = formatKickoffShort(m.kickoff)
 
-  const status = mark
-    ? m.score
-      ? `${m.score.home}–${m.score.away}`
-      : null
-    : !played
-      ? (formatKickoffPT(m.kickoff) ?? 'Upcoming')
-      : best
-        ? `${best.kind === 'extended' ? 'Extended' : 'Highlights'}${formatDuration(best.durationSeconds) ? ` · ${formatDuration(best.durationSeconds)}` : ''}`
-        : watchable
-          ? 'Result in'
-          : 'Locked'
+  const badge =
+    state === 'watch' || state === 'ft'
+      ? 'FT'
+      : state === 'upcoming'
+        ? (kickoff ? `${kickoff} PT` : 'Upcoming')
+        : state === 'locked'
+          ? 'Locked'
+          : null
+
+  const sub =
+    state === 'watch'
+      ? `Highlights${formatDuration(best?.durationSeconds) ? ` · ${formatDuration(best?.durationSeconds)}` : ''}`
+      : state === 'ft'
+        ? 'Result in · highlights soon'
+        : state === 'upcoming'
+          ? (kickoff ? `Kicks off ${kickoff} PT` : 'Not played yet')
+          : state === 'locked'
+            ? 'Finish the games that decide it'
+            : 'Watched'
 
   const pinned = progress.pins.has(m.id)
-  const homeId = target.kind === 'group' ? (m as GroupMatch).home : resolveSlot(t, m as KnockoutMatch, 'home', progress.marks, progress.revealed)
-  const awayId = target.kind === 'group' ? (m as GroupMatch).away : resolveSlot(t, m as KnockoutMatch, 'away', progress.marks, progress.revealed)
+  const homeId =
+    target.kind === 'group'
+      ? (m as GroupMatch).home
+      : resolveSlot(t, m as KnockoutMatch, 'home', progress.marks, progress.revealed)
+  const awayId =
+    target.kind === 'group'
+      ? (m as GroupMatch).away
+      : resolveSlot(t, m as KnockoutMatch, 'away', progress.marks, progress.revealed)
   const fav =
     progress.favAuto &&
     ((homeId !== null && progress.favorites.includes(homeId)) ||
@@ -82,27 +99,51 @@ export function PreviewCard({
   return (
     <button
       type="button"
-      className={`preview-card ${mark ? 'is-done' : ''} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
+      className={`preview-card state-${state} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
       onClick={() => onOpen(target)}
     >
       <div className="preview-media">
-        <span className="preview-flag">{homeFlag ?? '·'}</span>
-        <span className="preview-vs">vs</span>
-        <span className="preview-flag">{awayFlag ?? '·'}</span>
-        {!mark && watchable && best && (
-          <span className="preview-play" aria-hidden="true">
-            ▶
+        <span className="preview-tag">{context}</span>
+        {badge && <span className={`preview-badge badge-${state}`}>{badge}</span>}
+        {state === 'seen' && (
+          <span className="preview-badge badge-seen" aria-label="Watched">
+            ✓
           </span>
         )}
-        {mark && <span className="preview-check">✓</span>}
+        <div className="preview-matchup">
+          {homeFlag ? (
+            <span className="preview-flag">{homeFlag}</span>
+          ) : (
+            <span className="preview-flag preview-flag-tbd">?</span>
+          )}
+          {state === 'seen' && m.score ? (
+            <span className="preview-score">
+              {m.score.home}–{m.score.away}
+            </span>
+          ) : (
+            <span className="preview-vs">vs</span>
+          )}
+          {awayFlag ? (
+            <span className="preview-flag">{awayFlag}</span>
+          ) : (
+            <span className="preview-flag preview-flag-tbd">?</span>
+          )}
+        </div>
+        {state === 'watch' && (
+          <span className="preview-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M8 5.5v13l11-6.5z" />
+            </svg>
+          </span>
+        )}
       </div>
       <div className="preview-meta">
         <span className="preview-teams">
           {homeLabel} <span className="preview-vs-text">v</span> {awayLabel}
         </span>
         <span className="preview-sub">
-          {context} · {formatDate(entry.date)}
-          {status ? ` · ${status}` : ''}
+          {showDate ? `${formatDate(entry.date)} · ` : ''}
+          {sub}
         </span>
       </div>
     </button>

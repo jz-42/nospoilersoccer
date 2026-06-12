@@ -1,21 +1,31 @@
-/* Design tokens — dark, calm, broadcast-graphics inspired. */
+/*
+ * Design tokens — dark, calm, broadcast-graphics inspired.
+ *
+ * One saturated color (the green) and one meaning for it: "you can watch
+ * this". Everything else is a quiet slate ramp so state reads instantly.
+ */
 :root {
-  --bg: #0c0f14;
-  --bg-raised: #131820;
-  --panel: #151b24;
-  --panel-hover: #1a212c;
-  --border: #232c3a;
-  --border-strong: #2f3a4b;
-  --text: #aeb7c4;
-  --text-h: #f2f5f9;
-  --muted: #707d8f;
+  --bg: #0a0d12;
+  --bg-raised: #141a23;
+  --panel: #10151d;
+  --panel-hover: #18202b;
+  --border: rgba(154, 173, 203, 0.12);
+  --border-strong: rgba(154, 173, 203, 0.24);
+  --text: #a9b3c2;
+  --text-h: #f3f6fa;
+  --muted: #6e7b8f;
   --accent: #3ddc84;
   --accent-deep: #1d9d5a;
   --accent-soft: rgba(61, 220, 132, 0.12);
+  --accent-ink: #06281a;
+  --gold: #d9b65f;
+  --pink: #e786b3;
   --danger: #e5534b;
+  --radius-lg: 16px;
   --radius: 12px;
   --radius-sm: 8px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.25);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.22);
+  --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.55);
 
   --sans: 'Inter Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
 
@@ -35,6 +45,11 @@
 
 body {
   margin: 0;
+  background:
+    radial-gradient(1100px 500px at 16% -160px, rgba(61, 220, 132, 0.06), transparent 70%),
+    radial-gradient(900px 460px at 88% -180px, rgba(82, 140, 255, 0.05), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
 }
 
 #root {
@@ -47,8 +62,9 @@ h1,
 h2,
 h3,
 h4 {
-  font-weight: 600;
+  font-weight: 650;
   color: var(--text-h);
+  letter-spacing: -0.015em;
   margin: 0;
 }
 
@@ -60,7 +76,21 @@ button {
   font: inherit;
 }
 
+:focus-visible {
+  outline: 2px solid var(--accent-deep);
+  outline-offset: 2px;
+}
+
 ::selection {
   background: var(--accent-deep);
   color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

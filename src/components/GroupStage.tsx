@@ -1,55 +1,11 @@
-import type { Group, GroupMatch, Tournament } from '../data/types'
+import type { Group, Tournament } from '../data/types'
 import { groupStandings } from '../data/standings'
-import { groupComplete, isPlayed } from '../logic/spoilers'
+import { groupComplete } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
+import { MatchTile } from './MatchTile'
 import { Rail } from './Rail'
 import { formatDate } from './format'
-
-function MatchRow({
-  t,
-  m,
-  progress,
-  onOpen,
-}: {
-  t: Tournament
-  m: GroupMatch
-  progress: Progress
-  onOpen: (target: ModalTarget) => void
-}) {
-  const mark = progress.marks[m.id]
-  const home = t.teams[m.home]
-  const away = t.teams[m.away]
-  const played = isPlayed(m)
-  const homeWon = mark && m.score && m.score.home > m.score.away
-  const awayWon = mark && m.score && m.score.away > m.score.home
-  const pinned = progress.pins.has(m.id)
-  const fav =
-    progress.favAuto &&
-    (progress.favorites.includes(m.home) || progress.favorites.includes(m.away))
-
-  return (
-    <button
-      type="button"
-      className={`match-row ${mark ? 'is-marked' : ''} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
-      onClick={() => onOpen({ kind: 'group', match: m })}
-    >
-      <span className={`team team-home ${homeWon ? 'winner' : ''}`}>
-        {home.name} <span className="flag">{home.flag}</span>
-      </span>
-      <span
-        className={`match-chip ${
-          mark ? 'chip-score' : played ? (m.videos?.length ? 'chip-play' : 'chip-vs') : 'chip-future'
-        }`}
-      >
-        {mark && m.score ? `${m.score.home}–${m.score.away}` : played ? (m.videos?.length ? '▶' : 'vs') : '—'}
-      </span>
-      <span className={`team team-away ${awayWon ? 'winner' : ''}`}>
-        <span className="flag">{away.flag}</span> {away.name}
-      </span>
-    </button>
-  )
-}
 
 function Standings({ t, group, progress }: { t: Tournament; group: Group; progress: Progress }) {
   const live = groupStandings(t, group.id, (id) => progress.marks[id] !== undefined)
@@ -118,7 +74,7 @@ function GroupCard({
             {matches
               .filter((m) => m.date === date)
               .map((m) => (
-                <MatchRow key={m.id} t={t} m={m} progress={progress} onOpen={onOpen} />
+                <MatchTile key={m.id} t={t} m={m} progress={progress} onOpen={onOpen} />
               ))}
           </div>
         ))}
