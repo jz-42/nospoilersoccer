@@ -155,7 +155,7 @@ export const wc2022: Tournament = {
           homeTeam: 'JPN', awayTeam: 'CRO', score: { home: 1, away: 1 },
           afterExtraTime: true, penalties: { home: 1, away: 3 },
           goals: [{ team: 'JPN', player: "Daizen Maeda", minute: "43'" }, { team: 'CRO', player: "Ivan Perisic", minute: "55'" }],
-          videos: [{ youtubeId: 'HfYqhGEmMpo', kind: 'normal', durationSeconds: 300 }],
+          videos: [{ youtubeId: 'bO989n_xSqo', kind: 'extended', durationSeconds: 772 }, { youtubeId: 'HfYqhGEmMpo', kind: 'normal', durationSeconds: 300 }],
         },
         {
           id: 'm54', date: '2022-12-05', kickoff: '2022-12-05T19:00Z',
@@ -177,7 +177,7 @@ export const wc2022: Tournament = {
           home: { type: 'group-rank', group: 'H', rank: 1 }, away: { type: 'group-rank', group: 'G', rank: 2 },
           homeTeam: 'POR', awayTeam: 'SUI', score: { home: 6, away: 1 },
           goals: [{ team: 'POR', player: "Gonçalo Ramos", minute: "17'" }, { team: 'POR', player: "Pepe", minute: "33'" }, { team: 'POR', player: "Gonçalo Ramos", minute: "51'" }, { team: 'POR', player: "Raphaël Guerreiro", minute: "55'" }, { team: 'SUI', player: "Manuel Akanji", minute: "58'" }, { team: 'POR', player: "Gonçalo Ramos", minute: "67'" }, { team: 'POR', player: "Rafael Leão", minute: "90'+2'" }],
-          videos: [{ youtubeId: 'QYROE3BcHVg', kind: 'normal', durationSeconds: 295 }],
+          videos: [{ youtubeId: 'qqtHAn1C7UE', kind: 'extended', durationSeconds: 828 }, { youtubeId: 'QYROE3BcHVg', kind: 'normal', durationSeconds: 295 }],
         },
       ],
     },
@@ -206,7 +206,7 @@ export const wc2022: Tournament = {
           home: { type: 'match-winner', match: 'm55' }, away: { type: 'match-winner', match: 'm56' },
           homeTeam: 'MAR', awayTeam: 'POR', score: { home: 1, away: 0 },
           goals: [{ team: 'MAR', player: "Youssef En-Nesyri", minute: "42'" }],
-          videos: [{ youtubeId: 'op4mGRTAlEY', kind: 'normal', durationSeconds: 300 }],
+          videos: [{ youtubeId: 'MNgdyHr26Ec', kind: 'extended', durationSeconds: 817 }, { youtubeId: 'op4mGRTAlEY', kind: 'normal', durationSeconds: 300 }],
         },
         {
           id: 'm60', date: '2022-12-10', kickoff: '2022-12-10T19:00Z',
