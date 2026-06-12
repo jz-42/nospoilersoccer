@@ -96,7 +96,7 @@ export const wc2026: Tournament = {
 
   groupMatches: [
     // Group A
-    { id: 'A1', group: 'A', matchday: 1, date: '2026-06-11', kickoff: '2026-06-11T19:00Z', home: 'MEX', away: 'RSA' },
+    { id: 'A1', group: 'A', matchday: 1, date: '2026-06-11', kickoff: '2026-06-11T19:00Z', home: 'MEX', away: 'RSA', score: { home: 2, away: 0 }, goals: [{ team: 'MEX', player: "Julián Quiñones", minute: "9'" }, { team: 'MEX', player: "Raúl Jiménez", minute: "67'" }] },
     { id: 'A2', group: 'A', matchday: 1, date: '2026-06-11', kickoff: '2026-06-12T02:00Z', home: 'KOR', away: 'CZE' },
     { id: 'A3', group: 'A', matchday: 2, date: '2026-06-18', kickoff: '2026-06-18T16:00Z', home: 'CZE', away: 'RSA' },
     { id: 'A4', group: 'A', matchday: 2, date: '2026-06-18', kickoff: '2026-06-19T01:00Z', home: 'MEX', away: 'KOR' },
