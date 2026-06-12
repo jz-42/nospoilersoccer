@@ -41,6 +41,31 @@ export function validateTournament(t: Tournament): string[] {
     }
   }
 
+  /*
+   * `date` must agree with `kickoff`. We pick the timezone that *any* match
+   * in the tournament uses (the one that makes the date/kickoff prefix match)
+   * and require every other match to use the same one — so a single typo
+   * like "06-12 19:00Z but date 06-12" (when PT day is 06-13) is rejected
+   * before the data ever ships. The check works for both 2022 (UTC-aligned,
+   * Qatar) and 2026 (PT-aligned, US/MEX/CAN) without per-tournament config.
+   */
+  const datedMatches = [
+    ...t.groupMatches,
+    ...t.knockoutRounds.flatMap((r) => r.matches),
+  ].filter((m): m is typeof m & { kickoff: string } => Boolean(m.kickoff))
+  const tzFor = (iso: string, tz: string) =>
+    new Date(iso).toLocaleDateString('en-CA', { timeZone: tz })
+  const candidates = ['UTC', 'America/Los_Angeles', 'America/New_York']
+  const consistentTz = candidates.find((tz) =>
+    datedMatches.every((m) => tzFor(m.kickoff, tz) === m.date),
+  )
+  if (!consistentTz && datedMatches.length > 0) {
+    for (const m of datedMatches) {
+      const offending = candidates.every((tz) => tzFor(m.kickoff, tz) !== m.date)
+      if (offending) err(`match ${m.id}: date=${m.date} disagrees with kickoff ${m.kickoff} in every timezone we check`)
+    }
+  }
+
   // Goal lists must reconcile with scores.
   const checkGoals = (
     m: { id: string; score?: { home: number; away: number }; goals?: { team: string }[] },
