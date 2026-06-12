@@ -16,7 +16,7 @@ import { tournaments } from '../src/data'
 import { groupStandings } from '../src/data/standings'
 import { matchLoser, matchWinner } from '../src/data/types'
 import type { Goal, KnockoutMatch, SlotRef, TeamId, Tournament } from '../src/data/types'
-import { dateRange, fetchDay, parseEvent } from './espn'
+import { fetchDay, parseEvent } from './espn'
 import type { ParsedEvent } from './espn'
 
 const FILE = 'src/data/wc2026.ts'

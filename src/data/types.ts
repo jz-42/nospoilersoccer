@@ -36,6 +36,19 @@ export interface Score {
   away: number
 }
 
+/**
+ * Pre-match win probabilities (0..1), snapshotted at curation time from a
+ * prediction market — never fetched live, so a resolved market can't leak a
+ * result to someone catching up days later.
+ */
+export interface MatchOdds {
+  home: number
+  draw?: number
+  away: number
+  /** Credit/source link, e.g. the Polymarket event page. */
+  url: string
+}
+
 /** One goal. `team` is the side credited (own goals count for the opponent). */
 export interface Goal {
   team: TeamId
@@ -59,6 +72,7 @@ export interface GroupMatch {
   /** Absent while the match hasn't been played yet (live tournaments). */
   score?: Score
   goals?: Goal[]
+  odds?: MatchOdds
   videos?: HighlightVideo[]
 }
 
@@ -93,6 +107,7 @@ export interface KnockoutMatch {
   /** Result after 90' (or 120' when afterExtraTime is set). Absent = unplayed. */
   score?: Score
   goals?: Goal[]
+  odds?: MatchOdds
   afterExtraTime?: boolean
   penalties?: Score
   videos?: HighlightVideo[]
