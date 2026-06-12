@@ -150,11 +150,20 @@ function KnockoutCard({
   const ready = knockoutReady(t, m, progress.marks, progress.revealed)
   const locked = !ready && !mark
   const state = mark ? 'done' : ready ? (isPlayed(m) ? 'ready' : 'future') : 'locked'
+  const pinned = progress.pins.has(m.id)
+  const homeR = resolveSlot(t, m, 'home', progress.marks, progress.revealed)
+  const awayR = resolveSlot(t, m, 'away', progress.marks, progress.revealed)
+  const fav =
+    progress.favAuto &&
+    ((homeR !== null && progress.favorites.includes(homeR)) ||
+      (awayR !== null && progress.favorites.includes(awayR)))
 
   return (
     <button
       type="button"
-      className={`ko-card ko-${state} ${champion ? 'ko-champ' : ''}`}
+      className={`ko-card ko-${state} ${champion ? 'ko-champ' : ''} ${
+        pinned ? 'is-pinned' : fav ? 'is-fav' : ''
+      }`}
       onClick={() => onOpen({ kind: 'knockout', match: m, roundName })}
     >
       <div className="ko-meta">

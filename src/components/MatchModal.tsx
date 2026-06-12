@@ -101,6 +101,15 @@ export function MatchModal({
         <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>
           ✕
         </button>
+        <button
+          type="button"
+          className={`modal-pin ${progress.pins.has(m.id) ? 'pinned' : ''}`}
+          aria-label={progress.pins.has(m.id) ? 'Unpin this match' : 'Pin this match'}
+          title={progress.pins.has(m.id) ? 'Unpin this match' : 'Pin this match'}
+          onClick={() => progress.togglePin(m.id)}
+        >
+          {progress.pins.has(m.id) ? '★' : '☆'}
+        </button>
 
         <div className="modal-context">
           <span className="modal-context-strong">{context}</span>
