@@ -1,16 +1,11 @@
 import type { KnockoutMatch, SlotRef, Tournament } from '../data/types'
 import { matchWinner } from '../data/types'
-import {
-  isPlayed,
-  knockoutReady,
-  resolveSlot,
-  slotLabel,
-  slotUnlocked,
-} from '../logic/spoilers'
+import { resolveSlot, slotLabel, slotUnlocked } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
 import type { ModalTarget } from './MatchModal'
-import { formatDate } from './format'
+import { matchState } from './status'
+import { formatDate, formatKickoffShort } from './format'
 
 /**
  * World-cup bracket layout: two halves feeding inward to the final at the
@@ -146,10 +141,7 @@ function KnockoutCard({
   onOpen: (target: ModalTarget) => void
   champion?: boolean
 }) {
-  const mark = progress.marks[m.id]
-  const ready = knockoutReady(t, m, progress.marks, progress.revealed)
-  const locked = !ready && !mark
-  const state = mark ? 'done' : ready ? (isPlayed(m) ? 'ready' : 'future') : 'locked'
+  const state = matchState(t, { kind: 'knockout', match: m, roundName }, progress)
   const pinned = progress.pins.has(m.id)
   const homeR = resolveSlot(t, m, 'home', progress.marks, progress.revealed)
   const awayR = resolveSlot(t, m, 'away', progress.marks, progress.revealed)
@@ -158,19 +150,39 @@ function KnockoutCard({
     ((homeR !== null && progress.favorites.includes(homeR)) ||
       (awayR !== null && progress.favorites.includes(awayR)))
 
+  const status =
+    state === 'watch' ? (
+      <span className="ko-pill pill-watch">
+        <svg viewBox="0 0 24 24" width="8" height="8" fill="currentColor" aria-hidden="true">
+          <path d="M8 5.5v13l11-6.5z" />
+        </svg>
+        Watch
+      </span>
+    ) : state === 'ft' ? (
+      <span className="ko-pill pill-ft">FT</span>
+    ) : state === 'seen' ? (
+      <span className="ko-pill pill-seen">✓</span>
+    ) : state === 'locked' ? (
+      <span className="ko-pill pill-locked" title="Finish the games that decide this matchup">
+        <svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true">
+          <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 1 1 6 0v3H9z" />
+        </svg>
+      </span>
+    ) : (
+      <span className="ko-pill pill-upcoming">{formatKickoffShort(m.kickoff) ?? ''}</span>
+    )
+
   return (
     <button
       type="button"
-      className={`ko-card ko-${state} ${champion ? 'ko-champ' : ''} ${
+      className={`ko-card state-${state} ${champion ? 'ko-champ' : ''} ${
         pinned ? 'is-pinned' : fav ? 'is-fav' : ''
       }`}
       onClick={() => onOpen({ kind: 'knockout', match: m, roundName })}
     >
       <div className="ko-meta">
         <span>{formatDate(m.date)}</span>
-        {!mark && ready && (m.videos?.length ?? 0) > 0 && <span className="ko-play">▶</span>}
-        {locked && <span className="ko-lock">🔒</span>}
-        {mark && <span className="ko-check">✓</span>}
+        {status}
       </div>
       <SlotRow t={t} m={m} side="home" progress={progress} />
       <SlotRow t={t} m={m} side="away" progress={progress} />
