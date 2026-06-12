@@ -71,8 +71,20 @@ export function PreviewCard({
           ? 'Result in'
           : 'Locked'
 
+  const pinned = progress.pins.has(m.id)
+  const homeId = target.kind === 'group' ? (m as GroupMatch).home : resolveSlot(t, m as KnockoutMatch, 'home', progress.marks, progress.revealed)
+  const awayId = target.kind === 'group' ? (m as GroupMatch).away : resolveSlot(t, m as KnockoutMatch, 'away', progress.marks, progress.revealed)
+  const fav =
+    progress.favAuto &&
+    ((homeId !== null && progress.favorites.includes(homeId)) ||
+      (awayId !== null && progress.favorites.includes(awayId)))
+
   return (
-    <button type="button" className={`preview-card ${mark ? 'is-done' : ''}`} onClick={() => onOpen(target)}>
+    <button
+      type="button"
+      className={`preview-card ${mark ? 'is-done' : ''} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
+      onClick={() => onOpen(target)}
+    >
       <div className="preview-media">
         <span className="preview-flag">{homeFlag ?? '·'}</span>
         <span className="preview-vs">vs</span>

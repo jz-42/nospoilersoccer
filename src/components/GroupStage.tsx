@@ -23,11 +23,15 @@ function MatchRow({
   const played = isPlayed(m)
   const homeWon = mark && m.score && m.score.home > m.score.away
   const awayWon = mark && m.score && m.score.away > m.score.home
+  const pinned = progress.pins.has(m.id)
+  const fav =
+    progress.favAuto &&
+    (progress.favorites.includes(m.home) || progress.favorites.includes(m.away))
 
   return (
     <button
       type="button"
-      className={`match-row ${mark ? 'is-marked' : ''}`}
+      className={`match-row ${mark ? 'is-marked' : ''} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
       onClick={() => onOpen({ kind: 'group', match: m })}
     >
       <span className={`team team-home ${homeWon ? 'winner' : ''}`}>

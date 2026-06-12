@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import { Bracket } from './components/Bracket'
 import { ConfirmDialog, Onboarding } from './components/Dialogs'
+import { FavoritesPanel } from './components/FavoritesPanel'
 import { GroupStage } from './components/GroupStage'
 import { Logo } from './components/Logo'
 import { MatchModal } from './components/MatchModal'
@@ -105,6 +106,8 @@ function App() {
             <div className="app-progress-fill" style={{ width: `${(marked / total) * 100}%` }} />
           </div>
         </div>
+
+        <FavoritesPanel t={t} progress={progress} />
 
         <button
           type="button"
