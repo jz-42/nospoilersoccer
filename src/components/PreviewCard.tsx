@@ -1,9 +1,9 @@
 /**
  * Custom video-forward match card — our artwork, zero YouTube pixels.
  *
- * State reads at a glance: a green play button means "watch this now",
- * a small FT mark means the result is in, a quiet kickoff time means
- * "not played yet", and a score means "you've already seen it".
+ * The card is a state machine the eye can read before the brain does:
+ * a solid green FT badge + play button means "watch this now", a quiet
+ * kickoff time means "not played yet", a big score means "you've seen it".
  */
 import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
@@ -62,19 +62,25 @@ export function PreviewCard({
   const best = m.videos?.find((v) => v.kind === 'extended') ?? m.videos?.[0] ?? null
   const kickoff = formatKickoffShort(m.kickoff)
 
-  const status =
+  const badge =
+    state === 'watch' || state === 'ft'
+      ? 'FT'
+      : state === 'upcoming'
+        ? (kickoff ? `${kickoff} PT` : 'Upcoming')
+        : state === 'locked'
+          ? 'Locked'
+          : null
+
+  const sub =
     state === 'watch'
       ? `Highlights${formatDuration(best?.durationSeconds) ? ` · ${formatDuration(best?.durationSeconds)}` : ''}`
       : state === 'ft'
-        ? 'Result in'
+        ? 'Result in · highlights soon'
         : state === 'upcoming'
-          ? (kickoff ? `${kickoff} PT` : 'Upcoming')
+          ? (kickoff ? `Kicks off ${kickoff} PT` : 'Not played yet')
           : state === 'locked'
-            ? 'Locked'
+            ? 'Finish the games that decide it'
             : 'Watched'
-  const sub = [showDate ? formatDate(entry.date) : null, context, status]
-    .filter(Boolean)
-    .join(' · ')
 
   const pinned = progress.pins.has(m.id)
   const homeId =
@@ -97,9 +103,10 @@ export function PreviewCard({
       onClick={() => onOpen(target)}
     >
       <div className="preview-media">
-        {(state === 'watch' || state === 'ft') && <span className="preview-ft">FT</span>}
+        <span className="preview-tag">{context}</span>
+        {badge && <span className={`preview-badge badge-${state}`}>{badge}</span>}
         {state === 'seen' && (
-          <span className="preview-check" aria-label="Watched">
+          <span className="preview-badge badge-seen" aria-label="Watched">
             ✓
           </span>
         )}
@@ -124,7 +131,7 @@ export function PreviewCard({
         </div>
         {state === 'watch' && (
           <span className="preview-play" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
               <path d="M8 5.5v13l11-6.5z" />
             </svg>
           </span>
@@ -134,7 +141,10 @@ export function PreviewCard({
         <span className="preview-teams">
           {homeLabel} <span className="preview-vs-text">v</span> {awayLabel}
         </span>
-        <span className="preview-sub">{sub}</span>
+        <span className="preview-sub">
+          {showDate ? `${formatDate(entry.date)} · ` : ''}
+          {sub}
+        </span>
       </div>
     </button>
   )

@@ -56,17 +56,17 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal dialog onboarding" onClick={(e) => e.stopPropagation()}>
         <div className="onboarding-logo">
-          <Logo size={36} />
+          <Logo size={44} />
         </div>
-        <h3 className="dialog-title">Catch up without spoilers</h3>
-        <p className="dialog-body">
-          Scores stay hidden until you reveal them. Open any match to watch the
-          highlights first — the bracket fills in as you go.
-        </p>
+        <h3 className="dialog-title">Catch up. No spoilers.</h3>
+        <ul className="onboarding-list">
+          <li>Every score stays hidden until you reveal it.</li>
+          <li>Tap a match to watch its highlights, then reveal the result — winners move on through the bracket.</li>
+          <li>Progress saves in this browser. No account.</li>
+        </ul>
         <button type="button" className="btn-primary" onClick={onClose}>
-          Got it
+          Let's go
         </button>
-        <p className="dialog-footnote">Progress saves in this browser. No account.</p>
       </div>
     </div>
   )
