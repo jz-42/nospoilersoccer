@@ -531,6 +531,14 @@
   background: var(--bg-raised);
 }
 
+.match-row.is-marked .match-chip::after {
+  content: '✓';
+  margin-left: 5px;
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 700;
+}
+
 /* ============ bracket ============ */
 
 .bracket {
@@ -610,7 +618,7 @@
   padding: 6px 0;
 }
 
-/* connector lines */
+/* connector lines — state-aware: marked games "flow" green toward the final */
 .side-left .b-slot.has-out::after,
 .b-center .b-slot.has-in-right::after {
   content: '';
@@ -620,6 +628,7 @@
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
+  transition: background 0.35s ease;
 }
 
 .b-center .b-slot.has-in-left::before {
@@ -630,6 +639,7 @@
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
+  transition: background 0.35s ease;
 }
 
 .side-left .b-slot.has-in::before {
@@ -640,16 +650,27 @@
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
+  transition: background 0.35s ease;
 }
 
+/* pair verticals, split per feeder so each half can flow independently */
+.side-left .b-pair::before,
 .side-left .b-pair::after {
   content: '';
   position: absolute;
   right: calc(-1 * var(--bgap));
-  top: 25%;
-  height: 50%;
   width: 2px;
+  height: calc(25% + 1px);
   background: var(--border-strong);
+  transition: background 0.35s ease;
+}
+
+.side-left .b-pair::before {
+  top: 25%;
+}
+
+.side-left .b-pair::after {
+  top: 50%;
 }
 
 .side-right .b-slot.has-out::after {
@@ -660,6 +681,7 @@
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
+  transition: background 0.35s ease;
 }
 
 .side-right .b-slot.has-in::before {
@@ -670,16 +692,103 @@
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
+  transition: background 0.35s ease;
 }
 
+.side-right .b-pair::before,
 .side-right .b-pair::after {
   content: '';
   position: absolute;
   left: calc(-1 * var(--bgap));
-  top: 25%;
-  height: 50%;
   width: 2px;
+  height: calc(25% + 1px);
   background: var(--border-strong);
+  transition: background 0.35s ease;
+}
+
+.side-right .b-pair::before {
+  top: 25%;
+}
+
+.side-right .b-pair::after {
+  top: 50%;
+}
+
+/* the green flow */
+.b-slot.flow-out::after,
+.b-slot.flow-in::before,
+.b-center .b-slot.flow-in-left::before,
+.b-center .b-slot.flow-in-right::after,
+.b-pair.flow-top::before,
+.b-pair.flow-bottom::after {
+  background: var(--accent-deep);
+}
+
+.b-pair-feeds::before,
+.b-pair-feeds::after {
+  display: none;
+}
+
+/* group-origin chips feeding the outermost round */
+.b-col-feeds {
+  flex: 0 0 52px;
+  min-width: 52px;
+  padding: 0 4px;
+}
+
+.feed-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+}
+
+.side-left .feed-chips {
+  align-items: flex-end;
+}
+
+.side-right .feed-chips {
+  align-items: flex-start;
+}
+
+.feed-chip {
+  position: relative;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 7px;
+  transition: color 0.3s, border-color 0.3s;
+}
+
+.feed-chip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 2px;
+  background: var(--border-strong);
+  transition: background 0.35s ease;
+}
+
+.side-left .feed-chip::after {
+  right: -10px;
+}
+
+.side-right .feed-chip::after {
+  left: -10px;
+}
+
+.feed-chip.flow {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent-deep) 55%, var(--border));
+}
+
+.feed-chip.flow::after {
+  background: var(--accent-deep);
 }
 
 /* knockout cards */
@@ -780,6 +889,66 @@
 .b-center .b-final .ko-card {
   border-color: var(--border-strong);
   background: var(--bg-raised);
+}
+
+.ko-card.ko-champ {
+  border-color: rgba(199, 154, 61, 0.65);
+  box-shadow: 0 0 0 1px rgba(199, 154, 61, 0.25), 0 0 26px rgba(199, 154, 61, 0.14);
+}
+
+/* champion celebration above the final */
+.b-champ {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  animation: champ-in 0.7s cubic-bezier(0.2, 1, 0.4, 1);
+}
+
+@keyframes champ-in {
+  from {
+    transform: translateY(12px) scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.champion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.champion-art {
+  filter: drop-shadow(0 0 18px rgba(199, 154, 61, 0.3));
+  margin-bottom: 4px;
+}
+
+.champion-flag {
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.champion-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: -0.2px;
+}
+
+.champion-label {
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #d9b65f;
 }
 
 /* Pinned to the bottom of the center column so the final stays vertically
