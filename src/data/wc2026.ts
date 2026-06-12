@@ -104,7 +104,7 @@ export const wc2026: Tournament = {
     { id: 'A6', group: 'A', matchday: 3, date: '2026-06-24', kickoff: '2026-06-25T01:00Z', home: 'RSA', away: 'KOR' },
     // Group B
     { id: 'B1', group: 'B', matchday: 1, date: '2026-06-12', kickoff: '2026-06-12T19:00Z', home: 'CAN', away: 'BIH', odds: { home: 0.525, draw: 0.265, away: 0.215, url: 'https://polymarket.com/event/fifwc-can-bih-2026-06-12' } },
-    { id: 'B2', group: 'B', matchday: 1, date: '2026-06-12', kickoff: '2026-06-13T19:00Z', home: 'QAT', away: 'SUI' },
+    { id: 'B2', group: 'B', matchday: 1, date: '2026-06-13', kickoff: '2026-06-13T19:00Z', home: 'QAT', away: 'SUI' },
     { id: 'B3', group: 'B', matchday: 2, date: '2026-06-18', kickoff: '2026-06-18T19:00Z', home: 'SUI', away: 'BIH' },
     { id: 'B4', group: 'B', matchday: 2, date: '2026-06-18', kickoff: '2026-06-18T22:00Z', home: 'CAN', away: 'QAT', odds: { home: 0.745, draw: 0.175, away: 0.085, url: 'https://polymarket.com/event/fifwc-can-qat-2026-06-18' } },
     { id: 'B5', group: 'B', matchday: 3, date: '2026-06-24', kickoff: '2026-06-24T19:00Z', home: 'SUI', away: 'CAN' },
