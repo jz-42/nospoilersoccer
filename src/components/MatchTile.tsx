@@ -1,8 +1,7 @@
 /**
- * Compact video-row tile for a group match — a miniature of the preview
- * card so every game in the grid reads as "a thing you can click and watch".
- * The right-hand pill carries the state: Watch (green), FT, kickoff time,
- * or the revealed score.
+ * Compact row tile for a group match. The right-hand pill carries the
+ * state — Watch (green), FT, kickoff time, or the revealed score — so
+ * "can I watch this?" is answerable without clicking.
  */
 import type { GroupMatch, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
@@ -57,16 +56,9 @@ export function MatchTile({
       className={`tile state-${state} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
       onClick={() => onOpen({ kind: 'group', match: m })}
     >
-      <span className="tile-thumb" aria-hidden="true">
-        <span className="tile-thumb-flag">{home.flag}</span>
-        <span className="tile-thumb-flag">{away.flag}</span>
-        {state === 'watch' && (
-          <span className="tile-thumb-play">
-            <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor">
-              <path d="M8 5.5v13l11-6.5z" />
-            </svg>
-          </span>
-        )}
+      <span className="tile-flags" aria-hidden="true">
+        <span>{home.flag}</span>
+        <span>{away.flag}</span>
       </span>
       <span className="tile-teams">
         <span className={`tile-team ${homeWon ? 'won' : ''}`}>{home.name}</span>
