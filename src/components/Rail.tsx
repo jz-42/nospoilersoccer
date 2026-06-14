@@ -29,7 +29,14 @@ function allEntries(t: Tournament): RailEntry[] {
       out.push({ target: { kind: 'knockout', match: m, roundName: round.name }, date: m.date })
     }
   }
-  return out.sort((a, b) => a.date.localeCompare(b.date))
+  // Chronological: by local match date, then by kickoff instant within the day
+  // (kickoffs are UTC "…Z", so a lexical compare is a time compare). Group-array
+  // order isn't kickoff order, so a day's cards must be re-sorted here.
+  return out.sort(
+    (a, b) =>
+      a.date.localeCompare(b.date) ||
+      (a.target.match.kickoff ?? a.date).localeCompare(b.target.match.kickoff ?? b.date),
+  )
 }
 
 function localISODate(offsetDays = 0): string {
