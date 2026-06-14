@@ -4,7 +4,6 @@ import { groupComplete } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
 import { MatchTile } from './MatchTile'
-import { Rail } from './Rail'
 import { formatDate } from './format'
 
 function Standings({ t, group, progress }: { t: Tournament; group: Group; progress: Progress }) {
@@ -93,13 +92,10 @@ export function GroupStage({
   onOpen: (target: ModalTarget) => void
 }) {
   return (
-    <>
-      <Rail t={t} progress={progress} onOpen={onOpen} />
-      <div className="group-grid">
-        {t.groups.map((g) => (
-          <GroupCard key={g.id} t={t} group={g} progress={progress} onOpen={onOpen} />
-        ))}
-      </div>
-    </>
+    <div className="group-grid">
+      {t.groups.map((g) => (
+        <GroupCard key={g.id} t={t} group={g} progress={progress} onOpen={onOpen} />
+      ))}
+    </div>
   )
 }

@@ -68,8 +68,8 @@ function loadYouTubeApi(): Promise<YTNamespace> {
 const END_GUARD_SECONDS = 9
 
 const KIND_LABEL: Record<HighlightVideo['kind'], string> = {
-  normal: 'Brief',
-  extended: 'Extended',
+  normal: 'Quick highlights',
+  extended: 'Extended highlights',
 }
 
 export function HighlightPlayer({
@@ -175,7 +175,7 @@ export function HighlightPlayer({
           key={v.youtubeId}
           type="button"
           className={`kind-chip ${selected.youtubeId === v.youtubeId ? 'active' : ''}`}
-          onClick={() => (active ? play(v) : setSelected(v))}
+          onClick={() => play(v)}
         >
           {KIND_LABEL[v.kind]}
           {formatDuration(v.durationSeconds) && (
@@ -187,18 +187,36 @@ export function HighlightPlayer({
   )
 
   if (!active) {
+    // Each highlight cut is its own poster — extended first, then the quick
+    // cut — so choosing what to watch is one tap, no hidden toggle.
+    const order: Record<HighlightVideo['kind'], number> = { extended: 0, normal: 1 }
+    const posters = [...videos].sort((a, b) => order[a.kind] - order[b.kind])
     return (
       <div className="player-block">
-        <button type="button" className="player-poster" onClick={() => play(selected)}>
-          <span className="poster-play">▶</span>
-          <span className="poster-label">
-            Watch {KIND_LABEL[selected.kind].toLowerCase()} highlights
-            {formatDuration(selected.durationSeconds) && (
-              <span className="poster-time"> · {formatDuration(selected.durationSeconds)}</span>
-            )}
-          </span>
-        </button>
-        {kindToggle}
+        <div className="poster-list">
+          {posters.map((v) => {
+            const dur = formatDuration(v.durationSeconds)
+            return (
+              <button
+                key={v.youtubeId}
+                type="button"
+                className="player-poster"
+                onClick={() => play(v)}
+              >
+                <span className="poster-play" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M8.3 5.5v13l11-6.5z" />
+                  </svg>
+                </span>
+                <span className="poster-label">
+                  {KIND_LABEL[v.kind]}
+                  {dur && <span className="poster-time"> · {dur}</span>}
+                </span>
+                {v.community && <span className="poster-note">Community upload</span>}
+              </button>
+            )
+          })}
+        </div>
       </div>
     )
   }
