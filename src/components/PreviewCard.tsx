@@ -11,7 +11,7 @@ import { resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
 import { matchState } from './status'
-import { formatDate, formatDuration, formatKickoffShort } from './format'
+import { formatDate, formatRuntimeBadge, formatKickoffShort } from './format'
 
 export interface RailEntry {
   target: ModalTarget
@@ -59,7 +59,6 @@ export function PreviewCard({
     context = target.roundName
   }
 
-  const best = m.videos?.find((v) => v.kind === 'extended') ?? m.videos?.[0] ?? null
   const kickoff = formatKickoffShort(m.kickoff)
 
   const badge =
@@ -71,7 +70,7 @@ export function PreviewCard({
           ? 'Locked'
           : null
 
-  const bestDuration = formatDuration(best?.durationSeconds)
+  const runtimeBadge = formatRuntimeBadge(m.videos)
 
   const sub =
     state === 'watch'
@@ -138,8 +137,8 @@ export function PreviewCard({
             </svg>
           </span>
         )}
-        {state === 'watch' && bestDuration && (
-          <span className="preview-duration">{bestDuration}</span>
+        {state === 'watch' && runtimeBadge && (
+          <span className="preview-duration">{runtimeBadge}</span>
         )}
       </div>
       <div className="preview-meta">
