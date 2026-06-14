@@ -7,11 +7,12 @@ import { GroupStage } from './components/GroupStage'
 import { Logo } from './components/Logo'
 import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
+import { Rail } from './components/Rail'
 import { defaultTournamentId, tournaments } from './data'
 import { totalMatches } from './logic/spoilers'
 import { useProgress } from './state/progress'
 
-type Tab = 'groups' | 'bracket'
+type Tab = 'day' | 'groups' | 'bracket'
 
 const TOURNAMENT_KEY = 'nss-tournament'
 const ONBOARDED_KEY = 'nss-onboarded'
@@ -27,7 +28,7 @@ function App() {
   })
   const t = tournaments[tournamentId]
   const progress = useProgress(t)
-  const [tab, setTab] = useState<Tab>('groups')
+  const [tab, setTab] = useState<Tab>('day')
   const [modal, setModal] = useState<ModalTarget | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
@@ -65,7 +66,7 @@ function App() {
       <header className="app-header">
         <div className="app-brand">
           <Logo size={26} />
-          <span className="app-name">No-Spoiler Soccer</span>
+          <span className="app-name">No Spoiler Soccer</span>
           <nav className="seg seg-mini" aria-label="Tournament">
             {Object.values(tournaments).map((tt) => (
               <button
@@ -81,6 +82,13 @@ function App() {
         </div>
 
         <nav className="seg" aria-label="View">
+          <button
+            type="button"
+            className={`seg-btn ${tab === 'day' ? 'active' : ''}`}
+            onClick={() => setTab('day')}
+          >
+            Today
+          </button>
           <button
             type="button"
             className={`seg-btn ${tab === 'groups' ? 'active' : ''}`}
@@ -121,15 +129,26 @@ function App() {
       </header>
 
       <main className={`app-main ${tab === 'bracket' ? 'app-main-wide' : ''}`}>
-        {tab === 'groups' ? (
-          <GroupStage t={t} progress={progress} onOpen={setModal} />
-        ) : (
-          <Bracket t={t} progress={progress} onOpen={setModal} />
-        )}
+        {tab === 'day' && <Rail t={t} progress={progress} onOpen={setModal} />}
+        {tab === 'groups' && <GroupStage t={t} progress={progress} onOpen={setModal} />}
+        {tab === 'bracket' && <Bracket t={t} progress={progress} onOpen={setModal} />}
       </main>
 
       <footer className="app-footer">
-        <span className="app-footer-note">Progress is saved in this browser only — no account, no tracking.</span>
+        {tab === 'bracket' && (
+          <div className="ko-legend" aria-hidden="true">
+            <span className="lg-head">Key</span>
+            <span className="lg-row">
+              <i className="lg-dot lg-green" />
+              through
+            </span>
+            <span className="lg-row">
+              <i className="lg-dot lg-gold" />
+              maybe
+            </span>
+            <span className="lg-tip">click a name to keep its path on</span>
+          </div>
+        )}
         <button type="button" className="btn-ghost btn-danger btn-small" onClick={() => setConfirmReset(true)}>
           Reset progress
         </button>

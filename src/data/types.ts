@@ -29,6 +29,12 @@ export interface HighlightVideo {
   kind: VideoKind
   /** Shown on the match card so viewers can pick a length. */
   durationSeconds?: number
+  /**
+   * Fan/community upload rather than an official broadcaster cut. Some 2022
+   * extended highlights only exist as community re-uploads; these are surfaced
+   * with a small disclaimer in the player.
+   */
+  community?: boolean
 }
 
 export interface Score {

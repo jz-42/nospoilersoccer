@@ -151,7 +151,7 @@
 
 .app-main-wide {
   max-width: none;
-  padding: 26px 20px 40px;
+  padding: 26px 12px 40px;
 }
 
 /* ============ buttons ============ */
@@ -237,15 +237,16 @@
 }
 
 .pill-watch {
-  background: linear-gradient(180deg, #36d07f, #21ab64);
-  color: var(--accent-ink);
-  box-shadow: 0 1px 6px rgba(61, 220, 132, 0.35);
+  background: #f4f7f6;
+  color: #0b1016;
 }
 
 .pill-ft {
-  color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent-deep) 60%, transparent);
-  background: var(--accent-soft);
+  color: var(--text-h);
+  font-weight: 750;
+  background: var(--bg-raised);
+  border: 1px solid var(--border-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .pill-upcoming {
@@ -276,6 +277,15 @@
   margin-bottom: 30px;
 }
 
+/* Reserved row above the carousel — keeps the "jump" pill from shifting the
+   layout when it appears, and clear of the chevrons. */
+.day-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 28px;
+}
+
 .day-head {
   display: flex;
   align-items: flex-end;
@@ -297,70 +307,166 @@
   color: var(--muted);
 }
 
-.day-tabs {
+/* centered day carousel — stays narrow even as the grid below goes full-width */
+.day-carousel {
   display: flex;
-  gap: 2px;
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 3px;
+  align-items: center;
+  gap: 6px;
+  max-width: 680px;
+  margin: 0 auto 26px;
 }
 
-.day-tab {
+.day-carousel-window {
+  position: relative;
+  flex: 1;
+  height: 58px;
+  overflow: hidden;
+  /* fade the edges so off-centre days dissolve rather than hard-clip */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+}
+
+.day-track {
+  --day-item-w: 190px;
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  transition: transform 0.38s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.day-item {
+  flex: 0 0 var(--day-item-w);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
-  min-width: 92px;
+  gap: 2px;
   border: none;
   background: transparent;
   color: var(--muted);
-  padding: 6px 14px;
-  border-radius: 9px;
+  padding: 4px 8px;
   cursor: pointer;
-  transition: color 0.15s, background 0.15s;
+  transition: opacity 0.38s, color 0.2s;
 }
 
-.day-tab:hover {
-  color: var(--text-h);
-}
-
-.day-tab.active {
-  background: var(--panel-hover);
-  color: var(--text-h);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
-.day-tab-label {
+.day-item-label {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12.5px;
-  font-weight: 620;
+  gap: 6px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  white-space: nowrap;
+  transition: font-size 0.38s, color 0.2s;
+}
+
+.day-item-date {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.day-item[data-dist='0'] {
+  opacity: 1;
+  cursor: default;
+}
+.day-item[data-dist='0'] .day-item-label {
+  font-size: 23px;
+  color: var(--text-h);
+}
+.day-item[data-dist='1'] {
+  opacity: 0.5;
+}
+.day-item[data-dist='1'] .day-item-label {
+  font-size: 15px;
+}
+.day-item[data-dist='2'] {
+  opacity: 0.28;
+}
+.day-item[data-dist='2'] .day-item-label {
+  font-size: 14px;
+}
+.day-item[data-dist='3'] {
+  opacity: 0.14;
+}
+.day-item[data-dist='3'] .day-item-label {
+  font-size: 13px;
+}
+.day-item:not(.is-active):hover {
+  opacity: 0.9;
+  color: var(--text-h);
 }
 
 .day-tab-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 6px rgba(61, 220, 132, 0.8);
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
 }
 
-.day-tab-date {
-  font-size: 10.5px;
+.day-arrow {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-raised);
   color: var(--muted);
-  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.day-arrow:hover:not(:disabled) {
+  color: var(--text-h);
+  border-color: var(--border-strong);
+}
+.day-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
-.day-tab.active .day-tab-date {
-  color: var(--text);
+.day-jump-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--muted);
+  font-size: 11.5px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  /* nudge up so it sits centred in the gap between the header and the carousel,
+     without shifting the reserved-height toolbar (so the carousel stays put) */
+  transform: translateY(-12px);
+  transition: color 0.15s, border-color 0.15s;
+}
+.day-jump-btn::before {
+  content: '↩';
+  font-size: 12px;
+}
+.day-jump-btn:hover {
+  color: var(--accent);
+  border-color: var(--border-strong);
 }
 
+/* Column count + width come from useBalancedColumns (inline style) so rows
+   stay balanced for any match count; here we just centre the block and let
+   each card fill its pixel-sized column. */
 .day-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
-  gap: 14px;
+  justify-content: center;
+  gap: 16px;
+}
+.day-grid .preview-card {
+  width: 100%;
 }
 
 .day-empty {
@@ -397,14 +503,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), 0 14px 36px rgba(0, 0, 0, 0.35);
 }
 
-.preview-card.state-watch {
-  border-color: color-mix(in srgb, var(--accent-deep) 45%, var(--border));
-}
-
-.preview-card.state-watch:hover {
-  border-color: color-mix(in srgb, var(--accent-deep) 75%, var(--border));
-}
-
 .preview-card.state-seen {
   opacity: 0.62;
 }
@@ -425,9 +523,20 @@
   align-items: center;
   justify-content: center;
   background:
-    radial-gradient(ellipse 130% 95% at 50% -25%, rgba(61, 220, 132, 0.17), transparent 62%),
-    linear-gradient(168deg, #131e18, #0b1016);
+    radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.045), transparent 60%),
+    linear-gradient(168deg, #10181f, #090e13);
   border-bottom: 1px solid var(--border);
+}
+
+/* The one box you're meant to click. A watchable match gets a brighter
+   "screen is live" pitch plus a faint inner bezel highlight, so it reads as
+   inviting next to the dimmer "finished / not played yet" boxes — the picture
+   box does the distinguishing, not just the play button. */
+.preview-card.state-watch .preview-media {
+  background:
+    radial-gradient(ellipse 130% 100% at 50% -20%, rgba(255, 255, 255, 0.14), transparent 60%),
+    linear-gradient(168deg, #1b2530, #0e161d);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
 /* pitch markings: center line + center circle */
@@ -443,12 +552,12 @@
 .preview-matchup {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   z-index: 1;
 }
 
 .preview-flag {
-  font-size: 31px;
+  font-size: 42px;
   line-height: 1;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
 }
@@ -457,12 +566,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 1.5px dashed var(--border-strong);
   color: var(--muted);
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 600;
 }
 
@@ -479,7 +588,7 @@
 }
 
 .preview-score {
-  font-size: 24px;
+  font-size: 27px;
   font-weight: 750;
   color: var(--text-h);
   font-variant-numeric: tabular-nums;
@@ -516,11 +625,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Full-time chip — a glossy frosted badge on every finished match (result in
+   OR highlights ready) that stays put until you watch it and it becomes the ✓.
+   Neutral: green stays reserved for "watched". */
 .badge-watch,
 .badge-ft {
-  background: linear-gradient(180deg, #36d07f, #21ab64);
-  color: var(--accent-ink);
-  box-shadow: 0 1px 8px rgba(61, 220, 132, 0.4);
+  color: var(--text-h);
+  font-weight: 800;
+  background: rgba(20, 27, 34, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 8px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px) saturate(1.2);
 }
 
 .badge-upcoming {
@@ -553,18 +668,36 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #3bd784, #1fa463);
-  color: var(--accent-ink);
-  padding-left: 2px;
-  box-shadow: 0 4px 18px rgba(61, 220, 132, 0.4), 0 2px 8px rgba(0, 0, 0, 0.45);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  color: #fff;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   transition: transform 0.15s;
 }
 
 .preview-card:hover .preview-play {
   transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* YouTube-style runtime stamp — the highlight length, in the thumbnail. */
+.preview-duration {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  font-size: 10.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  padding: 1.5px 5px;
 }
 
 .preview-meta {
@@ -747,12 +880,12 @@
 }
 
 .tile.state-watch {
-  border-color: color-mix(in srgb, var(--accent-deep) 40%, var(--border));
-  background: rgba(61, 220, 132, 0.04);
+  border-color: var(--border-strong);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .tile.state-watch:hover {
-  border-color: color-mix(in srgb, var(--accent-deep) 70%, var(--border));
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .tile.state-upcoming {
@@ -791,8 +924,8 @@
   border-radius: 6px;
   border: 1px solid var(--border);
   background:
-    radial-gradient(ellipse 130% 100% at 50% -30%, rgba(61, 220, 132, 0.16), transparent 62%),
-    linear-gradient(168deg, #131e18, #0b1016);
+    radial-gradient(ellipse 130% 100% at 50% -30%, rgba(255, 255, 255, 0.06), transparent 62%),
+    linear-gradient(168deg, #141a21, #0b0f14);
   font-size: 12px;
   line-height: 1;
   overflow: hidden;
@@ -804,8 +937,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(6, 30, 19, 0.5);
-  color: var(--accent);
+  background: rgba(6, 10, 16, 0.5);
+  color: #fff;
 }
 
 .tile-teams {
@@ -833,27 +966,118 @@
 
 /* ============ bracket ============ */
 
+/* Knockout view: leaderboards flank the bracket (ko-main), the best-third
+   table sits below it (ko-thirds), and one scroll box (ko-board) holds them
+   plus the SVG flow overlay. ko-main is top-aligned so the tall flanks never
+   stretch the bracket — the bracket keeps its compact height and all R32
+   matches stay in view without scrolling down. */
+.ko-board {
+  position: relative;
+  width: 100%;
+}
+
+.ko-main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.ko-thirds {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  padding: 18px 0 6px;
+}
+
+.ko-thirds .feed-table {
+  width: 230px;
+}
+
+/* "Key" lives in the footer, stuck at the bottom-left (mirrors Reset at the
+   bottom-right) — margin-right:auto holds it on the left, Reset on the right */
+.ko-legend {
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 10.5px;
+  color: var(--muted);
+  text-align: left;
+}
+
+.ko-legend .lg-head {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-h);
+  margin-bottom: 1px;
+}
+
+.ko-legend .lg-row {
+  display: flex;
+  align-items: center;
+}
+
+.ko-legend .lg-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 7px;
+}
+
+.ko-legend .lg-green {
+  background: var(--accent);
+}
+
+.ko-legend .lg-gold {
+  background: var(--gold);
+}
+
+.ko-legend .lg-tip {
+  margin-top: 3px;
+  max-width: 134px;
+  opacity: 0.75;
+}
+
+/* the bracket flexes to fill the space between the two flanks, so the whole
+   knockout view fits the window with no inner scrollbar (only a very narrow
+   window falls back to the browser's own scroll) */
 .bracket {
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: stretch;
-  overflow-x: auto;
   padding: 8px 0 20px;
   min-height: 600px;
 }
 
+/* fallback layout (no computed bracket) scrolls on its own */
+.bracket-simple {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 .b-col {
   --bgap: 12px;
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   flex: 1 1 0;
-  min-width: 168px;
+  min-width: 120px;
   padding: 0 var(--bgap);
 }
 
-/* R32-deep brackets (9 columns) squeeze tighter to stay on one screen. */
+/* R32-deep brackets (9 columns) squeeze tighter to stay on one screen; the
+   floor is small enough to fit a wide window, names ellipsis when narrow. */
 .bracket-deep .b-col {
-  --bgap: 8px;
-  min-width: 142px;
+  --bgap: 7px;
+  min-width: 92px;
 }
 
 .bracket-deep .ko-card {
@@ -1026,66 +1250,238 @@
   display: none;
 }
 
-/* group-origin chips feeding the outermost round */
-.b-col-feeds {
-  flex: 0 0 52px;
-  min-width: 52px;
-  padding: 0 4px;
-}
-
-.feed-chips {
+/* live group leaderboards flanking the bracket, feeding R32 */
+.ko-flank {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  width: 100%;
+  justify-content: flex-start;
+  gap: 14px;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  padding: 26px 8px 20px;
 }
 
-.side-left .feed-chips {
-  align-items: flex-end;
+.feed-table {
+  width: 150px;
 }
 
-.side-right .feed-chips {
-  align-items: flex-start;
-}
-
-.feed-chip {
-  position: relative;
+.feed-table-name {
   font-size: 10px;
   font-weight: 650;
-  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--muted);
-  background: var(--bg-raised);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 2px 7px;
-  transition: color 0.3s, border-color 0.3s;
+  margin-bottom: 4px;
 }
 
-.feed-chip::after {
+.feed-table .standings {
+  margin-bottom: 0;
+  font-size: 11.5px;
+}
+
+.feed-table .standings td {
+  padding: 3px 6px;
+}
+
+.ko-flank .feed-table .standings .name {
+  max-width: 112px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.feed-table .pos.grp {
+  font-weight: 650;
+  color: var(--muted);
+}
+
+/* best-third cut-off line — only shown once your groups are all settled */
+.bt-cutoff td {
+  padding: 0;
+  height: 0;
+  border-top: 1px dashed color-mix(in srgb, var(--danger) 50%, var(--border));
+}
+
+.standings tr.eliminated td {
+  color: var(--muted);
+}
+
+.standings tr.eliminated td.name {
+  opacity: 0.55;
+}
+
+/* only the name cell is the hit target — hovering it lights the flow, clicking
+   it keeps the flow on; the rest of the row does nothing */
+.feed-table .standings .feed-hit {
+  cursor: pointer;
+}
+
+/* highlight mirrors the group-stage rows: a left accent bar plus a soft
+   left-to-right fade — a partial, uneven highlight, not a flat fill */
+.standings tr.feed-active {
+  background: linear-gradient(90deg, var(--accent-soft), transparent 70%);
+}
+.standings tr.feed-active td:first-child {
+  box-shadow: inset 2.5px 0 0 var(--accent);
+}
+.standings tr.feed-active td.name,
+.standings tr.feed-active td.pos {
+  color: var(--accent);
+}
+
+.standings tr.feed-active.feed-yellow {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 16%, transparent), transparent 70%);
+}
+.standings tr.feed-active.feed-yellow td:first-child {
+  box-shadow: inset 2.5px 0 0 var(--gold);
+}
+.standings tr.feed-active.feed-yellow td.name,
+.standings tr.feed-active.feed-yellow td.pos {
+  color: var(--gold);
+}
+
+.standings tr.feed-active.feed-red {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--danger) 16%, transparent), transparent 70%);
+}
+.standings tr.feed-active.feed-red td:first-child {
+  box-shadow: inset 2.5px 0 0 var(--danger);
+}
+.standings tr.feed-active.feed-red td.name,
+.standings tr.feed-active.feed-red td.pos {
+  color: var(--danger);
+}
+
+.standings tr.is-pinned td.pos {
+  font-weight: 700;
+}
+
+.ko-pin {
+  cursor: pointer;
+}
+
+/* knockout slot highlight: same left-bar + fade as the leaderboard rows */
+/* the accent bar sits in the card's left padding (via ::before) so it never
+   rides over the team text; the soft fade gives the partial-highlight look */
+.ko-row.feed-active {
+  position: relative;
+  background: linear-gradient(90deg, var(--accent-soft), transparent 72%);
+}
+.ko-row.feed-active::before {
   content: '';
   position: absolute;
-  top: 50%;
-  width: 9px;
-  height: 2px;
-  background: var(--border-strong);
-  transition: background 0.35s ease;
+  left: -8px;
+  top: 1px;
+  bottom: 1px;
+  width: 2.5px;
+  border-radius: 2px;
+  background: var(--accent);
 }
-
-.side-left .feed-chip::after {
-  right: -10px;
-}
-
-.side-right .feed-chip::after {
-  left: -10px;
-}
-
-.feed-chip.flow {
+.ko-row.feed-active .ko-team,
+.ko-row.feed-active .ko-placeholder {
   color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent-deep) 55%, var(--border));
+}
+.ko-row.feed-active.feed-yellow {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--gold) 15%, transparent), transparent 72%);
+}
+.ko-row.feed-active.feed-yellow::before {
+  background: var(--gold);
+}
+.ko-row.feed-active.feed-yellow .ko-team,
+.ko-row.feed-active.feed-yellow .ko-placeholder {
+  color: var(--gold);
+}
+.ko-row.feed-active.feed-red {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--danger) 15%, transparent), transparent 72%);
+}
+.ko-row.feed-active.feed-red::before {
+  background: var(--danger);
+}
+.ko-row.feed-active.feed-red .ko-team,
+.ko-row.feed-active.feed-red .ko-placeholder {
+  color: var(--danger);
 }
 
-.feed-chip.flow::after {
-  background: var(--accent-deep);
+/* SVG flow lines, drawn behind the cards (see FlowLayer).
+   tone = meaning: green advancing, gold maybe, red eliminated, grey loser-path.
+   state = faint (always-on) / is-on (confirmed) / is-active (hover or pinned) */
+.flow-layer {
+  z-index: 0;
+}
+
+.flow-line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transition: stroke 0.2s ease, opacity 0.2s ease;
+}
+
+.flow-line.faint {
+  opacity: 0.44;
+  stroke-width: 1.5;
+}
+.flow-line.faint.tone-green {
+  stroke: var(--muted);
+}
+.flow-line.faint.tone-yellow {
+  stroke: var(--gold);
+  opacity: 0.32;
+}
+.flow-line.faint.tone-red {
+  stroke: var(--danger);
+  opacity: 0.5;
+}
+/* the third-place feed stays a touch quieter than the rest, but clearly there */
+.flow-line.faint.tone-grey {
+  stroke: var(--border-strong);
+  opacity: 0.42;
+  stroke-width: 1.6;
+  stroke-dasharray: 3 4;
+}
+
+.flow-line.is-on {
+  stroke-width: 1.9;
+  opacity: 0.55;
+}
+.flow-line.is-on.tone-green {
+  stroke: var(--accent-deep);
+}
+.flow-line.is-on.tone-yellow {
+  stroke: var(--gold);
+}
+.flow-line.is-on.tone-red {
+  stroke: var(--danger);
+  stroke-width: 2;
+  opacity: 0.8;
+}
+.flow-line.is-on.tone-grey {
+  stroke: var(--border-strong);
+  opacity: 0.42;
+  stroke-width: 1.6;
+  stroke-dasharray: 3 4;
+}
+
+.flow-line.is-active {
+  stroke-width: 2.5;
+  opacity: 0.95;
+}
+.flow-line.is-active.tone-green {
+  stroke: var(--accent-deep);
+}
+/* a focused 3rd-place team fans out to many candidate slots — keep each line
+   lighter so the cluster doesn't overwhelm */
+.flow-line.is-active.tone-yellow {
+  stroke: var(--gold);
+  stroke-width: 2;
+  opacity: 0.7;
+}
+.flow-line.is-active.tone-red {
+  stroke: var(--danger);
+}
+/* when you trace the third-place feed it lights up green like every other path */
+.flow-line.is-active.tone-grey {
+  stroke: var(--accent-deep);
 }
 
 /* knockout cards */
@@ -1111,16 +1507,15 @@
 }
 
 .ko-card.state-watch {
-  border-color: color-mix(in srgb, var(--accent-deep) 50%, var(--border));
-  box-shadow: 0 0 0 1px rgba(61, 220, 132, 0.06), var(--shadow);
+  border-color: var(--border-strong);
 }
 
 .ko-card.state-watch:hover {
-  border-color: color-mix(in srgb, var(--accent-deep) 80%, var(--border));
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .ko-card.state-ft {
-  border-color: color-mix(in srgb, var(--accent-deep) 30%, var(--border));
+  border-color: var(--border-strong);
 }
 
 .ko-card.state-locked {
@@ -1201,6 +1596,7 @@
 }
 
 .ko-team {
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1796,22 +2192,29 @@
   gap: 10px;
 }
 
+.poster-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .player-poster {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  min-height: 104px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 9px;
   border: 1px solid var(--border);
   border-radius: 12px;
   cursor: pointer;
   color: var(--text-h);
   background:
-    radial-gradient(ellipse 130% 95% at 50% -25%, rgba(61, 220, 132, 0.18), transparent 62%),
-    linear-gradient(168deg, #131e18, #0b1016);
+    radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.12), transparent 62%),
+    linear-gradient(168deg, #161c24, #0b0f14);
   overflow: hidden;
   transition: border-color 0.15s;
 }
@@ -1826,29 +2229,29 @@
 }
 
 .player-poster:hover {
-  border-color: var(--accent-deep);
+  border-color: var(--border-strong);
 }
 
 .player-poster:hover .poster-play {
-  transform: scale(1.06);
-  background: var(--accent);
-  color: var(--accent-ink);
+  transform: scale(1.08);
+  filter: brightness(1.08);
+  box-shadow: 0 8px 24px rgba(214, 38, 30, 0.42), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* YouTube-style red play — deliberately louder than the card's frosted circle:
+   this is the "actual video", and the most inviting thing in the modal. */
 .poster-play {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--accent-deep);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  width: 54px;
+  height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #ec4036, #cf211b);
+  border: none;
   color: #fff;
-  font-size: 17px;
-  padding-left: 4px;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45);
-  transition: transform 0.15s, background 0.15s, color 0.15s;
+  box-shadow: 0 6px 18px rgba(214, 38, 30, 0.34), 0 2px 8px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
 
 .poster-label {
@@ -1859,6 +2262,14 @@
 .poster-time {
   color: var(--muted);
   font-weight: 450;
+}
+
+/* tiny disclaimer for fan/community re-uploads (no official cut available) */
+.poster-note {
+  font-size: 10px;
+  color: var(--muted);
+  opacity: 0.7;
+  margin-top: 1px;
 }
 
 .kind-toggle {
@@ -1887,9 +2298,9 @@
 }
 
 .kind-chip.active {
-  background: var(--accent-soft);
-  border-color: color-mix(in srgb, var(--accent-deep) 55%, var(--border));
-  color: var(--accent);
+  background: var(--panel-hover);
+  border-color: var(--border-strong);
+  color: var(--text-h);
 }
 
 .kind-chip-time {
@@ -2028,9 +2439,7 @@
   justify-content: flex-end;
   gap: 14px;
   flex-wrap: wrap;
-  max-width: 1480px;
   width: 100%;
-  margin: 0 auto;
   padding: 10px 28px 16px;
   font-size: 11px;
   color: var(--muted);
@@ -2057,17 +2466,26 @@
   }
 
   .day-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 10px;
   }
+  .day-grid .preview-card {
+    max-width: 420px;
+  }
 
-  .day-tab {
-    min-width: 0;
-    padding: 5px 11px;
+  .day-track {
+    --day-item-w: 134px;
+  }
+
+  .day-carousel-window {
+    height: 52px;
+  }
+
+  .day-item[data-dist='0'] .day-item-label {
+    font-size: 19px;
   }
 
   .preview-flag {
-    font-size: 26px;
+    font-size: 34px;
   }
 
   .group-grid {

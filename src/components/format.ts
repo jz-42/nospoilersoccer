@@ -35,6 +35,11 @@ export function formatWeekdayLong(iso: string): string {
   })
 }
 
+/** Just the weekday, e.g. "Tuesday". */
+export function formatWeekday(iso: string): string {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long' })
+}
+
 export function formatDuration(s?: number): string | null {
   if (!s) return null
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`

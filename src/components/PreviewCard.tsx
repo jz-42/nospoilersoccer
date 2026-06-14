@@ -71,13 +71,15 @@ export function PreviewCard({
           ? 'Locked'
           : null
 
+  const bestDuration = formatDuration(best?.durationSeconds)
+
   const sub =
     state === 'watch'
-      ? `Highlights${formatDuration(best?.durationSeconds) ? ` · ${formatDuration(best?.durationSeconds)}` : ''}`
+      ? 'Highlights ready'
       : state === 'ft'
         ? 'Result in · highlights soon'
         : state === 'upcoming'
-          ? (kickoff ? `Kicks off ${kickoff} PT` : 'Not played yet')
+          ? 'Not played yet'
           : state === 'locked'
             ? 'Finish the games that decide it'
             : 'Watched'
@@ -131,10 +133,13 @@ export function PreviewCard({
         </div>
         {state === 'watch' && (
           <span className="preview-play" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-              <path d="M8 5.5v13l11-6.5z" />
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+              <path d="M8.3 5.5v13l11-6.5z" />
             </svg>
           </span>
+        )}
+        {state === 'watch' && bestDuration && (
+          <span className="preview-duration">{bestDuration}</span>
         )}
       </div>
       <div className="preview-meta">
