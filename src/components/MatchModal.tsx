@@ -17,6 +17,28 @@ export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
   | { kind: 'knockout'; match: KnockoutMatch; roundName: string }
 
+const FOX_WC_HUB = 'https://www.foxsports.com/soccer/fifa-world-cup'
+
+/**
+ * Where to watch this match live (US). FOX publishes a per-match "How to Watch"
+ * page — TV channel + live stream, and crucially spoiler-free (it's pre-match
+ * info, no score). Its URL is constructable for group games from the team names
+ * and group letter. Knockout pages don't follow this pattern, so those fall back
+ * to FOX's World Cup hub.
+ */
+function foxWatchUrl(t: Tournament, target: ModalTarget): string {
+  if (target.kind !== 'group') return FOX_WC_HUB
+  const slug = (id: string) =>
+    t.teams[id].name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+  const { home, away, group } = target.match
+  return `https://www.foxsports.com/stories/soccer/how-to-watch-${slug(home)}-vs-${slug(away)}-tv-channel-live-stream-${t.year}-fifa-world-cup-group-${group.toLowerCase()}`
+}
+
 function TeamSide({
   t,
   teamId,
@@ -200,7 +222,17 @@ export function MatchModal({
               <p className="modal-hint">This matchup hasn't been decided yet.</p>
             )
           ) : !played ? (
-            <p className="modal-hint">This match hasn't been played yet.</p>
+            <>
+              <p className="modal-hint">This match hasn't been played yet.</p>
+              <a
+                className="btn-ghost"
+                href={foxWatchUrl(t, target)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Watch live on FOX ↗
+              </a>
+            </>
           ) : mark ? (
             <>
               {summary && <div className="modal-summary">{summary}</div>}
