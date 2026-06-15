@@ -14,6 +14,9 @@ export interface FeedLink {
   show: 'always' | 'focus'
   tone: 'green' | 'yellow' | 'red' | 'grey'
   on: boolean
+  /** Force the line to leave the source's left edge (so it routes out to the
+   *  side rather than cutting across whatever sits between the two ends). */
+  exit?: 'left'
 }
 
 interface Point {
@@ -34,6 +37,7 @@ function endpoints(
   crect: DOMRect,
   srcKey: string,
   tgtKey: string,
+  exit?: 'left',
 ): { src: Point; tgt: Point; horiz: boolean } | null {
   const s = container.querySelector<HTMLElement>(`[data-feed-src="${srcKey}"]`)
   const t = container.querySelector<HTMLElement>(`[data-feed-tgt="${tgtKey}"]`)
@@ -50,6 +54,11 @@ function endpoints(
   const acy = a.t + a.h / 2
   const bcx = b.l + b.w / 2
   const bcy = b.t + b.h / 2
+  // Forced side exit: leave the source's left edge and meet the target's right
+  // edge, so the line tucks out to the side instead of over the rows between.
+  if (exit === 'left') {
+    return { horiz: true, src: { x: a.l, y: acy }, tgt: { x: b.l + b.w, y: bcy } }
+  }
   const dx = bcx - acx
   const dy = bcy - acy
   if (Math.abs(dx) >= Math.abs(dy)) {
@@ -114,9 +123,11 @@ export function FlowLayer({
 
       const out: { id: string; d: string; cls: string }[] = []
       for (const link of links) {
-        const active = activeKeys.has(link.srcKey) || activeKeys.has(link.tgtKey)
+        // Directional: a path lights from its source only — hovering a row shows
+        // where *that* team goes next, not every line that happens to touch it.
+        const active = activeKeys.has(link.srcKey)
         if (link.show === 'focus' && !active) continue
-        const ends = endpoints(container, crect, link.srcKey, link.tgtKey)
+        const ends = endpoints(container, crect, link.srcKey, link.tgtKey, link.exit)
         if (!ends) continue
         const state = active ? 'is-active' : link.on ? 'is-on' : 'faint'
         out.push({

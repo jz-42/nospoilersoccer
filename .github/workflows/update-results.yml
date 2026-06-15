@@ -1,11 +1,19 @@
-name: Update World Cup results
+name: Update World Cup data
 
 on:
   schedule:
-    # 08:10 UTC daily — after the last North American kickoffs finish
-    # (late games end ~05:30 UTC). That's 1:10 AM PT.
-    - cron: '10 8 * * *'
+    # Every 15 minutes. Scores settle minutes after full time and FOX posts
+    # highlights hours later, so nothing meaningful moves faster than this.
+    # GitHub scheduled runs are best-effort and can lag a few minutes; that's
+    # fine. A run only commits when the data actually changed (see below), so
+    # the cadence costs Action minutes (free on public repos), not deploys.
+    - cron: '*/15 * * * *'
   workflow_dispatch: {}
+
+# Never let two runs push at once.
+concurrency:
+  group: update-data
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -25,8 +33,26 @@ jobs:
 
       - run: npm ci
 
-      - name: Fetch yesterday's results into the data
+      - name: Fetch finished results into the data
         run: npx tsx scripts/update-results.ts
+
+      # Pre-match win-probability snapshots. Only fills unplayed matches that
+      # don't have odds yet, so each match is captured once before kickoff and
+      # never re-touched (a resolved market can't leak a result later).
+      - name: Snapshot pre-match odds
+        run: npx tsx scripts/fetch-odds.ts
+
+      # Auto-curate spoiler-free FOX highlights for finished matches. Runs after
+      # results so freshly-finished matches are already "played" and matchable.
+      # Needs OPENAI_API_KEY (AI spoiler gate) and YOUTUBE_API_KEY (reliable
+      # listing in CI). Without OPENAI_API_KEY it adds nothing (fails closed).
+      - name: Curate spoiler-free highlights
+        id: curate
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          # Optional: OPENAI_MODEL (default gpt-5.4), OPENAI_REASONING_EFFORT (default medium)
+        run: npx tsx scripts/curate-videos.ts
 
       - name: Validate (bad data must never deploy)
         run: npm run check
@@ -34,13 +60,22 @@ jobs:
       - name: Commit & push if anything changed
         run: |
           if git diff --quiet; then
-            echo "No new results."
+            echo "No new data."
             exit 0
           fi
           git config user.name "results-bot"
           git config user.email "actions@github.com"
-          git add src/data/wc2026.ts
-          git commit -m "Auto-update: World Cup 2026 results ($(date -u +%F))"
+          git add src/data/wc2026.ts src/data/wc2026-videos.ts scripts/curate-skip.json
+          git commit -m "Auto-update: World Cup 2026 data ($(date -u +%F %H:%MZ))"
           git push origin main
           # Keep dev in step when it hasn't diverged; harmless if it has.
           git push origin main:dev || echo "dev has diverged; skipping"
+
+      # Surface curator trouble (bad OPENAI_API_KEY, YouTube unreachable) as a
+      # failed run so GitHub emails you. Runs AFTER the commit, so data updates
+      # are never blocked by a highlight hiccup.
+      - name: Alert on curator errors
+        if: always() && steps.curate.outputs.has_errors == 'true'
+        run: |
+          echo "::error::Highlight curator reported systemic errors — updates still shipped; check the run summary."
+          exit 1

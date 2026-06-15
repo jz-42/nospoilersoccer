@@ -10,6 +10,7 @@ import {
 } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { HighlightPlayer } from './HighlightPlayer'
+import { OddsBar } from './OddsBar'
 import { formatDateLong, formatKickoffPT } from './format'
 
 export type ModalTarget =
@@ -144,20 +145,15 @@ export function MatchModal({
         </div>
 
         {!mark && m.odds && homeTeam && awayTeam && (
-          <div className="modal-odds">
-            <span className="odds-chip">
-              {t.teams[homeTeam].id} {Math.round(m.odds.home * 100)}%
-            </span>
-            {m.odds.draw !== undefined && (
-              <span className="odds-chip odds-draw">Draw {Math.round(m.odds.draw * 100)}%</span>
-            )}
-            <span className="odds-chip">
-              {t.teams[awayTeam].id} {Math.round(m.odds.away * 100)}%
-            </span>
-            <a className="odds-credit" href={m.odds.url} target="_blank" rel="noreferrer">
-              Polymarket ↗
-            </a>
-          </div>
+          <OddsBar
+            odds={m.odds}
+            homeCode={t.teams[homeTeam].id}
+            awayCode={t.teams[awayTeam].id}
+            showLink={!played}
+          />
+        )}
+        {!mark && !m.odds && target.kind === 'group' && (
+          <p className="odds-none">No pre-match odds available</p>
         )}
 
         {mark && m.goals && m.goals.length > 0 && (

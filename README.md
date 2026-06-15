@@ -26,21 +26,55 @@ npm run build    # type-check + production build to dist/
 npm run lint
 ```
 
-## Curating highlight videos
+## Highlights: automatic curation
 
-`scripts/curate.mjs` is the maintainer tool for finding and vetting
-spoiler-free highlights:
+Highlights are added automatically by `scripts/curate-videos.ts`, run every 15
+minutes by the [Update World Cup data](.github/workflows/update-results.yml)
+Action (right after results are fetched). For each recent FOX Sports upload it:
+
+1. keeps only titles matching `<A> vs <B> [Extended ]Highlights … World Cup`
+   — FOX's other uploads (goal clips, reactions like "Japan draws level LATE!")
+   are spoilery and don't match, so they're dropped before anything else;
+2. maps the teams to the one finished fixture still missing that cut;
+3. runs deterministic guards: FOX channel, embeddable, clean title, published
+   after kickoff; then
+4. asks a vision model whether the title or thumbnail leaks the result, and
+   whether it's really the full-match highlights for these two teams.
+
+Anything ambiguous or unverifiable is **skipped** (fail-closed) and existing
+entries are **never overwritten** (append-only) — worst case is a late or
+missing video, never a spoiler. Curated cuts are written to
+`src/data/wc2026-videos.ts` (generated — don't hand-edit) and merged into the
+tournament in `src/data/index.ts`; rejected video ids are remembered in
+`scripts/curate-skip.json` so each is judged only once.
 
 ```sh
-node scripts/curate.mjs playlist <youtubePlaylistId>   # list {videoId, title} per video
-node scripts/curate.mjs check <videoId> [...]          # title, duration, embeddable, channel
+npx tsx scripts/curate-videos.ts --dry-run   # show decisions, write nothing
+npx tsx scripts/curate-videos.ts --validate  # re-check the known-good cuts
+npx tsx scripts/curate-videos.ts             # curate and write
 ```
 
-Curation rules: no scores or winners in the title or thumbnail (inspect
-thumbnails at `https://i.ytimg.com/vi/<id>/hqdefault.jpg`), video must be
-embeddable, prefer official rights-holder channels with a consistent
-spoiler-free format (FOX Soccer for US coverage). Add vetted entries to the
-match's `videos` array in `src/data/`.
+### Required GitHub secrets
+
+| Secret | Purpose | Without it |
+|---|---|---|
+| `OPENAI_API_KEY` | the AI spoiler gate (GPT‑5.4 vision) | curator adds nothing (fails closed) |
+| `YOUTUBE_API_KEY` | reliable listing in CI (YouTube Data API v3) | scrape fallback, which CI IPs may get blocked from |
+
+The AI runs ~once per new video (~$3 across the whole tournament). Override with
+`OPENAI_MODEL` / `OPENAI_REASONING_EFFORT` if needed.
+
+### Manual fallback
+
+`scripts/curate.mjs` is the hand tool if you ever need it:
+
+```sh
+node scripts/curate.mjs playlist <playlistId>   # list {videoId, title} per video
+node scripts/curate.mjs check <videoId> [...]   # title, duration, embeddable, channel
+```
+
+Inspect thumbnails at `https://i.ytimg.com/vi/<id>/hqdefault.jpg`. Add vetted
+entries to a match's `videos` array in `src/data/`.
 
 ## Deployment
 

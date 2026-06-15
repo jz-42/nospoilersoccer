@@ -210,52 +210,11 @@ function DaySwitcher({
   )
 }
 
-function ContinueRail({
-  t,
-  progress,
-  onOpen,
-}: {
-  t: Tournament
-  progress: Progress
-  onOpen: (target: ModalTarget) => void
-}) {
-  const next = allEntries(t)
-    .filter((e) => {
-      const m = e.target.match
-      if (progress.marks[m.id] !== undefined || !isPlayed(m)) return false
-      if (e.target.kind === 'knockout') {
-        return knockoutReady(t, e.target.match, progress.marks, progress.revealed)
-      }
-      return true
-    })
-    .slice(0, 6)
-  const [gridRef, gridStyle] = useBalancedColumns(next.length)
-  if (next.length === 0) return null
-
-  return (
-    <section className="day-rail" aria-label="Continue watching">
-      <header className="day-head">
-        <div className="day-title">
-          <h2>Continue</h2>
-          <span className="day-date">Pick up where you left off</span>
-        </div>
-      </header>
-      <div className="day-grid" ref={gridRef} style={gridStyle}>
-        {next.map((e) => (
-          <PreviewCard
-            key={e.target.match.id}
-            t={t}
-            entry={e}
-            progress={progress}
-            onOpen={onOpen}
-            showDate
-          />
-        ))}
-      </div>
-    </section>
-  )
-}
-
+/**
+ * The day rail only appears for a live tournament (App hides the "Today" tab
+ * once everything's played — a finished tournament is browsed through the group
+ * and knockout views, where the videos live in context).
+ */
 export function Rail({
   t,
   progress,
@@ -265,12 +224,5 @@ export function Rail({
   progress: Progress
   onOpen: (target: ModalTarget) => void
 }) {
-  const live =
-    t.groupMatches.some((m) => !isPlayed(m)) ||
-    t.knockoutRounds.some((r) => r.matches.some((m) => !isPlayed(m)))
-  return live ? (
-    <DaySwitcher t={t} progress={progress} onOpen={onOpen} />
-  ) : (
-    <ContinueRail t={t} progress={progress} onOpen={onOpen} />
-  )
+  return <DaySwitcher t={t} progress={progress} onOpen={onOpen} />
 }

@@ -30,6 +30,14 @@ export function isPlayed(m: { score?: unknown }): boolean {
   return m.score !== undefined
 }
 
+/** True while any match is still unplayed — a tournament in progress. */
+export function isLive(t: Tournament): boolean {
+  return (
+    t.groupMatches.some((m) => !isPlayed(m)) ||
+    t.knockoutRounds.some((r) => r.matches.some((m) => !isPlayed(m)))
+  )
+}
+
 export function groupComplete(t: Tournament, group: GroupId, marks: Marks): boolean {
   return t.groupMatches.every((m) => m.group !== group || marks[m.id] !== undefined)
 }

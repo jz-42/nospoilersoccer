@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react'
-import type { Group, KnockoutMatch, TeamId, Tournament } from '../data/types'
+import { useEffect, useRef, useState } from 'react'
+import type { Group, KnockoutMatch, Tournament } from '../data/types'
 import { matchWinner } from '../data/types'
 import { groupStandings } from '../data/standings'
 import type { StandingRow } from '../data/standings'
@@ -26,6 +26,9 @@ import { formatDate, formatKickoffShort } from './format'
  */
 /** Highlight colour for an active row/slot — matches its flow line's meaning. */
 type HiTone = 'green' | 'yellow' | 'red'
+
+/** Blank tone map for the bracket-only view, where the feeds are switched off. */
+const EMPTY_TONE: ReadonlyMap<string, HiTone> = new Map()
 
 interface Layout {
   leftCols: KnockoutMatch[][]
@@ -100,8 +103,6 @@ function SlotRow({
   progress,
   feedKey,
   tone,
-  onFocus,
-  onToggle,
 }: {
   t: Tournament
   m: KnockoutMatch
@@ -109,39 +110,20 @@ function SlotRow({
   progress: Progress
   feedKey?: string
   tone?: HiTone
-  onFocus?: (key: string | null) => void
-  onToggle?: (key: string) => void
 }) {
   const mark = progress.marks[m.id]
   const teamId = resolveSlot(t, m, side, progress.marks, progress.revealed)
   const slot = side === 'home' ? m.home : m.away
 
-  // Hover/click target is the team name only (the row stays the line anchor via
-  // data-feed-tgt). Hovering the name previews its flow; clicking it keeps it on
-  // (and stops there, so the rest of the card still opens the match modal).
+  // The slot is a pure line target (data-feed-tgt) — the paths are driven from
+  // the standings, so the slot only lights up when a feeding row glows it.
   const rowProps = feedKey ? { 'data-feed-tgt': feedKey } : {}
-  const onPinEnter = feedKey ? () => onFocus?.(feedKey) : undefined
-  const onPinLeave = feedKey ? () => onFocus?.(null) : undefined
-  const onPinClick = feedKey
-    ? (e: React.MouseEvent) => {
-        e.stopPropagation()
-        onToggle?.(feedKey)
-      }
-    : undefined
-  const pinCls = feedKey ? 'ko-pin' : ''
   const activeCls = tone ? `feed-active feed-${tone}` : ''
 
   if (teamId === null) {
     return (
       <div className={`ko-row ${activeCls}`} {...rowProps}>
-        <span
-          className={`ko-placeholder ${pinCls}`}
-          onMouseEnter={onPinEnter}
-          onMouseLeave={onPinLeave}
-          onClick={onPinClick}
-        >
-          {slotLabel(t, slot)}
-        </span>
+        <span className="ko-placeholder">{slotLabel(t, slot)}</span>
       </div>
     )
   }
@@ -161,12 +143,7 @@ function SlotRow({
 
   return (
     <div className={`ko-row ${won ? 'winner' : ''} ${activeCls}`} {...rowProps}>
-      <span
-        className={`ko-team ${pinCls}`}
-        onMouseEnter={onPinEnter}
-        onMouseLeave={onPinLeave}
-        onClick={onPinClick}
-      >
+      <span className="ko-team">
         <span className="flag">{team.flag}</span> {team.name}
       </span>
       {mark && score && (
@@ -187,10 +164,7 @@ function KnockoutCard({
   onOpen,
   champion,
   feedKeys,
-  feedSrcKey,
   activeTone,
-  onFocus,
-  onToggle,
 }: {
   t: Tournament
   m: KnockoutMatch
@@ -199,10 +173,7 @@ function KnockoutCard({
   onOpen: (target: ModalTarget) => void
   champion?: boolean
   feedKeys?: { home: string; away: string }
-  feedSrcKey?: string
   activeTone?: ReadonlyMap<string, HiTone>
-  onFocus?: (key: string | null) => void
-  onToggle?: (key: string) => void
 }) {
   const state = matchState(t, { kind: 'knockout', match: m, roundName }, progress)
   const pinned = progress.pins.has(m.id)
@@ -238,11 +209,15 @@ function KnockoutCard({
   return (
     <button
       type="button"
-      data-feed-src={feedSrcKey}
       className={`ko-card state-${state} ${champion ? 'ko-champ' : ''} ${
         pinned ? 'is-pinned' : fav ? 'is-fav' : ''
       }`}
-      onClick={() => onOpen({ kind: 'knockout', match: m, roundName })}
+      onClick={(e) => {
+        // Keep any pinned paths when opening a match (the board's clear-on-click
+        // only fires for clicks that reach the background).
+        e.stopPropagation()
+        onOpen({ kind: 'knockout', match: m, roundName })
+      }}
     >
       <div className="ko-meta">
         <span>{formatDate(m.date)}</span>
@@ -255,8 +230,6 @@ function KnockoutCard({
         progress={progress}
         feedKey={feedKeys?.home}
         tone={feedKeys ? activeTone?.get(feedKeys.home) : undefined}
-        onFocus={onFocus}
-        onToggle={onToggle}
       />
       <SlotRow
         t={t}
@@ -265,8 +238,6 @@ function KnockoutCard({
         progress={progress}
         feedKey={feedKeys?.away}
         tone={feedKeys ? activeTone?.get(feedKeys.away) : undefined}
-        onFocus={onFocus}
-        onToggle={onToggle}
       />
     </button>
   )
@@ -302,29 +273,37 @@ function FeedStandings({
             const rank = i + 1
             const team = t.teams[row.team]
             const advances = complete && t.advancingRanks.includes(rank)
-            // Ranks 1–2 feed the bracket (green); rank 3 is a best-third
-            // candidate (yellow) — both are flow sources.
-            const srcKey = rank <= 3 ? `src-${group.id}-${rank}` : undefined
+            // Where the format has a best-third race (2026) every row is a path
+            // source: 1st/2nd green → bracket, 3rd yellow → table, 4th red → out.
+            // Otherwise (2022) only the qualifying top two trace a path.
+            const srcKey =
+              rank <= 2 || (rank <= 4 && !!t.bestThirdCount)
+                ? `src-${group.id}-${rank}`
+                : undefined
             const tone = srcKey ? activeTone.get(srcKey) : undefined
-            // Only the name cell triggers the highlight, so it doesn't fire as
-            // you sweep across the whole row.
-            const nameProps = srcKey
+            // The whole row is the hit target, so it's easy to land on and easy
+            // to click off again.
+            const hit = srcKey
               ? {
                   onMouseEnter: () => onFocus(srcKey),
                   onMouseLeave: () => onFocus(null),
-                  onClick: () => onToggle(srcKey),
+                  onClick: (e: React.MouseEvent) => {
+                    e.stopPropagation()
+                    onToggle(srcKey)
+                  },
                 }
               : {}
             return (
               <tr
                 key={row.team}
                 data-feed-src={srcKey}
-                className={`${advances ? 'advances' : ''} ${
+                className={`${advances ? 'advances' : ''} ${srcKey ? 'feed-hit' : ''} ${
                   tone ? `feed-active feed-${tone}` : ''
                 } ${srcKey && pinned.has(srcKey) ? 'is-pinned' : ''}`}
+                {...hit}
               >
                 <td className="pos">{rank}</td>
-                <td className={`name ${srcKey ? 'feed-hit' : ''}`} {...nameProps}>
+                <td className="name">
                   <span className="flag">{team.flag}</span> {team.name}
                 </td>
                 <td className="pts">{row.points}</td>
@@ -356,6 +335,44 @@ function liveBestThirds(
   return rows
 }
 
+/**
+ * Slot the advancing thirds one-to-one into the R32 (group → slot key). Real
+ * life is a single destination per team: FIFA's Annex C table fixes it from the
+ * full set of qualifiers, so each slot takes exactly one of its candidate
+ * groups. We honour any slot the data has already resolved to a real team, then
+ * find a valid matching for the rest (a live projection can't know Annex C's
+ * exact pick, but every team still gets one eligible slot, not a fan of them).
+ */
+function assignThirds(
+  slots: { key: string; candidates: ReadonlySet<string>; fixed: string | null }[],
+  advancing: string[],
+): Map<string, string> {
+  const slotOfGroup = new Map<string, string>()
+  const groupOfSlot = new Map<string, string>()
+  const locked = new Set<string>()
+  for (const s of slots)
+    if (s.fixed && advancing.includes(s.fixed) && !groupOfSlot.has(s.key)) {
+      groupOfSlot.set(s.key, s.fixed)
+      slotOfGroup.set(s.fixed, s.key)
+      locked.add(s.key)
+    }
+  const augment = (group: string, seen: Set<string>): boolean => {
+    for (const s of slots) {
+      if (locked.has(s.key) || !s.candidates.has(group) || seen.has(s.key)) continue
+      seen.add(s.key)
+      const held = groupOfSlot.get(s.key)
+      if (held === undefined || augment(held, seen)) {
+        groupOfSlot.set(s.key, group)
+        slotOfGroup.set(group, s.key)
+        return true
+      }
+    }
+    return false
+  }
+  for (const g of advancing) if (!slotOfGroup.has(g)) augment(g, new Set())
+  return slotOfGroup
+}
+
 function BestThirdTable({
   t,
   progress,
@@ -374,36 +391,42 @@ function BestThirdTable({
   onToggle: (key: string) => void
 }) {
   const rows = liveBestThirds(t, progress.marks)
-  // Who advances (and who's out) is only real once you've revealed every group
-  // — until then this is a provisional table with no cut-off and nobody out.
-  const settled = t.groups.every((g) => groupComplete(t, g.id, progress.marks))
+  // 8 of the 12 thirds go through. We show that cut as a live projection from
+  // the start — the line, the qualifying eight above it, the four below — and it
+  // re-sorts as results land (it's only certain once every group is in).
 
   const body: React.ReactNode[] = []
   rows.forEach((r, i) => {
-    if (settled && i === count)
+    if (i === count)
       body.push(
         <tr key="cutoff" className="bt-cutoff">
           <td colSpan={3} />
         </tr>,
       )
     const team = t.teams[r.row.team]
+    const eliminated = i >= count
     const srcKey = `bt-${r.group}`
     const tone = activeTone.get(srcKey)
+    // No permanent green for the qualifiers — like the group top-two, they only
+    // glow on hover (green → their slot). The cut line and the dimmed bottom four
+    // carry the projection at a glance.
     body.push(
       <tr
         key={r.group}
         data-feed-src={srcKey}
-        className={`${settled && i < count ? 'advances' : ''} ${
-          settled && i >= count ? 'eliminated' : ''
-        } ${tone ? `feed-active feed-${tone}` : ''} ${pinned.has(srcKey) ? 'is-pinned' : ''}`}
+        data-feed-tgt={srcKey}
+        className={`feed-hit ${eliminated ? 'eliminated' : ''} ${
+          tone ? `feed-active feed-${tone}` : ''
+        } ${pinned.has(srcKey) ? 'is-pinned' : ''}`}
+        onMouseEnter={() => onFocus(srcKey)}
+        onMouseLeave={() => onFocus(null)}
+        onClick={(e) => {
+          e.stopPropagation()
+          onToggle(srcKey)
+        }}
       >
         <td className="pos grp">{r.group}</td>
-        <td
-          className="name feed-hit"
-          onMouseEnter={() => onFocus(srcKey)}
-          onMouseLeave={() => onFocus(null)}
-          onClick={() => onToggle(srcKey)}
-        >
+        <td className="name">
           <span className="flag">{team.flag}</span> {team.name}
         </td>
         <td className="pts">{r.row.points}</td>
@@ -431,10 +454,8 @@ function Column({
   feeders,
   onOpen,
   isR32,
-  sfIds,
+  feeds,
   activeTone,
-  onFocus,
-  onToggle,
 }: {
   t: Tournament
   matches: KnockoutMatch[]
@@ -445,10 +466,8 @@ function Column({
   feeders: Map<string, KnockoutMatch[]>
   onOpen: (target: ModalTarget) => void
   isR32: boolean
-  sfIds: ReadonlySet<string>
+  feeds: boolean
   activeTone: ReadonlyMap<string, HiTone>
-  onFocus: (key: string | null) => void
-  onToggle: (key: string) => void
 }) {
   const groups: KnockoutMatch[][] = []
   if (matches.length === 1) groups.push(matches)
@@ -484,12 +503,9 @@ function Column({
                   progress={progress}
                   onOpen={onOpen}
                   feedKeys={
-                    isR32 ? { home: `tgt-${m.id}-home`, away: `tgt-${m.id}-away` } : undefined
+                    feeds && isR32 ? { home: `tgt-${m.id}-home`, away: `tgt-${m.id}-away` } : undefined
                   }
-                  feedSrcKey={sfIds.has(m.id) ? `sf-${m.id}` : undefined}
                   activeTone={activeTone}
-                  onFocus={onFocus}
-                  onToggle={onToggle}
                 />
               </div>
             ))}
@@ -512,6 +528,9 @@ export function Bracket({
   const boardRef = useRef<HTMLDivElement>(null)
   const [hoverKey, setHoverKey] = useState<string | null>(null)
   const [pinned, setPinned] = useState<ReadonlySet<string>>(() => new Set())
+  // Off by default: the bracket fills the screen on its own. Turning it on
+  // brings back the group-standings flanks, best-third table and feed lines.
+  const [detailed, setDetailed] = useState(false)
   const togglePin = (key: string) =>
     setPinned((prev) => {
       const next = new Set(prev)
@@ -519,6 +538,16 @@ export function Bracket({
       else next.add(key)
       return next
     })
+  const clearPins = () => setPinned((prev) => (prev.size ? new Set() : prev))
+
+  // Escape drops every kept path — the quickest way to undo a click.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') clearPins()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   const layout = buildLayout(t)
 
@@ -574,12 +603,21 @@ export function Bracket({
   const groupById = (id: string) => t.groups.find((g) => g.id === id)
 
   const r32Matches = [...leftCols[0], ...rightCols[0]]
-  let bestThirdCount = 0
+  const bestThirdCount = t.bestThirdCount ?? 0
   const links: FeedLink[] = []
 
-  // Group 1st/2nd → their R32 slot (green — going through for sure: winner
-  // always drawn, runner-up on focus). A best-third pool slot links to every
-  // candidate group's best-third row (yellow — only maybe, shown on focus).
+  // Live best-third projection: the top `bestThirdCount` thirds are through, the
+  // rest are out. It decides green-vs-red for the best-third paths and the cut.
+  const thirdsRanked = bestThirdCount > 0 ? liveBestThirds(t, progress.marks) : []
+  const advancingThirds = new Set(thirdsRanked.slice(0, bestThirdCount).map((r) => r.group))
+  const eliminatedThirds = new Set(thirdsRanked.slice(bestThirdCount).map((r) => r.group))
+
+  // Every path is sourced from a standings/table row and shows where that team
+  // heads next: 1st/2nd → R32 (green, through), 3rd → the best-third table
+  // (yellow, a maybe), 4th → out (red). In the table a third then resolves to a
+  // single green slot if projected through, or red (→ out) if not.
+  const groupOf = (team: string) => t.groups.find((g) => g.teams.includes(team))?.id ?? null
+  const bestThirdSlots: { key: string; candidates: ReadonlySet<string>; fixed: string | null }[] = []
   for (const m of r32Matches) {
     for (const sideKey of ['home', 'away'] as const) {
       const slot = sideKey === 'home' ? m.home : m.away
@@ -594,24 +632,21 @@ export function Bracket({
           on: groupComplete(t, slot.group, progress.marks),
         })
       } else if (slot.type === 'best-third') {
-        bestThirdCount++
-        for (const g of slot.groups)
-          links.push({
-            id: `r-${m.id}-${sideKey}-${g}`,
-            srcKey: `bt-${g}`,
-            tgtKey,
-            show: 'focus',
-            tone: 'yellow',
-            on: false,
-          })
+        const team = resolveSlot(t, m, sideKey, progress.marks, progress.revealed)
+        bestThirdSlots.push({
+          key: tgtKey,
+          candidates: new Set(slot.groups),
+          fixed: team ? groupOf(team) : null,
+        })
       }
     }
   }
 
-  // Each group's 3rd place → the best-third table below (yellow "maybe"),
-  // drawn only while that team is focused.
-  if (bestThirdCount > 0)
-    for (const g of t.groups)
+  if (bestThirdCount > 0) {
+    // One destination per advancing third (Annex C slots them one-to-one).
+    const thirdSlotOf = assignThirds(bestThirdSlots, [...advancingThirds])
+    for (const g of t.groups) {
+      // 3rd → the best-third table (yellow: in the race, undecided here).
       links.push({
         id: `cand-${g.id}`,
         srcKey: `src-${g.id}-3`,
@@ -620,73 +655,57 @@ export function Bracket({
         tone: 'yellow',
         on: false,
       })
-
-  // Losing semi-finalists → third-place match (subtle grey).
-  const sfIds = new Set([finalInLeft?.id, finalInRight?.id].filter(Boolean) as string[])
-  if (thirdPlace) {
-    for (const sideKey of ['home', 'away'] as const) {
-      const slot = sideKey === 'home' ? thirdPlace.home : thirdPlace.away
-      if (slot.type === 'match-loser')
+      // 4th → out (red: can't reach the best-third race at all).
+      links.push({
+        id: `out4-${g.id}`,
+        srcKey: `src-${g.id}-4`,
+        tgtKey: 'out',
+        show: 'focus',
+        tone: 'red',
+        on: false,
+      })
+    }
+    // Each advancing third → its single assigned R32 slot (green, through).
+    for (const g of advancingThirds) {
+      const slotKey = thirdSlotOf.get(g)
+      if (slotKey)
         links.push({
-          id: `tp-${sideKey}`,
-          srcKey: `sf-${slot.match}`,
-          tgtKey: `tp-${thirdPlace.id}-${sideKey}`,
+          id: `bt3-${g}`,
+          srcKey: `bt-${g}`,
+          tgtKey: slotKey,
           show: 'focus',
-          tone: 'grey',
+          tone: 'green',
           on: false,
         })
     }
+    // Eliminated thirds → out (red), routed out to the side, not over the table.
+    for (const g of eliminatedThirds)
+      links.push({
+        id: `out3-${g}`,
+        srcKey: `bt-${g}`,
+        tgtKey: 'out',
+        show: 'focus',
+        tone: 'red',
+        on: false,
+        exit: 'left',
+      })
   }
 
-  // Map every feed key to the team it currently represents (your-canon only),
-  // so focusing one instance of a team lights up all of them — its group row,
-  // its best-third row, and the R32 slot it's resolved into.
-  const marked = (id: string) => progress.marks[id] !== undefined
-  const keyTeam = new Map<string, TeamId>()
-  for (const g of t.groups) {
-    const s = groupStandings(t, g.id, marked)
-    for (let r = 1; r <= 3; r++) if (s[r - 1]) keyTeam.set(`src-${g.id}-${r}`, s[r - 1].team)
-    if (s[2]) keyTeam.set(`bt-${g.id}`, s[2].team)
-  }
-  for (const m of r32Matches)
-    for (const sideKey of ['home', 'away'] as const) {
-      const team = resolveSlot(t, m, sideKey, progress.marks, progress.revealed)
-      if (team) keyTeam.set(`tgt-${m.id}-${sideKey}`, team)
-    }
-
+  // Active = pinned (sticky) + hovered. A path lights from its source only, and
+  // both of its ends take the tone so the destination glows to match.
   const TONE_RANK: Record<HiTone, number> = { green: 0, yellow: 1, red: 2 }
   const bump = (map: Map<string, HiTone>, key: string, tone: HiTone) => {
     const cur = map.get(key)
     if (!cur || TONE_RANK[tone] > TONE_RANK[cur]) map.set(key, tone)
   }
-  // Each key's own tone, from the flow it participates in (grey lines don't tint).
-  const keyTone = new Map<string, HiTone>()
-  for (const l of links) {
-    if (l.tone === 'grey') continue
-    bump(keyTone, l.srcKey, l.tone)
-    bump(keyTone, l.tgtKey, l.tone)
-  }
-
-  // Active = pinned (sticky) + hovered, expanded to every instance of those
-  // teams so the whole path lights up at once.
-  const focusKeys = new Set(pinned)
-  if (hoverKey) focusKeys.add(hoverKey)
-  const focusTeams = new Set<TeamId>()
-  for (const k of focusKeys) {
-    const tm = keyTeam.get(k)
-    if (tm) focusTeams.add(tm)
-  }
-  const activeKeys = new Set(focusKeys)
-  for (const [k, tm] of keyTeam) if (focusTeams.has(tm)) activeKeys.add(k)
-
-  // Tone each active row/slot: prefer its flow tone, else its focused team's.
+  const activeKeys = new Set(pinned)
+  if (hoverKey) activeKeys.add(hoverKey)
   const activeTone = new Map<string, HiTone>()
   for (const l of links)
-    if ((activeKeys.has(l.srcKey) || activeKeys.has(l.tgtKey)) && l.tone !== 'grey') {
+    if (activeKeys.has(l.srcKey) && l.tone !== 'grey') {
       bump(activeTone, l.srcKey, l.tone)
       bump(activeTone, l.tgtKey, l.tone)
     }
-  for (const k of activeKeys) if (!activeTone.has(k)) bump(activeTone, k, keyTone.get(k) ?? 'green')
 
   const marksSig =
     Object.keys(progress.marks).sort().join(',') +
@@ -695,28 +714,37 @@ export function Bracket({
     '|' +
     [...activeKeys].sort().join(',')
 
+  // Bracket-only mode keeps the feeds inert (the flanks/table/airplane don't
+  // render and tones are blanked), so the bare bracket reads on its own.
+  const flowTone = detailed ? activeTone : EMPTY_TONE
+  const outActive = detailed && activeTone.get('out') === 'red'
+
   return (
-    <div className="ko-board" ref={boardRef}>
+    // A click that reaches the background (not a card or a row, which both stop
+    // propagation) clears every kept path — click anywhere empty to undo.
+    <div className="ko-board" ref={boardRef} onClick={clearPins}>
       <div className="ko-main">
-        <div className="ko-flank side-left" aria-label="Group standings feeding the left half">
-          {leftGroups.map((g) => {
-            const grp = groupById(g)
-            return (
-              grp && (
-                <FeedStandings
-                  key={g}
-                  t={t}
-                  group={grp}
-                  progress={progress}
-                  activeTone={activeTone}
-                  pinned={pinned}
-                  onFocus={setHoverKey}
-                  onToggle={togglePin}
-                />
+        {detailed && (
+          <div className="ko-flank side-left" aria-label="Group standings feeding the left half">
+            {leftGroups.map((g) => {
+              const grp = groupById(g)
+              return (
+                grp && (
+                  <FeedStandings
+                    key={g}
+                    t={t}
+                    group={grp}
+                    progress={progress}
+                    activeTone={activeTone}
+                    pinned={pinned}
+                    onFocus={setHoverKey}
+                    onToggle={togglePin}
+                  />
+                )
               )
-            )
-          })}
-        </div>
+            })}
+          </div>
+        )}
 
         <div className={`bracket ${leftCols.length > 3 ? 'bracket-deep' : ''}`}>
           {leftCols.map((col, i) => (
@@ -731,16 +759,65 @@ export function Bracket({
               feeders={feeders}
               onOpen={onOpen}
               isR32={i === 0}
-              sfIds={sfIds}
-              activeTone={activeTone}
-              onFocus={setHoverKey}
-              onToggle={togglePin}
+              feeds={detailed}
+              activeTone={flowTone}
             />
           ))}
 
           <div className="b-col b-center">
             <div className="b-round-name">{finalRoundName}</div>
             <div className="b-col-body">
+              {/* The bracket's central axis doubles as the one control: a quiet
+                  toggle that unfolds the group standings, feed lines and key. */}
+              <div className={`ko-detail ${detailed ? 'is-open' : ''}`}>
+                <button
+                  type="button"
+                  className="ko-detail-toggle"
+                  aria-pressed={detailed}
+                  aria-expanded={detailed}
+                  onClick={() => setDetailed((v) => !v)}
+                >
+                  <svg
+                    className="ko-detail-chev"
+                    viewBox="0 0 24 24"
+                    width="11"
+                    height="11"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                  {detailed ? 'Hide detail' : 'Show more detail'}
+                </button>
+                {detailed && (
+                  <div className="ko-legend" aria-hidden="true">
+                    <span className="lg-head">Key</span>
+                    <span className="lg-tip">
+                      Hover a team to trace its path.
+                      <br />
+                      Click to keep it on.
+                    </span>
+                    <span className="lg-rows">
+                      <span className="lg-row">
+                        <i className="lg-dot lg-green" />
+                        through
+                      </span>
+                      <span className="lg-row">
+                        <i className="lg-dot lg-gold" />
+                        maybe
+                      </span>
+                      <span className="lg-row">
+                        <i className="lg-dot lg-red" />
+                        out
+                      </span>
+                    </span>
+                  </div>
+                )}
+              </div>
               {champion && (
                 <div className="b-champ">
                   <ChampionMoment t={t} team={champion} />
@@ -773,13 +850,6 @@ export function Bracket({
                     roundName="Third-place play-off"
                     progress={progress}
                     onOpen={onOpen}
-                    feedKeys={{
-                      home: `tp-${thirdPlace.id}-home`,
-                      away: `tp-${thirdPlace.id}-away`,
-                    }}
-                    activeTone={activeTone}
-                    onFocus={setHoverKey}
-                    onToggle={togglePin}
                   />
                 </div>
               )}
@@ -798,37 +868,49 @@ export function Bracket({
               feeders={feeders}
               onOpen={onOpen}
               isR32={i === rightCols.length - 1}
-              sfIds={sfIds}
-              activeTone={activeTone}
-              onFocus={setHoverKey}
-              onToggle={togglePin}
+              feeds={detailed}
+              activeTone={flowTone}
             />
           ))}
         </div>
 
-        <div className="ko-flank side-right" aria-label="Group standings feeding the right half">
-          {rightGroups.map((g) => {
-            const grp = groupById(g)
-            return (
-              grp && (
-                <FeedStandings
-                  key={g}
-                  t={t}
-                  group={grp}
-                  progress={progress}
-                  activeTone={activeTone}
-                  pinned={pinned}
-                  onFocus={setHoverKey}
-                  onToggle={togglePin}
-                />
+        {detailed && (
+          <div className="ko-flank side-right" aria-label="Group standings feeding the right half">
+            {rightGroups.map((g) => {
+              const grp = groupById(g)
+              return (
+                grp && (
+                  <FeedStandings
+                    key={g}
+                    t={t}
+                    group={grp}
+                    progress={progress}
+                    activeTone={activeTone}
+                    pinned={pinned}
+                    onFocus={setHoverKey}
+                    onToggle={togglePin}
+                  />
+                )
               )
-            )
-          })}
-        </div>
+            })}
+          </div>
+        )}
       </div>
 
-      {bestThirdCount > 0 && (
+      {detailed && bestThirdCount > 0 && (
         <div className="ko-thirds">
+          {/* The airplane is where the eliminated paths land — 4th-placed teams
+              and the thirds below the cut both trace a red line here. */}
+          <div
+            className={`ko-out ${outActive ? 'is-active' : ''}`}
+            data-feed-tgt="out"
+            aria-hidden="true"
+            title="Eliminated"
+          >
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor">
+              <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
+            </svg>
+          </div>
           <BestThirdTable
             t={t}
             progress={progress}
@@ -841,7 +923,9 @@ export function Bracket({
         </div>
       )}
 
-      <FlowLayer boardRef={boardRef} links={links} activeKeys={activeKeys} marksSig={marksSig} />
+      {detailed && (
+        <FlowLayer boardRef={boardRef} links={links} activeKeys={activeKeys} marksSig={marksSig} />
+      )}
     </div>
   )
 }
