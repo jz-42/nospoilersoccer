@@ -145,7 +145,7 @@ export const wc2026: Tournament = {
     { id: 'G5', group: 'G', matchday: 3, date: '2026-06-26', kickoff: '2026-06-27T03:00Z', home: 'EGY', away: 'IRN', odds: { home: 0.435, draw: 0.32, away: 0.27, url: 'https://polymarket.com/event/fifwc-egy-irn-2026-06-26' } },
     { id: 'G6', group: 'G', matchday: 3, date: '2026-06-26', kickoff: '2026-06-27T03:00Z', home: 'NZL', away: 'BEL', odds: { home: 0.085, draw: 0.16, away: 0.765, url: 'https://polymarket.com/event/fifwc-nzl-bel-2026-06-26' } },
     // Group H
-    { id: 'H1', group: 'H', matchday: 1, date: '2026-06-15', kickoff: '2026-06-15T16:00Z', home: 'ESP', away: 'CPV', odds: { home: 0.915, draw: 0.06, away: 0.029, url: 'https://polymarket.com/event/fifwc-esp-cvi-2026-06-15' } },
+    { id: 'H1', group: 'H', matchday: 1, date: '2026-06-15', kickoff: '2026-06-15T16:00Z', home: 'ESP', away: 'CPV', score: { home: 0, away: 0 }, goals: [], odds: { home: 0.915, draw: 0.06, away: 0.029, url: 'https://polymarket.com/event/fifwc-esp-cvi-2026-06-15' } },
     { id: 'H2', group: 'H', matchday: 1, date: '2026-06-15', kickoff: '2026-06-15T22:00Z', home: 'KSA', away: 'URU', odds: { home: 0.115, draw: 0.215, away: 0.655, url: 'https://polymarket.com/event/fifwc-ksa-ury-2026-06-15' } },
     { id: 'H3', group: 'H', matchday: 2, date: '2026-06-21', kickoff: '2026-06-21T16:00Z', home: 'ESP', away: 'KSA', odds: { home: 0.875, draw: 0.085, away: 0.042, url: 'https://polymarket.com/event/fifwc-esp-ksa-2026-06-21' } },
     { id: 'H4', group: 'H', matchday: 2, date: '2026-06-21', kickoff: '2026-06-21T22:00Z', home: 'URU', away: 'CPV', odds: { home: 0.685, draw: 0.205, away: 0.115, url: 'https://polymarket.com/event/fifwc-ury-cvi-2026-06-21' } },
