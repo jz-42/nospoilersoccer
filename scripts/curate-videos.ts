@@ -25,7 +25,7 @@ import { tournaments } from '../src/data'
 import { wc2026Videos } from '../src/data/wc2026-videos'
 import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId } from '../src/data/types'
 import { isPlayed } from '../src/logic/spoilers'
-import { FOX_CHANNEL_ID, getVideoMeta, listFoxUploads, parseHighlightTitle } from './youtube'
+import { checkEmbeddable, FOX_CHANNEL_ID, getVideoMeta, listFoxUploads, parseHighlightTitle } from './youtube'
 import { aiEnabled, checkVideoForSpoilers } from './spoiler-check'
 
 const VIDEOS_FILE = 'src/data/wc2026-videos.ts'
@@ -213,7 +213,7 @@ async function runValidate() {
       }
       const issues: string[] = []
       if (meta.channelId && meta.channelId !== FOX_CHANNEL_ID) issues.push('not FOX channel')
-      if (!meta.embeddable) issues.push('not embeddable')
+      if ((await checkEmbeddable(v.youtubeId)) === 'no') issues.push('not embeddable')
       if (TITLE_SPOILER_RE.test(meta.title)) issues.push('title failed spoiler check')
       if (aiEnabled) {
         const verdict = await checkVideoForSpoilers({ videoId: v.youtubeId, title: meta.title, homeName: home, awayName: away })
@@ -287,7 +287,13 @@ async function runCurate() {
       recordSkip(up.id, `channel ${meta.channelId ?? '?'} is not FOX`)
       continue
     }
-    if (!meta.embeddable) {
+    const emb = await checkEmbeddable(up.id)
+    if (emb === 'unknown') {
+      errors.push(`${up.id}: embeddability check didn't complete`)
+      note(`! ${up.id}: embeddability check failed, will retry next run`)
+      continue // transient; don't skip-list
+    }
+    if (emb === 'no') {
       recordSkip(up.id, 'not embeddable')
       continue
     }

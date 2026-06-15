@@ -32,7 +32,6 @@ export interface VideoMeta {
   id: string
   title: string
   durationSeconds: number
-  embeddable: boolean
   channelId: string | null
   channelTitle: string | null
   /** Upload time as an ISO instant, or null if it couldn't be read. */
@@ -111,12 +110,13 @@ async function listUploadsApi(max: number): Promise<PlaylistVideo[]> {
 }
 
 async function getMetaApi(id: string): Promise<VideoMeta> {
-  const url = `${API}/videos?part=snippet,contentDetails,status&id=${id}&key=${API_KEY}`
+  // No `status` part: its embeddable flag is unreliable (false negatives) —
+  // embeddability is checked separately via oEmbed (see checkEmbeddable).
+  const url = `${API}/videos?part=snippet,contentDetails&id=${id}&key=${API_KEY}`
   const data = (await getJson(url)) as {
     items?: {
       snippet?: { title?: string; channelId?: string; channelTitle?: string; publishedAt?: string }
       contentDetails?: { duration?: string }
-      status?: { embeddable?: boolean }
     }[]
   }
   const it = data.items?.[0]
@@ -125,7 +125,6 @@ async function getMetaApi(id: string): Promise<VideoMeta> {
     id,
     title: it.snippet?.title ?? '',
     durationSeconds: isoDurationToSeconds(it.contentDetails?.duration ?? ''),
-    embeddable: it.status?.embeddable ?? false,
     channelId: it.snippet?.channelId ?? null,
     channelTitle: it.snippet?.channelTitle ?? null,
     publishedAt: it.snippet?.publishedAt ?? null,
@@ -158,7 +157,6 @@ async function getMetaScrape(id: string): Promise<VideoMeta> {
   const html = await getText(`https://www.youtube.com/watch?v=${id}`)
   const rawTitle = extract(/"videoDetails":\{[^]*?"title":"((?:[^"\\]|\\.)*)"/, html)
   const seconds = extract(/"lengthSeconds":"(\d+)"/, html)
-  const embeddable = extract(/"playableInEmbed":(true|false)/, html)
   const channelId = extract(/"channelId":"(UC[\w-]+)"/, html)
   const channelTitle = extract(/"ownerChannelName":"((?:[^"\\]|\\.)*)"/, html)
   const publishDate = extract(/"publishDate":"([^"]+)"/, html) ?? extract(/"uploadDate":"([^"]+)"/, html)
@@ -166,7 +164,6 @@ async function getMetaScrape(id: string): Promise<VideoMeta> {
     id,
     title: rawTitle ? JSON.parse(`"${rawTitle}"`) : '',
     durationSeconds: seconds ? Number(seconds) : 0,
-    embeddable: embeddable === 'true',
     channelId,
     channelTitle: channelTitle ? JSON.parse(`"${channelTitle}"`) : null,
     publishedAt: publishDate ? new Date(publishDate).toISOString() : null,
@@ -183,6 +180,26 @@ export function listFoxUploads(max = 100): Promise<PlaylistVideo[]> {
 /** Full metadata for one video, via the Data API or a scrape fallback. */
 export function getVideoMeta(id: string): Promise<VideoMeta> {
   return API_KEY ? getMetaApi(id) : getMetaScrape(id)
+}
+
+/**
+ * Embeddability via YouTube's oEmbed endpoint — the dependable signal:
+ *   200 → embeddable;  401/404 → embedding disabled / gone;  else → unknown.
+ * The Data API's status.embeddable gives false negatives and the watch page is
+ * bot-blocked from CI IPs, but oEmbed answers correctly from anywhere. Returns
+ * 'unknown' on transient failures so the caller retries instead of rejecting.
+ */
+export async function checkEmbeddable(id: string): Promise<'yes' | 'no' | 'unknown'> {
+  try {
+    const res = await fetch(
+      `https://www.youtube.com/oembed?format=json&url=https://www.youtube.com/watch?v=${id}`,
+    )
+    if (res.ok) return 'yes'
+    if (res.status === 401 || res.status === 404) return 'no'
+    return 'unknown'
+  } catch {
+    return 'unknown'
+  }
 }
 
 export const usingApi = Boolean(API_KEY)
