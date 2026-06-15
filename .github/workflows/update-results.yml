@@ -1,16 +1,13 @@
 name: Update World Cup data
 
 on:
+  # GitHub's sub-hourly schedules are unreliable, so we only rely on it firing
+  # HOURLY (which it does), then run an internal 5-minute loop to fill the hour.
   schedule:
-    # Every 15 minutes. Scores settle minutes after full time and FOX posts
-    # highlights hours later, so nothing meaningful moves faster than this.
-    # GitHub scheduled runs are best-effort and can lag a few minutes; that's
-    # fine. A run only commits when the data actually changed (see below), so
-    # the cadence costs Action minutes (free on public repos), not deploys.
-    - cron: '*/15 * * * *'
+    - cron: '0 * * * *'
   workflow_dispatch: {}
 
-# Never let two runs push at once.
+# One loop at a time; a new hourly trigger queues until the running one ends.
 concurrency:
   group: update-data
   cancel-in-progress: false
@@ -21,6 +18,7 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    timeout-minutes: 58
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,50 +31,51 @@ jobs:
 
       - run: npm ci
 
-      - name: Fetch finished results into the data
-        run: npx tsx scripts/update-results.ts
-
-      # Pre-match win-probability snapshots. Only fills unplayed matches that
-      # don't have odds yet, so each match is captured once before kickoff and
-      # never re-touched (a resolved market can't leak a result later).
-      - name: Snapshot pre-match odds
-        run: npx tsx scripts/fetch-odds.ts
-
-      # Auto-curate spoiler-free FOX highlights for finished matches. Runs after
-      # results so freshly-finished matches are already "played" and matchable.
-      # Needs OPENAI_API_KEY (AI spoiler gate) and YOUTUBE_API_KEY (reliable
-      # listing in CI). Without OPENAI_API_KEY it adds nothing (fails closed).
-      - name: Curate spoiler-free highlights
-        id: curate
+      # Poll every 5 minutes for ~53 minutes. Each cycle pulls results + odds +
+      # spoiler-free highlights, validates, and commits ONLY if something changed
+      # (so Render redeploys on real updates, not on every poll). The next hourly
+      # trigger restarts the loop. Free on public repos; ~5-min freshness without
+      # depending on GitHub's flaky sub-hourly scheduler.
+      - name: Update loop (every 5 min)
         env:
           # Accept any of the names this secret has been stored under.
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.OPENAI_REVIEW_KEY || secrets.GPT_VIDEO_REVIEW_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          CURATOR_ERROR_FLAG: /tmp/curator-error
           # Optional: OPENAI_MODEL (default gpt-5.4), OPENAI_REASONING_EFFORT (default medium)
-        run: npx tsx scripts/curate-videos.ts
-
-      - name: Validate (bad data must never deploy)
-        run: npm run check
-
-      - name: Commit & push if anything changed
         run: |
-          if git diff --quiet; then
-            echo "No new data."
-            exit 0
-          fi
           git config user.name "results-bot"
           git config user.email "actions@github.com"
-          git add src/data/wc2026.ts src/data/wc2026-videos.ts scripts/curate-skip.json
-          git commit -m "Auto-update: World Cup 2026 data ($(date -u +%F %H:%MZ))"
-          git push origin main
-          # Keep dev in step when it hasn't diverged; harmless if it has.
-          git push origin main:dev || echo "dev has diverged; skipping"
-
-      # Surface curator trouble (bad OPENAI_API_KEY, YouTube unreachable) as a
-      # failed run so GitHub emails you. Runs AFTER the commit, so data updates
-      # are never blocked by a highlight hiccup.
-      - name: Alert on curator errors
-        if: always() && steps.curate.outputs.has_errors == 'true'
-        run: |
-          echo "::error::Highlight curator reported systemic errors — updates still shipped; check the run summary."
-          exit 1
+          deadline=$(( $(date +%s) + 3180 ))
+          cycle=0
+          while : ; do
+            cycle=$((cycle + 1))
+            echo "::group::cycle $cycle — $(date -u '+%H:%M:%SZ')"
+            rm -f "$CURATOR_ERROR_FLAG"
+            npx tsx scripts/update-results.ts || echo "::warning::results step errored this cycle"
+            npx tsx scripts/fetch-odds.ts     || echo "::warning::odds step errored this cycle"
+            npx tsx scripts/curate-videos.ts  || echo "::warning::curator step errored this cycle"
+            if npm run check; then
+              if git diff --quiet; then
+                echo "no changes this cycle"
+              else
+                git add src/data/wc2026.ts src/data/wc2026-videos.ts scripts/curate-skip.json
+                git commit -m "Auto-update: World Cup 2026 data ($(date -u '+%F %H:%MZ'))"
+                git pull --rebase --autostash origin main || true
+                git push origin HEAD:main || echo "::warning::push to main failed; will retry next cycle"
+                git push origin HEAD:dev  || echo "dev has diverged; skipping"
+              fi
+            else
+              echo "::error::validation failed — not committing this cycle"
+              touch "$CURATOR_ERROR_FLAG"
+            fi
+            echo "::endgroup::"
+            [ "$(date +%s)" -ge "$deadline" ] && break
+            sleep 300
+          done
+          # Fail the run (so GitHub emails you) only if the LAST cycle had a real
+          # problem — bad data or a persistent curator error (e.g. a dead key).
+          if [ -f "$CURATOR_ERROR_FLAG" ]; then
+            echo "::error::Last cycle reported errors — check the run summary."
+            exit 1
+          fi

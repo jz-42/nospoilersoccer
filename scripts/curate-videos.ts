@@ -188,6 +188,9 @@ function writeReport(added: string[], rejected: string[], errors: string[]) {
   if (errors.length) {
     console.log(`::error::Highlight curator hit ${errors.length} error(s) this run — see the run summary.`)
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, 'has_errors=true\n')
+    // The looping workflow checks this file to decide whether to fail the run
+    // (so a persistent problem still emails you). Removed before each cycle.
+    if (process.env.CURATOR_ERROR_FLAG) appendFileSync(process.env.CURATOR_ERROR_FLAG, errors.join('\n') + '\n')
   }
 }
 
