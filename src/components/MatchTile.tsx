@@ -1,8 +1,9 @@
 /**
- * Compact video-row tile for a group match — a miniature of the preview
- * card so every game in the grid reads as "a thing you can click and watch".
- * The right-hand pill carries the state: Watch (green), FT, kickoff time,
- * or the revealed score.
+ * Compact match row for the group stage — a horizontal echo of the Today-tab
+ * preview card so the two views share one visual language. A pitch thumb holds
+ * the two flags; a watchable match gets the same white play button (no "Watch"
+ * label — the button says it), sitting right on the thumb next to the flags.
+ * The right-hand badge carries state: FT, kickoff time, or the revealed score.
  */
 import type { GroupMatch, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
@@ -32,23 +33,15 @@ export function MatchTile({
     progress.favAuto &&
     (progress.favorites.includes(m.home) || progress.favorites.includes(m.away))
 
-  const pill =
+  const badge =
     state === 'seen' && m.score ? (
-      <span className="tile-pill pill-seen">
-        {m.score.home}–{m.score.away}
-        <span className="pill-check">✓</span>
+      <span className="tile-badge badge-seen">
+        {m.score.home}–{m.score.away} <span className="tile-badge-check">✓</span>
       </span>
-    ) : state === 'watch' ? (
-      <span className="tile-pill pill-watch">
-        <svg viewBox="0 0 24 24" width="9" height="9" fill="currentColor" aria-hidden="true">
-          <path d="M8 5.5v13l11-6.5z" />
-        </svg>
-        Watch
-      </span>
-    ) : state === 'ft' ? (
-      <span className="tile-pill pill-ft">FT</span>
+    ) : state === 'watch' || state === 'ft' ? (
+      <span className="tile-badge badge-ft">FT</span>
     ) : (
-      <span className="tile-pill pill-upcoming">{formatKickoffShort(m.kickoff) ?? '—'}</span>
+      <span className="tile-badge badge-upcoming">{formatKickoffShort(m.kickoff) ?? '—'}</span>
     )
 
   return (
@@ -61,8 +54,8 @@ export function MatchTile({
         <span className="tile-thumb-flag">{home.flag}</span>
         <span className="tile-thumb-flag">{away.flag}</span>
         {state === 'watch' && (
-          <span className="tile-thumb-play">
-            <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor">
+          <span className="tile-play">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor">
               <path d="M8 5.5v13l11-6.5z" />
             </svg>
           </span>
@@ -73,7 +66,7 @@ export function MatchTile({
         <span className="tile-sep">v</span>
         <span className={`tile-team ${awayWon ? 'won' : ''}`}>{away.name}</span>
       </span>
-      {pill}
+      {badge}
     </button>
   )
 }

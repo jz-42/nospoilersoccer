@@ -133,7 +133,8 @@ for (const day of [...days].sort()) {
     if (groupHit) {
       const flipped = groupHit.home !== parsed.homeTeam
       src = applyGroupResult(src, groupHit.id, parsed, flipped)
-      updated.push(`${groupHit.id} (${parsed.homeTeam} ${parsed.score.home}-${parsed.score.away} ${parsed.awayTeam})`)
+      // Log the id only — scores/teams in CI logs would spoil the maintainer.
+      updated.push(groupHit.id)
       pendingGroup.splice(pendingGroup.indexOf(groupHit), 1)
       continue
     }
@@ -150,13 +151,14 @@ for (const day of [...days].sort()) {
     )
     if (fits.length !== 1) {
       if (candidates.length > 0)
-        console.error(`ambiguous knockout mapping for ${parsed.homeTeam} v ${parsed.awayTeam} (${fits.length} fits)`)
+        console.error(`ambiguous knockout mapping near ${evDay} (${fits.length} fits)`)
       continue
     }
     const m = fits[0]
     const flipped = !satisfies(m.home, parsed.homeTeam, t)
     src = applyKnockoutResult(src, m, parsed, flipped)
-    updated.push(`${m.id} (${parsed.homeTeam} v ${parsed.awayTeam})`)
+    // Id only — a knockout matchup reveals who advanced.
+    updated.push(m.id)
     pendingKnockout.splice(pendingKnockout.indexOf(m), 1)
   }
   await new Promise((r) => setTimeout(r, 200))

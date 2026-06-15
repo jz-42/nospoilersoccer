@@ -220,7 +220,6 @@
 
 /* ============ state pills (shared vocabulary) ============ */
 
-.tile-pill,
 .ko-pill {
   display: inline-flex;
   align-items: center;
@@ -257,12 +256,6 @@
 .pill-seen {
   color: var(--text-h);
   background: var(--bg-raised);
-}
-
-.pill-check {
-  color: var(--accent);
-  font-size: 9px;
-  font-weight: 700;
 }
 
 .pill-locked {
@@ -860,11 +853,11 @@
 .tile {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
   width: 100%;
-  padding: 6px 8px 6px 6px;
+  padding: 5px 8px 5px 5px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 11px;
   background: rgba(154, 173, 203, 0.025);
   color: var(--text);
   font-size: 13px;
@@ -916,29 +909,58 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 46px;
-  height: 30px;
+  justify-content: space-between;
+  width: 96px;
+  height: 46px;
+  padding: 0 13px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid var(--border);
   background:
-    radial-gradient(ellipse 130% 100% at 50% -30%, rgba(255, 255, 255, 0.06), transparent 62%),
+    radial-gradient(ellipse 130% 100% at 50% -30%, rgba(255, 255, 255, 0.05), transparent 62%),
     linear-gradient(168deg, #141a21, #0b0f14);
-  font-size: 12px;
+  font-size: 20px;
   line-height: 1;
   overflow: hidden;
 }
 
-.tile-thumb-play {
+/* Brighter "screen is live" thumb on the one watchable row — mirrors the
+   preview card's media treatment so watch reads the same in both views. */
+.tile.state-watch .tile-thumb {
+  background:
+    radial-gradient(ellipse 130% 100% at 50% -20%, rgba(255, 255, 255, 0.13), transparent 60%),
+    linear-gradient(168deg, #1b2530, #0e161d);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.tile-thumb-flag {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* The same white glass play button as the preview card, centered in the gap
+   between the two flags — the watch affordance, no "Watch" label. */
+.tile-play {
   position: absolute;
-  inset: 0;
-  display: flex;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(6, 10, 16, 0.5);
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
   color: #fff;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 0.15s;
+}
+
+.tile:hover .tile-play {
+  transform: translate(-50%, -50%) scale(1.12);
 }
 
 .tile-teams {
@@ -964,6 +986,28 @@
   margin: 0 5px;
 }
 
+/* Right-hand state badge — reuses the preview badge colour treatments
+   (frosted FT, neutral kickoff, green revealed score) for one vocabulary. */
+.tile-badge {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  padding: 2.5px 7px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tile-badge.badge-seen {
+  color: var(--text-h);
+  font-weight: 700;
+}
+
+.tile-badge-check {
+  color: var(--accent);
+  margin-left: 1px;
+}
+
 /* ============ bracket ============ */
 
 /* Knockout view: leaderboards flank the bracket (ko-main), the best-third
@@ -984,6 +1028,8 @@
   width: 100%;
 }
 
+/* the table is centred so it lines up with the 3rd-place match directly above
+   it; the plane is floated out of flow so it doesn't shift that alignment */
 .ko-thirds {
   position: relative;
   z-index: 1;
@@ -996,38 +1042,132 @@
   width: 230px;
 }
 
-/* "Key" lives in the footer, stuck at the bottom-left (mirrors Reset at the
-   bottom-right) — margin-right:auto holds it on the left, Reset on the right */
-.ko-legend {
-  margin-right: auto;
+/* where eliminated paths land — a red plane parked well out to the left of the
+   centred table, level with its middle; 4th-placed teams and the thirds below
+   the cut both trace a red line to it */
+.ko-out {
+  position: absolute;
+  top: 50%;
+  right: calc(50% + 115px + 130px);
+  transform: translateY(-50%);
+  color: color-mix(in srgb, var(--danger) 72%, transparent);
+  transition: color 0.18s, transform 0.18s, filter 0.18s;
+}
+
+.ko-out.is-active {
+  color: var(--danger);
+  transform: translateY(-50%) scale(1.1);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--danger) 55%, transparent));
+}
+
+.ko-out svg {
+  display: block;
+}
+
+/* The view's one control lives on the bracket's central axis — centered under
+   the "Final" header, above the final card — so it reads as part of the layout
+   rather than chrome bolted on. The path key unfolds directly beneath it (only
+   while detail is on, since the coloured feed lines it explains are hidden by
+   default), keeping everything stacked and symmetric about that centre line. */
+.ko-detail {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  font-size: 10.5px;
+  align-items: center;
+  gap: 11px;
+  /* sit well clear of the "Final" header so it reads as its own control, not a
+     subtitle of the round, while staying above the final card */
+  margin-top: 34px;
+  margin-bottom: 10px;
+}
+
+.ko-detail-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--muted);
-  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 4px 11px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ko-detail-toggle:hover {
+  color: var(--text-h);
+  background: var(--panel-hover);
+}
+
+/* blue when open, deliberately off the green/gold/red the key uses below */
+.ko-detail-toggle[aria-expanded='true'] {
+  color: #5b9df0;
+}
+
+.ko-detail-chev {
+  transition: transform 0.2s ease;
+}
+
+.ko-detail-toggle[aria-expanded='true'] .ko-detail-chev {
+  transform: rotate(180deg);
+}
+
+/* path key — unfolds under the toggle, centred to match the column's axis */
+.ko-legend {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  animation: ko-legend-in 0.2s ease;
+}
+
+@keyframes ko-legend-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ko-legend .lg-head {
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-h);
   margin-bottom: 1px;
 }
 
-.ko-legend .lg-row {
+/* the three swatches sit left-to-right on one line under the description */
+.ko-legend .lg-rows {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 11px;
+  margin-top: 3px;
+}
+
+.ko-legend .lg-row {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .ko-legend .lg-dot {
   display: inline-block;
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  margin-right: 7px;
+  margin-right: 5px;
 }
 
 .ko-legend .lg-green {
@@ -1038,10 +1178,15 @@
   background: var(--gold);
 }
 
+.ko-legend .lg-red {
+  background: var(--danger);
+}
+
 .ko-legend .lg-tip {
-  margin-top: 3px;
-  max-width: 134px;
-  opacity: 0.75;
+  margin-bottom: 3px;
+  max-width: 150px;
+  line-height: 1.35;
+  opacity: 0.7;
 }
 
 /* the bracket flexes to fill the space between the two flanks, so the whole
@@ -1297,11 +1442,12 @@
   color: var(--muted);
 }
 
-/* best-third cut-off line — only shown once your groups are all settled */
+/* best-third cut-off — a red dashed line marking the eight that go through; the
+   four below it are the projected-out thirds */
 .bt-cutoff td {
   padding: 0;
-  height: 0;
-  border-top: 1px dashed color-mix(in srgb, var(--danger) 50%, var(--border));
+  height: 5px;
+  border-top: 1.5px dashed color-mix(in srgb, var(--danger) 70%, transparent);
 }
 
 .standings tr.eliminated td {
@@ -2078,39 +2224,94 @@
   }
 }
 
-.modal-odds {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: -8px 0 18px;
-}
-
-.odds-chip {
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-  background: var(--bg-raised);
+/* Pre-match odds as one labeled probability bar (home | draw | away),
+   neutral slate with the likeliest outcome lifted. */
+.oddsbar {
+  margin: -6px 0 18px;
+  padding: 10px 12px 9px;
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 3px 10px;
+  border-radius: 10px;
+  background: rgba(154, 173, 203, 0.03);
 }
 
-.odds-draw {
+.oddsbar-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.oddsbar-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
   color: var(--muted);
-  font-weight: 450;
 }
 
-.odds-credit {
+.oddsbar-src {
   font-size: 10.5px;
   color: var(--muted);
   text-decoration: none;
-  margin-left: 4px;
+  transition: color 0.15s;
 }
 
-.odds-credit:hover {
+.oddsbar-src:hover {
   color: var(--text-h);
+}
+
+.oddsbar-track {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+}
+
+.oddsbar-seg {
+  border-radius: 3px;
+  background: rgba(154, 173, 203, 0.5);
+  min-width: 3px;
+  transition: background 0.15s;
+}
+
+.oddsbar-draw {
+  background: rgba(154, 173, 203, 0.2);
+}
+
+/* The likeliest outcome — the one quietly bright segment. */
+.oddsbar-seg.is-fav {
+  background: var(--text-h);
+}
+
+.oddsbar-keys {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 7px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.oddsbar-key b {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.oddsbar-key-mid {
+  text-align: center;
+}
+
+.oddsbar-key.is-fav,
+.oddsbar-key.is-fav b {
+  color: var(--text-h);
+}
+
+/* Shown in place of the bar when a match has no Polymarket market. */
+.odds-none {
+  margin: -2px 0 16px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
 }
 
 .modal-goals {

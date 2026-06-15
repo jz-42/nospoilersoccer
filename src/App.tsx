@@ -9,7 +9,7 @@ import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
 import { Rail } from './components/Rail'
 import { defaultTournamentId, tournaments } from './data'
-import { totalMatches } from './logic/spoilers'
+import { isLive, totalMatches } from './logic/spoilers'
 import { useProgress } from './state/progress'
 
 type Tab = 'day' | 'groups' | 'bracket'
@@ -29,6 +29,10 @@ function App() {
   const t = tournaments[tournamentId]
   const progress = useProgress(t)
   const [tab, setTab] = useState<Tab>('day')
+  // A finished tournament has no "today" — there the day tab is hidden and the
+  // group stage / knockout views (with their embedded videos) are the way in.
+  const live = isLive(t)
+  const view: Tab = live || tab !== 'day' ? tab : 'groups'
   const [modal, setModal] = useState<ModalTarget | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
@@ -82,23 +86,25 @@ function App() {
         </div>
 
         <nav className="seg" aria-label="View">
+          {live && (
+            <button
+              type="button"
+              className={`seg-btn ${view === 'day' ? 'active' : ''}`}
+              onClick={() => setTab('day')}
+            >
+              Today
+            </button>
+          )}
           <button
             type="button"
-            className={`seg-btn ${tab === 'day' ? 'active' : ''}`}
-            onClick={() => setTab('day')}
-          >
-            Today
-          </button>
-          <button
-            type="button"
-            className={`seg-btn ${tab === 'groups' ? 'active' : ''}`}
+            className={`seg-btn ${view === 'groups' ? 'active' : ''}`}
             onClick={() => setTab('groups')}
           >
             Group stage
           </button>
           <button
             type="button"
-            className={`seg-btn ${tab === 'bracket' ? 'active' : ''}`}
+            className={`seg-btn ${view === 'bracket' ? 'active' : ''}`}
             onClick={() => setTab('bracket')}
           >
             Knockouts
@@ -128,27 +134,13 @@ function App() {
         </button>
       </header>
 
-      <main className={`app-main ${tab === 'bracket' ? 'app-main-wide' : ''}`}>
-        {tab === 'day' && <Rail t={t} progress={progress} onOpen={setModal} />}
-        {tab === 'groups' && <GroupStage t={t} progress={progress} onOpen={setModal} />}
-        {tab === 'bracket' && <Bracket t={t} progress={progress} onOpen={setModal} />}
+      <main className={`app-main ${view === 'bracket' ? 'app-main-wide' : ''}`}>
+        {view === 'day' && <Rail t={t} progress={progress} onOpen={setModal} />}
+        {view === 'groups' && <GroupStage t={t} progress={progress} onOpen={setModal} />}
+        {view === 'bracket' && <Bracket t={t} progress={progress} onOpen={setModal} />}
       </main>
 
       <footer className="app-footer">
-        {tab === 'bracket' && (
-          <div className="ko-legend" aria-hidden="true">
-            <span className="lg-head">Key</span>
-            <span className="lg-row">
-              <i className="lg-dot lg-green" />
-              through
-            </span>
-            <span className="lg-row">
-              <i className="lg-dot lg-gold" />
-              maybe
-            </span>
-            <span className="lg-tip">click a name to keep its path on</span>
-          </div>
-        )}
         <button type="button" className="btn-ghost btn-danger btn-small" onClick={() => setConfirmReset(true)}>
           Reset progress
         </button>
