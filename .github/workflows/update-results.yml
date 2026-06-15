@@ -49,8 +49,8 @@ jobs:
       - name: Curate spoiler-free highlights
         id: curate
         env:
-          # Accept either secret name (the key was first stored as OPENAI_REVIEW_KEY).
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.OPENAI_REVIEW_KEY }}
+          # Accept any of the names this secret has been stored under.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.OPENAI_REVIEW_KEY || secrets.GPT_VIDEO_REVIEW_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           # Optional: OPENAI_MODEL (default gpt-5.4), OPENAI_REASONING_EFFORT (default medium)
         run: npx tsx scripts/curate-videos.ts
