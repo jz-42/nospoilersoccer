@@ -17,4 +17,5 @@ export const wc2026Videos: Record<string, HighlightVideo[]> = {
   'G2': [{ youtubeId: 'UZ_7qFbFYRY', kind: 'extended', durationSeconds: 1029 }],
   'H1': [{ youtubeId: 'YnWF8IMcqgg', kind: 'normal', durationSeconds: 488 }, { youtubeId: 'wzKYVElYRrw', kind: 'extended', durationSeconds: 1329 }],
   'H2': [{ youtubeId: 'Tz9R1OYdTSs', kind: 'extended', durationSeconds: 1009 }],
+  'I1': [{ youtubeId: 'SlmYDbzHqjg', kind: 'extended', durationSeconds: 1036 }],
 }
