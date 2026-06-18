@@ -10,6 +10,7 @@ import type { HighlightVideo } from './types'
  * hand-maintained tournament data. src/data/index.ts merges these in.
  */
 export const wc2026Videos: Record<string, HighlightVideo[]> = {
+  'A3': [{ youtubeId: 'jijCaWH_IxM', kind: 'extended', durationSeconds: 934 }],
   'E2': [{ youtubeId: 'j6uB9LcLMms', kind: 'extended', durationSeconds: 1304 }, { youtubeId: 'pBk8BjA-X4Y', kind: 'normal', durationSeconds: 524 }],
   'F1': [{ youtubeId: 'SaTyQMmOpPM', kind: 'extended', durationSeconds: 1264 }, { youtubeId: 'm7sQP_AZ5vM', kind: 'normal', durationSeconds: 512 }],
   'F2': [{ youtubeId: 'F47z0suCV7Y', kind: 'extended', durationSeconds: 1266 }, { youtubeId: 'MWsgrEPIni4', kind: 'normal', durationSeconds: 523 }],
