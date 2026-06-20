@@ -65,7 +65,7 @@ export function PreviewCard({
     state === 'watch' || state === 'ft'
       ? 'FT'
       : state === 'upcoming'
-        ? (kickoff ? `${kickoff} PT` : 'Upcoming')
+        ? (kickoff ?? 'Upcoming')
         : state === 'locked'
           ? 'Locked'
           : null

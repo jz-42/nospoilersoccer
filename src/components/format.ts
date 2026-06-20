@@ -18,9 +18,6 @@ export function formatKickoffShort(iso?: string): string | null {
   return formatKickoffLocal(iso)
 }
 
-/** Temporary compatibility name while schedule surfaces migrate together. */
-export const formatKickoffPT = formatKickoff
-
 export function formatKickoffDate(iso: string): string {
   return formatLocalDate(iso, { month: 'short', day: 'numeric' })
 }
@@ -40,6 +37,38 @@ export function formatKickoffDateLong(iso: string): string {
     day: 'numeric',
     year: 'numeric',
   })
+}
+
+export function formatMatchDate(date: string, kickoff?: string, timeZone?: string): string {
+  return kickoff
+    ? formatLocalDate(kickoff, { month: 'short', day: 'numeric' }, timeZone)
+    : formatDate(date)
+}
+
+export function formatMatchWeekday(date: string, kickoff?: string, timeZone?: string): string {
+  return kickoff
+    ? formatLocalDate(kickoff, { weekday: 'long' }, timeZone)
+    : formatWeekday(date)
+}
+
+export function formatMatchWeekdayLong(date: string, kickoff?: string, timeZone?: string): string {
+  return kickoff
+    ? formatLocalDate(
+        kickoff,
+        { weekday: 'long', month: 'long', day: 'numeric' },
+        timeZone,
+      )
+    : formatWeekdayLong(date)
+}
+
+export function formatMatchDateLong(date: string, kickoff?: string, timeZone?: string): string {
+  return kickoff
+    ? formatLocalDate(
+        kickoff,
+        { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' },
+        timeZone,
+      )
+    : formatDateLong(date)
 }
 
 /** "Wednesday, June 11" — the matchday headline. */

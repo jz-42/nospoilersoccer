@@ -10,7 +10,7 @@ import { FlowLayer } from './FlowLayer'
 import type { FeedLink } from './FlowLayer'
 import type { ModalTarget } from './MatchModal'
 import { matchState } from './status'
-import { formatDate, formatKickoffShort } from './format'
+import { formatKickoffShort, formatMatchDate } from './format'
 
 /**
  * World-cup bracket layout: two halves feeding inward to the final at the
@@ -220,7 +220,7 @@ function KnockoutCard({
       }}
     >
       <div className="ko-meta">
-        <span>{formatDate(m.date)}</span>
+        <span>{formatMatchDate(m.date, m.kickoff)}</span>
         {status}
       </div>
       <SlotRow

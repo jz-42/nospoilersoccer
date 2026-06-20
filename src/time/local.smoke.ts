@@ -5,6 +5,12 @@ import {
   localDateKey,
   relativeDayLabel,
 } from './local'
+import {
+  formatMatchDate,
+  formatMatchDateLong,
+  formatMatchWeekday,
+  formatMatchWeekdayLong,
+} from '../components/format'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -52,6 +58,24 @@ assert(
   formatLocalDate('2026-06-21T00:30Z', { month: 'short', day: 'numeric' }, 'America/Los_Angeles') ===
     'Jun 20',
   'displayed date follows the visitor timezone',
+)
+assert(
+  formatMatchDate('2026-06-21', '2026-06-21T00:30Z', 'America/Los_Angeles') === 'Jun 20',
+  'match short date comes from kickoff',
+)
+assert(
+  formatMatchDateLong('2026-06-21', '2026-06-21T00:30Z', 'Europe/Amsterdam') ===
+    'Sun, June 21, 2026',
+  'match long date comes from kickoff',
+)
+assert(
+  formatMatchWeekday('2026-06-21', '2026-06-21T00:30Z', 'America/Los_Angeles') === 'Saturday',
+  'match weekday comes from local kickoff date',
+)
+assert(
+  formatMatchWeekdayLong('2026-06-21', '2026-06-21T00:30Z', 'Europe/Amsterdam') ===
+    'Sunday, June 21',
+  'match long weekday comes from local kickoff date',
 )
 
 console.log('ALL LOCAL TIME TESTS PASS')

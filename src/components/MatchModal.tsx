@@ -11,7 +11,7 @@ import {
 import type { Progress } from '../state/progress'
 import { HighlightPlayer } from './HighlightPlayer'
 import { OddsBar } from './OddsBar'
-import { formatDateLong, formatKickoffPT } from './format'
+import { formatKickoff, formatMatchDateLong } from './format'
 
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
@@ -137,8 +137,8 @@ export function MatchModal({
         <div className="modal-context">
           <span className="modal-context-strong">{context}</span>
           <span className="modal-context-date">
-            {formatDateLong(m.date)}
-            {formatKickoffPT(m.kickoff) ? ` · ${formatKickoffPT(m.kickoff)}` : ''}
+            {formatMatchDateLong(m.date, m.kickoff)}
+            {formatKickoff(m.kickoff) ? ` · ${formatKickoff(m.kickoff)}` : ''}
           </span>
         </div>
 
