@@ -1,4 +1,5 @@
 import type { HighlightVideo } from '../data/types'
+import { formatKickoffLocal, formatLocalDate } from '../time/local'
 
 export function formatDate(iso: string): string {
   return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', {
@@ -7,24 +8,37 @@ export function formatDate(iso: string): string {
   })
 }
 
-/** Kickoff instant shown in Pacific Time, e.g. "12:00 PM PT". */
-export function formatKickoffPT(iso?: string): string | null {
-  if (!iso) return null
-  const time = new Date(iso).toLocaleTimeString('en-US', {
-    timeZone: 'America/Los_Angeles',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-  return `${time} PT`
+/** Kickoff instant shown in the visitor's local timezone, e.g. "12:00 PM PT". */
+export function formatKickoff(iso?: string): string | null {
+  return formatKickoffLocal(iso)
 }
 
-/** Compact kickoff for pills, e.g. "9:00 AM" (PT implied by context). */
+/** Compact kickoff for pills, including the visitor's timezone label. */
 export function formatKickoffShort(iso?: string): string | null {
-  if (!iso) return null
-  return new Date(iso).toLocaleTimeString('en-US', {
-    timeZone: 'America/Los_Angeles',
-    hour: 'numeric',
-    minute: '2-digit',
+  return formatKickoffLocal(iso)
+}
+
+/** Temporary compatibility name while schedule surfaces migrate together. */
+export const formatKickoffPT = formatKickoff
+
+export function formatKickoffDate(iso: string): string {
+  return formatLocalDate(iso, { month: 'short', day: 'numeric' })
+}
+
+export function formatKickoffWeekdayLong(iso: string): string {
+  return formatLocalDate(iso, { weekday: 'long', month: 'long', day: 'numeric' })
+}
+
+export function formatKickoffWeekday(iso: string): string {
+  return formatLocalDate(iso, { weekday: 'long' })
+}
+
+export function formatKickoffDateLong(iso: string): string {
+  return formatLocalDate(iso, {
+    weekday: 'short',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
   })
 }
 
