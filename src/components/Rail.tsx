@@ -11,7 +11,7 @@
  * Finished tournaments get "Continue": the next unwatched games in
  * tournament order.
  */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Tournament } from '../data/types'
 import { isPlayed, knockoutReady } from '../logic/spoilers'
@@ -20,29 +20,28 @@ import type { ModalTarget } from './MatchModal'
 import { PreviewCard } from './PreviewCard'
 import type { RailEntry } from './PreviewCard'
 import { formatDate, formatWeekday, formatWeekdayLong } from './format'
+import { matchLocalDate } from './schedule'
+import { addLocalDays, localDateKey, relativeDayLabel } from '../time/local'
 
 function allEntries(t: Tournament): RailEntry[] {
   const out: RailEntry[] = []
-  for (const m of t.groupMatches) out.push({ target: { kind: 'group', match: m }, date: m.date })
+  for (const m of t.groupMatches) {
+    out.push({ target: { kind: 'group', match: m }, date: matchLocalDate(m) })
+  }
   for (const round of t.knockoutRounds) {
     for (const m of round.matches) {
-      out.push({ target: { kind: 'knockout', match: m, roundName: round.name }, date: m.date })
+      out.push({
+        target: { kind: 'knockout', match: m, roundName: round.name },
+        date: matchLocalDate(m),
+      })
     }
   }
-  // Chronological: by local match date, then by kickoff instant within the day
-  // (kickoffs are UTC "…Z", so a lexical compare is a time compare). Group-array
-  // order isn't kickoff order, so a day's cards must be re-sorted here.
+  // Chronological: by visitor-local date, then by UTC kickoff instant.
   return out.sort(
     (a, b) =>
       a.date.localeCompare(b.date) ||
       (a.target.match.kickoff ?? a.date).localeCompare(b.target.match.kickoff ?? b.date),
   )
-}
-
-function localISODate(offsetDays = 0): string {
-  const d = new Date()
-  d.setDate(d.getDate() + offsetDays)
-  return d.toLocaleDateString('en-CA') // YYYY-MM-DD
 }
 
 const GRID_GAP = 16
@@ -100,34 +99,27 @@ function DaySwitcher({
   onOpen: (target: ModalTarget) => void
 }) {
   const entries = allEntries(t)
-  const today = localISODate()
+  const now = new Date()
+  const today = localDateKey(now)
   // Every matchday, plus today itself so the carousel always has a "Today"
   // anchor even when today is a rest day.
   const dates = [...new Set([...entries.map((e) => e.date), today])].sort()
   const todayIndex = dates.indexOf(today)
 
   const [active, setActive] = useState(todayIndex)
-  // Snap back to today when the tournament changes underneath us.
-  useEffect(() => {
-    setActive(todayIndex)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [t.id])
 
   const idx = Math.min(Math.max(active, 0), dates.length - 1)
   const date = dates[idx]
   const dayEntries = entries.filter((e) => e.date === date)
   const [gridRef, gridStyle] = useBalancedColumns(dayEntries.length)
 
-  const yesterday = localISODate(-1)
-  const tomorrow = localISODate(1)
+  const yesterday = addLocalDays(today, -1)
+  const tomorrow = addLocalDays(today, 1)
   // Relative days lead with the word (and spell the full date underneath);
   // every other day leads with the weekday and shows just the date — no
   // point repeating "June 16 / June 16".
   const headlineFor = (d: string) => {
-    if (d === today) return 'Today'
-    if (d === yesterday) return 'Yesterday'
-    if (d === tomorrow) return 'Tomorrow'
-    return formatWeekday(d)
+    return relativeDayLabel(d, now) ?? formatWeekday(d)
   }
   const subFor = (d: string) =>
     d === today || d === yesterday || d === tomorrow ? formatWeekdayLong(d) : formatDate(d)
@@ -224,5 +216,5 @@ export function Rail({
   progress: Progress
   onOpen: (target: ModalTarget) => void
 }) {
-  return <DaySwitcher t={t} progress={progress} onOpen={onOpen} />
+  return <DaySwitcher key={t.id} t={t} progress={progress} onOpen={onOpen} />
 }
