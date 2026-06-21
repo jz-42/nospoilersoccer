@@ -67,41 +67,38 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal dialog onboarding" onClick={(e) => e.stopPropagation()}>
-        <div className="onboarding-logo">
-          <Logo size={44} />
+        <div className="onboarding-badge">
+          <Logo size={40} />
         </div>
-        <h3 className="dialog-title">Catch up. No spoilers.</h3>
+        <h3 className="onboarding-title">Catch up. No spoilers.</h3>
+        <p className="onboarding-sub">The World Cup, on your schedule.</p>
         <ul className="onboarding-list">
           <li>Every score stays hidden until you reveal it.</li>
           <li>Click a match to watch its highlights, then click to reveal the result.</li>
           <li>Progress saves in this browser. No account.</li>
         </ul>
-        <button type="button" className="btn-primary" onClick={onClose}>
+        <button type="button" className="btn-primary onboarding-cta" onClick={onClose}>
           Let's go
         </button>
-        <div className="onboarding-disclosures">
-          <div className="onboarding-disclosure-panel" aria-live="polite">
-            {open && <p key={open}>{DISCLOSURE_COPY[open]}</p>}
-          </div>
-          <div className="onboarding-disclosure-row">
-            <button
-              type="button"
-              className="onboarding-disclosure-link"
-              aria-expanded={open === 'privacy'}
-              onClick={() => toggle('privacy')}
-            >
-              Privacy
-            </button>
-            <button
-              type="button"
-              className="onboarding-disclosure-link"
-              aria-expanded={open === 'advanced'}
-              onClick={() => toggle('advanced')}
-            >
-              Advanced
-            </button>
-          </div>
+        <div className="onboarding-disclosure-panel" aria-live="polite">
+          {open && <p key={open}>{DISCLOSURE_COPY[open]}</p>}
         </div>
+        <button
+          type="button"
+          className="onboarding-disclosure-link onboarding-disclosure-left"
+          aria-expanded={open === 'privacy'}
+          onClick={() => toggle('privacy')}
+        >
+          Privacy
+        </button>
+        <button
+          type="button"
+          className="onboarding-disclosure-link onboarding-disclosure-right"
+          aria-expanded={open === 'advanced'}
+          onClick={() => toggle('advanced')}
+        >
+          Advanced
+        </button>
       </div>
     </div>
   )
