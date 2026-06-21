@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
-import type { Tournament } from '../data/types'
-import type { GroupMatch, KnockoutMatch } from '../data/types'
+import type { GroupMatch, HighlightVideo, KnockoutMatch, Tournament } from '../data/types'
 import {
   canForceReveal,
   isPlayed,
@@ -19,6 +18,8 @@ export type ModalTarget =
   | { kind: 'knockout'; match: KnockoutMatch; roundName: string }
 
 const FOX_WC_HUB = 'https://www.foxsports.com/soccer/fifa-world-cup'
+const FOX_REGIONAL_WARNING =
+  'Videos from the FOX Sports YouTube channel may only be available in the U.S.'
 
 /**
  * Where to watch this match live (US). FOX publishes a per-match "How to Watch"
@@ -66,6 +67,25 @@ function TeamSide({
   )
 }
 
+function MatchHighlights({
+  videos,
+  marked,
+  onReveal,
+  showFoxWarning,
+}: {
+  videos: HighlightVideo[]
+  marked: boolean
+  onReveal: () => void
+  showFoxWarning: boolean
+}) {
+  return (
+    <>
+      <HighlightPlayer videos={videos} marked={marked} onReveal={onReveal} />
+      {showFoxWarning && <p className="highlight-region-warning">{FOX_REGIONAL_WARNING}</p>}
+    </>
+  )
+}
+
 export function MatchModal({
   t,
   target,
@@ -103,6 +123,7 @@ export function MatchModal({
     target.kind === 'group' ? `Group ${target.match.group}` : target.roundName
   const locked = km !== null && (homeTeam === null || awayTeam === null)
   const score = m.score
+  const showFoxWarning = t.year === 2026
 
   let summary: string | null = null
   if (mark && score && homeTeam && awayTeam) {
@@ -243,7 +264,12 @@ export function MatchModal({
             <>
               {summary && <div className="modal-summary">{summary}</div>}
               {m.videos && m.videos.length > 0 && (
-                <HighlightPlayer videos={m.videos} marked onReveal={() => {}} />
+                <MatchHighlights
+                  videos={m.videos}
+                  marked
+                  onReveal={() => {}}
+                  showFoxWarning={showFoxWarning}
+                />
               )}
               <button
                 type="button"
@@ -257,10 +283,11 @@ export function MatchModal({
           ) : ready ? (
             <>
               {m.videos && m.videos.length > 0 ? (
-                <HighlightPlayer
+                <MatchHighlights
                   videos={m.videos}
                   marked={false}
                   onReveal={() => progress.setMark(m.id, 'watched')}
+                  showFoxWarning={showFoxWarning}
                 />
               ) : (
                 <div className="modal-video-placeholder">

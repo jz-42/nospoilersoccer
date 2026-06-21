@@ -7,7 +7,8 @@
     "dev": "vite",
     "validate:data": "tsx src/data/validate-cli.ts",
     "test:logic": "tsx src/logic/spoilers.smoke.ts && tsx src/time/local.smoke.ts && tsx src/components/schedule.smoke.ts && tsx src/data/schedule.smoke.ts",
-    "check": "npm run validate:data && npm run test:logic && tsc -b",
+    "test:components": "tsx --tsconfig tsconfig.app.json src/components/disclosures.smoke.tsx",
+    "check": "npm run validate:data && npm run test:logic && npm run test:components && tsc -b",
     "build": "npm run check && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

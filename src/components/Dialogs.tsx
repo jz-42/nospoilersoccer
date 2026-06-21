@@ -64,6 +64,21 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
           <li>Tap a match to watch its highlights, then reveal the result — winners move on through the bracket.</li>
           <li>Progress saves in this browser. No account.</li>
         </ul>
+        <div className="onboarding-disclosures">
+          <details className="onboarding-disclosure">
+            <summary>Privacy</summary>
+            <p>Your data stay in this browser and are not sent to us.</p>
+          </details>
+          <details className="onboarding-disclosure">
+            <summary>Advanced</summary>
+            <p>
+              This is a static React website with no application backend. Your progress is stored
+              in your browser. Results and highlights are updated automatically through GitHub
+              Actions and delivered when the site refreshes. YouTube is loaded only after you
+              choose a highlight.
+            </p>
+          </details>
+        </div>
         <button type="button" className="btn-primary" onClick={onClose}>
           Let's go
         </button>
