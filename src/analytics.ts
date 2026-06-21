@@ -37,53 +37,99 @@ interface UmamiWindow {
   }
 }
 
-function track(name: string, props?: object) {
-  if (!ENABLED) return
-  const w = window as unknown as UmamiWindow
-  w.umami?.track(name, props)
+type Tracker = (eventName: string, data?: object) => void
+
+interface AnalyticsOptions {
+  websiteId?: string
+  getTracker: () => Tracker | undefined
+  loadScript: (onLoad: () => void) => void
 }
 
-export const analytics = {
-  init(): void {
-    if (!ENABLED) return
-    if (document.querySelector('script[data-nss-analytics]')) return
+interface PendingEvent {
+  name: string
+  props?: object
+}
+
+export function createAnalytics(options: AnalyticsOptions) {
+  const enabled = typeof options.websiteId === 'string' && options.websiteId.length > 0
+  const pending: PendingEvent[] = []
+
+  const flush = () => {
+    const tracker = options.getTracker()
+    if (!tracker) return
+    for (const event of pending.splice(0)) tracker(event.name, event.props)
+  }
+
+  const track = (name: string, props?: object) => {
+    if (!enabled) return
+    const tracker = options.getTracker()
+    if (tracker) {
+      tracker(name, props)
+      return
+    }
+    pending.push({ name, props })
+  }
+
+  return {
+    init(): void {
+      if (!enabled) return
+      options.loadScript(flush)
+    },
+
+    viewChanged(props: { view: 'day' | 'groups' | 'bracket' }): void {
+      track('view_changed', props)
+    },
+
+    matchOpened(props: TournamentProps & { match_state: MatchState }): void {
+      track('match_opened', props)
+    },
+
+    highlightStarted(
+      props: TournamentProps & { highlight_kind: HighlightKind },
+    ): void {
+      track('highlight_started', props)
+    },
+
+    resultRevealed(
+      props: TournamentProps & {
+        reveal_source: RevealSource
+        highlight_kind?: HighlightKind
+      },
+    ): void {
+      track('result_revealed', props)
+    },
+
+    videoFailed(
+      props: TournamentProps & { reason: 'embed_blocked' },
+    ): void {
+      track('video_failed', props)
+    },
+  }
+}
+
+export const analytics = createAnalytics({
+  websiteId: ENABLED ? WEBSITE_ID : undefined,
+  getTracker: () => {
+    const w = window as unknown as UmamiWindow
+    return w.umami?.track
+  },
+  loadScript: (onLoad) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[data-nss-analytics]')
+    if (existing) {
+      existing.addEventListener('load', onLoad, { once: true })
+      onLoad()
+      return
+    }
+
     const script = document.createElement('script')
     script.defer = true
     script.src = 'https://cloud.umami.is/script.js'
     script.dataset.websiteId = WEBSITE_ID!
     script.dataset.autoTrack = 'false'
     script.dataset.nssAnalytics = '1'
+    script.addEventListener('load', onLoad, { once: true })
     document.head.appendChild(script)
   },
-
-  viewChanged(props: { view: 'day' | 'groups' | 'bracket' }): void {
-    track('view_changed', props)
-  },
-
-  matchOpened(props: TournamentProps & { match_state: MatchState }): void {
-    track('match_opened', props)
-  },
-
-  highlightStarted(
-    props: TournamentProps & { highlight_kind: HighlightKind },
-  ): void {
-    track('highlight_started', props)
-  },
-
-  resultRevealed(
-    props: TournamentProps & {
-      reveal_source: RevealSource
-      highlight_kind?: HighlightKind
-    },
-  ): void {
-    track('result_revealed', props)
-  },
-
-  videoFailed(
-    props: TournamentProps & { reason: 'embed_blocked' },
-  ): void {
-    track('video_failed', props)
-  },
-}
+})
 
 export type { Phase }
