@@ -10,7 +10,8 @@ import { FlowLayer } from './FlowLayer'
 import type { FeedLink } from './FlowLayer'
 import type { ModalTarget } from './MatchModal'
 import { matchState } from './status'
-import { formatDate, formatKickoffShort } from './format'
+import { formatMatchDate } from './format'
+import { KickoffTime } from './KickoffTime'
 
 /**
  * World-cup bracket layout: two halves feeding inward to the final at the
@@ -203,7 +204,9 @@ function KnockoutCard({
         </svg>
       </span>
     ) : (
-      <span className="ko-pill pill-upcoming">{formatKickoffShort(m.kickoff) ?? ''}</span>
+      <span className="ko-pill pill-upcoming">
+        <KickoffTime kickoff={m.kickoff} />
+      </span>
     )
 
   return (
@@ -220,7 +223,7 @@ function KnockoutCard({
       }}
     >
       <div className="ko-meta">
-        <span>{formatDate(m.date)}</span>
+        <span>{formatMatchDate(m.date, m.kickoff)}</span>
         {status}
       </div>
       <SlotRow

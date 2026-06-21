@@ -69,7 +69,7 @@ export interface GroupMatch {
   id: string
   group: GroupId
   matchday: number
-  /** Local match date, YYYY-MM-DD. */
+  /** Published schedule date, YYYY-MM-DD. UI dates derive from `kickoff`. */
   date: string
   /** Exact kickoff as UTC instant, e.g. "2022-11-20T16:00Z". */
   kickoff?: string
@@ -97,6 +97,7 @@ export type SlotRef =
 
 export interface KnockoutMatch {
   id: string
+  /** Published schedule date, YYYY-MM-DD. UI dates derive from `kickoff`. */
   date: string
   /** Exact kickoff as UTC instant, e.g. "2022-12-18T15:00Z". */
   kickoff?: string

@@ -998,6 +998,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+.kickoff-zone-offset {
+  font-size: 0.82em;
+  letter-spacing: 0;
+}
+
 .tile-badge.badge-seen {
   color: var(--text-h);
   font-weight: 700;

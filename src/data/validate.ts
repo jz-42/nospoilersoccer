@@ -1,6 +1,7 @@
 import type { GroupId, KnockoutMatch, Tournament } from './types'
 import { matchLoser, matchWinner } from './types'
 import { groupStandings } from './standings'
+import { FIFA_WC2026_KICKOFFS } from './wc2026-official-schedule'
 
 /** Returns a list of problems; an empty list means the dataset is consistent. */
 export function validateTournament(t: Tournament): string[] {
@@ -41,28 +42,36 @@ export function validateTournament(t: Tournament): string[] {
     }
   }
 
-  /*
-   * `date` must agree with `kickoff`. We pick the timezone that *any* match
-   * in the tournament uses (the one that makes the date/kickoff prefix match)
-   * and require every other match to use the same one — so a single typo
-   * like "06-12 19:00Z but date 06-12" (when PT day is 06-13) is rejected
-   * before the data ever ships. The check works for both 2022 (UTC-aligned,
-   * Qatar) and 2026 (PT-aligned, US/MEX/CAN) without per-tournament config.
-   */
-  const datedMatches = [
+  const allMatches = [
     ...t.groupMatches,
     ...t.knockoutRounds.flatMap((r) => r.matches),
-  ].filter((m): m is typeof m & { kickoff: string } => Boolean(m.kickoff))
-  const tzFor = (iso: string, tz: string) =>
-    new Date(iso).toLocaleDateString('en-CA', { timeZone: tz })
-  const candidates = ['UTC', 'America/Los_Angeles', 'America/New_York']
-  const consistentTz = candidates.find((tz) =>
-    datedMatches.every((m) => tzFor(m.kickoff, tz) === m.date),
-  )
-  if (!consistentTz && datedMatches.length > 0) {
-    for (const m of datedMatches) {
-      const offending = candidates.every((tz) => tzFor(m.kickoff, tz) !== m.date)
-      if (offending) err(`match ${m.id}: date=${m.date} disagrees with kickoff ${m.kickoff} in every timezone we check`)
+  ]
+  const utcInstant = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z$/
+  for (const m of allMatches) {
+    if (
+      m.kickoff &&
+      (!utcInstant.test(m.kickoff) || Number.isNaN(new Date(m.kickoff).getTime()))
+    ) {
+      err(`match ${m.id}: invalid UTC kickoff ${m.kickoff}`)
+    }
+  }
+
+  if (t.id === 'wc2026') {
+    if (allMatches.length !== 104) err(`expected 104 matches, found ${allMatches.length}`)
+
+    const actualIds = new Set(allMatches.map((m) => m.id))
+    for (const m of allMatches) {
+      const official = FIFA_WC2026_KICKOFFS[m.id]
+      if (!official) {
+        err(`match ${m.id}: not present in the official FIFA schedule`)
+      } else if (!m.kickoff) {
+        err(`match ${m.id}: missing kickoff (official kickoff is ${official})`)
+      } else if (m.kickoff !== official) {
+        err(`match ${m.id}: kickoff ${m.kickoff} disagrees with official kickoff ${official}`)
+      }
+    }
+    for (const id of Object.keys(FIFA_WC2026_KICKOFFS)) {
+      if (!actualIds.has(id)) err(`official FIFA schedule match ${id} is missing`)
     }
   }
 

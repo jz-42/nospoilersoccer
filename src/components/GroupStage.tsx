@@ -5,6 +5,7 @@ import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
 import { MatchTile } from './MatchTile'
 import { formatDate } from './format'
+import { groupMatchesByLocalDate } from './schedule'
 
 function Standings({ t, group, progress }: { t: Tournament; group: Group; progress: Progress }) {
   const live = groupStandings(t, group.id, (id) => progress.marks[id] !== undefined)
@@ -55,7 +56,7 @@ function GroupCard({
 }) {
   const matches = t.groupMatches.filter((m) => m.group === group.id)
   const seen = matches.filter((m) => progress.marks[m.id] !== undefined).length
-  const dates = [...new Set(matches.map((m) => m.date))].sort()
+  const matchDays = groupMatchesByLocalDate(matches)
 
   return (
     <section className="group-card">
@@ -67,14 +68,12 @@ function GroupCard({
       </header>
       <Standings t={t} group={group} progress={progress} />
       <div className="group-matches">
-        {dates.map((date) => (
+        {matchDays.map(({ date, matches: dayMatches }) => (
           <div key={date} className="match-day">
             <div className="date-caption">{formatDate(date)}</div>
-            {matches
-              .filter((m) => m.date === date)
-              .map((m) => (
-                <MatchTile key={m.id} t={t} m={m} progress={progress} onOpen={onOpen} />
-              ))}
+            {dayMatches.map((m) => (
+              <MatchTile key={m.id} t={t} m={m} progress={progress} onOpen={onOpen} />
+            ))}
           </div>
         ))}
       </div>
