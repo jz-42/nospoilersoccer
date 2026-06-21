@@ -2655,15 +2655,8 @@
 }
 
 .onboarding-disclosure-panel {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  min-height: 0;
-}
-
-.onboarding-disclosure-panel p {
   max-width: 340px;
-  margin: 0 0 12px;
+  margin: 0 auto 12px;
   padding: 10px 14px;
   color: var(--muted);
   font-size: 11px;
@@ -2672,6 +2665,19 @@
   background: rgba(154, 173, 203, 0.04);
   border-radius: 8px;
   animation: onboarding-disclosure-in 0.22s ease both;
+}
+
+.onboarding-disclosure-panel:empty {
+  margin: 0;
+  padding: 0;
+}
+
+.onboarding-disclosure-panel p {
+  margin: 0;
+}
+
+.onboarding-disclosure-panel p + p {
+  margin-top: 1em;
 }
 
 @keyframes onboarding-disclosure-in {

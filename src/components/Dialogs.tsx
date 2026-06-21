@@ -2,12 +2,29 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Logo } from './Logo'
 
-type Disclosure = 'privacy' | 'advanced'
+export type Disclosure = 'privacy' | 'advanced'
 
-const DISCLOSURE_COPY: Record<Disclosure, string> = {
-  privacy: 'Your data stay in this browser and are not sent to us.',
-  advanced:
-    'This is a static React website with no application backend. Your progress is stored in your browser. Results and highlights are updated automatically through GitHub Actions and delivered when the site refreshes. YouTube is loaded only after you choose a highlight.',
+const DISCLOSURE_COPY: Record<Disclosure, readonly string[]> = {
+  privacy: [
+    'Your preferences are saved locally in your browser.',
+    'This site uses anonymous Umami analytics for basic usage and error tracking, such as page views, match opens, highlight plays, result reveals, and video failures. Analytics may include general technical details like device type, browser language, screen size, referrer, and approximate country.',
+    'No cookies, persistent IDs, user profiles, team picks, scores, or progress data are stored, profiled, or sold.',
+  ],
+  advanced: [
+    'This is a static React website with no application backend. Your progress is stored in your browser.',
+    'Results and highlights are updated automatically through GitHub Actions and delivered when the site refreshes.',
+    'YouTube is loaded only after you choose a highlight.',
+  ],
+}
+
+export function DisclosureContent({ disclosure }: { disclosure: Disclosure }) {
+  return (
+    <>
+      {DISCLOSURE_COPY[disclosure].map((paragraph) => (
+        <p key={paragraph}>{paragraph}</p>
+      ))}
+    </>
+  )
 }
 
 function useEscape(onClose: () => void) {
@@ -81,7 +98,7 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
         </button>
         <div className="onboarding-disclosures">
           <div className="onboarding-disclosure-panel" aria-live="polite">
-            {open && <p key={open}>{DISCLOSURE_COPY[open]}</p>}
+            {open && <DisclosureContent key={open} disclosure={open} />}
           </div>
           <div className="onboarding-disclosure-row">
             <button
