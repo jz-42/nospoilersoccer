@@ -3,7 +3,7 @@
 ## Scope
 
 Replace only the Privacy disclosure text in the onboarding dialog. Leave the
-Advanced disclosure, analytics implementation, disclosure controls, and layout
+Advanced disclosure, analytics implementation, and disclosure controls
 unchanged.
 
 ## Content
@@ -23,8 +23,11 @@ The expanded Privacy disclosure will contain these three paragraphs:
 ## Rendering
 
 Change the disclosure content model from one string per disclosure to an array
-of paragraph strings. Render each entry as its own paragraph while preserving
-the existing collapsed-by-default behavior.
+of paragraph strings. Render the expanded disclosure in one existing styled
+panel, with visible vertical spacing between each paragraph. This creates three
+easy-to-scan sections matching the user's original formatting without turning
+them into three separate cards. Preserve the existing collapsed-by-default
+behavior.
 
 ## Verification
 
