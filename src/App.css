@@ -2647,15 +2647,15 @@
 }
 
 .onboarding-disclosures {
-  margin-top: 12px;
+  width: 100%;
+  margin-top: 18px;
   min-height: 17px;
 }
 
 .onboarding-disclosure-links {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
+  justify-content: space-between;
   color: var(--muted);
   font-size: 10.5px;
 }
@@ -2683,7 +2683,7 @@
 
 .onboarding-disclosures p {
   max-width: 360px;
-  margin: 7px auto 0;
+  margin: 0 auto 10px;
   color: var(--muted);
   font-size: 10.5px;
   line-height: 1.45;

@@ -45,6 +45,10 @@ assert(
   'onboarding disclosures appear below the primary button',
 )
 assert(
+  onboarding.indexOf('>Privacy</button>') < onboarding.indexOf('>Advanced</button>'),
+  'onboarding footer places Privacy before Advanced',
+)
+assert(
   !onboarding.includes('Your data stay in this browser and are not sent to us.'),
   'onboarding disclosure copy is hidden by default',
 )
