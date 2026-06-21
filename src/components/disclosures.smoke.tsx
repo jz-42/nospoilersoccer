@@ -2,7 +2,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { tournaments } from '../data'
 import type { GroupMatch } from '../data/types'
 import type { Progress } from '../state/progress'
-import { Onboarding } from './Dialogs'
+import { DisclosureContent, Onboarding } from './Dialogs'
 import { MatchModal } from './MatchModal'
 
 function assert(condition: boolean, message: string) {
@@ -28,6 +28,34 @@ const emptyProgress: Progress = {
 }
 
 const onboarding = renderToStaticMarkup(<Onboarding onClose={noop} />)
+const privacy = renderToStaticMarkup(<DisclosureContent disclosure="privacy" />)
+const advanced = renderToStaticMarkup(<DisclosureContent disclosure="advanced" />)
+
+assert(
+  privacy.includes('Your preferences are saved locally in your browser.'),
+  'Privacy explains that preferences remain local',
+)
+assert(
+  privacy.includes('This site uses anonymous Umami analytics'),
+  'Privacy explains anonymous analytics',
+)
+assert(
+  privacy.includes('No cookies, persistent IDs, user profiles'),
+  'Privacy explains what is not stored, profiled, or sold',
+)
+assert(
+  (privacy.match(/<p>/g) ?? []).length === 3,
+  'Privacy is grouped into three paragraphs',
+)
+assert(
+  (advanced.match(/<p>/g) ?? []).length === 3,
+  'Advanced is grouped into three paragraphs',
+)
+assert(
+  !privacy.includes('Progress, favorites, and settings stay in this browser'),
+  'Privacy omits the superseded disclosure copy',
+)
+
 assert(
   onboarding.includes('Click a match to watch its highlights, then click to reveal the result.'),
   'onboarding includes the revised highlight explanation',
@@ -49,7 +77,7 @@ assert(
   'onboarding footer places Privacy before Advanced',
 )
 assert(
-  !onboarding.includes('Your data stay in this browser and are not sent to us.'),
+  !onboarding.includes('Your preferences are saved locally in your browser.'),
   'onboarding disclosure copy is hidden by default',
 )
 

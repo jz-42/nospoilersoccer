@@ -2676,8 +2676,7 @@
 }
 
 /* shared reveal for the corner disclosures — a centered card that fades up
-   into the reserved space above the pinned links, so neither link's content
-   shifts the layout */
+   into the reserved space above the pinned links */
 .onboarding-disclosure-panel {
   display: flex;
   justify-content: center;
@@ -2685,9 +2684,8 @@
   margin-top: 16px;
 }
 
-.onboarding-disclosure-panel p {
+.onboarding-disclosure-content {
   max-width: 320px;
-  margin: 0;
   padding: 10px 14px;
   color: var(--muted);
   font-size: 11px;
@@ -2697,6 +2695,14 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   animation: onboarding-disclosure-in 0.22s ease both;
+}
+
+.onboarding-disclosure-content p {
+  margin: 0;
+}
+
+.onboarding-disclosure-content p + p {
+  margin-top: 1em;
 }
 
 @keyframes onboarding-disclosure-in {

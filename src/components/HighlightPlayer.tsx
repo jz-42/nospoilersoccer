@@ -15,6 +15,8 @@
  * spoiler warning.
  */
 import { useEffect, useRef, useState } from 'react'
+import { analytics } from '../analytics'
+import type { Phase } from '../analytics'
 import type { HighlightVideo } from '../data/types'
 import { formatDuration } from './format'
 
@@ -74,10 +76,14 @@ const KIND_LABEL: Record<HighlightVideo['kind'], string> = {
 
 export function HighlightPlayer({
   videos,
+  tournamentYear,
+  tournamentPhase,
   marked,
   onReveal,
 }: {
   videos: HighlightVideo[]
+  tournamentYear: number
+  tournamentPhase: Phase
   marked: boolean
   onReveal: () => void
 }) {
@@ -108,7 +114,14 @@ export function HighlightPlayer({
         playerVars: { autoplay: 1, rel: 0, iv_load_policy: 3, playsinline: 1 },
         events: {
           onError: (e) => {
-            if (e.data === 101 || e.data === 150) setFailed(true)
+            if (e.data === 101 || e.data === 150) {
+              setFailed(true)
+              analytics.videoFailed({
+                tournament_year: tournamentYear,
+                tournament_phase: tournamentPhase,
+                reason: 'embed_blocked',
+              })
+            }
           },
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.ENDED) setAtEnd(true)
@@ -137,7 +150,7 @@ export function HighlightPlayer({
       }
       mount.remove()
     }
-  }, [active])
+  }, [active, tournamentYear, tournamentPhase])
 
   if (videos.length === 0) return null
 
@@ -166,6 +179,11 @@ export function HighlightPlayer({
     setAtEnd(false)
     setDismissed(false)
     setFailed(false)
+    analytics.highlightStarted({
+      tournament_year: tournamentYear,
+      tournament_phase: tournamentPhase,
+      highlight_kind: v.kind === 'extended' ? 'extended' : 'quick',
+    })
   }
 
   const kindToggle = videos.length > 1 && (
