@@ -2638,17 +2638,11 @@
 }
 
 .onboarding-title {
-  font-size: 20px;
+  font-size: 23px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-h);
-  margin-bottom: 6px;
-}
-
-.onboarding-sub {
-  font-size: 13px;
-  color: var(--muted);
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
 .onboarding-list {
@@ -2679,10 +2673,6 @@
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 8px var(--accent-soft);
-}
-
-.onboarding-cta {
-  width: 100%;
 }
 
 /* shared reveal for the corner disclosures — a centered card that fades up

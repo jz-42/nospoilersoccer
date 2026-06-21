@@ -71,13 +71,12 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
           <Logo size={40} />
         </div>
         <h3 className="onboarding-title">Catch up. No spoilers.</h3>
-        <p className="onboarding-sub">The World Cup, on your schedule.</p>
         <ul className="onboarding-list">
           <li>Every score stays hidden until you reveal it.</li>
           <li>Click a match to watch its highlights, then click to reveal the result.</li>
           <li>Progress saves in this browser. No account.</li>
         </ul>
-        <button type="button" className="btn-primary onboarding-cta" onClick={onClose}>
+        <button type="button" className="btn-primary" onClick={onClose}>
           Let's go
         </button>
         <div className="onboarding-disclosure-panel" aria-live="polite">
