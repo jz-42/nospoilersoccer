@@ -2369,6 +2369,15 @@
   font-size: 11.5px;
 }
 
+.highlight-region-warning {
+  max-width: 380px;
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .modal-video-placeholder {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -2602,39 +2611,143 @@
   gap: 10px;
 }
 
-.onboarding-logo {
+/* onboarding has its own tighter width + extra bottom room for the corner
+   disclosure links that sit pinned to the modal's bottom edge */
+.modal.onboarding {
+  width: min(396px, 100%);
+  padding: 34px 30px 52px;
+  text-align: center;
+}
+
+/* the brand mark as an app icon: the blindfolded ball set in a soft round
+   tile with a thin ring and a faint accent glow */
+.onboarding-badge {
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 18px;
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, var(--bg-raised), var(--panel));
+  border: 1px solid var(--border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 26px rgba(0, 0, 0, 0.4),
+    0 0 22px var(--accent-soft);
+}
+
+.onboarding-title {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-h);
+  margin-bottom: 22px;
 }
 
 .onboarding-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 22px;
+  margin: 0 0 26px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   font-size: 13.5px;
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.45;
   text-align: left;
 }
 
 .onboarding-list li {
   position: relative;
-  padding-left: 20px;
+  padding-left: 24px;
 }
 
 .onboarding-list li::before {
   content: '';
   position: absolute;
-  left: 4px;
-  top: 7px;
+  left: 5px;
+  top: 6px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-soft);
+}
+
+/* shared reveal for the corner disclosures — a centered card that fades up
+   into the reserved space above the pinned links, so neither link's content
+   shifts the layout */
+.onboarding-disclosure-panel {
+  display: flex;
+  justify-content: center;
+  min-height: 0;
+  margin-top: 16px;
+}
+
+.onboarding-disclosure-panel p {
+  max-width: 320px;
+  margin: 0;
+  padding: 10px 14px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+  text-align: center;
+  background: rgba(154, 173, 203, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  animation: onboarding-disclosure-in 0.22s ease both;
+}
+
+@keyframes onboarding-disclosure-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* tucked into the modal's bottom corners, clear of the rounded edges */
+.onboarding-disclosure-link {
+  position: absolute;
+  bottom: 20px;
+  border: 0;
+  background: transparent;
+  padding: 4px 2px;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+}
+
+.onboarding-disclosure-left {
+  left: 28px;
+}
+
+.onboarding-disclosure-right {
+  right: 28px;
+}
+
+.onboarding-disclosure-link:hover {
+  opacity: 0.9;
+}
+
+.onboarding-disclosure-link[aria-expanded='true'] {
+  opacity: 1;
+  color: var(--text);
+}
+
+.onboarding-disclosure-link:focus-visible {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
 }
 
 /* ============ footer ============ */
