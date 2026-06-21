@@ -57,21 +57,70 @@ export function formatLocalDate(
   return dateTimeFormat(options, timeZone).format(asDate(instant))
 }
 
+export interface LocalKickoffParts {
+  time: string
+  zone: string
+  offsetZone: boolean
+}
+
+function zoneName(
+  date: Date,
+  style: 'shortGeneric' | 'long' | 'shortOffset',
+  timeZone?: string,
+): string {
+  return (
+    dateTimeFormat({ timeZoneName: style }, timeZone)
+      .formatToParts(date)
+      .find((part) => part.type === 'timeZoneName')?.value ?? ''
+  )
+}
+
+function acronym(longName: string): string | null {
+  if (!/\bTime\b/.test(longName) || /^(Greenwich|Coordinated Universal)/.test(longName)) return null
+  const letters = longName
+    .split(/\s+/)
+    .filter((word) => /^[A-Za-z]/.test(word))
+    .map((word) => word[0].toUpperCase())
+    .join('')
+  return /^[A-Z]{3,5}$/.test(letters) ? letters : null
+}
+
+function compactOffset(offset: string): string {
+  return offset.replace(/^GMT/, 'UTC').replace(/([+-])0(\d)/, '$1$2').replace(/:00$/, '')
+}
+
 /**
- * Local kickoff with a compact timezone label. North America uses generic
- * labels such as PT/ET; verbose generic labels elsewhere fall back to GMT±N.
+ * Local kickoff split into time and timezone. Familiar generic labels such as
+ * PT/ET stay generic; longer named zones become CEST/JST/AEST where possible.
  */
-export function formatKickoffLocal(iso?: string, timeZone?: string): string | null {
+export function formatKickoffLocalParts(
+  iso?: string,
+  timeZone?: string,
+): LocalKickoffParts | null {
   if (!iso) return null
   const date = asDate(iso)
-  const baseOptions: Intl.DateTimeFormatOptions = {
-    hour: 'numeric',
-    minute: '2-digit',
-  }
-  const generic = dateTimeFormat(
-    { ...baseOptions, timeZoneName: 'shortGeneric' },
+  const time = dateTimeFormat(
+    {
+      hour: 'numeric',
+      minute: '2-digit',
+    },
     timeZone,
   ).format(date)
-  if (!/\bTime\b/.test(generic)) return generic
-  return dateTimeFormat({ ...baseOptions, timeZoneName: 'shortOffset' }, timeZone).format(date)
+  const generic = zoneName(date, 'shortGeneric', timeZone)
+  if (generic && !/\bTime\b/.test(generic) && !/^GMT/.test(generic)) {
+    return { time, zone: generic, offsetZone: false }
+  }
+  const named = acronym(zoneName(date, 'long', timeZone))
+  if (named) return { time, zone: named, offsetZone: false }
+  return {
+    time,
+    zone: compactOffset(zoneName(date, 'shortOffset', timeZone)),
+    offsetZone: true,
+  }
+}
+
+/** Local kickoff with a compact timezone label. */
+export function formatKickoffLocal(iso?: string, timeZone?: string): string | null {
+  const parts = formatKickoffLocalParts(iso, timeZone)
+  return parts ? `${parts.time} ${parts.zone}` : null
 }

@@ -11,7 +11,8 @@ import { resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
 import { matchState } from './status'
-import { formatDate, formatRuntimeBadge, formatKickoffShort } from './format'
+import { formatDate, formatRuntimeBadge } from './format'
+import { KickoffTime } from './KickoffTime'
 
 export interface RailEntry {
   target: ModalTarget
@@ -59,13 +60,11 @@ export function PreviewCard({
     context = target.roundName
   }
 
-  const kickoff = formatKickoffShort(m.kickoff)
-
   const badge =
     state === 'watch' || state === 'ft'
       ? 'FT'
       : state === 'upcoming'
-        ? (kickoff ?? 'Upcoming')
+        ? (m.kickoff ? <KickoffTime kickoff={m.kickoff} /> : 'Upcoming')
         : state === 'locked'
           ? 'Locked'
           : null

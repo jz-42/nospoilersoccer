@@ -9,7 +9,7 @@ import type { GroupMatch, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
 import { matchState } from './status'
-import { formatKickoffShort } from './format'
+import { KickoffTime } from './KickoffTime'
 
 export function MatchTile({
   t,
@@ -41,7 +41,9 @@ export function MatchTile({
     ) : state === 'watch' || state === 'ft' ? (
       <span className="tile-badge badge-ft">FT</span>
     ) : (
-      <span className="tile-badge badge-upcoming">{formatKickoffShort(m.kickoff) ?? '—'}</span>
+      <span className="tile-badge badge-upcoming">
+        {m.kickoff ? <KickoffTime kickoff={m.kickoff} /> : '—'}
+      </span>
     )
 
   return (

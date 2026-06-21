@@ -80,10 +80,10 @@ export function formatLocalDate(
 ): string
 ```
 
-Use `Intl.DateTimeFormat(...).formatToParts()` to build `YYYY-MM-DD`. Use
-`timeZoneName: 'shortGeneric'` for North American `PT`/`ET`, but use
-`timeZoneName: 'shortOffset'` when the generic name contains `Time`, producing
-the concise Amsterdam form `GMT+2`.
+Use `Intl.DateTimeFormat(...).formatToParts()` to build `YYYY-MM-DD`. Prefer
+concise generic labels such as `PT`/`ET`, derive recognized abbreviations such
+as `CEST` and `JST` from localized long names, and otherwise normalize the
+short offset to `UTC+3`. Render only offset fallbacks at a smaller size.
 
 - [ ] **Step 4: Route `format.ts` through the new helpers**
 

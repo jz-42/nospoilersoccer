@@ -1,5 +1,6 @@
 import {
   addLocalDays,
+  formatKickoffLocalParts,
   formatKickoffLocal,
   formatLocalDate,
   localDateKey,
@@ -28,8 +29,20 @@ assert(
   'New York receives Eastern time',
 )
 assert(
-  formatKickoffLocal(kickoff, 'Europe/Amsterdam') === '9:00 PM GMT+2',
-  'Amsterdam receives its local time and UTC offset',
+  formatKickoffLocal(kickoff, 'Europe/Amsterdam') === '9:00 PM CEST',
+  'Amsterdam receives a recognized timezone abbreviation',
+)
+assert(
+  formatKickoffLocal(kickoff, 'Asia/Tokyo') === '4:00 AM JST',
+  'Tokyo receives a recognized timezone abbreviation',
+)
+assert(
+  formatKickoffLocalParts(kickoff, 'Etc/GMT-3')?.zone === 'UTC+3',
+  'offset fallback uses compact UTC notation',
+)
+assert(
+  formatKickoffLocalParts(kickoff, 'Etc/GMT-3')?.offsetZone === true,
+  'offset fallback is marked for smaller visual treatment',
 )
 assert(
   localDateKey('2026-06-21T00:30Z', 'America/Los_Angeles') === '2026-06-20',

@@ -36,9 +36,10 @@ For a match with a kickoff:
   visitor's timezone.
 - Derive all displayed dates and weekdays from that local calendar date.
 - Format kickoff times in the visitor's timezone.
-- Preserve the current visual format by appending a short generic timezone
-  label, such as `1:00 PM PT`, `4:00 PM ET`, or the browser's equivalent
-  generic label for Amsterdam.
+- Preserve the current visual format by appending a short timezone label.
+  Prefer recognized abbreviations such as `PT`, `ET`, `CEST`, `JST`, or
+  `AEST`. Fall back to compact offsets such as `UTC+3`, with only the offset
+  suffix rendered slightly smaller to reduce visual weight.
 - Derive `Yesterday`, `Today`, and `Tomorrow` by comparing local calendar keys,
   not UTC dates or stored schedule dates.
 
