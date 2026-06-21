@@ -1,4 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { analytics } from '../analytics'
+import type { Phase } from '../analytics'
 import type { GroupMatch, HighlightVideo, KnockoutMatch, Tournament } from '../data/types'
 import {
   canForceReveal,
@@ -18,6 +20,29 @@ export type ModalTarget =
   | { kind: 'knockout'; match: KnockoutMatch; roundName: string }
 
 const FOX_WC_HUB = 'https://www.foxsports.com/soccer/fifa-world-cup'
+
+const KNOCKOUT_PHASES: ReadonlySet<Phase> = new Set([
+  'r32',
+  'r16',
+  'qf',
+  'sf',
+  'third-place',
+  'final',
+])
+
+/**
+ * Map a knockout match to a low-cardinality analytics phase. Round IDs in
+ * the data already match the Phase enum, so this is just a lookup with a
+ * conservative fallback if a tournament ever introduces a new round id.
+ */
+function knockoutPhase(t: Tournament, matchId: string): Phase {
+  for (const round of t.knockoutRounds) {
+    if (round.matches.some((m) => m.id === matchId)) {
+      if (KNOCKOUT_PHASES.has(round.id as Phase)) return round.id as Phase
+    }
+  }
+  return 'final'
+}
 const FOX_REGIONAL_WARNING =
   'Videos from the FOX Sports YouTube channel may only be available in the U.S.'
 
@@ -69,18 +94,28 @@ function TeamSide({
 
 function MatchHighlights({
   videos,
+  tournamentYear,
+  tournamentPhase,
   marked,
   onReveal,
   showFoxWarning,
 }: {
   videos: HighlightVideo[]
+  tournamentYear: number
+  tournamentPhase: Phase
   marked: boolean
   onReveal: () => void
   showFoxWarning: boolean
 }) {
   return (
     <>
-      <HighlightPlayer videos={videos} marked={marked} onReveal={onReveal} />
+      <HighlightPlayer
+        videos={videos}
+        tournamentYear={tournamentYear}
+        tournamentPhase={tournamentPhase}
+        marked={marked}
+        onReveal={onReveal}
+      />
       {showFoxWarning && <p className="highlight-region-warning">{FOX_REGIONAL_WARNING}</p>}
     </>
   )
@@ -124,6 +159,25 @@ export function MatchModal({
   const locked = km !== null && (homeTeam === null || awayTeam === null)
   const score = m.score
   const showFoxWarning = t.year === 2026
+  const phase: Phase = target.kind === 'group' ? 'group' : knockoutPhase(t, m.id)
+
+  const openedRef = useRef(false)
+  useEffect(() => {
+    if (openedRef.current) return
+    openedRef.current = true
+    const matchState = mark
+      ? 'revealed'
+      : locked
+        ? 'locked'
+        : ready
+          ? 'ready'
+          : 'upcoming'
+    analytics.matchOpened({
+      tournament_year: t.year,
+      tournament_phase: phase,
+      match_state: matchState,
+    })
+  }, [t.year, phase, mark, locked, ready])
 
   let summary: string | null = null
   if (mark && score && homeTeam && awayTeam) {
@@ -266,6 +320,8 @@ export function MatchModal({
               {m.videos && m.videos.length > 0 && (
                 <MatchHighlights
                   videos={m.videos}
+                  tournamentYear={t.year}
+                  tournamentPhase={phase}
                   marked
                   onReveal={() => {}}
                   showFoxWarning={showFoxWarning}
@@ -285,8 +341,17 @@ export function MatchModal({
               {m.videos && m.videos.length > 0 ? (
                 <MatchHighlights
                   videos={m.videos}
+                  tournamentYear={t.year}
+                  tournamentPhase={phase}
                   marked={false}
-                  onReveal={() => progress.setMark(m.id, 'watched')}
+                  onReveal={() => {
+                    analytics.resultRevealed({
+                      tournament_year: t.year,
+                      tournament_phase: phase,
+                      reveal_source: 'video_end',
+                    })
+                    progress.setMark(m.id, 'watched')
+                  }}
                   showFoxWarning={showFoxWarning}
                 />
               ) : (
@@ -298,7 +363,14 @@ export function MatchModal({
               <button
                 type="button"
                 className="btn-primary"
-                onClick={() => progress.setMark(m.id, 'watched')}
+                onClick={() => {
+                  analytics.resultRevealed({
+                    tournament_year: t.year,
+                    tournament_phase: phase,
+                    reveal_source: 'manual',
+                  })
+                  progress.setMark(m.id, 'watched')
+                }}
               >
                 Reveal Result
               </button>

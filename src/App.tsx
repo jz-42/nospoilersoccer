@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+import { analytics } from './analytics'
 import { Bracket } from './components/Bracket'
 import { ConfirmDialog, Onboarding } from './components/Dialogs'
 import { FavoritesPanel } from './components/FavoritesPanel'
@@ -33,6 +34,9 @@ function App() {
   // group stage / knockout views (with their embedded videos) are the way in.
   const live = isLive(t)
   const view: Tab = live || tab !== 'day' ? tab : 'groups'
+  useEffect(() => {
+    analytics.viewChanged({ view })
+  }, [view])
   const [modal, setModal] = useState<ModalTarget | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
