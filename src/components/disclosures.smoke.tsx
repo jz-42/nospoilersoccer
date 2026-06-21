@@ -29,24 +29,24 @@ const emptyProgress: Progress = {
 
 const onboarding = renderToStaticMarkup(<Onboarding onClose={noop} />)
 assert(
-  onboarding.includes('<summary>Privacy</summary>'),
-  'onboarding includes a keyboard-accessible Privacy disclosure',
+  onboarding.includes('Click a match to watch its highlights, then click to reveal the result.'),
+  'onboarding includes the revised highlight explanation',
 )
 assert(
-  onboarding.includes('<summary>Advanced</summary>'),
-  'onboarding includes a keyboard-accessible Advanced disclosure',
+  onboarding.includes('aria-expanded="false">Privacy</button>'),
+  'onboarding includes a collapsed Privacy disclosure button',
 )
 assert(
-  !onboarding.includes('<details open'),
-  'onboarding disclosures are closed by default',
+  onboarding.includes('aria-expanded="false">Advanced</button>'),
+  'onboarding includes a collapsed Advanced disclosure button',
 )
 assert(
-  onboarding.includes('Your data stay in this browser and are not sent to us.'),
-  'onboarding includes the privacy copy',
+  onboarding.indexOf("Let&#x27;s go") < onboarding.indexOf('>Privacy</button>'),
+  'onboarding disclosures appear below the primary button',
 )
 assert(
-  onboarding.includes('This is a static React website with no application backend.'),
-  'onboarding includes the advanced copy',
+  !onboarding.includes('Your data stay in this browser and are not sent to us.'),
+  'onboarding disclosure copy is hidden by default',
 )
 
 const warning = 'Videos from the FOX Sports YouTube channel may only be available in the U.S.'

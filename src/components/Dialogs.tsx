@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Logo } from './Logo'
 
@@ -52,6 +52,12 @@ export function ConfirmDialog({
 
 export function Onboarding({ onClose }: { onClose: () => void }) {
   useEscape(onClose)
+  const [disclosure, setDisclosure] = useState<'privacy' | 'advanced' | null>(null)
+
+  const toggleDisclosure = (next: 'privacy' | 'advanced') => {
+    setDisclosure((current) => (current === next ? null : next))
+  }
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal dialog onboarding" onClick={(e) => e.stopPropagation()}>
@@ -61,27 +67,42 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
         <h3 className="dialog-title">Catch up. No spoilers.</h3>
         <ul className="onboarding-list">
           <li>Every score stays hidden until you reveal it.</li>
-          <li>Tap a match to watch its highlights, then reveal the result — winners move on through the bracket.</li>
+          <li>Click a match to watch its highlights, then click to reveal the result.</li>
           <li>Progress saves in this browser. No account.</li>
         </ul>
+        <button type="button" className="btn-primary" onClick={onClose}>
+          Let's go
+        </button>
         <div className="onboarding-disclosures">
-          <details className="onboarding-disclosure">
-            <summary>Privacy</summary>
+          <div className="onboarding-disclosure-links">
+            <button
+              type="button"
+              aria-expanded={disclosure === 'privacy'}
+              onClick={() => toggleDisclosure('privacy')}
+            >
+              Privacy
+            </button>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              aria-expanded={disclosure === 'advanced'}
+              onClick={() => toggleDisclosure('advanced')}
+            >
+              Advanced
+            </button>
+          </div>
+          {disclosure === 'privacy' && (
             <p>Your data stay in this browser and are not sent to us.</p>
-          </details>
-          <details className="onboarding-disclosure">
-            <summary>Advanced</summary>
+          )}
+          {disclosure === 'advanced' && (
             <p>
               This is a static React website with no application backend. Your progress is stored
               in your browser. Results and highlights are updated automatically through GitHub
               Actions and delivered when the site refreshes. YouTube is loaded only after you
               choose a highlight.
             </p>
-          </details>
+          )}
         </div>
-        <button type="button" className="btn-primary" onClick={onClose}>
-          Let's go
-        </button>
       </div>
     </div>
   )
