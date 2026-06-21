@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Logo } from './Logo'
 
@@ -52,11 +52,6 @@ export function ConfirmDialog({
 
 export function Onboarding({ onClose }: { onClose: () => void }) {
   useEscape(onClose)
-  const [disclosure, setDisclosure] = useState<'privacy' | 'advanced' | null>(null)
-
-  const toggleDisclosure = (next: 'privacy' | 'advanced') => {
-    setDisclosure((current) => (current === next ? null : next))
-  }
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -74,34 +69,19 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
           Let's go
         </button>
         <div className="onboarding-disclosures">
-          <div className="onboarding-disclosure-links">
-            <button
-              type="button"
-              aria-expanded={disclosure === 'privacy'}
-              onClick={() => toggleDisclosure('privacy')}
-            >
-              Privacy
-            </button>
-            <span aria-hidden="true">·</span>
-            <button
-              type="button"
-              aria-expanded={disclosure === 'advanced'}
-              onClick={() => toggleDisclosure('advanced')}
-            >
-              Advanced
-            </button>
-          </div>
-          {disclosure === 'privacy' && (
+          <details className="onboarding-disclosure">
+            <summary>Privacy</summary>
             <p>Your data stay in this browser and are not sent to us.</p>
-          )}
-          {disclosure === 'advanced' && (
+          </details>
+          <details className="onboarding-disclosure">
+            <summary>Advanced</summary>
             <p>
               This is a static React website with no application backend. Your progress is stored
               in your browser. Results and highlights are updated automatically through GitHub
               Actions and delivered when the site refreshes. YouTube is loaded only after you
               choose a highlight.
             </p>
-          )}
+          </details>
         </div>
       </div>
     </div>
