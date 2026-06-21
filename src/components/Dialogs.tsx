@@ -1,6 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Logo } from './Logo'
+
+type Disclosure = 'privacy' | 'advanced'
+
+const DISCLOSURE_COPY: Record<Disclosure, string> = {
+  privacy: 'Your data stay in this browser and are not sent to us.',
+  advanced:
+    'This is a static React website with no application backend. Your progress is stored in your browser. Results and highlights are updated automatically through GitHub Actions and delivered when the site refreshes. YouTube is loaded only after you choose a highlight.',
+}
 
 function useEscape(onClose: () => void) {
   useEffect(() => {
@@ -52,6 +60,9 @@ export function ConfirmDialog({
 
 export function Onboarding({ onClose }: { onClose: () => void }) {
   useEscape(onClose)
+  const [open, setOpen] = useState<Disclosure | null>(null)
+  const toggle = (next: Disclosure) =>
+    setOpen((current) => (current === next ? null : next))
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -69,19 +80,27 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
           Let's go
         </button>
         <div className="onboarding-disclosures">
-          <details className="onboarding-disclosure">
-            <summary>Privacy</summary>
-            <p>Your data stay in this browser and are not sent to us.</p>
-          </details>
-          <details className="onboarding-disclosure">
-            <summary>Advanced</summary>
-            <p>
-              This is a static React website with no application backend. Your progress is stored
-              in your browser. Results and highlights are updated automatically through GitHub
-              Actions and delivered when the site refreshes. YouTube is loaded only after you
-              choose a highlight.
-            </p>
-          </details>
+          <div className="onboarding-disclosure-panel" aria-live="polite">
+            {open && <p key={open}>{DISCLOSURE_COPY[open]}</p>}
+          </div>
+          <div className="onboarding-disclosure-row">
+            <button
+              type="button"
+              className="onboarding-disclosure-link"
+              aria-expanded={open === 'privacy'}
+              onClick={() => toggle('privacy')}
+            >
+              Privacy
+            </button>
+            <button
+              type="button"
+              className="onboarding-disclosure-link"
+              aria-expanded={open === 'advanced'}
+              onClick={() => toggle('advanced')}
+            >
+              Advanced
+            </button>
+          </div>
         </div>
       </div>
     </div>

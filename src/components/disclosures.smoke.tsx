@@ -33,21 +33,24 @@ assert(
   'onboarding includes the revised highlight explanation',
 )
 assert(
-  /<details(?![^>]*\bopen\b)[^>]*>\s*<summary>Privacy<\/summary>/.test(onboarding),
+  onboarding.includes('aria-expanded="false">Privacy</button>'),
   'onboarding includes a collapsed Privacy disclosure',
 )
 assert(
-  /<details(?![^>]*\bopen\b)[^>]*>\s*<summary>Advanced<\/summary>/.test(onboarding),
+  onboarding.includes('aria-expanded="false">Advanced</button>'),
   'onboarding includes a collapsed Advanced disclosure',
 )
 assert(
-  onboarding.indexOf("Let&#x27;s go") < onboarding.indexOf('<summary>Privacy</summary>'),
+  onboarding.indexOf("Let&#x27;s go") < onboarding.indexOf('>Privacy</button>'),
   'onboarding disclosures appear below the primary button',
 )
 assert(
-  onboarding.indexOf('<summary>Privacy</summary>') <
-    onboarding.indexOf('<summary>Advanced</summary>'),
+  onboarding.indexOf('>Privacy</button>') < onboarding.indexOf('>Advanced</button>'),
   'onboarding footer places Privacy before Advanced',
+)
+assert(
+  !onboarding.includes('Your data stay in this browser and are not sent to us.'),
+  'onboarding disclosure copy is hidden by default',
 )
 
 const warning = 'Videos from the FOX Sports YouTube channel may only be available in the U.S.'
