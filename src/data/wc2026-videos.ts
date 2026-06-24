@@ -44,6 +44,7 @@ export const wc2026Videos: Record<string, HighlightVideo[]> = {
   'K1': [{ youtubeId: 'SjumRdNESKg', kind: 'extended', durationSeconds: 1105 }],
   'K2': [{ youtubeId: 'Qb3ipZFspnc', kind: 'extended', durationSeconds: 970 }],
   'K3': [{ youtubeId: 'jqgn-kY0rFA', kind: 'extended', durationSeconds: 1169 }],
+  'K4': [{ youtubeId: 'C-bTb3K_suE', kind: 'extended', durationSeconds: 950 }],
   'L1': [{ youtubeId: 'lGoe9nxRfyU', kind: 'extended', durationSeconds: 1030 }],
   'L2': [{ youtubeId: 'hFO9DhasJ2A', kind: 'extended', durationSeconds: 985 }],
   'L3': [{ youtubeId: 'ebuYwC7lwCk', kind: 'extended', durationSeconds: 918 }],
