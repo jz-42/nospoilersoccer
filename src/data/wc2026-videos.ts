@@ -12,6 +12,7 @@ import type { HighlightVideo } from './types'
 export const wc2026Videos: Record<string, HighlightVideo[]> = {
   'A3': [{ youtubeId: 'jijCaWH_IxM', kind: 'extended', durationSeconds: 934 }],
   'A4': [{ youtubeId: 'F1sMvm6D-0Y', kind: 'extended', durationSeconds: 937 }],
+  'A5': [{ youtubeId: 'IR891e2-JBc', kind: 'extended', durationSeconds: 764 }],
   'A6': [{ youtubeId: 'A7PTebEdius', kind: 'extended', durationSeconds: 757 }],
   'B3': [{ youtubeId: 'v08lQx6pThk', kind: 'extended', durationSeconds: 1046 }],
   'B4': [{ youtubeId: 'vz9OTeU6gTM', kind: 'extended', durationSeconds: 1012 }],
