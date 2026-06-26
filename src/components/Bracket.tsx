@@ -223,7 +223,14 @@ function KnockoutCard({
       }}
     >
       <div className="ko-meta">
-        <span>{formatMatchDate(m.date, m.kickoff)}</span>
+        <span>
+          {(pinned || fav) && (
+            <span className="ko-saved" aria-label="Saved" title="Saved">
+              ★
+            </span>
+          )}
+          {formatMatchDate(m.date, m.kickoff)}
+        </span>
         {status}
       </div>
       <SlotRow

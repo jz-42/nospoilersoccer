@@ -13,21 +13,14 @@ import { useCallback, useMemo, useState } from 'react'
 import type { TeamId, Tournament } from '../data/types'
 import type { Mark, Marks } from '../logic/spoilers'
 import { withUnmarked } from '../logic/spoilers'
+import {
+  emptyTournamentProgress,
+  resetTournamentProgressForViewing,
+  type TournamentProgress,
+} from './reset'
 
 const STORAGE_KEY = 'nss-progress'
 const CURRENT_VERSION = 3
-
-interface TournamentProgress {
-  marks: Marks
-  /** Knockout matches whose teams the user force-revealed ("jump ahead"). */
-  revealed: string[]
-  /** Manually highlighted matches — independent of favorites. */
-  pins: string[]
-  /** Favorite teams, in the user's chosen order. */
-  favorites: TeamId[]
-  /** Auto-highlight matches involving favorite teams. */
-  favAuto: boolean
-}
 
 interface ProgressState {
   version: number
@@ -82,7 +75,7 @@ function save(state: ProgressState) {
   }
 }
 
-const EMPTY: TournamentProgress = { marks: {}, revealed: [], pins: [], favorites: [], favAuto: true }
+const EMPTY = emptyTournamentProgress()
 
 export interface Progress {
   marks: Marks
@@ -181,7 +174,7 @@ export function useProgress(t: Tournament): Progress {
     [update],
   )
   const reset = useCallback(
-    () => update((tp) => ({ ...EMPTY, favorites: tp.favorites, favAuto: tp.favAuto })),
+    () => update((tp) => resetTournamentProgressForViewing(tp)),
     [update],
   )
 

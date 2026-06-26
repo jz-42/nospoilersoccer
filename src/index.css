@@ -21,6 +21,16 @@
   --gold: #d9b65f;
   --pink: #e786b3;
   --danger: #e5534b;
+
+  /* Saved-match accent — one warm amber that says "on my radar".
+     Used identically for manually pinned matches and favorite-team
+     auto-highlights. Tuned to sit below spoiler-bearing state (Watch
+     green, FT, revealed scores) but read as intentionally saved. */
+  --saved: #e9b85a;
+  --saved-edge: rgba(233, 184, 90, 0.7);
+  --saved-bar: rgba(233, 184, 90, 0.85);
+  --saved-wash: rgba(233, 184, 90, 0.09);
+  --saved-ink: #f1c97a;
   --radius-lg: 16px;
   --radius: 12px;
   --radius-sm: 8px;

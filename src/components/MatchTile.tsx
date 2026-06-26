@@ -68,6 +68,11 @@ export function MatchTile({
         <span className="tile-sep">v</span>
         <span className={`tile-team ${awayWon ? 'won' : ''}`}>{away.name}</span>
       </span>
+      {(pinned || fav) && (
+        <span className="tile-saved" aria-label="Saved" title="Saved">
+          ★
+        </span>
+      )}
       {badge}
     </button>
   )
