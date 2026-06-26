@@ -9,26 +9,30 @@ const DATE_ONLY_KNOCKOUT_END_OFFSET_MINUTES = 36 * 60
 
 export function parseMatchKickoffs(sourceText) {
   const matchesById = new Map()
-  const kickoffRegex = /\{\s*id:\s*'((?:[A-L]\d+)|(?:m\d+))'[\s\S]*?kickoff:\s*'([^']+)'/g
+  const matchObjectRegex = /\{\s*id:\s*'((?:[A-L]\d+)|(?:m\d+))'/g
 
-  for (const match of sourceText.matchAll(kickoffRegex)) {
+  for (const match of sourceText.matchAll(matchObjectRegex)) {
     const matchId = match[1]
-    const kickoff = new Date(match[2])
-    if (Number.isNaN(kickoff.getTime())) continue
+    const objectText = readObjectAt(sourceText, match.index)
+    if (!objectText) continue
 
-    matchesById.set(matchId, {
-      matchId,
-      phase: matchId.startsWith('m') ? 'knockout' : 'group',
-      kickoff,
-      dateOnly: false,
-    })
-  }
+    const kickoffValue = objectText.match(/\bkickoff:\s*'([^']+)'/)?.[1]
+    if (kickoffValue) {
+      const kickoff = new Date(kickoffValue)
+      if (Number.isNaN(kickoff.getTime())) continue
 
-  const knockoutDateRegex = /\{\s*id:\s*'(m\d+)'\s*,\s*date:\s*'(\d{4}-\d{2}-\d{2})'/g
-  for (const match of sourceText.matchAll(knockoutDateRegex)) {
-    const matchId = match[1]
-    const date = match[2]
-    if (matchesById.has(matchId)) continue
+      matchesById.set(matchId, {
+        matchId,
+        phase: matchId.startsWith('m') ? 'knockout' : 'group',
+        kickoff,
+        dateOnly: false,
+      })
+      continue
+    }
+
+    if (!matchId.startsWith('m')) continue
+    const date = objectText.match(/\bdate:\s*'(\d{4}-\d{2}-\d{2})'/)?.[1]
+    if (!date) continue
 
     const dateStart = new Date(`${date}T00:00:00Z`)
     if (Number.isNaN(dateStart.getTime())) continue
@@ -42,6 +46,39 @@ export function parseMatchKickoffs(sourceText) {
   }
 
   return Array.from(matchesById.values())
+}
+
+function readObjectAt(sourceText, start) {
+  let depth = 0
+  let quote = null
+  let escaped = false
+
+  for (let i = start; i < sourceText.length; i += 1) {
+    const ch = sourceText[i]
+
+    if (quote) {
+      if (escaped) {
+        escaped = false
+      } else if (ch === '\\') {
+        escaped = true
+      } else if (ch === quote) {
+        quote = null
+      }
+      continue
+    }
+
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch
+      continue
+    }
+    if (ch === '{') depth += 1
+    if (ch === '}') {
+      depth -= 1
+      if (depth === 0) return sourceText.slice(start, i + 1)
+    }
+  }
+
+  return null
 }
 
 function addMinutes(date, minutes) {
@@ -169,6 +206,7 @@ export async function runScheduler({
   fetchSchedule,
   githubClient,
   logger = (entry) => console.log(JSON.stringify(entry)),
+  throwOnError = false,
 }) {
   const scheduleText = await fetchSchedule()
   const matches = parseMatchKickoffs(scheduleText)
@@ -177,6 +215,7 @@ export async function runScheduler({
   let activeRunCount = 0
   let action = 'skip_outside_window'
   let github = null
+  let caughtError = null
 
   if (report.insideWindow) {
     try {
@@ -189,6 +228,7 @@ export async function runScheduler({
     } catch (error) {
       action = 'error'
       github = safeGitHubError(error)
+      caughtError = error
     }
   }
 
@@ -202,6 +242,8 @@ export async function runScheduler({
   }
 
   logger(entry)
+
+  if (throwOnError && caughtError) throw caughtError
 
   return {
     ...report,
@@ -290,6 +332,7 @@ export default {
       now: new Date(),
       fetchSchedule: () => fetchScheduleText(env),
       githubClient: createEnvGitHubClient(env),
+      throwOnError: true,
     })
   },
 }

@@ -18,7 +18,7 @@ const DEFAULT_UMAMI_SCRIPT_URL = 'https://cloud.umami.is/script.js'
 const WARNING_COPY = 'Careful — comments and suggested videos may contain spoilers.'
 
 export type Phase = 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'third-place' | 'final'
-export type HighlightProvider = 'fox_youtube'
+export type HighlightProvider = 'fox_youtube' | 'fox_site'
 
 type MatchState = 'upcoming' | 'ready' | 'locked' | 'revealed'
 type RevealSource = 'manual' | 'video_end'

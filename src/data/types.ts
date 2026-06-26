@@ -22,10 +22,9 @@ export interface Team {
 }
 
 export type VideoKind = 'normal' | 'extended'
+export type HighlightSource = 'youtube' | 'fox'
 
-export interface HighlightVideo {
-  /** YouTube video id (the part after `v=`). */
-  youtubeId: string
+interface HighlightVideoBase {
   kind: VideoKind
   /** Shown on the match card so viewers can pick a length. */
   durationSeconds?: number
@@ -36,6 +35,23 @@ export interface HighlightVideo {
    */
   community?: boolean
 }
+
+export interface YouTubeHighlightVideo extends HighlightVideoBase {
+  /** Existing data omits source; absence means YouTube for compatibility. */
+  source?: 'youtube'
+  /** YouTube video id (the part after `v=`). */
+  youtubeId: string
+  foxId?: never
+}
+
+export interface FoxHighlightVideo extends HighlightVideoBase {
+  source: 'fox'
+  /** FOX MediaCloud id, e.g. `fmc-...`. */
+  foxId: string
+  youtubeId?: never
+}
+
+export type HighlightVideo = YouTubeHighlightVideo | FoxHighlightVideo
 
 export interface Score {
   home: number

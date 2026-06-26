@@ -38,7 +38,7 @@ const MODEL = process.env.OPENAI_MODEL ?? 'gpt-5.4'
 const EFFORT = process.env.OPENAI_REASONING_EFFORT ?? 'medium'
 const BASE_URL = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'
 
-const SYSTEM = `You verify whether a YouTube video is safe to embed on a STRICTLY spoiler-free World Cup highlights site. Users come here precisely so they do NOT learn the result before watching.
+const SYSTEM = `You verify whether a soccer highlights video is safe to embed on a STRICTLY spoiler-free World Cup highlights site. Users come here precisely so they do NOT learn the result before watching.
 
 You are given a video TITLE, its THUMBNAIL image, and the two teams the video is supposed to be (HOME vs AWAY).
 
@@ -86,13 +86,18 @@ async function callModel(body: Record<string, unknown>): Promise<Response> {
  * throws — the caller can treat the result as authoritative.
  */
 export async function checkVideoForSpoilers(args: {
-  videoId: string
+  videoId?: string
+  thumbnailUrl?: string
   title: string
   homeName: string
   awayName: string
 }): Promise<SpoilerVerdict> {
   if (!aiEnabled) {
     return { spoiler: true, teamsMatch: false, reason: 'no OPENAI_API_KEY', transient: true }
+  }
+  const imageUrl = args.thumbnailUrl ?? (args.videoId ? thumbnailUrl(args.videoId) : null)
+  if (!imageUrl) {
+    return { spoiler: true, teamsMatch: false, reason: 'no thumbnail URL', transient: true }
   }
   const messages = [
     { role: 'system', content: SYSTEM },
@@ -103,7 +108,7 @@ export async function checkVideoForSpoilers(args: {
           type: 'text',
           text: `HOME: ${args.homeName}\nAWAY: ${args.awayName}\nTITLE: ${args.title}`,
         },
-        { type: 'image_url', image_url: { url: thumbnailUrl(args.videoId), detail: 'high' } },
+        { type: 'image_url', image_url: { url: imageUrl, detail: 'high' } },
       ],
     },
   ]

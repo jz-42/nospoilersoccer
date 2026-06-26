@@ -2530,6 +2530,15 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  display: block;
+  border: 0;
+  overflow: hidden;
+}
+
+.player-host-fox {
+  inset: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
 }
 
 .player-overlay {
