@@ -81,7 +81,6 @@ assert(
   'onboarding disclosure copy is hidden by default',
 )
 
-const warning = 'Videos from the FOX Sports YouTube channel may only be available in the U.S.'
 const wc2026 = tournaments.wc2026
 const played2026 = wc2026.groupMatches.find(
   (match): match is GroupMatch => Boolean(match.score && match.videos?.length),
@@ -99,21 +98,21 @@ const renderMatch = (match: GroupMatch, progress: Progress = emptyProgress) =>
   )
 
 assert(
-  renderMatch(played2026).includes(warning),
-  'FOX warning appears before a 2026 result is revealed',
+  !renderMatch(played2026).includes('Videos from the FOX Sports YouTube channel may only be available in the U.S.'),
+  'FOX warning is not shown by default for a 2026 highlight',
 )
 assert(
-  renderMatch(played2026, {
+  !renderMatch(played2026, {
     ...emptyProgress,
     marks: { [played2026.id]: 'watched' },
-  }).includes(warning),
-  'FOX warning appears after a 2026 result is revealed',
+  }).includes('Videos from the FOX Sports YouTube channel may only be available in the U.S.'),
+  'FOX warning stays out of revealed 2026 highlights by default',
 )
 
 const upcoming2026 = wc2026.groupMatches.find((match) => !match.score && !match.videos?.length)
 if (!upcoming2026) throw new Error('Fixture error: expected an upcoming 2026 match without highlights')
 assert(
-  !renderMatch(upcoming2026).includes(warning),
+  !renderMatch(upcoming2026).includes('Videos from the FOX Sports YouTube channel may only be available in the U.S.'),
   'FOX warning does not appear for an upcoming match without highlights',
 )
 
@@ -128,6 +127,9 @@ const historical = renderToStaticMarkup(
     onClose={noop}
   />,
 )
-assert(!historical.includes(warning), 'FOX warning is restricted to the 2026 tournament')
+assert(
+  !historical.includes('Videos from the FOX Sports YouTube channel may only be available in the U.S.'),
+  'FOX warning does not appear for 2022 highlights',
+)
 
 console.log('ALL PASS')

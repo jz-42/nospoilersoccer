@@ -28,8 +28,8 @@ assert(isRegionRestrictedYouTubeError(100) === false, '100 is not treated as reg
 const regionalCopy = getHighlightFallbackCopy(150)
 assert(regionalCopy.title === 'Highlight unavailable in your region.', 'regional fallback title is specific')
 assert(
-  regionalCopy.body === 'FOX Sports highlights may only be available in the U.S.',
-  'regional fallback body mentions U.S.-only availability',
+  regionalCopy.body === 'FOX Sports highlights may only be available in the U.S. You may need a VPN to watch.',
+  'regional fallback body mentions U.S.-only availability and a VPN option',
 )
 
 const genericCopy = getHighlightFallbackCopy(5)

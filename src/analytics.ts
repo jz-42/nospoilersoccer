@@ -101,7 +101,7 @@ export function getHighlightFallbackCopy(code: number | undefined): HighlightFal
   if (isRegionRestrictedYouTubeError(code)) {
     return {
       title: 'Highlight unavailable in your region.',
-      body: 'FOX Sports highlights may only be available in the U.S.',
+      body: 'FOX Sports highlights may only be available in the U.S. You may need a VPN to watch.',
       warning: WARNING_COPY,
     }
   }
