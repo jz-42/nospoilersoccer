@@ -81,6 +81,8 @@ export interface Goal {
   ownGoal?: boolean
 }
 
+export type EntertainmentRating = 1 | 2 | 3 | 4 | 5
+
 export interface GroupMatch {
   id: string
   group: GroupId
@@ -94,6 +96,10 @@ export interface GroupMatch {
   /** Absent while the match hasn't been played yet (live tournaments). */
   score?: Score
   goals?: Goal[]
+  /** Spoiler-safe 1-2 sentence summary of public reaction to the match's entertainment value. */
+  entertainmentSummary?: string
+  /** Entertainment rating derived from public reaction, 1..5 stars. */
+  entertainmentRating?: EntertainmentRating
   odds?: MatchOdds
   videos?: HighlightVideo[]
 }
@@ -130,6 +136,10 @@ export interface KnockoutMatch {
   /** Result after 90' (or 120' when afterExtraTime is set). Absent = unplayed. */
   score?: Score
   goals?: Goal[]
+  /** Spoiler-safe 1-2 sentence summary of public reaction to the match's entertainment value. */
+  entertainmentSummary?: string
+  /** Entertainment rating derived from public reaction, 1..5 stars. */
+  entertainmentRating?: EntertainmentRating
   odds?: MatchOdds
   afterExtraTime?: boolean
   penalties?: Score

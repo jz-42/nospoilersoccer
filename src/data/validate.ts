@@ -54,6 +54,19 @@ export function validateTournament(t: Tournament): string[] {
     ) {
       err(`match ${m.id}: invalid UTC kickoff ${m.kickoff}`)
     }
+    const entertainmentRating = m.entertainmentRating
+    if ((m.entertainmentSummary ?? null) !== null && entertainmentRating === undefined) {
+      err(`match ${m.id}: entertainmentSummary exists without entertainmentRating`)
+    }
+    if (
+      entertainmentRating !== undefined &&
+      (!Number.isInteger(entertainmentRating) || entertainmentRating < 1 || entertainmentRating > 5)
+    ) {
+      err(`match ${m.id}: invalid entertainmentRating ${entertainmentRating}`)
+    }
+    if (entertainmentRating !== undefined && !m.entertainmentSummary) {
+      err(`match ${m.id}: entertainmentRating exists without entertainmentSummary`)
+    }
   }
 
   if (t.id === 'wc2026') {

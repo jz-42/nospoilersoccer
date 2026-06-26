@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "validate:data": "tsx src/data/validate-cli.ts",
-    "test:logic": "tsx src/logic/spoilers.smoke.ts && tsx src/time/local.smoke.ts && tsx src/components/schedule.smoke.ts && tsx src/data/schedule.smoke.ts && tsx src/data/videos.smoke.ts && tsx scripts/fox.smoke.ts",
+    "test:logic": "tsx src/logic/spoilers.smoke.ts && tsx src/time/local.smoke.ts && tsx src/components/schedule.smoke.ts && tsx src/data/schedule.smoke.ts && tsx src/data/videos.smoke.ts && tsx scripts/fox.smoke.ts && tsx scripts/curate-entertainment.smoke.ts",
     "test:components": "tsx --tsconfig tsconfig.app.json src/components/disclosures.smoke.tsx",
     "test:analytics": "tsx --tsconfig tsconfig.app.json src/analytics.smoke.ts",
     "check": "npm run validate:data && npm run test:logic && npm run test:components && npm run test:analytics && tsc -b",

@@ -1,6 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
+import { buildGoogleCalendarUrl } from '../calendar/google'
 import type { GroupMatch, KnockoutMatch, Tournament } from '../data/types'
 import {
   canForceReveal,
@@ -18,8 +20,6 @@ import { KickoffTime } from './KickoffTime'
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
   | { kind: 'knockout'; match: KnockoutMatch; roundName: string }
-
-const FOX_WC_HUB = 'https://www.foxsports.com/soccer/fifa-world-cup'
 
 const KNOCKOUT_PHASES: ReadonlySet<Phase> = new Set([
   'r32',
@@ -42,25 +42,6 @@ function knockoutPhase(t: Tournament, matchId: string): Phase {
     }
   }
   return 'final'
-}
-/**
- * Where to watch this match live (US). FOX publishes a per-match "How to Watch"
- * page — TV channel + live stream, and crucially spoiler-free (it's pre-match
- * info, no score). Its URL is constructable for group games from the team names
- * and group letter. Knockout pages don't follow this pattern, so those fall back
- * to FOX's World Cup hub.
- */
-function foxWatchUrl(t: Tournament, target: ModalTarget): string {
-  if (target.kind !== 'group') return FOX_WC_HUB
-  const slug = (id: string) =>
-    t.teams[id].name
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/\p{Diacritic}/gu, '')
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '')
-  const { home, away, group } = target.match
-  return `https://www.foxsports.com/stories/soccer/how-to-watch-${slug(home)}-vs-${slug(away)}-tv-channel-live-stream-${t.year}-fifa-world-cup-group-${group.toLowerCase()}`
 }
 
 function TeamSide({
@@ -86,6 +67,87 @@ function TeamSide({
       <span className="modal-flag">{team.flag}</span>
       <span className="modal-team-name">{team.name}</span>
     </div>
+  )
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" className="modal-calendar-icon">
+      <rect x="3" y="4" width="14" height="13" rx="3" />
+      <path d="M6 2.75V6M14 2.75V6M3 7.25H17" />
+      <rect x="6.25" y="9.75" width="3" height="3" rx="0.8" className="modal-calendar-icon-accent" />
+    </svg>
+  )
+}
+
+function DisclosureRow({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="modal-disclosure">
+      <button
+        type="button"
+        className="modal-disclosure-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="modal-disclosure-head">
+          <span className="modal-disclosure-label">{label}</span>
+          {hint && (
+            <span
+              className="modal-disclosure-hint"
+              aria-label={hint}
+              title={hint}
+            >
+              i
+            </span>
+          )}
+        </span>
+        <span className="modal-disclosure-action">{open ? 'Hide' : 'Tap to reveal'}</span>
+      </button>
+      {open && <div className="modal-disclosure-copy">{children}</div>}
+    </div>
+  )
+}
+
+function EntertainmentDisclosureRow({
+  summary,
+  rating,
+}: {
+  summary: string
+  rating: 1 | 2 | 3 | 4 | 5
+}) {
+  return (
+    <DisclosureRow
+      label="AI Entertainment Summary"
+      hint="AI synthesis of public reaction. Take with a grain of salt."
+    >
+      <div className="entertainment-disclosure">
+        <div className="entertainment-rating">
+          <span className="entertainment-rating-label">Entertainment rating</span>
+          <span className="entertainment-stars" aria-label={`${rating} out of 5 stars`}>
+            {Array.from({ length: 5 }, (_, i) => (
+              <span
+                key={i}
+                className={`entertainment-star ${i < rating ? 'filled' : ''}`}
+                aria-hidden="true"
+              >
+                ★
+              </span>
+            ))}
+          </span>
+        </div>
+        <p className="entertainment-summary-copy">{summary}</p>
+      </div>
+    </DisclosureRow>
   )
 }
 
@@ -129,6 +191,16 @@ export function MatchModal({
   const homeNameForAnalytics = homeTeam ? t.teams[homeTeam].name : homePlaceholder || 'Home'
   const awayNameForAnalytics = awayTeam ? t.teams[awayTeam].name : awayPlaceholder || 'Away'
   const phase: Phase = target.kind === 'group' ? 'group' : knockoutPhase(t, m.id)
+  const totalGoals = score ? score.home + score.away : null
+  const calendarUrl =
+    !played && m.kickoff
+      ? buildGoogleCalendarUrl({
+          title: `${homeNameForAnalytics} vs ${awayNameForAnalytics}`,
+          kickoff: m.kickoff,
+          durationMinutes: target.kind === 'group' ? 120 : 150,
+          details: 'Watch: https://www.fox.com/home',
+        })
+      : null
 
   const openedRef = useRef(false)
   useEffect(() => {
@@ -163,6 +235,18 @@ export function MatchModal({
     }
   }
 
+  const entertainmentDisclosure =
+    m.entertainmentSummary && m.entertainmentRating ? (
+      <EntertainmentDisclosureRow
+        summary={m.entertainmentSummary}
+        rating={m.entertainmentRating}
+      />
+    ) : null
+
+  const goalCountDisclosure = totalGoals !== null && !mark ? (
+    <DisclosureRow label="Total goals">{`${totalGoals} total goals`}</DisclosureRow>
+  ) : null
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
@@ -181,15 +265,29 @@ export function MatchModal({
 
         <div className="modal-context">
           <span className="modal-context-strong">{context}</span>
-          <span className="modal-context-date">
-            {formatMatchDateLong(m.date, m.kickoff)}
-            {m.kickoff && (
-              <>
-                {' · '}
-                <KickoffTime kickoff={m.kickoff} />
-              </>
+          <div className="modal-context-meta">
+            <span className="modal-context-date">
+              {formatMatchDateLong(m.date, m.kickoff)}
+              {m.kickoff && (
+                <>
+                  {' · '}
+                  <KickoffTime kickoff={m.kickoff} />
+                </>
+              )}
+            </span>
+            {calendarUrl && (
+              <a
+                className="modal-calendar-link"
+                href={calendarUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Add to Google Calendar"
+                title="Add to Google Calendar"
+              >
+                <CalendarIcon />
+              </a>
             )}
-          </span>
+          </div>
         </div>
 
         <div className="modal-teams">
@@ -228,34 +326,6 @@ export function MatchModal({
           <p className="odds-none">No pre-match odds available</p>
         )}
 
-        {mark && m.goals && m.goals.length > 0 && (
-          <div className="modal-goals">
-            <div className="goals-side goals-home">
-              {m.goals
-                .filter((g) => g.team === homeTeam)
-                .map((g, i) => (
-                  <span key={i}>
-                    {g.player} {g.minute}
-                    {g.penalty ? ' (P)' : ''}
-                    {g.ownGoal ? ' (OG)' : ''}
-                  </span>
-                ))}
-            </div>
-            <span className="goals-ball">⚽</span>
-            <div className="goals-side goals-away">
-              {m.goals
-                .filter((g) => g.team === awayTeam)
-                .map((g, i) => (
-                  <span key={i}>
-                    {g.player} {g.minute}
-                    {g.penalty ? ' (P)' : ''}
-                    {g.ownGoal ? ' (OG)' : ''}
-                  </span>
-                ))}
-            </div>
-          </div>
-        )}
-
         <div className="modal-body">
           {locked && km ? (
             canForceReveal(km) ? (
@@ -274,14 +344,6 @@ export function MatchModal({
           ) : !played ? (
             <>
               <p className="modal-hint">This match hasn't been played yet.</p>
-              <a
-                className="btn-ghost"
-                href={foxWatchUrl(t, target)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Watch live on FOX ↗
-              </a>
             </>
           ) : mark ? (
             <>
@@ -297,6 +359,41 @@ export function MatchModal({
                   marked
                   onReveal={() => {}}
                 />
+              )}
+              {(entertainmentDisclosure || totalGoals !== null) && (
+                <div className="modal-disclosures">
+                  {entertainmentDisclosure}
+                  {totalGoals !== null && (
+                    <DisclosureRow label="Total goals">{`${totalGoals} total goals`}</DisclosureRow>
+                  )}
+                </div>
+              )}
+              {m.goals && m.goals.length > 0 && (
+                <div className="modal-goals">
+                  <div className="goals-side goals-home">
+                    {m.goals
+                      .filter((g) => g.team === homeTeam)
+                      .map((g, i) => (
+                        <span key={i}>
+                          {g.player} {g.minute}
+                          {g.penalty ? ' (P)' : ''}
+                          {g.ownGoal ? ' (OG)' : ''}
+                        </span>
+                      ))}
+                  </div>
+                  <span className="goals-ball">⚽</span>
+                  <div className="goals-side goals-away">
+                    {m.goals
+                      .filter((g) => g.team === awayTeam)
+                      .map((g, i) => (
+                        <span key={i}>
+                          {g.player} {g.minute}
+                          {g.penalty ? ' (P)' : ''}
+                          {g.ownGoal ? ' (OG)' : ''}
+                        </span>
+                      ))}
+                  </div>
+                </div>
               )}
               <button
                 type="button"
@@ -331,6 +428,12 @@ export function MatchModal({
                 <div className="modal-video-placeholder">
                   <span className="modal-video-icon">🎬</span>
                   <span>Highlights coming soon</span>
+                </div>
+              )}
+              {(entertainmentDisclosure || goalCountDisclosure) && (
+                <div className="modal-disclosures">
+                  {entertainmentDisclosure}
+                  {goalCountDisclosure}
                 </div>
               )}
               <button
