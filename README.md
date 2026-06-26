@@ -102,6 +102,10 @@ Deployed as a [Render Static Site](https://render.com/docs/static-sites).
 
 - Build command: `npm install && npm run build`
 - Publish directory: `dist`
+- Optional Umami analytics:
+  - `VITE_UMAMI_WEBSITE_ID` — Umami website id; uses Umami Cloud by default
+  - `VITE_UMAMI_SCRIPT_URL` — optional self-hosted/proxied script URL override
+  - `VITE_UMAMI_HOST_URL` — optional self-hosted/proxied host URL override
 
 ## Branches
 

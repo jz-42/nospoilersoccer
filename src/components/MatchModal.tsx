@@ -96,6 +96,9 @@ function MatchHighlights({
   videos,
   tournamentYear,
   tournamentPhase,
+  matchId,
+  homeName,
+  awayName,
   marked,
   onReveal,
   showFoxWarning,
@@ -103,6 +106,9 @@ function MatchHighlights({
   videos: HighlightVideo[]
   tournamentYear: number
   tournamentPhase: Phase
+  matchId: string
+  homeName: string
+  awayName: string
   marked: boolean
   onReveal: () => void
   showFoxWarning: boolean
@@ -113,6 +119,9 @@ function MatchHighlights({
         videos={videos}
         tournamentYear={tournamentYear}
         tournamentPhase={tournamentPhase}
+        matchId={matchId}
+        homeName={homeName}
+        awayName={awayName}
         marked={marked}
         onReveal={onReveal}
       />
@@ -158,6 +167,8 @@ export function MatchModal({
     target.kind === 'group' ? `Group ${target.match.group}` : target.roundName
   const locked = km !== null && (homeTeam === null || awayTeam === null)
   const score = m.score
+  const homeNameForAnalytics = homeTeam ? t.teams[homeTeam].name : homePlaceholder || 'Home'
+  const awayNameForAnalytics = awayTeam ? t.teams[awayTeam].name : awayPlaceholder || 'Away'
   const showFoxWarning = t.year === 2026
   const phase: Phase = target.kind === 'group' ? 'group' : knockoutPhase(t, m.id)
 
@@ -322,6 +333,9 @@ export function MatchModal({
                   videos={m.videos}
                   tournamentYear={t.year}
                   tournamentPhase={phase}
+                  matchId={m.id}
+                  homeName={homeNameForAnalytics}
+                  awayName={awayNameForAnalytics}
                   marked
                   onReveal={() => {}}
                   showFoxWarning={showFoxWarning}
@@ -343,6 +357,9 @@ export function MatchModal({
                   videos={m.videos}
                   tournamentYear={t.year}
                   tournamentPhase={phase}
+                  matchId={m.id}
+                  homeName={homeNameForAnalytics}
+                  awayName={awayNameForAnalytics}
                   marked={false}
                   onReveal={() => {
                     analytics.resultRevealed({
