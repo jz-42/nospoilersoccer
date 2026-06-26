@@ -27,7 +27,7 @@ export const wc2026Videos: Record<string, HighlightVideo[]> = {
   'D3': [{ youtubeId: '1gMiT5r-K7Q', kind: 'extended', durationSeconds: 1000 }, { source: 'fox', foxId: 'fmc-hec8qgj59o62wy2d', kind: 'normal', durationSeconds: 252 }],
   'D4': [{ youtubeId: 'HrbIda-C9SE', kind: 'extended', durationSeconds: 964 }, { source: 'fox', foxId: 'fmc-dau1gwcgf6lcwtx1', kind: 'normal', durationSeconds: 291 }],
   'D5': [{ source: 'fox', foxId: 'fmc-i881hzuv5o4eq1vn', kind: 'normal', durationSeconds: 291 }, { youtubeId: '7JJLMyKBG90', kind: 'extended', durationSeconds: 949 }],
-  'D6': [{ youtubeId: 'NdgZtyReLbY', kind: 'extended', durationSeconds: 726 }],
+  'D6': [{ youtubeId: 'NdgZtyReLbY', kind: 'extended', durationSeconds: 726 }, { source: 'fox', foxId: 'fmc-srgzmh4lb6a5ud7s', kind: 'normal', durationSeconds: 263 }],
   'E2': [{ youtubeId: 'j6uB9LcLMms', kind: 'extended', durationSeconds: 1304 }, { youtubeId: 'pBk8BjA-X4Y', kind: 'normal', durationSeconds: 524 }],
   'E3': [{ youtubeId: 'EL9nHScp4bk', kind: 'extended', durationSeconds: 957 }, { source: 'fox', foxId: 'fmc-2ct4tzl2g1ks0mdx', kind: 'normal', durationSeconds: 295 }],
   'E4': [{ youtubeId: '_JQLeADlzXM', kind: 'extended', durationSeconds: 933 }, { source: 'fox', foxId: 'fmc-0wt0hfmtf2h0dprr', kind: 'normal', durationSeconds: 255 }],
