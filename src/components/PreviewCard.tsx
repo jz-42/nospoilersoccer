@@ -139,6 +139,11 @@ export function PreviewCard({
         {state === 'watch' && runtimeBadge && (
           <span className="preview-duration">{runtimeBadge}</span>
         )}
+        {(pinned || fav) && (
+          <span className="preview-saved" aria-label="Saved" title="Saved">
+            ★
+          </span>
+        )}
       </div>
       <div className="preview-meta">
         <span className="preview-teams">

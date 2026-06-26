@@ -169,7 +169,7 @@ function App() {
       {confirmReset && (
         <ConfirmDialog
           title="Start over?"
-          body={`Every revealed score in ${t.name} will be hidden again.`}
+          body={`Every revealed score in ${t.name} will be hidden again. Saved matches and favorite teams stay put.`}
           confirmLabel="Hide everything"
           danger
           onConfirm={() => {
