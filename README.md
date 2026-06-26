@@ -48,10 +48,11 @@ site; changing `TZ` on the Vite process alone does not change browser output.
 
 ## Highlights: automatic curation
 
-Highlights are added automatically by `scripts/curate-videos.ts`, run every 15
-minutes by the [Update World Cup data](.github/workflows/update-results.yml)
-Action (right after results are fetched). For each recent FOX Sports YouTube
-upload it:
+Highlights and optional AI entertainment summaries are added automatically by
+the [Update World Cup data](.github/workflows/update-results.yml) Action.
+
+`scripts/curate-videos.ts` runs right after results are fetched. For each
+recent FOX Sports YouTube upload it:
 
 1. keeps only titles matching `<A> vs <B> [Extended ]Highlights … World Cup`
    — FOX's other uploads (goal clips, reactions like "Japan draws level LATE!")
@@ -67,6 +68,16 @@ clips as missing quick highlights when a match does not already have a quick
 YouTube cut. These FOX-site clips pass the same title/thumbnail AI spoiler gate
 before being written.
 
+`scripts/curate-entertainment.ts` runs after video curation and, for finished
+matches still missing a verdict, gathers broad public-reaction web
+snippets and asks a model for:
+
+- a spoiler-safe `entertainmentRating` from 1 to 5
+- a spoiler-safe `entertainmentSummary` in 1 to 2 short sentences
+
+It writes those generated verdicts to `src/data/wc2026-entertainment.ts`, which
+`src/data/index.ts` merges into the tournament data at build time.
+
 Anything ambiguous or unverifiable is **skipped** (fail-closed) and existing
 entries are **never overwritten** (append-only) — worst case is a late or
 missing video, never a spoiler. Curated cuts are written to
@@ -78,13 +89,15 @@ tournament in `src/data/index.ts`; rejected video ids are remembered in
 npx tsx scripts/curate-videos.ts --dry-run   # show decisions, write nothing
 npx tsx scripts/curate-videos.ts --validate  # re-check the known-good cuts
 npx tsx scripts/curate-videos.ts             # curate and write
+npx tsx scripts/curate-entertainment.ts --dry-run
+npx tsx scripts/curate-entertainment.ts
 ```
 
 ### Required GitHub secrets
 
 | Secret | Purpose | Without it |
 |---|---|---|
-| `OPENAI_API_KEY` | the AI spoiler gate (GPT‑5.4 vision) | curator adds nothing (fails closed) |
+| `OPENAI_API_KEY` | the AI spoiler gate and entertainment summaries | AI-generated metadata adds nothing (fails closed) |
 | `YOUTUBE_API_KEY` | reliable listing in CI (YouTube Data API v3) | scrape fallback, which CI IPs may get blocked from |
 
 The AI runs ~once per new video (~$3 across the whole tournament). Override with

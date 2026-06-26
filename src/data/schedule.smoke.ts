@@ -52,4 +52,12 @@ assert(
   'validator rejects duplicate match IDs',
 )
 
+const fractionalEntertainmentRating = cloneTournament(wc2026)
+fractionalEntertainmentRating.groupMatches[0].entertainmentSummary = 'A steady watch.'
+fractionalEntertainmentRating.groupMatches[0].entertainmentRating = 3.5 as never
+assert(
+  validateTournament(fractionalEntertainmentRating).some((error) => error.includes('invalid entertainmentRating')),
+  'validator rejects fractional entertainment ratings',
+)
+
 console.log('ALL OFFICIAL SCHEDULE TESTS PASS')

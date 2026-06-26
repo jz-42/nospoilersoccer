@@ -11,6 +11,34 @@ function assert(condition: boolean, message: string) {
 }
 
 const noop = () => {}
+const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+function googleCalendarDateTime(instant: string | Date, timeZone = localTimeZone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(instant instanceof Date ? instant : new Date(instant))
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  return `${value('year')}${value('month')}${value('day')}T${value('hour')}${value('minute')}${value('second')}`
+}
+
+function googleCalendarWindow(
+  kickoff: string,
+  durationMinutes: number,
+  timeZone = localTimeZone,
+) {
+  const start = new Date(kickoff)
+  const end = new Date(start.getTime() + durationMinutes * 60_000)
+  return `${googleCalendarDateTime(start, timeZone)}/${googleCalendarDateTime(end, timeZone)}`
+}
+
 const emptyProgress: Progress = {
   marks: {},
   revealed: new Set(),
@@ -24,6 +52,7 @@ const emptyProgress: Progress = {
   toggleFavorite: noop,
   moveFavorite: noop,
   setFavAuto: noop,
+  catchUp: noop,
   reset: noop,
 }
 
@@ -86,6 +115,10 @@ const played2026 = wc2026.groupMatches.find(
   (match): match is GroupMatch => Boolean(match.score && match.videos?.length),
 )
 if (!played2026) throw new Error('Fixture error: expected a played 2026 match with highlights')
+const experiment2026 = wc2026.groupMatches.find(
+  (match): match is GroupMatch => match.id === 'D5' && Boolean(match.score && match.videos?.length),
+)
+if (!experiment2026) throw new Error('Fixture error: expected June 25 experiment match D5 with highlights')
 
 const renderMatch = (match: GroupMatch, progress: Progress = emptyProgress) =>
   renderToStaticMarkup(
@@ -102,6 +135,63 @@ assert(
   'FOX warning is not shown by default for a 2026 highlight',
 )
 assert(
+  !renderMatch(played2026).includes('Add to Google Calendar'),
+  'played match modal does not show the Google Calendar control',
+)
+assert(
+  Boolean(experiment2026.entertainmentSummary),
+  'June 25 experiment match includes entertainment summary data',
+)
+assert(
+  experiment2026.entertainmentRating === 4,
+  'June 25 experiment match includes entertainment rating data',
+)
+const preRevealExperiment = renderMatch(experiment2026)
+assert(
+  preRevealExperiment.includes('AI Entertainment Summary'),
+  'pre-reveal experiment match includes the entertainment disclosure label',
+)
+assert(
+  !preRevealExperiment.includes('<p class="modal-disclosure-copy"><div'),
+  'entertainment disclosure content does not render invalid paragraph markup',
+)
+assert(
+  preRevealExperiment.includes('AI synthesis of public reaction. Take with a grain of salt.'),
+  'pre-reveal experiment match includes the entertainment hint copy',
+)
+assert(
+  preRevealExperiment.includes('Total goals'),
+  'pre-reveal experiment match includes the total-goals disclosure label',
+)
+assert(
+  !preRevealExperiment.includes('Lively and open for long stretches, with enough momentum shifts to keep it engaging. More entertaining than a routine group-stage watch.'),
+  'pre-reveal entertainment summary copy is hidden by default',
+)
+assert(
+  !preRevealExperiment.includes('Entertainment rating'),
+  'pre-reveal entertainment rating content is hidden by default',
+)
+assert(
+  !preRevealExperiment.includes('5 total goals'),
+  'pre-reveal total-goals disclosure content is hidden by default',
+)
+const revealedExperiment = renderMatch(experiment2026, {
+  ...emptyProgress,
+  marks: { [experiment2026.id]: 'watched' },
+})
+assert(
+  revealedExperiment.includes('AI Entertainment Summary'),
+  'revealed experiment match includes the entertainment disclosure label',
+)
+assert(
+  revealedExperiment.includes('Total goals'),
+  'revealed experiment match includes the total-goals disclosure label',
+)
+assert(
+  !revealedExperiment.includes('Lively and open for long stretches, with enough momentum shifts to keep it engaging. More entertaining than a routine group-stage watch.'),
+  'revealed entertainment summary copy is hidden by default',
+)
+assert(
   !renderMatch(played2026, {
     ...emptyProgress,
     marks: { [played2026.id]: 'watched' },
@@ -111,9 +201,72 @@ assert(
 
 const upcoming2026 = wc2026.groupMatches.find((match) => !match.score && !match.videos?.length)
 if (!upcoming2026) throw new Error('Fixture error: expected an upcoming 2026 match without highlights')
+const upcoming2026Markup = renderMatch(upcoming2026)
+const upcomingTitle = `${wc2026.teams[upcoming2026.home].name} vs ${wc2026.teams[upcoming2026.away].name}`
+const upcomingTitleQuery = new URLSearchParams({ text: upcomingTitle }).toString().replace('text=', '')
+const upcomingWindowQuery = new URLSearchParams({
+  dates: googleCalendarWindow(upcoming2026.kickoff!, 120),
+})
+  .toString()
+  .replace('dates=', '')
+const upcomingTimeZoneQuery = new URLSearchParams({ ctz: localTimeZone }).toString().replace('ctz=', '')
 assert(
-  !renderMatch(upcoming2026).includes('Videos from the FOX Sports YouTube channel may only be available in the U.S.'),
+  !upcoming2026Markup.includes('Videos from the FOX Sports YouTube channel may only be available in the U.S.'),
   'FOX warning does not appear for an upcoming match without highlights',
+)
+assert(
+  !upcoming2026Markup.includes('Watch live on FOX'),
+  'upcoming match modal no longer shows the FOX live CTA',
+)
+assert(
+  upcoming2026Markup.includes('Add to Google Calendar'),
+  'upcoming group match modal shows the Google Calendar control',
+)
+assert(
+  upcoming2026Markup.includes(upcomingTitleQuery),
+  'upcoming group match calendar link includes a minimalist match title',
+)
+assert(
+  upcoming2026Markup.includes(upcomingWindowQuery),
+  'upcoming group match calendar link uses a two-hour local-time event window',
+)
+assert(
+  upcoming2026Markup.includes(upcomingTimeZoneQuery),
+  'upcoming group match calendar link includes the viewer local timezone',
+)
+
+const upcomingKnockoutRound = wc2026.knockoutRounds.find((round) =>
+  round.matches.some((match) => !match.score && Boolean(match.kickoff)),
+)
+if (!upcomingKnockoutRound) {
+  throw new Error('Fixture error: expected an upcoming 2026 knockout round with kickoff data')
+}
+const upcomingKnockout = upcomingKnockoutRound.matches.find(
+  (match) => !match.score && Boolean(match.kickoff),
+)
+if (!upcomingKnockout) {
+  throw new Error('Fixture error: expected an upcoming 2026 knockout match with kickoff data')
+}
+const upcomingKnockoutMarkup = renderToStaticMarkup(
+  <MatchModal
+    t={wc2026}
+    target={{ kind: 'knockout', match: upcomingKnockout, roundName: upcomingKnockoutRound.name }}
+    progress={emptyProgress}
+    onClose={noop}
+  />,
+)
+const upcomingKnockoutWindowQuery = new URLSearchParams({
+  dates: googleCalendarWindow(upcomingKnockout.kickoff!, 150),
+})
+  .toString()
+  .replace('dates=', '')
+assert(
+  upcomingKnockoutMarkup.includes('Add to Google Calendar'),
+  'upcoming knockout modal shows the Google Calendar control',
+)
+assert(
+  upcomingKnockoutMarkup.includes(upcomingKnockoutWindowQuery),
+  'upcoming knockout calendar link uses a two-and-a-half-hour local-time event window',
 )
 
 const wc2022 = tournaments.wc2022
