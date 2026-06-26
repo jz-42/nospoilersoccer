@@ -5,24 +5,43 @@ const GROUP_START_OFFSET_MINUTES = 90
 const GROUP_END_OFFSET_MINUTES = 8 * 60
 const KNOCKOUT_START_OFFSET_MINUTES = 90
 const KNOCKOUT_END_OFFSET_MINUTES = 12 * 60
+const DATE_ONLY_KNOCKOUT_END_OFFSET_MINUTES = 36 * 60
 
 export function parseMatchKickoffs(sourceText) {
-  const matches = []
-  const regex = /\{\s*id:\s*'((?:[A-L]\d+)|(?:m\d+))'[\s\S]*?kickoff:\s*'([^']+)'/g
+  const matchesById = new Map()
+  const kickoffRegex = /\{\s*id:\s*'((?:[A-L]\d+)|(?:m\d+))'[\s\S]*?kickoff:\s*'([^']+)'/g
 
-  for (const match of sourceText.matchAll(regex)) {
+  for (const match of sourceText.matchAll(kickoffRegex)) {
     const matchId = match[1]
     const kickoff = new Date(match[2])
     if (Number.isNaN(kickoff.getTime())) continue
 
-    matches.push({
+    matchesById.set(matchId, {
       matchId,
       phase: matchId.startsWith('m') ? 'knockout' : 'group',
       kickoff,
+      dateOnly: false,
     })
   }
 
-  return matches
+  const knockoutDateRegex = /\{\s*id:\s*'(m\d+)'\s*,\s*date:\s*'(\d{4}-\d{2}-\d{2})'/g
+  for (const match of sourceText.matchAll(knockoutDateRegex)) {
+    const matchId = match[1]
+    const date = match[2]
+    if (matchesById.has(matchId)) continue
+
+    const dateStart = new Date(`${date}T00:00:00Z`)
+    if (Number.isNaN(dateStart.getTime())) continue
+
+    matchesById.set(matchId, {
+      matchId,
+      phase: 'knockout',
+      date,
+      dateOnly: true,
+    })
+  }
+
+  return Array.from(matchesById.values())
 }
 
 function addMinutes(date, minutes) {
@@ -30,6 +49,17 @@ function addMinutes(date, minutes) {
 }
 
 function toWindow(match) {
+  if (match.dateOnly) {
+    const dateStart = new Date(`${match.date}T00:00:00Z`)
+    return {
+      matchId: match.matchId,
+      phase: match.phase,
+      date: match.date,
+      windowStart: dateStart.toISOString(),
+      windowEnd: addMinutes(dateStart, DATE_ONLY_KNOCKOUT_END_OFFSET_MINUTES).toISOString(),
+    }
+  }
+
   const startOffset =
     match.phase === 'knockout' ? KNOCKOUT_START_OFFSET_MINUTES : GROUP_START_OFFSET_MINUTES
   const endOffset =

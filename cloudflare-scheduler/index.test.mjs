@@ -18,7 +18,7 @@ export const wc2026 = {
     {
       id: 'r32',
       matches: [
-        { id: 'm73', date: '2026-06-28', kickoff: '2026-06-28T19:00Z' },
+        { id: 'm73', date: '2026-06-28', home: { type: 'group-rank', group: 'A', rank: 2 } },
       ],
     },
   ],
@@ -30,14 +30,22 @@ test('parseMatchKickoffs extracts match ids, phase, and kickoff time', () => {
 
   assert.equal(matches.length, 2)
   assert.deepEqual(
-    matches.map(({ matchId, phase, kickoff }) => ({
+    matches.map(({ matchId, phase, kickoff, date, dateOnly }) => ({
       matchId,
       phase,
-      kickoff: kickoff.toISOString(),
+      kickoff: kickoff?.toISOString() ?? null,
+      date: date ?? null,
+      dateOnly: dateOnly ?? false,
     })),
     [
-      { matchId: 'E5', phase: 'group', kickoff: '2026-06-25T20:00:00.000Z' },
-      { matchId: 'm73', phase: 'knockout', kickoff: '2026-06-28T19:00:00.000Z' },
+      {
+        matchId: 'E5',
+        phase: 'group',
+        kickoff: '2026-06-25T20:00:00.000Z',
+        date: null,
+        dateOnly: false,
+      },
+      { matchId: 'm73', phase: 'knockout', kickoff: null, date: '2026-06-28', dateOnly: true },
     ],
   )
 })
@@ -55,6 +63,22 @@ test('buildWindowReport returns active windows with conservative buffers', () =>
     windowStart: '2026-06-25T21:30:00.000Z',
     windowEnd: '2026-06-26T04:00:00.000Z',
   })
+})
+
+test('buildWindowReport covers date-only knockout matches for the full match date plus buffer', () => {
+  const matches = parseMatchKickoffs(SAMPLE_TS)
+  const report = buildWindowReport(matches, new Date('2026-06-28T23:00:00Z'))
+
+  assert.equal(report.insideWindow, true)
+  assert.deepEqual(report.activeWindows, [
+    {
+      matchId: 'm73',
+      phase: 'knockout',
+      date: '2026-06-28',
+      windowStart: '2026-06-28T00:00:00.000Z',
+      windowEnd: '2026-06-29T12:00:00.000Z',
+    },
+  ])
 })
 
 test('chooseAction skips dispatch when outside window or action already running', () => {

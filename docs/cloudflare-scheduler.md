@@ -15,12 +15,15 @@ This exists because GitHub `schedule` is not reliable enough to provide continuo
 
 ## Match windows
 
-- Group stage:
+- Group matches with `kickoff`:
   - start at `kickoff + 90 minutes`
   - end at `kickoff + 8 hours`
-- Knockout:
+- Knockout matches with `kickoff`:
   - start at `kickoff + 90 minutes`
   - end at `kickoff + 12 hours`
+- Knockout matches with only `date`:
+  - start at `date 00:00 UTC`
+  - end at `date + 36 hours`
 
 These windows are intentionally conservative so the scheduler is active well after ordinary match completion and FOX upload time.
 
