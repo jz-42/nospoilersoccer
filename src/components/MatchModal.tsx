@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
-import type { GroupMatch, HighlightVideo, KnockoutMatch, Tournament } from '../data/types'
+import type { GroupMatch, KnockoutMatch, Tournament } from '../data/types'
 import {
   canForceReveal,
   isPlayed,
@@ -43,9 +43,6 @@ function knockoutPhase(t: Tournament, matchId: string): Phase {
   }
   return 'final'
 }
-const FOX_REGIONAL_WARNING =
-  'Videos from the FOX Sports YouTube channel may only be available in the U.S.'
-
 /**
  * Where to watch this match live (US). FOX publishes a per-match "How to Watch"
  * page — TV channel + live stream, and crucially spoiler-free (it's pre-match
@@ -92,44 +89,6 @@ function TeamSide({
   )
 }
 
-function MatchHighlights({
-  videos,
-  tournamentYear,
-  tournamentPhase,
-  matchId,
-  homeName,
-  awayName,
-  marked,
-  onReveal,
-  showFoxWarning,
-}: {
-  videos: HighlightVideo[]
-  tournamentYear: number
-  tournamentPhase: Phase
-  matchId: string
-  homeName: string
-  awayName: string
-  marked: boolean
-  onReveal: () => void
-  showFoxWarning: boolean
-}) {
-  return (
-    <>
-      <HighlightPlayer
-        videos={videos}
-        tournamentYear={tournamentYear}
-        tournamentPhase={tournamentPhase}
-        matchId={matchId}
-        homeName={homeName}
-        awayName={awayName}
-        marked={marked}
-        onReveal={onReveal}
-      />
-      {showFoxWarning && <p className="highlight-region-warning">{FOX_REGIONAL_WARNING}</p>}
-    </>
-  )
-}
-
 export function MatchModal({
   t,
   target,
@@ -169,7 +128,6 @@ export function MatchModal({
   const score = m.score
   const homeNameForAnalytics = homeTeam ? t.teams[homeTeam].name : homePlaceholder || 'Home'
   const awayNameForAnalytics = awayTeam ? t.teams[awayTeam].name : awayPlaceholder || 'Away'
-  const showFoxWarning = t.year === 2026
   const phase: Phase = target.kind === 'group' ? 'group' : knockoutPhase(t, m.id)
 
   const openedRef = useRef(false)
@@ -329,7 +287,7 @@ export function MatchModal({
             <>
               {summary && <div className="modal-summary">{summary}</div>}
               {m.videos && m.videos.length > 0 && (
-                <MatchHighlights
+                <HighlightPlayer
                   videos={m.videos}
                   tournamentYear={t.year}
                   tournamentPhase={phase}
@@ -338,7 +296,6 @@ export function MatchModal({
                   awayName={awayNameForAnalytics}
                   marked
                   onReveal={() => {}}
-                  showFoxWarning={showFoxWarning}
                 />
               )}
               <button
@@ -353,7 +310,7 @@ export function MatchModal({
           ) : ready ? (
             <>
               {m.videos && m.videos.length > 0 ? (
-                <MatchHighlights
+                <HighlightPlayer
                   videos={m.videos}
                   tournamentYear={t.year}
                   tournamentPhase={phase}
@@ -369,7 +326,6 @@ export function MatchModal({
                     })
                     progress.setMark(m.id, 'watched')
                   }}
-                  showFoxWarning={showFoxWarning}
                 />
               ) : (
                 <div className="modal-video-placeholder">
