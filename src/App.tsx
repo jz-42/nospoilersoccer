@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import { analytics } from './analytics'
 import { Bracket } from './components/Bracket'
@@ -10,7 +10,7 @@ import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
 import { Rail } from './components/Rail'
 import { defaultTournamentId, tournaments } from './data'
-import { isLive, totalMatches } from './logic/spoilers'
+import { catchUpMatchIds, isLive, totalMatches } from './logic/spoilers'
 import { useProgress } from './state/progress'
 
 type Tab = 'day' | 'groups' | 'bracket'
@@ -39,6 +39,7 @@ function App() {
   }, [view])
   const [modal, setModal] = useState<ModalTarget | null>(null)
   const [confirmReset, setConfirmReset] = useState(false)
+  const [confirmCatchUp, setConfirmCatchUp] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
     try {
       return localStorage.getItem(ONBOARDED_KEY) === null
@@ -68,6 +69,10 @@ function App() {
 
   const marked = Object.keys(progress.marks).length
   const total = totalMatches(t)
+  const catchUpIds = useMemo(
+    () => catchUpMatchIds(t, progress.marks, progress.revealed),
+    [t, progress.marks, progress.revealed],
+  )
 
   return (
     <div className="app">
@@ -125,6 +130,16 @@ function App() {
           </div>
         </div>
 
+        {catchUpIds.length > 0 && (
+          <button
+            type="button"
+            className="btn-ghost btn-small btn-catch-up"
+            onClick={() => setConfirmCatchUp(true)}
+          >
+            Catch up
+          </button>
+        )}
+
         <FavoritesPanel t={t} progress={progress} />
 
         <button
@@ -162,6 +177,20 @@ function App() {
             setConfirmReset(false)
           }}
           onCancel={() => setConfirmReset(false)}
+        />
+      )}
+      {confirmCatchUp && (
+        <ConfirmDialog
+          title="Catch up?"
+          body={`This will reveal ${catchUpIds.length} match ${catchUpIds.length === 1 ? 'score' : 'scores'} through yesterday. Today's matches stay hidden.`}
+          confirmLabel="Reveal all"
+          onConfirm={() => {
+            const ids = catchUpMatchIds(t, progress.marks, progress.revealed)
+            progress.catchUp(ids)
+            analytics.catchUp({ tournament_year: t.year, match_count: ids.length })
+            setConfirmCatchUp(false)
+          }}
+          onCancel={() => setConfirmCatchUp(false)}
         />
       )}
       {showOnboarding && <Onboarding onClose={dismissOnboarding} />}

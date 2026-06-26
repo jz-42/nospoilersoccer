@@ -158,6 +158,49 @@ export function totalMatches(t: Tournament): number {
   return t.groupMatches.length + t.knockoutRounds.reduce((n, r) => n + r.matches.length, 0)
 }
 
+/**
+ * IDs of played matches whose kickoff (local time) was before midnight today
+ * and that the user hasn't marked yet. Group matches are added first, then
+ * knockout matches cascade as their feeder slots unlock.
+ */
+export function catchUpMatchIds(
+  t: Tournament,
+  marks: Marks,
+  revealed: Revealed = NONE,
+): string[] {
+  const midnight = new Date()
+  midnight.setHours(0, 0, 0, 0)
+  const cutoff = midnight.getTime()
+
+  function beforeToday(m: { kickoff?: string; date: string }): boolean {
+    const ts = m.kickoff ? new Date(m.kickoff).getTime() : new Date(m.date + 'T00:00').getTime()
+    return ts < cutoff
+  }
+
+  const next: Marks = { ...marks }
+
+  for (const m of t.groupMatches) {
+    if (isPlayed(m) && beforeToday(m) && !next[m.id]) {
+      next[m.id] = 'skipped'
+    }
+  }
+
+  let changed = true
+  while (changed) {
+    changed = false
+    for (const round of t.knockoutRounds) {
+      for (const m of round.matches) {
+        if (!next[m.id] && isPlayed(m) && beforeToday(m) && knockoutReady(t, m, next, revealed)) {
+          next[m.id] = 'skipped'
+          changed = true
+        }
+      }
+    }
+  }
+
+  return Object.keys(next).filter((id) => !marks[id])
+}
+
 /** Matches that can currently be marked (played, and not waiting on feeders). */
 export function totalMarkable(t: Tournament, marks: Marks, revealed: Revealed = NONE): number {
   let n = t.groupMatches.filter(isPlayed).length
