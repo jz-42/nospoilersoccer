@@ -97,6 +97,7 @@ export interface Progress {
   toggleFavorite: (teamId: TeamId) => void
   moveFavorite: (teamId: TeamId, dir: -1 | 1) => void
   setFavAuto: (on: boolean) => void
+  catchUp: (matchIds: string[]) => void
   reset: () => void
 }
 
@@ -168,6 +169,17 @@ export function useProgress(t: Tournament): Progress {
     [update],
   )
   const setFavAuto = useCallback((on: boolean) => update((tp) => ({ ...tp, favAuto: on })), [update])
+  const catchUp = useCallback(
+    (matchIds: string[]) =>
+      update((tp) => {
+        const merged = { ...tp.marks }
+        for (const id of matchIds) {
+          if (!merged[id]) merged[id] = 'skipped'
+        }
+        return { ...tp, marks: merged }
+      }),
+    [update],
+  )
   const reset = useCallback(
     () => update((tp) => ({ ...EMPTY, favorites: tp.favorites, favAuto: tp.favAuto })),
     [update],
@@ -190,6 +202,7 @@ export function useProgress(t: Tournament): Progress {
     toggleFavorite,
     moveFavorite,
     setFavAuto,
+    catchUp,
     reset,
   }
 }

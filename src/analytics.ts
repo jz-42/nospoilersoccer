@@ -191,6 +191,10 @@ export function createAnalytics(options: AnalyticsOptions) {
       track('result_revealed', props)
     },
 
+    catchUp(props: { tournament_year: number; match_count: number }): void {
+      track('catch_up', props)
+    },
+
     videoFailed(
       props: TournamentProps & { reason: string },
     ): void {
