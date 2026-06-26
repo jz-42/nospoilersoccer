@@ -50,6 +50,34 @@ test('parseMatchKickoffs extracts match ids, phase, and kickoff time', () => {
   )
 })
 
+test('parseMatchKickoffs does not borrow kickoff from the next match object', () => {
+  const source = `
+  export const wc2026 = {
+    knockoutRounds: [{
+      matches: [
+        { id: 'm73', date: '2026-06-28', home: { type: 'group-rank', group: 'A', rank: 2 } },
+        { id: 'm74', date: '2026-06-29', kickoff: '2026-06-29T20:00Z', home: { type: 'group-rank', group: 'B', rank: 2 } },
+      ],
+    }],
+  }
+  `
+
+  const matches = parseMatchKickoffs(source)
+
+  assert.deepEqual(
+    matches.map(({ matchId, kickoff, date, dateOnly }) => ({
+      matchId,
+      kickoff: kickoff?.toISOString() ?? null,
+      date: date ?? null,
+      dateOnly,
+    })),
+    [
+      { matchId: 'm73', kickoff: null, date: '2026-06-28', dateOnly: true },
+      { matchId: 'm74', kickoff: '2026-06-29T20:00:00.000Z', date: null, dateOnly: false },
+    ],
+  )
+})
+
 test('buildWindowReport returns active windows with conservative buffers', () => {
   const matches = parseMatchKickoffs(SAMPLE_TS)
   const report = buildWindowReport(matches, new Date('2026-06-25T23:00:00Z'))
@@ -144,4 +172,30 @@ test('runScheduler logs a dispatch decision with active run count and action', a
   assert.equal(messages[0].action, 'dispatch')
   assert.equal(messages[0].insideWindow, true)
   assert.equal(messages[0].activeWindowCount, 1)
+})
+
+test('runScheduler can fail cron execution after logging GitHub errors', async () => {
+  const messages = []
+  const error = new Error('GitHub runs API 500')
+  error.status = 500
+
+  await assert.rejects(
+    runScheduler({
+      now: new Date('2026-06-25T23:00:00Z'),
+      fetchSchedule: async () => SAMPLE_TS,
+      githubClient: {
+        getActiveRunCount: async () => {
+          throw error
+        },
+        dispatchWorkflow: async () => {},
+      },
+      logger: (entry) => messages.push(entry),
+      throwOnError: true,
+    }),
+    /GitHub runs API 500/,
+  )
+
+  assert.equal(messages.length, 1)
+  assert.equal(messages[0].action, 'error')
+  assert.equal(messages[0].github.status, 500)
 })
