@@ -24,6 +24,7 @@ const emptyProgress: Progress = {
   toggleFavorite: noop,
   moveFavorite: noop,
   setFavAuto: noop,
+  catchUp: noop,
   reset: noop,
 }
 
