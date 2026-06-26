@@ -6,12 +6,12 @@
  *   npx tsx scripts/curate-videos.ts --validate # re-check the known-good
  *                                                # inline videos (regression)
  *
- * Pipeline for every recent FOX upload:
+ * Pipeline for every recent FOX highlight candidate:
  *   1. title must match "<A> vs <B> [Extended ]Highlights … World Cup"
  *      (drops every spoiler-y goal clip / reaction in one step)
  *   2. names → team ids; find the one PLAYED fixture for that pair that is
  *      still missing this cut and kicked off before the video was published
- *   3. deterministic guards: FOX channel, embeddable, clean title, post-kickoff
+ *   3. deterministic guards: trusted FOX source, clean title, post-kickoff
  *   4. AI gate: title + thumbnail must reveal no result and be the right match
  *   5. append to src/data/wc2026-videos.ts
  *
@@ -24,14 +24,19 @@ import { appendFileSync, readFileSync, writeFileSync } from 'fs'
 import { tournaments } from '../src/data'
 import { wc2026Videos } from '../src/data/wc2026-videos'
 import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId } from '../src/data/types'
+import { highlightKey, isFoxHighlight, isYouTubeHighlight } from '../src/data/videos'
 import { isPlayed } from '../src/logic/spoilers'
 import { checkEmbeddable, FOX_CHANNEL_ID, getVideoMeta, listFoxUploads, parseHighlightTitle } from './youtube'
 import { aiEnabled, checkVideoForSpoilers } from './spoiler-check'
+import { checkFoxEmbed, listFoxQuickRecaps } from './fox'
+import type { FoxVideoMeta } from './fox'
 
 const VIDEOS_FILE = 'src/data/wc2026-videos.ts'
 const SKIP_FILE = 'scripts/curate-skip.json'
 /** Plain "Highlights" cuts at/over this length are really extended (the openers). */
 const EXTENDED_MIN_SECONDS = 720
+const FOX_QUICK_MIN_SECONDS = 120
+const FOX_QUICK_MAX_SECONDS = 600
 /** Obvious result-leaking patterns; the title format already excludes these. */
 const TITLE_SPOILER_RE = /\d\s*[-–]\s*\d|\b(beat|beats|win|wins|won|loss|lose|loses|drew|advance|advances|eliminat|knock(?:ed)? out)\b/i
 
@@ -98,7 +103,22 @@ type FixtureResult =
   | { status: 'have' } // already have this cut for the (only) played fixture
   | { status: 'ambiguous' } // genuine rematch we can't disambiguate
 
-function findFixture(home: TeamId, away: TeamId, kind: HighlightVideo['kind'], publishedMs: number): FixtureResult {
+function hasCut(m: AnyMatch, kind: HighlightVideo['kind'], source?: HighlightVideo['source']): boolean {
+  return (m.videos ?? []).some((v) => {
+    if (v.kind !== kind) return false
+    if (!source) return true
+    if (source === 'fox') return isFoxHighlight(v)
+    return isYouTubeHighlight(v)
+  })
+}
+
+function findFixture(
+  home: TeamId,
+  away: TeamId,
+  kind: HighlightVideo['kind'],
+  publishedMs: number,
+  source?: HighlightVideo['source'],
+): FixtureResult {
   const key = pairKey(home, away)
   const byPair = allMatches.filter((m) => {
     const p = pairOf(m)
@@ -110,7 +130,7 @@ function findFixture(home: TeamId, away: TeamId, kind: HighlightVideo['kind'], p
   // A highlight is published after its match; use that to disambiguate rematches.
   const after = played.filter((m) => publishedMs > kickoffMs(m))
   const pool = after.length > 0 ? after : played
-  const need = pool.filter((m) => !(m.videos ?? []).some((v) => v.kind === kind))
+  const need = pool.filter((m) => !hasCut(m, kind, source))
   if (need.length === 0) return { status: 'have' }
   if (need.length === 1) return { status: 'ok', match: need[0] }
   need.sort((a, b) => kickoffMs(b) - kickoffMs(a))
@@ -135,7 +155,9 @@ function loadSkip(): Record<string, SkipEntry> {
 // ---- serialization ---------------------------------------------------------
 
 function serializeVideo(v: HighlightVideo): string {
-  const parts = [`youtubeId: '${v.youtubeId}'`, `kind: '${v.kind}'`]
+  const parts = isFoxHighlight(v)
+    ? [`source: 'fox'`, `foxId: '${v.foxId}'`, `kind: '${v.kind}'`]
+    : [`youtubeId: '${v.youtubeId}'`, `kind: '${v.kind}'`]
   if (v.durationSeconds !== undefined) parts.push(`durationSeconds: ${v.durationSeconds}`)
   if (v.community) parts.push('community: true')
   return `{ ${parts.join(', ')} }`
@@ -197,17 +219,74 @@ function writeReport(added: string[], rejected: string[], errors: string[]) {
 // ---- validate mode: regression-check the known-good inline videos ----------
 
 async function runValidate() {
-  console.log(`Validating known-good inline videos${aiEnabled ? '' : ' (deterministic only — no OPENAI_API_KEY)'}…\n`)
+  console.log(`Validating known-good videos${aiEnabled ? '' : ' (deterministic only — no OPENAI_API_KEY)'}…\n`)
   let problems = 0
+  let foxFeed: Map<string, FoxVideoMeta> | null = null
+  const foxMeta = async (id: string): Promise<FoxVideoMeta | null> => {
+    if (!foxFeed) {
+      try {
+        foxFeed = new Map((await listFoxQuickRecaps(250)).map((v) => [v.id, v]))
+      } catch {
+        foxFeed = new Map()
+      }
+    }
+    return foxFeed.get(id) ?? null
+  }
+
   for (const m of allMatches) {
-    // Only the ORIGINAL inline cuts (skip ones the bot may have merged in).
-    const inline = (wc2026Videos[m.id] ?? []).map((v) => v.youtubeId)
-    for (const v of m.videos ?? []) {
-      if (inline.includes(v.youtubeId)) continue
+    const seen = new Set<string>()
+    const videos = [...(m.videos ?? []), ...(wc2026Videos[m.id] ?? [])]
+    for (const v of videos) {
+      const key = highlightKey(v)
+      if (seen.has(key)) continue
+      seen.add(key)
       const p = pairOf(m)
       if (!p) continue
       const home = t.teams[p[0]].name
       const away = t.teams[p[1]].name
+      if (isFoxHighlight(v)) {
+        const meta = await foxMeta(v.foxId)
+        const issues: string[] = []
+        if (!meta) {
+          issues.push('not present in FOX quick recap feed')
+        } else {
+          const parsed = parseHighlightTitle(meta.title)
+          const parsedHome = parsed ? nameToId[norm(parsed.homeName)] : null
+          const parsedAway = parsed ? nameToId[norm(parsed.awayName)] : null
+          if (!parsed || parsed.kindHint !== 'normal') issues.push('title did not match quick highlight pattern')
+          else if (!parsedHome || !parsedAway || pairKey(parsedHome as TeamId, parsedAway as TeamId) !== pairKey(p[0], p[1])) {
+            issues.push('title did not match fixture teams')
+          }
+          if (TITLE_SPOILER_RE.test(meta.title)) issues.push('title failed spoiler check')
+          if (meta.durationSeconds < FOX_QUICK_MIN_SECONDS || meta.durationSeconds > FOX_QUICK_MAX_SECONDS) {
+            issues.push('duration outside quick-highlight range')
+          }
+          if (v.durationSeconds !== undefined && Math.abs(v.durationSeconds - meta.durationSeconds) > 2) {
+            issues.push('duration no longer matches feed')
+          }
+          if ((await checkFoxEmbed(v.foxId)) === 'no') issues.push('embed not reachable')
+          if (aiEnabled) {
+            const verdict = await checkVideoForSpoilers({
+              thumbnailUrl: meta.thumbnailUrl,
+              title: meta.title,
+              homeName: home,
+              awayName: away,
+            })
+            if (verdict.transient) issues.push('AI check did not complete')
+            else if (verdict.spoiler) issues.push('AI flagged possible spoiler')
+            else if (!verdict.teamsMatch) issues.push('AI: not the full-match highlights')
+          }
+        }
+        if (issues.length > 0) {
+          console.log(`  ✗ ${matchLabel(m)} [${v.kind}] ${v.foxId}: ${issues.join('; ')}`)
+          problems++
+        } else {
+          console.log(`  ✓ ${matchLabel(m)} [${v.kind}] ${v.foxId}`)
+        }
+        continue
+      }
+
+      if (!isYouTubeHighlight(v)) continue
       const meta = await getVideoMeta(v.youtubeId).catch((e) => ({ error: String(e) }) as const)
       if ('error' in meta) {
         console.log(`  ✗ ${m.id} ${v.youtubeId}: meta fetch failed (${meta.error})`)
@@ -241,7 +320,7 @@ async function runValidate() {
 async function runCurate() {
   const skip = loadSkip()
   const seen = new Set<string>()
-  for (const m of allMatches) for (const v of m.videos ?? []) seen.add(v.youtubeId)
+  for (const m of allMatches) for (const v of m.videos ?? []) seen.add(isFoxHighlight(v) ? v.foxId : v.youtubeId)
   for (const id of Object.keys(skip)) seen.add(id)
 
   // Working copy of the map to append into.
@@ -259,7 +338,7 @@ async function runCurate() {
   }
 
   const uploads = await listFoxUploads(100)
-  console.log(`Scanning ${uploads.length} FOX uploads (AI ${aiEnabled ? 'on' : 'OFF'}${dryRun ? ', dry-run' : ''})…`)
+  console.log(`Scanning ${uploads.length} FOX YouTube uploads (AI ${aiEnabled ? 'on' : 'OFF'}${dryRun ? ', dry-run' : ''})…`)
 
   for (const up of uploads) {
     const parsed = parseHighlightTitle(up.title)
@@ -313,7 +392,7 @@ async function runCurate() {
 
     // Past here we avoid echoing team names: the pair could be a knockout
     // (which would reveal who advanced) and we don't yet have a safe label.
-    const fixture = findFixture(home, away, kind, publishedMs)
+    const fixture = findFixture(home, away, kind, publishedMs, 'youtube')
     if (fixture.status === 'none') {
       recordSkip(up.id, 'no matching played fixture')
       continue
@@ -357,6 +436,86 @@ async function runCurate() {
     map[match.id] = [...(map[match.id] ?? []), video]
     seen.add(up.id)
     added.push(`${matchLabel(match)} [${kind}] ${up.id}`)
+    note(`+ ${added[added.length - 1]}`)
+  }
+
+  let foxRecaps: FoxVideoMeta[] = []
+  try {
+    foxRecaps = await listFoxQuickRecaps(150)
+  } catch (e) {
+    errors.push(`FOX quick recap feed failed (${e})`)
+    foxRecaps = []
+  }
+  console.log(`Scanning ${foxRecaps.length} FOX quick recaps…`)
+
+  for (const fx of foxRecaps) {
+    if (seen.has(fx.id)) continue
+    const parsed = parseHighlightTitle(fx.title)
+    if (!parsed || parsed.kindHint !== 'normal') {
+      recordSkip(fx.id, 'title did not match quick highlight pattern')
+      continue
+    }
+    if (TITLE_SPOILER_RE.test(fx.title)) {
+      recordSkip(fx.id, 'title failed the spoiler check')
+      continue
+    }
+    if (fx.durationSeconds < FOX_QUICK_MIN_SECONDS || fx.durationSeconds > FOX_QUICK_MAX_SECONDS) {
+      recordSkip(fx.id, 'duration outside quick-highlight range')
+      continue
+    }
+
+    const home = nameToId[norm(parsed.homeName)]
+    const away = nameToId[norm(parsed.awayName)]
+    if (!home || !away) {
+      recordSkip(fx.id, 'title did not map to two known teams')
+      continue
+    }
+
+    const publishedMs = new Date(fx.publishedAt).getTime()
+    const fixture = findFixture(home, away, 'normal', publishedMs)
+    if (fixture.status === 'none') {
+      recordSkip(fx.id, 'no matching played fixture')
+      continue
+    }
+    if (fixture.status === 'early') {
+      note(`hold ${fx.id}: match not played yet — will retry`)
+      continue
+    }
+    if (fixture.status === 'have') {
+      recordSkip(fx.id, 'already have a normal cut')
+      continue
+    }
+    if (fixture.status === 'ambiguous') {
+      recordSkip(fx.id, 'ambiguous fixture — skipped to be safe')
+      continue
+    }
+    const match = fixture.match
+
+    if (aiEnabled) {
+      const verdict = await checkVideoForSpoilers({
+        thumbnailUrl: fx.thumbnailUrl,
+        title: fx.title,
+        homeName: t.teams[home].name,
+        awayName: t.teams[away].name,
+      })
+      if (verdict.transient) {
+        errors.push(`${fx.id}: AI check didn't complete (${verdict.reason})`)
+        note(`! ${fx.id}: AI check failed, will retry next run (${verdict.reason})`)
+        continue
+      }
+      if (verdict.spoiler || !verdict.teamsMatch) {
+        recordSkip(fx.id, `AI rejected: ${verdict.spoiler ? 'possible spoiler in title/thumbnail' : 'not the full-match highlights'}`)
+        continue
+      }
+    } else if (!dryRun) {
+      note(`hold ${fx.id}: no OPENAI_API_KEY, refusing to add unverified — set the secret`)
+      continue
+    }
+
+    const video: HighlightVideo = { source: 'fox', foxId: fx.id, kind: 'normal', durationSeconds: fx.durationSeconds }
+    map[match.id] = [...(map[match.id] ?? []), video]
+    seen.add(fx.id)
+    added.push(`${matchLabel(match)} [normal] ${fx.id}`)
     note(`+ ${added[added.length - 1]}`)
   }
 

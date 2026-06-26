@@ -44,7 +44,7 @@ function knockoutPhase(t: Tournament, matchId: string): Phase {
   return 'final'
 }
 const FOX_REGIONAL_WARNING =
-  'Videos from the FOX Sports YouTube channel may only be available in the U.S.'
+  'Videos from FOX Sports may only be available in the U.S.'
 
 /**
  * Where to watch this match live (US). FOX publishes a per-match "How to Watch"

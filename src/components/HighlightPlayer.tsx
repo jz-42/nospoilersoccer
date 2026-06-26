@@ -1,12 +1,14 @@
 /**
- * Spoiler-safe embedded YouTube player.
+ * Spoiler-safe embedded highlight player.
  *
  * Leak vectors and how each is closed:
  *  - thumbnails/titles: we never render YouTube's thumbnail — videos sit
  *    behind neutral buttons and the iframe only mounts on click
  *  - end-screen suggestion grid (often shows *later* matches): we watch the
- *    playhead via the IFrame API and slide our own overlay over the player
- *    for the final seconds — which doubles as the "reveal the result?" prompt
+ *    YouTube: we watch the playhead via the IFrame API and slide our own
+ *    overlay over the player for the final seconds — which doubles as the
+ *    "reveal the result?" prompt. FOX embeds are cross-origin and ad-enabled,
+ *    so there is no reliable playhead; users reveal manually after watching.
  *  - annotations/cards: iv_load_policy=3
  *  - related videos: rel=0 (restricts them to the same channel)
  *  - cookies/tracking: youtube-nocookie.com host
@@ -18,6 +20,13 @@ import { useEffect, useRef, useState } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
 import type { HighlightVideo } from '../data/types'
+import {
+  highlightEmbedUrl,
+  highlightExternalUrl,
+  highlightKey,
+  isFoxHighlight,
+  isYouTubeHighlight,
+} from '../data/videos'
 import { formatDuration } from './format'
 
 interface YTPlayer {
@@ -97,7 +106,7 @@ export function HighlightPlayer({
   const hostRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!active || !hostRef.current) return
+    if (!active || !hostRef.current || !isYouTubeHighlight(active)) return
     let player: YTPlayer | null = null
     let interval: ReturnType<typeof setInterval> | null = null
     let cancelled = false
@@ -160,11 +169,11 @@ export function HighlightPlayer({
         <p>This video can't be embedded here.</p>
         <a
           className="btn-ghost"
-          href={`https://www.youtube.com/watch?v=${active.youtubeId}`}
+          href={highlightExternalUrl(active)}
           target="_blank"
           rel="noreferrer"
         >
-          Watch on YouTube ↗
+          Open video ↗
         </a>
         <p className="modal-hint-small modal-hint">
           Careful over there — comments and suggested videos may contain spoilers.
@@ -190,9 +199,9 @@ export function HighlightPlayer({
     <div className="kind-toggle" role="tablist">
       {videos.map((v) => (
         <button
-          key={v.youtubeId}
+          key={highlightKey(v)}
           type="button"
-          className={`kind-chip ${selected.youtubeId === v.youtubeId ? 'active' : ''}`}
+          className={`kind-chip ${highlightKey(selected) === highlightKey(v) ? 'active' : ''}`}
           onClick={() => play(v)}
         >
           {KIND_LABEL[v.kind]}
@@ -216,7 +225,7 @@ export function HighlightPlayer({
             const dur = formatDuration(v.durationSeconds)
             return (
               <button
-                key={v.youtubeId}
+                key={highlightKey(v)}
                 type="button"
                 className="player-poster"
                 onClick={() => play(v)}
@@ -244,7 +253,18 @@ export function HighlightPlayer({
   return (
     <div className="player-block">
       <div className="player-wrap">
-        <div ref={hostRef} className="player-host" />
+        {isFoxHighlight(active) ? (
+          <iframe
+            className="player-host player-host-fox"
+            src={highlightEmbedUrl(active)}
+            title={KIND_LABEL[active.kind]}
+            scrolling="no"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <div ref={hostRef} className="player-host" />
+        )}
         {showOverlay && (
           <div className="player-overlay">
             <p>That's the match.</p>

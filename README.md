@@ -50,7 +50,8 @@ site; changing `TZ` on the Vite process alone does not change browser output.
 
 Highlights are added automatically by `scripts/curate-videos.ts`, run every 15
 minutes by the [Update World Cup data](.github/workflows/update-results.yml)
-Action (right after results are fetched). For each recent FOX Sports upload it:
+Action (right after results are fetched). For each recent FOX Sports YouTube
+upload it:
 
 1. keeps only titles matching `<A> vs <B> [Extended ]Highlights … World Cup`
    — FOX's other uploads (goal clips, reactions like "Japan draws level LATE!")
@@ -60,6 +61,11 @@ Action (right after results are fetched). For each recent FOX Sports upload it:
    after kickoff; then
 4. asks a vision model whether the title or thumbnail leaks the result, and
    whether it's really the full-match highlights for these two teams.
+
+The curator also scans FOX Sports' 4-minute World Cup recap feed and uses those
+clips as missing quick highlights when a match does not already have a quick
+YouTube cut. These FOX-site clips pass the same title/thumbnail AI spoiler gate
+before being written.
 
 Anything ambiguous or unverifiable is **skipped** (fail-closed) and existing
 entries are **never overwritten** (append-only) — worst case is a late or

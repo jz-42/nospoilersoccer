@@ -13,7 +13,7 @@ const DISCLOSURE_COPY: Record<Disclosure, readonly string[]> = {
   advanced: [
     'This is a static React website with no application backend. Your progress is stored in your browser.',
     'Results and highlights are updated automatically through GitHub Actions and delivered when the site refreshes.',
-    'YouTube is loaded only after you choose a highlight.',
+    'Video providers are loaded only after you choose a highlight.',
   ],
 }
 

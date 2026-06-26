@@ -81,7 +81,7 @@ assert(
   'onboarding disclosure copy is hidden by default',
 )
 
-const warning = 'Videos from the FOX Sports YouTube channel may only be available in the U.S.'
+const warning = 'Videos from FOX Sports may only be available in the U.S.'
 const wc2026 = tournaments.wc2026
 const played2026 = wc2026.groupMatches.find(
   (match): match is GroupMatch => Boolean(match.score && match.videos?.length),
