@@ -46,5 +46,9 @@
   "fmc-lhlyg52nskctisfl": {
     "reason": "already have a normal cut",
     "at": "2026-06-26T03:03:02.340Z"
+  },
+  "fmc-srgzmh4lb6a5ud7s": {
+    "reason": "AI rejected: possible spoiler in title/thumbnail",
+    "at": "2026-06-26T04:05:31.319Z"
   }
 }
