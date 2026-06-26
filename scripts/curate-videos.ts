@@ -33,6 +33,14 @@ import type { FoxVideoMeta } from './fox'
 
 const VIDEOS_FILE = 'src/data/wc2026-videos.ts'
 const SKIP_FILE = 'scripts/curate-skip.json'
+/**
+ * Persistent record of every AI-rejected candidate, with the model's verbatim
+ * reason and the candidate's title. Opt-in spoiler exposure: reading this file
+ * may reveal results, so the workflow report only points at it (no quoted
+ * content). curate-skip.json still owns the don't-retry mechanic; this file
+ * exists purely for the maintainer's "did the model false-positive?" loop.
+ */
+const AI_REJECTIONS_FILE = 'scripts/curate-ai-rejections.json'
 /** Plain "Highlights" cuts at/over this length are really extended (the openers). */
 const EXTENDED_MIN_SECONDS = 720
 const FOX_QUICK_MIN_SECONDS = 120
@@ -152,6 +160,32 @@ function loadSkip(): Record<string, SkipEntry> {
   }
 }
 
+// ---- AI rejections (opt-in spoiler-exposed debug log) ----------------------
+
+interface AiRejectionEntry {
+  /** Upstream candidate id (FOX `fmc-…` or YouTube video id). */
+  id: string
+  /** Match id (e.g. 'D6' or 'm99') — same as wc2026 fixture ids. */
+  matchId: string
+  /** Human-readable home v away — spoils knockout brackets, so file-only. */
+  match: string
+  source: 'fox' | 'youtube'
+  /** Verbatim upstream title — can contain a result, so file-only. */
+  title: string
+  /** Generic reason that's safe to surface in logs ('possible spoiler in title' | 'not the full-match highlights'). */
+  reason: string
+  /** Model's verbatim explanation — can quote the score, so file-only. */
+  verdict: string
+  at: string
+}
+function loadAiRejections(): Record<string, AiRejectionEntry> {
+  try {
+    return JSON.parse(readFileSync(AI_REJECTIONS_FILE, 'utf8')) as Record<string, AiRejectionEntry>
+  } catch {
+    return {}
+  }
+}
+
 // ---- serialization ---------------------------------------------------------
 
 function serializeVideo(v: HighlightVideo): string {
@@ -193,15 +227,28 @@ function serializeMap(map: Record<string, HighlightVideo[]>): string {
  * step output the workflow turns into a failed run (so you get an email). All
  * a no-op when run locally outside Actions.
  */
-function writeReport(added: string[], rejected: string[], errors: string[]) {
+function writeReport(
+  added: string[],
+  rejected: string[],
+  errors: string[],
+  aiRejectionsThisRun: AiRejectionEntry[],
+) {
   const summary = process.env.GITHUB_STEP_SUMMARY
   if (summary) {
     const lines = [
       `## 🎬 Highlight curator — ${new Date().toISOString()}`,
       '',
-      `**Added ${added.length} · Skipped ${rejected.length} · Errors ${errors.length}**`,
+      `**Added ${added.length} · Skipped ${rejected.length} · Errors ${errors.length} · AI-rejected ${aiRejectionsThisRun.length}**`,
     ]
     if (added.length) lines.push('', '### ✅ Added', ...added.map((a) => `- ${a}`))
+    if (aiRejectionsThisRun.length) {
+      lines.push(
+        '',
+        `### 🤖 AI-rejected this cycle (${aiRejectionsThisRun.length})`,
+        `_Generic reasons only. Full titles + model verdicts (may spoil) live in \`${AI_REJECTIONS_FILE}\`._`,
+        ...aiRejectionsThisRun.map((r) => `- ${r.matchId} (${r.source} ${r.id}) — ${r.reason}`),
+      )
+    }
     if (rejected.length) lines.push('', '### ⏭️ Skipped (won’t reconsider)', ...rejected.map((r) => `- ${r}`))
     if (errors.length) lines.push('', '### ⚠️ Errors (will retry next run)', ...errors.map((e) => `- ${e}`))
     appendFileSync(summary, lines.join('\n') + '\n')
@@ -265,17 +312,8 @@ async function runValidate() {
             issues.push('duration no longer matches feed')
           }
           if ((await checkFoxEmbed(v.foxId)) === 'no') issues.push('embed not reachable')
-          if (aiEnabled) {
-            const verdict = await checkVideoForSpoilers({
-              thumbnailUrl: meta.thumbnailUrl,
-              title: meta.title,
-              homeName: home,
-              awayName: away,
-            })
-            if (verdict.transient) issues.push('AI check did not complete')
-            else if (verdict.spoiler) issues.push('AI flagged possible spoiler')
-            else if (!verdict.teamsMatch) issues.push('AI: not the full-match highlights')
-          }
+          // FOX-feed validation skips the AI check — see the matching note in
+          // runCurate. Deterministic checks above already cover what we need.
         }
         if (issues.length > 0) {
           console.log(`  ✗ ${matchLabel(m)} [${v.kind}] ${v.foxId}: ${issues.join('; ')}`)
@@ -298,7 +336,7 @@ async function runValidate() {
       if ((await checkEmbeddable(v.youtubeId)) === 'no') issues.push('not embeddable')
       if (TITLE_SPOILER_RE.test(meta.title)) issues.push('title failed spoiler check')
       if (aiEnabled) {
-        const verdict = await checkVideoForSpoilers({ videoId: v.youtubeId, title: meta.title, homeName: home, awayName: away })
+        const verdict = await checkVideoForSpoilers({ title: meta.title, homeName: home, awayName: away })
         // Generic notes only — the verdict text can quote the score.
         if (verdict.transient) issues.push('AI check did not complete')
         else if (verdict.spoiler) issues.push('AI flagged possible spoiler')
@@ -319,6 +357,7 @@ async function runValidate() {
 
 async function runCurate() {
   const skip = loadSkip()
+  const aiRejections = loadAiRejections()
   const seen = new Set<string>()
   for (const m of allMatches) for (const v of m.videos ?? []) seen.add(isFoxHighlight(v) ? v.foxId : v.youtubeId)
   for (const id of Object.keys(skip)) seen.add(id)
@@ -330,11 +369,39 @@ async function runCurate() {
   const added: string[] = []
   const rejected: string[] = []
   const errors: string[] = []
+  // Per-cycle AI rejections — surfaced in the step summary as id+reason only
+  // (full title + verdict text live in AI_REJECTIONS_FILE, which may spoil).
+  const aiRejectionsThisRun: AiRejectionEntry[] = []
   const note = (msg: string) => console.log(`  ${msg}`)
   const recordSkip = (id: string, reason: string) => {
     skip[id] = { reason, at: new Date().toISOString() }
     seen.add(id)
     rejected.push(`${id}: ${reason}`)
+  }
+  const recordAiRejection = (args: {
+    id: string
+    source: 'fox' | 'youtube'
+    match: AnyMatch
+    title: string
+    reason: string
+    verdict: string
+  }) => {
+    const p = pairOf(args.match)
+    const matchHuman = p
+      ? `${args.match.id} ${t.teams[p[0]].name} v ${t.teams[p[1]].name}`
+      : args.match.id
+    const entry: AiRejectionEntry = {
+      id: args.id,
+      matchId: args.match.id,
+      match: matchHuman,
+      source: args.source,
+      title: args.title,
+      reason: args.reason,
+      verdict: args.verdict,
+      at: new Date().toISOString(),
+    }
+    aiRejections[args.id] = entry
+    aiRejectionsThisRun.push(entry)
   }
 
   const uploads = await listFoxUploads(100)
@@ -414,7 +481,7 @@ async function runCurate() {
     // AI gate. Without a key we can't truly verify, so in real runs we add
     // nothing (and don't skip-list, so it gets checked once a key exists).
     if (aiEnabled) {
-      const verdict = await checkVideoForSpoilers({ videoId: up.id, title: meta.title, homeName: t.teams[home].name, awayName: t.teams[away].name })
+      const verdict = await checkVideoForSpoilers({ title: meta.title, homeName: t.teams[home].name, awayName: t.teams[away].name })
       if (verdict.transient) {
         // The check didn't get a clean answer (bad key, outage). Retry next
         // run — never skip-list, or a fixed key would leave it blacklisted.
@@ -424,7 +491,16 @@ async function runCurate() {
       }
       if (verdict.spoiler || !verdict.teamsMatch) {
         // Generic on purpose — the model's wording can quote the score itself.
-        recordSkip(up.id, `AI rejected: ${verdict.spoiler ? 'possible spoiler in title/thumbnail' : 'not the full-match highlights'}`)
+        const reason = verdict.spoiler ? 'possible spoiler in title' : 'not the full-match highlights'
+        recordAiRejection({
+          id: up.id,
+          source: 'youtube',
+          match,
+          title: meta.title,
+          reason,
+          verdict: verdict.reason,
+        })
+        recordSkip(up.id, `AI rejected: ${reason}`)
         continue
       }
     } else if (!dryRun) {
@@ -491,26 +567,14 @@ async function runCurate() {
     }
     const match = fixture.match
 
-    if (aiEnabled) {
-      const verdict = await checkVideoForSpoilers({
-        thumbnailUrl: fx.thumbnailUrl,
-        title: fx.title,
-        homeName: t.teams[home].name,
-        awayName: t.teams[away].name,
-      })
-      if (verdict.transient) {
-        errors.push(`${fx.id}: AI check didn't complete (${verdict.reason})`)
-        note(`! ${fx.id}: AI check failed, will retry next run (${verdict.reason})`)
-        continue
-      }
-      if (verdict.spoiler || !verdict.teamsMatch) {
-        recordSkip(fx.id, `AI rejected: ${verdict.spoiler ? 'possible spoiler in title/thumbnail' : 'not the full-match highlights'}`)
-        continue
-      }
-    } else if (!dryRun) {
-      note(`hold ${fx.id}: no OPENAI_API_KEY, refusing to add unverified — set the secret`)
-      continue
-    }
+    // No AI gate for FOX-feed recaps: the upstream title and thumbnail never
+    // reach users (HighlightPlayer mounts a FOX iframe with the generic title
+    // 'Quick highlights' and our own poster, and the FOX player's PiP shows no
+    // title), so a result-revealing title cannot leak. The deterministic guards
+    // — FOX 4-minute recaps topic, strict 'X vs Y Highlights … World Cup'
+    // title format, TITLE_SPOILER_RE, 120-600s duration, fixture must be a
+    // played pair — are enough on their own. YouTube uploads still get the AI
+    // check because YouTube's player exposes the upstream title in PiP/chrome.
 
     const video: HighlightVideo = { source: 'fox', foxId: fx.id, kind: 'normal', durationSeconds: fx.durationSeconds }
     map[match.id] = [...(map[match.id] ?? []), video]
@@ -521,7 +585,7 @@ async function runCurate() {
 
   console.log(`\nAdded ${added.length}, rejected ${rejected.length}, errors ${errors.length}.`)
   for (const r of rejected) note(`✗ ${r}`)
-  writeReport(added, rejected, errors)
+  writeReport(added, rejected, errors, aiRejectionsThisRun)
 
   if (dryRun) {
     if (added.length > 0) {
@@ -533,6 +597,9 @@ async function runCurate() {
   }
   if (added.length > 0) writeFileSync(VIDEOS_FILE, serializeMap(map))
   writeFileSync(SKIP_FILE, JSON.stringify(skip, null, 2) + '\n')
+  if (aiRejectionsThisRun.length > 0) {
+    writeFileSync(AI_REJECTIONS_FILE, JSON.stringify(aiRejections, null, 2) + '\n')
+  }
 }
 
 try {

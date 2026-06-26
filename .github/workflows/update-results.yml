@@ -53,7 +53,7 @@ jobs:
               if git diff --quiet; then
                 echo "no changes this cycle"
               else
-                git add src/data/wc2026.ts src/data/wc2026-videos.ts scripts/curate-skip.json
+                git add src/data/wc2026.ts src/data/wc2026-videos.ts scripts/curate-skip.json scripts/curate-ai-rejections.json
                 git commit -m "Auto-update: World Cup 2026 data ($(date -u '+%F %H:%MZ'))"
                 git pull --rebase --autostash origin main || true
                 git push origin HEAD:main || echo "::warning::push to main failed; will retry next cycle"
