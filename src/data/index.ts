@@ -1,6 +1,7 @@
 import type { HighlightVideo, Tournament } from './types'
 import { highlightKey, preferredHighlightVideos } from './videos'
 import { wc2022 } from './wc2022'
+import { wc2026Entertainment } from './wc2026-entertainment'
 import { wc2026 as wc2026Base } from './wc2026'
 import { wc2026Videos } from './wc2026-videos'
 
@@ -26,7 +27,23 @@ function withVideos(t: Tournament, extra: Record<string, HighlightVideo[]>): Tou
   }
 }
 
-const wc2026 = withVideos(wc2026Base, wc2026Videos)
+function withEntertainment(
+  t: Tournament,
+  extra: Record<string, { entertainmentSummary: string; entertainmentRating: 1 | 2 | 3 | 4 | 5 }>,
+): Tournament {
+  const attach = <M extends { id: string; entertainmentSummary?: string; entertainmentRating?: 1 | 2 | 3 | 4 | 5 }>(m: M): M => {
+    const add = extra[m.id]
+    if (!add) return m
+    return { ...m, entertainmentSummary: add.entertainmentSummary, entertainmentRating: add.entertainmentRating }
+  }
+  return {
+    ...t,
+    groupMatches: t.groupMatches.map(attach),
+    knockoutRounds: t.knockoutRounds.map((r) => ({ ...r, matches: r.matches.map(attach) })),
+  }
+}
+
+const wc2026 = withEntertainment(withVideos(wc2026Base, wc2026Videos), wc2026Entertainment)
 
 export const tournaments: Record<string, Tournament> = {
   wc2026,
