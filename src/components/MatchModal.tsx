@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
-import type { Tournament } from '../data/types'
-import type { GroupMatch, KnockoutMatch } from '../data/types'
+import { useEffect, useRef } from 'react'
+import { analytics } from '../analytics'
+import type { Phase } from '../analytics'
+import type { GroupMatch, HighlightVideo, KnockoutMatch, Tournament } from '../data/types'
 import {
   canForceReveal,
   isPlayed,
@@ -11,13 +12,39 @@ import {
 import type { Progress } from '../state/progress'
 import { HighlightPlayer } from './HighlightPlayer'
 import { OddsBar } from './OddsBar'
-import { formatDateLong, formatKickoffPT } from './format'
+import { formatMatchDateLong } from './format'
+import { KickoffTime } from './KickoffTime'
 
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
   | { kind: 'knockout'; match: KnockoutMatch; roundName: string }
 
 const FOX_WC_HUB = 'https://www.foxsports.com/soccer/fifa-world-cup'
+
+const KNOCKOUT_PHASES: ReadonlySet<Phase> = new Set([
+  'r32',
+  'r16',
+  'qf',
+  'sf',
+  'third-place',
+  'final',
+])
+
+/**
+ * Map a knockout match to a low-cardinality analytics phase. Round IDs in
+ * the data already match the Phase enum, so this is just a lookup with a
+ * conservative fallback if a tournament ever introduces a new round id.
+ */
+function knockoutPhase(t: Tournament, matchId: string): Phase {
+  for (const round of t.knockoutRounds) {
+    if (round.matches.some((m) => m.id === matchId)) {
+      if (KNOCKOUT_PHASES.has(round.id as Phase)) return round.id as Phase
+    }
+  }
+  return 'final'
+}
+const FOX_REGIONAL_WARNING =
+  'Videos from the FOX Sports YouTube channel may only be available in the U.S.'
 
 /**
  * Where to watch this match live (US). FOX publishes a per-match "How to Watch"
@@ -65,6 +92,44 @@ function TeamSide({
   )
 }
 
+function MatchHighlights({
+  videos,
+  tournamentYear,
+  tournamentPhase,
+  matchId,
+  homeName,
+  awayName,
+  marked,
+  onReveal,
+  showFoxWarning,
+}: {
+  videos: HighlightVideo[]
+  tournamentYear: number
+  tournamentPhase: Phase
+  matchId: string
+  homeName: string
+  awayName: string
+  marked: boolean
+  onReveal: () => void
+  showFoxWarning: boolean
+}) {
+  return (
+    <>
+      <HighlightPlayer
+        videos={videos}
+        tournamentYear={tournamentYear}
+        tournamentPhase={tournamentPhase}
+        matchId={matchId}
+        homeName={homeName}
+        awayName={awayName}
+        marked={marked}
+        onReveal={onReveal}
+      />
+      {showFoxWarning && <p className="highlight-region-warning">{FOX_REGIONAL_WARNING}</p>}
+    </>
+  )
+}
+
 export function MatchModal({
   t,
   target,
@@ -104,6 +169,26 @@ export function MatchModal({
   const score = m.score
   const homeNameForAnalytics = homeTeam ? t.teams[homeTeam].name : homePlaceholder || 'Home'
   const awayNameForAnalytics = awayTeam ? t.teams[awayTeam].name : awayPlaceholder || 'Away'
+  const showFoxWarning = t.year === 2026
+  const phase: Phase = target.kind === 'group' ? 'group' : knockoutPhase(t, m.id)
+
+  const openedRef = useRef(false)
+  useEffect(() => {
+    if (openedRef.current) return
+    openedRef.current = true
+    const matchState = mark
+      ? 'revealed'
+      : locked
+        ? 'locked'
+        : ready
+          ? 'ready'
+          : 'upcoming'
+    analytics.matchOpened({
+      tournament_year: t.year,
+      tournament_phase: phase,
+      match_state: matchState,
+    })
+  }, [t.year, phase, mark, locked, ready])
 
   let summary: string | null = null
   if (mark && score && homeTeam && awayTeam) {
@@ -139,8 +224,13 @@ export function MatchModal({
         <div className="modal-context">
           <span className="modal-context-strong">{context}</span>
           <span className="modal-context-date">
-            {formatDateLong(m.date)}
-            {formatKickoffPT(m.kickoff) ? ` · ${formatKickoffPT(m.kickoff)}` : ''}
+            {formatMatchDateLong(m.date, m.kickoff)}
+            {m.kickoff && (
+              <>
+                {' · '}
+                <KickoffTime kickoff={m.kickoff} />
+              </>
+            )}
           </span>
         </div>
 
@@ -239,14 +329,16 @@ export function MatchModal({
             <>
               {summary && <div className="modal-summary">{summary}</div>}
               {m.videos && m.videos.length > 0 && (
-                <HighlightPlayer
+                <MatchHighlights
                   videos={m.videos}
-                  marked
-                  onReveal={() => {}}
-                  matchId={m.id}
                   tournamentYear={t.year}
+                  tournamentPhase={phase}
+                  matchId={m.id}
                   homeName={homeNameForAnalytics}
                   awayName={awayNameForAnalytics}
+                  marked
+                  onReveal={() => {}}
+                  showFoxWarning={showFoxWarning}
                 />
               )}
               <button
@@ -261,14 +353,23 @@ export function MatchModal({
           ) : ready ? (
             <>
               {m.videos && m.videos.length > 0 ? (
-                <HighlightPlayer
+                <MatchHighlights
                   videos={m.videos}
-                  marked={false}
-                  onReveal={() => progress.setMark(m.id, 'watched')}
-                  matchId={m.id}
                   tournamentYear={t.year}
+                  tournamentPhase={phase}
+                  matchId={m.id}
                   homeName={homeNameForAnalytics}
                   awayName={awayNameForAnalytics}
+                  marked={false}
+                  onReveal={() => {
+                    analytics.resultRevealed({
+                      tournament_year: t.year,
+                      tournament_phase: phase,
+                      reveal_source: 'video_end',
+                    })
+                    progress.setMark(m.id, 'watched')
+                  }}
+                  showFoxWarning={showFoxWarning}
                 />
               ) : (
                 <div className="modal-video-placeholder">
@@ -279,7 +380,14 @@ export function MatchModal({
               <button
                 type="button"
                 className="btn-primary"
-                onClick={() => progress.setMark(m.id, 'watched')}
+                onClick={() => {
+                  analytics.resultRevealed({
+                    tournament_year: t.year,
+                    tournament_phase: phase,
+                    reveal_source: 'manual',
+                  })
+                  progress.setMark(m.id, 'watched')
+                }}
               >
                 Reveal Result
               </button>

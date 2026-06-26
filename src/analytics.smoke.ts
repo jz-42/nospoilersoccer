@@ -1,16 +1,17 @@
 import {
+  createAnalytics,
   describeYouTubeFailure,
   getHighlightFallbackCopy,
-  initAnalytics,
   isRegionRestrictedYouTubeError,
-  trackHighlightEvent,
   type HighlightEventName,
 } from './analytics'
 
-function assert(cond: boolean, msg: string) {
-  if (!cond) throw new Error(`FAIL: ${msg}`)
-  console.log(`ok - ${msg}`)
+function assert(condition: boolean, message: string) {
+  if (!condition) throw new Error(`FAIL: ${message}`)
+  console.log(`ok - ${message}`)
 }
+
+type TrackedEvent = { name: string; props?: Record<string, unknown> }
 
 assert(describeYouTubeFailure(101) === 'embed_blocked', '101 maps to embed_blocked')
 assert(describeYouTubeFailure(150) === 'embed_blocked', '150 maps to embed_blocked')
@@ -35,16 +36,38 @@ const genericCopy = getHighlightFallbackCopy(5)
 assert(genericCopy.title === 'Highlight unavailable.', 'generic fallback title is neutral')
 assert(genericCopy.body === 'This video could not be played.', 'generic fallback body is neutral')
 
-const calls: { name: HighlightEventName; props: Record<string, unknown> }[] = []
-globalThis.window = {
-  umami: {
-    track: (name: HighlightEventName, props: Record<string, unknown>) => {
-      calls.push({ name, props })
-    },
-  },
-} as unknown as Window & typeof globalThis
+const events: TrackedEvent[] = []
+const provider: { tracker?: (name: string, props?: object) => void } = {}
+let onLoad: (() => void) | undefined
+const scriptLoads: Array<{ websiteId: string; scriptUrl: string; hostUrl?: string }> = []
 
-trackHighlightEvent('highlight_player_error', {
+const analytics = createAnalytics({
+  websiteId: 'test-site',
+  getTracker: () => provider.tracker,
+  loadScript: (handleLoad, config) => {
+    onLoad = handleLoad
+    scriptLoads.push(config)
+  },
+})
+
+analytics.init()
+analytics.viewChanged({ view: 'groups' })
+
+assert(scriptLoads.length === 1, 'analytics script is requested when configured')
+assert(scriptLoads[0].scriptUrl === 'https://cloud.umami.is/script.js', 'Umami Cloud script is the default')
+assert(events.length === 0, 'event waits while the analytics script is loading')
+
+provider.tracker = (name, props) => events.push({ name, props: props as Record<string, unknown> | undefined })
+onLoad?.()
+
+assert(events.length === 1, 'queued event is sent when analytics becomes ready')
+assert(events[0]?.name === 'view_changed', 'queued event keeps its name')
+assert(events[0]?.props?.view === 'groups', 'queued event keeps its properties')
+
+analytics.viewChanged({ view: 'bracket' })
+assert(events.length === 2, 'later events are sent immediately')
+
+analytics.trackHighlightEvent('highlight_player_error', {
   tournament: 2026,
   match_id: 'C1',
   home: 'Brazil',
@@ -55,78 +78,39 @@ trackHighlightEvent('highlight_player_error', {
   error_code: 150,
 })
 
-assert(calls.length === 1, 'trackHighlightEvent calls umami when available')
-assert(calls[0].name === 'highlight_player_error', 'event name passed to umami')
-assert(calls[0].props.failure_reason === 'embed_blocked', 'failure reason is included')
-assert(calls[0].props.teams === 'Brazil vs Morocco', 'teams label is included')
+const highlightEvent = events[2]
+assert(highlightEvent?.name === 'highlight_player_error', 'highlight error event is tracked')
+assert(highlightEvent.props?.failure_reason === 'embed_blocked', 'failure reason is included')
+assert(highlightEvent.props?.teams === 'Brazil vs Morocco', 'teams label is included')
 
-delete (globalThis as { window?: unknown }).window
-trackHighlightEvent('highlight_play_clicked', {
-  tournament: 2026,
-  match_id: 'C1',
-  home: 'Brazil',
-  away: 'Morocco',
-  provider: 'fox_youtube',
-  video_id: '0rih2fCaXF4',
-  video_kind: 'extended',
+const explicitScriptLoads: Array<{ websiteId: string; scriptUrl: string; hostUrl?: string }> = []
+const explicitAnalytics = createAnalytics({
+  websiteId: 'self-hosted-site',
+  scriptUrl: 'https://self-hosted.example/script.js',
+  hostUrl: 'https://analytics.example',
+  getTracker: () => undefined,
+  loadScript: (_handleLoad, config) => {
+    explicitScriptLoads.push(config)
+  },
 })
 
-assert(calls.length === 1, 'missing umami is a no-op')
+explicitAnalytics.init()
+assert(
+  explicitScriptLoads[0].scriptUrl === 'https://self-hosted.example/script.js',
+  'explicit script URL override is used',
+)
+assert(explicitScriptLoads[0].hostUrl === 'https://analytics.example', 'explicit host URL override is used')
 
-const appendedScripts: Array<{
-  src: string
-  defer?: boolean
-  dataset: Record<string, string>
-}> = []
-const existingScripts = new Set<string>()
-
-globalThis.document = {
-  createElement: (tagName: string) => ({
-    tagName,
-    dataset: {},
-  }),
-  head: {
-    appendChild: (node: { src?: string; defer?: boolean; dataset?: Record<string, string> }) => {
-      appendedScripts.push({
-        src: node.src ?? '',
-        defer: node.defer,
-        dataset: node.dataset ?? {},
-      })
-      existingScripts.add(`${node.src}::${node.dataset?.websiteId ?? ''}`)
-    },
+const disabledLoads: unknown[] = []
+createAnalytics({
+  getTracker: () => undefined,
+  loadScript: () => {
+    disabledLoads.push(true)
   },
-  querySelector: (selector: string) => {
-    const match = selector.match(/script\[src="(.+)"\]\[data-website-id="(.+)"\]/)
-    if (!match) return null
-    return existingScripts.has(`${match[1]}::${match[2]}`) ? {} : null
-  },
-} as unknown as Document
+}).init()
+assert(disabledLoads.length === 0, 'analytics is a no-op without website id')
 
-assert(
-  initAnalytics({
-    VITE_UMAMI_WEBSITE_ID: 'site-123',
-  }) === true,
-  'initAnalytics boots Umami for cloud when website id is configured',
-)
-assert(appendedScripts.length === 1, 'Umami script is appended once')
-assert(appendedScripts[0].src === 'https://cloud.umami.is/script.js', 'Umami script URL is preserved')
-assert(appendedScripts[0].dataset.websiteId === 'site-123', 'Umami website id is attached')
-assert(appendedScripts[0].defer === true, 'Umami script loads deferred')
-assert(
-  initAnalytics({
-    VITE_UMAMI_WEBSITE_ID: 'site-123',
-  }) === true,
-  'initAnalytics reports configured when script already exists',
-)
-assert(appendedScripts.length === 1, 'Umami bootstrap does not append duplicates')
-assert(
-  initAnalytics({
-    VITE_UMAMI_SCRIPT_URL: 'https://self-hosted.example/script.js',
-    VITE_UMAMI_WEBSITE_ID: 'site-456',
-  }) === true,
-  'initAnalytics accepts an explicit script URL override',
-)
-assert(appendedScripts[1].src === 'https://self-hosted.example/script.js', 'explicit script URL override is used')
-assert(initAnalytics({}) === false, 'initAnalytics is a no-op without website id')
+const eventName: HighlightEventName = 'highlight_play_clicked'
+assert(eventName === 'highlight_play_clicked', 'highlight event names are exported')
 
-console.log('ALL PASS')
+console.log('ALL ANALYTICS TESTS PASS')

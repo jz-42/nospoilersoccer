@@ -15,7 +15,8 @@
  * spoiler warning.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getHighlightFallbackCopy, trackHighlightEvent } from '../analytics'
+import { analytics, describeYouTubeFailure, getHighlightFallbackCopy } from '../analytics'
+import type { Phase } from '../analytics'
 import type { HighlightVideo } from '../data/types'
 import { formatDuration } from './format'
 
@@ -75,18 +76,20 @@ const KIND_LABEL: Record<HighlightVideo['kind'], string> = {
 
 export function HighlightPlayer({
   videos,
+  tournamentYear,
+  tournamentPhase,
   marked,
   onReveal,
   matchId,
-  tournamentYear,
   homeName,
   awayName,
 }: {
   videos: HighlightVideo[]
+  tournamentYear: number
+  tournamentPhase: Phase
   marked: boolean
   onReveal: () => void
   matchId: string
-  tournamentYear: number
   homeName: string
   awayName: string
 }) {
@@ -132,7 +135,12 @@ export function HighlightPlayer({
         events: {
           onError: (e) => {
             setFailedCode(e.data)
-            trackHighlightEvent('highlight_player_error', analyticsContext(active, e.data))
+            analytics.videoFailed({
+              tournament_year: tournamentYear,
+              tournament_phase: tournamentPhase,
+              reason: describeYouTubeFailure(e.data),
+            })
+            analytics.trackHighlightEvent('highlight_player_error', analyticsContext(active, e.data))
           },
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.ENDED) setAtEnd(true)
@@ -161,14 +169,14 @@ export function HighlightPlayer({
       }
       mount.remove()
     }
-  }, [active, analyticsContext])
+  }, [active, analyticsContext, tournamentPhase, tournamentYear])
 
   if (videos.length === 0) return null
 
   if (failedCode !== null && active) {
     const fallbackCopy = getHighlightFallbackCopy(failedCode)
     const revealAfterError = () => {
-      trackHighlightEvent('highlight_result_revealed_after_error', analyticsContext(active, failedCode))
+      analytics.trackHighlightEvent('highlight_result_revealed_after_error', analyticsContext(active, failedCode))
       onReveal()
     }
 
@@ -189,7 +197,7 @@ export function HighlightPlayer({
           href={`https://www.youtube.com/watch?v=${active.youtubeId}`}
           target="_blank"
           rel="noreferrer"
-          onClick={() => trackHighlightEvent('highlight_external_opened', analyticsContext(active, failedCode))}
+          onClick={() => analytics.trackHighlightEvent('highlight_external_opened', analyticsContext(active, failedCode))}
         >
           Try on YouTube ↗
         </a>
@@ -204,7 +212,12 @@ export function HighlightPlayer({
     setAtEnd(false)
     setDismissed(false)
     setFailedCode(null)
-    trackHighlightEvent('highlight_play_clicked', analyticsContext(v))
+    analytics.highlightStarted({
+      tournament_year: tournamentYear,
+      tournament_phase: tournamentPhase,
+      highlight_kind: v.kind === 'extended' ? 'extended' : 'quick',
+    })
+    analytics.trackHighlightEvent('highlight_play_clicked', analyticsContext(v))
   }
 
   const kindToggle = videos.length > 1 && (

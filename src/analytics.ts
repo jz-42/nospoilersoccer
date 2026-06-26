@@ -1,12 +1,39 @@
+/**
+ * Privacy-respecting analytics adapter (Umami Cloud).
+ *
+ * Provider-independent surface. Components call typed functions here; no
+ * provider-specific code lives in the UI.
+ *
+ * No-op when `VITE_UMAMI_WEBSITE_ID` is unset: no script tag is injected,
+ * no requests are made, no console noise. The Umami snippet is loaded with
+ * `data-auto-track="false"` so it does not send automatic pageviews.
+ */
 import type { VideoKind } from './data/types'
 
+const WEBSITE_ID = import.meta.env?.VITE_UMAMI_WEBSITE_ID as string | undefined
+const SCRIPT_URL = import.meta.env?.VITE_UMAMI_SCRIPT_URL as string | undefined
+const HOST_URL = import.meta.env?.VITE_UMAMI_HOST_URL as string | undefined
+const ENABLED = typeof WEBSITE_ID === 'string' && WEBSITE_ID.length > 0
+const DEFAULT_UMAMI_SCRIPT_URL = 'https://cloud.umami.is/script.js'
+const WARNING_COPY = 'Careful — comments and suggested videos may contain spoilers.'
+
+export type Phase = 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'third-place' | 'final'
 export type HighlightProvider = 'fox_youtube'
+
+type MatchState = 'upcoming' | 'ready' | 'locked' | 'revealed'
+type RevealSource = 'manual' | 'video_end'
+type HighlightKind = 'quick' | 'extended'
 
 export type HighlightEventName =
   | 'highlight_play_clicked'
   | 'highlight_player_error'
   | 'highlight_external_opened'
   | 'highlight_result_revealed_after_error'
+
+interface TournamentProps {
+  tournament_year: number
+  tournament_phase: Phase
+}
 
 export interface HighlightEventContext {
   tournament: number
@@ -25,22 +52,26 @@ export interface HighlightFallbackCopy {
   warning: string
 }
 
-export interface AnalyticsEnv {
-  VITE_UMAMI_SCRIPT_URL?: string
-  VITE_UMAMI_WEBSITE_ID?: string
-  VITE_UMAMI_HOST_URL?: string
-}
-
-declare global {
-  interface Window {
-    umami?: {
-      track?: (eventName: string, eventData?: Record<string, unknown>) => void
-    }
+interface UmamiWindow {
+  umami?: {
+    track: (eventName: string, data?: object) => void
   }
 }
 
-const WARNING_COPY = 'Careful — comments and suggested videos may contain spoilers.'
-const DEFAULT_UMAMI_SCRIPT_URL = 'https://cloud.umami.is/script.js'
+type Tracker = (eventName: string, data?: object) => void
+
+interface AnalyticsOptions {
+  websiteId?: string
+  scriptUrl?: string
+  hostUrl?: string
+  getTracker: () => Tracker | undefined
+  loadScript: (onLoad: () => void, config: { websiteId: string; scriptUrl: string; hostUrl?: string }) => void
+}
+
+interface PendingEvent {
+  name: string
+  props?: object
+}
 
 export function describeYouTubeFailure(code: number | undefined): string {
   switch (code) {
@@ -82,32 +113,7 @@ export function getHighlightFallbackCopy(code: number | undefined): HighlightFal
   }
 }
 
-export function initAnalytics(env: AnalyticsEnv): boolean {
-  if (typeof document === 'undefined') return false
-
-  const websiteId = env.VITE_UMAMI_WEBSITE_ID?.trim()
-  if (!websiteId) return false
-
-  const scriptUrl = env.VITE_UMAMI_SCRIPT_URL?.trim() || DEFAULT_UMAMI_SCRIPT_URL
-
-  const selector = `script[src="${scriptUrl}"][data-website-id="${websiteId}"]`
-  if (document.querySelector(selector)) return true
-
-  const script = document.createElement('script')
-  script.defer = true
-  script.src = scriptUrl
-  script.dataset.websiteId = websiteId
-
-  const hostUrl = env.VITE_UMAMI_HOST_URL?.trim()
-  if (hostUrl) {
-    script.dataset.hostUrl = hostUrl
-  }
-
-  document.head.appendChild(script)
-  return true
-}
-
-export function trackHighlightEvent(eventName: HighlightEventName, context: HighlightEventContext) {
+function highlightProps(context: HighlightEventContext): Record<string, unknown> {
   const props: Record<string, unknown> = {
     tournament: context.tournament,
     match_id: context.match_id,
@@ -124,9 +130,103 @@ export function trackHighlightEvent(eventName: HighlightEventName, context: High
     props.failure_reason = describeYouTubeFailure(context.error_code)
   }
 
-  try {
-    window.umami?.track?.(eventName, props)
-  } catch {
-    // Analytics must never affect the spoiler-safe viewing flow.
+  return props
+}
+
+export function createAnalytics(options: AnalyticsOptions) {
+  const websiteId = options.websiteId?.trim()
+  const enabled = typeof websiteId === 'string' && websiteId.length > 0
+  const pending: PendingEvent[] = []
+
+  const flush = () => {
+    const tracker = options.getTracker()
+    if (!tracker) return
+    for (const event of pending.splice(0)) tracker(event.name, event.props)
+  }
+
+  const track = (name: string, props?: object) => {
+    if (!enabled) return
+    try {
+      const tracker = options.getTracker()
+      if (tracker) {
+        tracker(name, props)
+        return
+      }
+      pending.push({ name, props })
+    } catch {
+      // Analytics must never affect the spoiler-safe viewing flow.
+    }
+  }
+
+  return {
+    init(): void {
+      if (!websiteId) return
+      options.loadScript(flush, {
+        websiteId,
+        scriptUrl: options.scriptUrl?.trim() || DEFAULT_UMAMI_SCRIPT_URL,
+        hostUrl: options.hostUrl?.trim() || undefined,
+      })
+    },
+
+    viewChanged(props: { view: 'day' | 'groups' | 'bracket' }): void {
+      track('view_changed', props)
+    },
+
+    matchOpened(props: TournamentProps & { match_state: MatchState }): void {
+      track('match_opened', props)
+    },
+
+    highlightStarted(
+      props: TournamentProps & { highlight_kind: HighlightKind },
+    ): void {
+      track('highlight_started', props)
+    },
+
+    resultRevealed(
+      props: TournamentProps & {
+        reveal_source: RevealSource
+        highlight_kind?: HighlightKind
+      },
+    ): void {
+      track('result_revealed', props)
+    },
+
+    videoFailed(
+      props: TournamentProps & { reason: string },
+    ): void {
+      track('video_failed', props)
+    },
+
+    trackHighlightEvent(eventName: HighlightEventName, context: HighlightEventContext): void {
+      track(eventName, highlightProps(context))
+    },
   }
 }
+
+export const analytics = createAnalytics({
+  websiteId: ENABLED ? WEBSITE_ID : undefined,
+  scriptUrl: SCRIPT_URL,
+  hostUrl: HOST_URL,
+  getTracker: () => {
+    const w = window as unknown as UmamiWindow
+    return w.umami?.track
+  },
+  loadScript: (onLoad, config) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[data-nss-analytics]')
+    if (existing) {
+      existing.addEventListener('load', onLoad, { once: true })
+      onLoad()
+      return
+    }
+
+    const script = document.createElement('script')
+    script.defer = true
+    script.src = config.scriptUrl
+    script.dataset.websiteId = config.websiteId
+    script.dataset.autoTrack = 'false'
+    script.dataset.nssAnalytics = '1'
+    if (config.hostUrl) script.dataset.hostUrl = config.hostUrl
+    script.addEventListener('load', onLoad, { once: true })
+    document.head.appendChild(script)
+  },
+})

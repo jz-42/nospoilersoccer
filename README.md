@@ -26,6 +26,26 @@ npm run build    # type-check + production build to dist/
 npm run lint
 ```
 
+### Testing local times
+
+Match kickoffs are stored once as UTC instants and converted by each visitor's
+browser. You do not need to change the Mac clock to test another timezone.
+
+The automated tests accept explicit timezones and can also run with Node's
+timezone changed:
+
+```sh
+TZ=America/Los_Angeles npm run test:logic
+TZ=America/New_York npm run test:logic
+TZ=Europe/Amsterdam npm run test:logic
+```
+
+For visual testing, start the site with `npm run dev`, open browser developer
+tools, then use **More tools → Sensors → Location → Timezone** to override the
+browser timezone. Check the Today carousel, group-stage headings, knockout
+cards, and match modal. The browser override is what matters for the running
+site; changing `TZ` on the Vite process alone does not change browser output.
+
 ## Highlights: automatic curation
 
 Highlights are added automatically by `scripts/curate-videos.ts`, run every 15
