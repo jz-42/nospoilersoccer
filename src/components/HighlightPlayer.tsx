@@ -4,11 +4,10 @@
  * Leak vectors and how each is closed:
  *  - thumbnails/titles: we never render YouTube's thumbnail — videos sit
  *    behind neutral buttons and the iframe only mounts on click
- *  - end-screen suggestion grid (often shows *later* matches): we watch the
- *    YouTube: we watch the playhead via the IFrame API and slide our own
- *    overlay over the player for the final seconds — which doubles as the
- *    "reveal the result?" prompt. FOX embeds are cross-origin and ad-enabled,
- *    so there is no reliable playhead; users reveal manually after watching.
+ *  - end-screen suggestion grid (often shows *later* matches): YouTube uses
+ *    the IFrame API playhead so we can cover the final seconds with our own
+ *    reveal prompt. FOX embeds are cross-origin and ad-enabled, so there is no
+ *    reliable playhead; users reveal manually after watching.
  *  - annotations/cards: iv_load_policy=3
  *  - related videos: rel=0 (restricts them to the same channel)
  *  - cookies/tracking: youtube-nocookie.com host
@@ -16,8 +15,8 @@
  * Embed-blocked videos (error 101/150) fall back to an external link with a
  * spoiler warning.
  */
-import { useEffect, useRef, useState } from 'react'
-import { analytics } from '../analytics'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { analytics, describeYouTubeFailure, getHighlightFallbackCopy } from '../analytics'
 import type { Phase } from '../analytics'
 import type { HighlightVideo } from '../data/types'
 import {
@@ -89,12 +88,18 @@ export function HighlightPlayer({
   tournamentPhase,
   marked,
   onReveal,
+  matchId,
+  homeName,
+  awayName,
 }: {
   videos: HighlightVideo[]
   tournamentYear: number
   tournamentPhase: Phase
   marked: boolean
   onReveal: () => void
+  matchId: string
+  homeName: string
+  awayName: string
 }) {
   // Extended is the default experience; brief is the catch-up option.
   const defaultVideo = videos.find((v) => v.kind === 'extended') ?? videos[0]
@@ -102,8 +107,22 @@ export function HighlightPlayer({
   const [active, setActive] = useState<HighlightVideo | null>(null)
   const [atEnd, setAtEnd] = useState(false)
   const [dismissed, setDismissed] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [failedCode, setFailedCode] = useState<number | null>(null)
   const hostRef = useRef<HTMLDivElement>(null)
+
+  const analyticsContext = useCallback(
+    (v: HighlightVideo, errorCode?: number) => ({
+      tournament: tournamentYear,
+      match_id: matchId,
+      home: homeName,
+      away: awayName,
+      provider: isFoxHighlight(v) ? 'fox_site' as const : 'fox_youtube' as const,
+      video_id: isFoxHighlight(v) ? v.foxId : v.youtubeId,
+      video_kind: v.kind,
+      error_code: errorCode,
+    }),
+    [awayName, homeName, matchId, tournamentYear],
+  )
 
   useEffect(() => {
     if (!active || !hostRef.current || !isYouTubeHighlight(active)) return
@@ -123,14 +142,13 @@ export function HighlightPlayer({
         playerVars: { autoplay: 1, rel: 0, iv_load_policy: 3, playsinline: 1 },
         events: {
           onError: (e) => {
-            if (e.data === 101 || e.data === 150) {
-              setFailed(true)
-              analytics.videoFailed({
-                tournament_year: tournamentYear,
-                tournament_phase: tournamentPhase,
-                reason: 'embed_blocked',
-              })
-            }
+            setFailedCode(e.data)
+            analytics.videoFailed({
+              tournament_year: tournamentYear,
+              tournament_phase: tournamentPhase,
+              reason: describeYouTubeFailure(e.data),
+            })
+            analytics.trackHighlightEvent('highlight_player_error', analyticsContext(active, e.data))
           },
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.ENDED) setAtEnd(true)
@@ -159,25 +177,39 @@ export function HighlightPlayer({
       }
       mount.remove()
     }
-  }, [active, tournamentYear, tournamentPhase])
+  }, [active, analyticsContext, tournamentPhase, tournamentYear])
 
   if (videos.length === 0) return null
 
-  if (failed && active) {
+  if (failedCode !== null && active) {
+    const fallbackCopy = getHighlightFallbackCopy(failedCode)
+    const revealAfterError = () => {
+      analytics.trackHighlightEvent('highlight_result_revealed_after_error', analyticsContext(active, failedCode))
+      onReveal()
+    }
+
     return (
       <div className="video-fallback">
-        <p>This video can't be embedded here.</p>
+        <span className="video-fallback-icon" aria-hidden="true">
+          🌍
+        </span>
+        <p className="video-fallback-title">{fallbackCopy.title}</p>
+        <p className="video-fallback-copy">{fallbackCopy.body}</p>
+        {!marked && (
+          <button type="button" className="btn-primary" onClick={revealAfterError}>
+            Reveal Result
+          </button>
+        )}
         <a
           className="btn-ghost"
           href={highlightExternalUrl(active)}
           target="_blank"
           rel="noreferrer"
+          onClick={() => analytics.trackHighlightEvent('highlight_external_opened', analyticsContext(active, failedCode))}
         >
           Open video ↗
         </a>
-        <p className="modal-hint-small modal-hint">
-          Careful over there — comments and suggested videos may contain spoilers.
-        </p>
+        <p className="modal-hint-small modal-hint">{fallbackCopy.warning}</p>
       </div>
     )
   }
@@ -187,12 +219,13 @@ export function HighlightPlayer({
     setActive(v)
     setAtEnd(false)
     setDismissed(false)
-    setFailed(false)
+    setFailedCode(null)
     analytics.highlightStarted({
       tournament_year: tournamentYear,
       tournament_phase: tournamentPhase,
       highlight_kind: v.kind === 'extended' ? 'extended' : 'quick',
     })
+    analytics.trackHighlightEvent('highlight_play_clicked', analyticsContext(v))
   }
 
   const kindToggle = videos.length > 1 && (

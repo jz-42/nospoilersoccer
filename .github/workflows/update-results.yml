@@ -1,13 +1,9 @@
 name: Update World Cup data
 
 on:
-  # GitHub's sub-hourly schedules are unreliable, so we only rely on it firing
-  # HOURLY (which it does), then run an internal 5-minute loop to fill the hour.
-  schedule:
-    - cron: '0 * * * *'
   workflow_dispatch: {}
 
-# One loop at a time; a new hourly trigger queues until the running one ends.
+# One loop at a time; Cloudflare only dispatches a new run when none is active.
 concurrency:
   group: update-data
   cancel-in-progress: false
@@ -32,10 +28,8 @@ jobs:
       - run: npm ci
 
       # Poll every 5 minutes for ~53 minutes. Each cycle pulls results + odds +
-      # spoiler-free highlights, validates, and commits ONLY if something changed
-      # (so Render redeploys on real updates, not on every poll). The next hourly
-      # trigger restarts the loop. Free on public repos; ~5-min freshness without
-      # depending on GitHub's flaky sub-hourly scheduler.
+      # spoiler-free highlights, validates, and commits ONLY if something changed.
+      # Cloudflare decides when to start each run and checks every 5 minutes.
       - name: Update loop (every 5 min)
         env:
           # Accept any of the names this secret has been stored under.
