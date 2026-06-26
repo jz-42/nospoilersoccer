@@ -102,6 +102,8 @@ export function MatchModal({
     target.kind === 'group' ? `Group ${target.match.group}` : target.roundName
   const locked = km !== null && (homeTeam === null || awayTeam === null)
   const score = m.score
+  const homeNameForAnalytics = homeTeam ? t.teams[homeTeam].name : homePlaceholder || 'Home'
+  const awayNameForAnalytics = awayTeam ? t.teams[awayTeam].name : awayPlaceholder || 'Away'
 
   let summary: string | null = null
   if (mark && score && homeTeam && awayTeam) {
@@ -237,7 +239,15 @@ export function MatchModal({
             <>
               {summary && <div className="modal-summary">{summary}</div>}
               {m.videos && m.videos.length > 0 && (
-                <HighlightPlayer videos={m.videos} marked onReveal={() => {}} />
+                <HighlightPlayer
+                  videos={m.videos}
+                  marked
+                  onReveal={() => {}}
+                  matchId={m.id}
+                  tournamentYear={t.year}
+                  homeName={homeNameForAnalytics}
+                  awayName={awayNameForAnalytics}
+                />
               )}
               <button
                 type="button"
@@ -255,6 +265,10 @@ export function MatchModal({
                   videos={m.videos}
                   marked={false}
                   onReveal={() => progress.setMark(m.id, 'watched')}
+                  matchId={m.id}
+                  tournamentYear={t.year}
+                  homeName={homeNameForAnalytics}
+                  awayName={awayNameForAnalytics}
                 />
               ) : (
                 <div className="modal-video-placeholder">

@@ -14,7 +14,8 @@
  * Embed-blocked videos (error 101/150) fall back to an external link with a
  * spoiler warning.
  */
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { getHighlightFallbackCopy, trackHighlightEvent } from '../analytics'
 import type { HighlightVideo } from '../data/types'
 import { formatDuration } from './format'
 
@@ -76,10 +77,18 @@ export function HighlightPlayer({
   videos,
   marked,
   onReveal,
+  matchId,
+  tournamentYear,
+  homeName,
+  awayName,
 }: {
   videos: HighlightVideo[]
   marked: boolean
   onReveal: () => void
+  matchId: string
+  tournamentYear: number
+  homeName: string
+  awayName: string
 }) {
   // Extended is the default experience; brief is the catch-up option.
   const defaultVideo = videos.find((v) => v.kind === 'extended') ?? videos[0]
@@ -87,8 +96,22 @@ export function HighlightPlayer({
   const [active, setActive] = useState<HighlightVideo | null>(null)
   const [atEnd, setAtEnd] = useState(false)
   const [dismissed, setDismissed] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [failedCode, setFailedCode] = useState<number | null>(null)
   const hostRef = useRef<HTMLDivElement>(null)
+
+  const analyticsContext = useCallback(
+    (v: HighlightVideo, errorCode?: number) => ({
+      tournament: tournamentYear,
+      match_id: matchId,
+      home: homeName,
+      away: awayName,
+      provider: 'fox_youtube' as const,
+      video_id: v.youtubeId,
+      video_kind: v.kind,
+      error_code: errorCode,
+    }),
+    [awayName, homeName, matchId, tournamentYear],
+  )
 
   useEffect(() => {
     if (!active || !hostRef.current) return
@@ -108,7 +131,8 @@ export function HighlightPlayer({
         playerVars: { autoplay: 1, rel: 0, iv_load_policy: 3, playsinline: 1 },
         events: {
           onError: (e) => {
-            if (e.data === 101 || e.data === 150) setFailed(true)
+            setFailedCode(e.data)
+            trackHighlightEvent('highlight_player_error', analyticsContext(active, e.data))
           },
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.ENDED) setAtEnd(true)
@@ -137,25 +161,39 @@ export function HighlightPlayer({
       }
       mount.remove()
     }
-  }, [active])
+  }, [active, analyticsContext])
 
   if (videos.length === 0) return null
 
-  if (failed && active) {
+  if (failedCode !== null && active) {
+    const fallbackCopy = getHighlightFallbackCopy(failedCode)
+    const revealAfterError = () => {
+      trackHighlightEvent('highlight_result_revealed_after_error', analyticsContext(active, failedCode))
+      onReveal()
+    }
+
     return (
       <div className="video-fallback">
-        <p>This video can't be embedded here.</p>
+        <span className="video-fallback-icon" aria-hidden="true">
+          🌍
+        </span>
+        <p className="video-fallback-title">{fallbackCopy.title}</p>
+        <p className="video-fallback-copy">{fallbackCopy.body}</p>
+        {!marked && (
+          <button type="button" className="btn-primary" onClick={revealAfterError}>
+            Reveal Result
+          </button>
+        )}
         <a
           className="btn-ghost"
           href={`https://www.youtube.com/watch?v=${active.youtubeId}`}
           target="_blank"
           rel="noreferrer"
+          onClick={() => trackHighlightEvent('highlight_external_opened', analyticsContext(active, failedCode))}
         >
-          Watch on YouTube ↗
+          Try on YouTube ↗
         </a>
-        <p className="modal-hint-small modal-hint">
-          Careful over there — comments and suggested videos may contain spoilers.
-        </p>
+        <p className="modal-hint-small modal-hint">{fallbackCopy.warning}</p>
       </div>
     )
   }
@@ -165,7 +203,8 @@ export function HighlightPlayer({
     setActive(v)
     setAtEnd(false)
     setDismissed(false)
-    setFailed(false)
+    setFailedCode(null)
+    trackHighlightEvent('highlight_play_clicked', analyticsContext(v))
   }
 
   const kindToggle = videos.length > 1 && (

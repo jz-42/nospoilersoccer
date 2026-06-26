@@ -7,7 +7,8 @@
     "dev": "vite",
     "validate:data": "tsx src/data/validate-cli.ts",
     "test:logic": "tsx src/logic/spoilers.smoke.ts",
-    "check": "npm run validate:data && npm run test:logic && tsc -b",
+    "test:analytics": "tsx src/analytics.smoke.ts",
+    "check": "npm run validate:data && npm run test:logic && npm run test:analytics && tsc -b",
     "build": "npm run check && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
