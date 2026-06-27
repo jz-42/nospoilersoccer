@@ -26,11 +26,15 @@ const FILE = 'src/data/wc2026-entertainment.ts'
 const MODEL = process.env.OPENAI_MODEL ?? 'gpt-5.4'
 const EFFORT = process.env.OPENAI_REASONING_EFFORT ?? 'medium'
 const BASE_URL = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'
+const AUDIT_FILE = process.env.ENTERTAINMENT_AUDIT_FILE
 const dryRun = process.argv.includes('--dry-run')
 const AI_ENABLED = Boolean(process.env.OPENAI_API_KEY)
+export const ENTERTAINMENT_PROMPT_VERSION = 'entertainment-v2-agnostic-2026-06-27'
 const MIN_AGE_MINUTES = 150
 const MAX_SEARCH_RESULTS = 6
 const SEARCH_QUERIES_PER_MATCH = 2
+const MAX_SUMMARY_ATTEMPTS = 2
+const MIN_SNIPPETS = 4
 
 const SYSTEM = `You write a spoiler-safe entertainment summary for a soccer match on a no-spoilers highlights site.
 
@@ -41,27 +45,52 @@ Write JSON only:
 
 Rules:
 - Write exactly 1 or 2 concise sentences when suitable is true.
-- Help a user get a rough sense of whether the match felt entertaining, engaging, tense, lively, flat, open, cagey, or routine.
-- Focus on entertainment value for the viewer, not tactical analysis and not recommendation language.
+- Help a user get only a rough sense of whether the match felt entertaining, engaging, tense, lively, flat, open, cagey, or routine.
+- Focus on neutral entertainment texture for the viewer, not tactical analysis and not recommendation language.
+- Keep the summary agnostic: the user should not learn which team drove the match, whether one side was stronger, or how the match developed.
 - Sound modest, not certain.
 - Do not begin the summary with "Public reaction", "The overall reaction", or similar framing.
+- Do not mention team names, country names, player names, fanbases, or supporters tied to a team.
 
 Do not mention or imply:
 - the score
 - goal count
 - who won, lost, or drew
+- one-sidedness, dominance, imbalance, control, resistance, underdog dynamics, defensive mistakes, or which side created more
+- specific match events, timing, appeals, weather delays, standout saves, individual displays, or talking points
 - late drama, equalizers, comebacks, upsets, penalties, red cards
 - qualification or elimination stakes in a way that gives away the result
 - whether the user should watch extended highlights, quick highlights, or skip
 - strong recommendation language like "must-watch", "skip it", or "watch the longer highlights"
 
+Good summary style:
+- "Lively and open-feeling, with enough rhythm to sound more engaging than routine."
+- "Cagey and tense rather than free-flowing, with the entertainment seeming to come more from atmosphere and uncertainty than constant action."
+- "Flat for long spells, with only modest signs that the atmosphere lifted it beyond a routine watch."
+
+Bad summary style:
+- "It was one-sided but still lively."
+- "The home support carried the atmosphere."
+- "One team controlled most of the attacking."
+- "An early goal gave it immediate tension."
+
 Set suitable to false if the snippets are too thin, too noisy, too contradictory, or you cannot write a spoiler-safe answer confidently.`
 
+const RETRY_NOTE =
+  'Your previous draft was not usable for this site. Rewrite it more abstractly. Avoid any match-shape clues, team-specific references, or event-specific details.'
+
 const SUMMARY_SPOILER_RE =
-  /\b(win|won|loss|lose|lost|draw|drew|tie|tied|equali[sz]er|comeback|stoppage|penalt|red card|advance|advanced|qualif|eliminat|knockout|scoreline|late goal|late drama|last-minute|injury[- ]time|goalless|scoreless|winner)\b|(\d\s*[-–]\s*\d)|(\b\d+\s+goals?\b)|(\b(?:one|two|three|four|five|six|seven|eight|nine|ten)-goal\b)/i
+  /\b(win|won|loss|lose|lost|draw|drew|tie|tied|equali[sz]er|comeback|stoppage|penalt|red card|advance|advanced|qualif|eliminat|knockout|scoreline|late goal|late drama|last-minute|injury[- ]time|goalless|scoreless|winner|one[- ]sided|one[- ]directional|imbalance|dominant|dominated|dominance|controlled|control|resistance|resisted|underdog|siege|showcase|comfortable|cruised|cruise|did most of the attacking|most of the attacking|set the pace|defensive errors?|mistakes?|appeals?|weather delay|storm delay|early jolt|early goal|early energy|first[- ]half|second[- ]half|standout goalkeeping|standout save|supporters?|fanbase|home support|home atmosphere|host[- ]nation)\b|(\d\s*[-–]\s*\d)|(\b\d+\s+goals?\b)|(\b(?:one|two|three|four|five|six|seven|eight|nine|ten)-goal\b)/i
 const STARTS_WITH_REACTION_RE = /^(public reaction|the overall reaction|overall reaction|fan reaction)\b/i
 const SEARCH_SKIP_RE =
   /\b(how to watch|tv channel|kick-off time|predicted line-ups|predicted lineups|highlights?|watch live|preview)\b/i
+const SUMMARY_ENTITY_ALIASES = [
+  'American',
+  'Bosnian',
+  'Ivorian',
+  'Moroccan',
+  'Saudi',
+]
 
 type AnyMatch = GroupMatch | KnockoutMatch
 
@@ -72,6 +101,11 @@ interface SearchSnippet {
   domain: string
 }
 
+interface GatheredSnippets {
+  hadSearchError: boolean
+  snippets: SearchSnippet[]
+}
+
 interface ModelVerdict {
   suitable: boolean
   rating: EntertainmentRating
@@ -79,7 +113,46 @@ interface ModelVerdict {
   reason: string
 }
 
+export type AuditReasonCode =
+  | 'added'
+  | 'insufficient_signal'
+  | 'model_unsuitable'
+  | 'safety_rejected'
+  | 'model_error'
+  | 'api_error'
+  | 'search_error'
+
+interface AuditEntry {
+  attempts: number
+  matchId: string
+  reasonCode: AuditReasonCode
+}
+
 const t = tournaments.wc2026
+
+function normalizeForSafety(text: string): string {
+  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+export function shouldRetryReason(reasonCode: AuditReasonCode): boolean {
+  return reasonCode === 'model_unsuitable' || reasonCode === 'safety_rejected' || reasonCode === 'model_error'
+}
+
+const SUMMARY_FORBIDDEN_ENTITY_RE = new RegExp(
+  `\\b(?:${[
+    ...Object.values(t.teams).map((team) => team.name),
+    ...Object.values(t.teams).map((team) => team.id),
+    ...SUMMARY_ENTITY_ALIASES,
+  ]
+    .map(normalizeForSafety)
+    .map(escapeRegExp)
+    .join('|')})\\b`,
+  'i',
+)
 
 function nowMs(): number {
   return Date.now()
@@ -106,6 +179,7 @@ function serializeEntertainment(map: Record<string, EntertainmentEntry>): string
 export interface EntertainmentEntry {
   entertainmentSummary: string
   entertainmentRating: EntertainmentRating
+  promptVersion?: string
 }
 
 /**
@@ -120,7 +194,7 @@ export interface EntertainmentEntry {
     return `${header}export const wc2026Entertainment: Record<string, EntertainmentEntry> = {}\n`
   }
   const body = ids
-    .map((id) => `  ${JSON.stringify(id)}: {\n    entertainmentSummary: ${JSON.stringify(map[id].entertainmentSummary)},\n    entertainmentRating: ${map[id].entertainmentRating},\n  },`)
+    .map((id) => `  ${JSON.stringify(id)}: {\n    entertainmentSummary: ${JSON.stringify(map[id].entertainmentSummary)},\n    entertainmentRating: ${map[id].entertainmentRating},\n    promptVersion: ${JSON.stringify(map[id].promptVersion ?? ENTERTAINMENT_PROMPT_VERSION)},\n  },`)
     .join('\n')
   return `${header}export const wc2026Entertainment: Record<string, EntertainmentEntry> = {\n${body}\n}\n`
 }
@@ -177,19 +251,21 @@ async function searchDuckDuckGo(query: string, max: number): Promise<SearchSnipp
   return out
 }
 
-async function gatherSnippets(home: string, away: string): Promise<SearchSnippet[]> {
+async function gatherSnippets(matchId: string, home: string, away: string): Promise<GatheredSnippets> {
   const queries = [
     `${home} ${away} World Cup 2026 reaction`,
     `${home} ${away} World Cup 2026 fan reaction`,
   ].slice(0, SEARCH_QUERIES_PER_MATCH)
   const seen = new Set<string>()
   const out: SearchSnippet[] = []
+  let hadSearchError = false
   for (const query of queries) {
     let results: SearchSnippet[] = []
     try {
       results = await searchDuckDuckGo(query, MAX_SEARCH_RESULTS)
     } catch (e) {
-      console.error(`search failed for "${query}": ${e}`)
+      console.error(`skip ${matchId}: search_error`)
+      hadSearchError = true
       continue
     }
     for (const item of results) {
@@ -199,7 +275,7 @@ async function gatherSnippets(home: string, away: string): Promise<SearchSnippet
       out.push(item)
     }
   }
-  return out.slice(0, 8)
+  return { snippets: out.slice(0, 8), hadSearchError }
 }
 
 async function callModel(body: Record<string, unknown>): Promise<Response> {
@@ -229,10 +305,35 @@ export function parseVerdict(text: string): ModelVerdict {
   }
 }
 
+export function isCurrentEntertainmentEntry(entry: EntertainmentEntry | undefined): boolean {
+  return entry?.promptVersion === ENTERTAINMENT_PROMPT_VERSION
+}
+
+function classifyModelError(error: unknown): AuditReasonCode {
+  const message = error instanceof Error ? error.message : String(error)
+  if (message.startsWith('API ')) return 'api_error'
+  return 'model_error'
+}
+
+function writeAudit(entries: AuditEntry[]): void {
+  if (!AUDIT_FILE) return
+  const added = entries.filter((entry) => entry.reasonCode === 'added')
+  const skipped = entries.filter((entry) => entry.reasonCode !== 'added')
+  const lines = [
+    `- added: ${added.length}`,
+    `- skipped: ${skipped.length}`,
+  ]
+  for (const entry of skipped) {
+    lines.push(`- \`${entry.matchId}\`: \`${entry.reasonCode}\` after ${entry.attempts} attempt${entry.attempts === 1 ? '' : 's'}`)
+  }
+  writeFileSync(AUDIT_FILE, `${lines.join('\n')}\n`)
+}
+
 export function isSafeSummary(summary: string): boolean {
   if (!summary) return false
   if (STARTS_WITH_REACTION_RE.test(summary)) return false
   if (SUMMARY_SPOILER_RE.test(summary)) return false
+  if (SUMMARY_FORBIDDEN_ENTITY_RE.test(normalizeForSafety(summary))) return false
   const sentenceCount = summary
     .split(/[.!?]+/)
     .map((s) => s.trim())
@@ -240,7 +341,12 @@ export function isSafeSummary(summary: string): boolean {
   return sentenceCount >= 1 && sentenceCount <= 2
 }
 
-async function summarizeMatch(home: string, away: string, snippets: SearchSnippet[]): Promise<ModelVerdict> {
+async function summarizeMatch(
+  home: string,
+  away: string,
+  snippets: SearchSnippet[],
+  retryNote?: string,
+): Promise<ModelVerdict> {
   const messages = [
     { role: 'system', content: SYSTEM },
     {
@@ -250,7 +356,8 @@ async function summarizeMatch(home: string, away: string, snippets: SearchSnippe
         `SNIPPETS:\n` +
         snippets
           .map((s, i) => `${i + 1}. [${s.domain}] ${s.title} — ${s.snippet}`)
-          .join('\n'),
+          .join('\n') +
+        (retryNote ? `\n\nREWRITE NOTE:\n${retryNote}` : ''),
     },
   ]
   const rich = {
@@ -288,7 +395,7 @@ export function shouldCurate(
 
   if (!aiEnabled) return false
   if (!isPlayed(m)) return false
-  if (entertainment[m.id]) return false
+  if (isCurrentEntertainmentEntry(entertainment[m.id])) return false
   const teams = playableTeams(m)
   if (!teams) return false
   const ageMinutes = (now - kickoffMs(m)) / 60000
@@ -296,16 +403,21 @@ export function shouldCurate(
 }
 
 async function run() {
-  const entertainment = loadEntertainment()
+  const entertainment = Object.fromEntries(
+    Object.entries(loadEntertainment()).filter(([, entry]) => isCurrentEntertainmentEntry(entry)),
+  )
   const candidates = allMatches.filter((m) => shouldCurate(m, entertainment))
+  const audit: AuditEntry[] = []
 
   if (!AI_ENABLED) {
     console.log('no OPENAI_API_KEY — skipping entertainment curation')
+    writeAudit(audit)
     return
   }
 
   if (candidates.length === 0) {
     console.log('no entertainment summaries to curate')
+    writeAudit(audit)
     return
   }
 
@@ -314,39 +426,71 @@ async function run() {
     const teams = playableTeams(match)
     if (!teams) continue
     const [home, away] = teams
-    const snippets = await gatherSnippets(home, away)
-    if (snippets.length < 4) {
-      console.log(`skip ${match.id}: only ${snippets.length} usable snippets`)
+    const { snippets, hadSearchError } = await gatherSnippets(match.id, home, away)
+    if (snippets.length < MIN_SNIPPETS) {
+      const reasonCode: AuditReasonCode = hadSearchError ? 'search_error' : 'insufficient_signal'
+      console.log(`skip ${match.id}: ${reasonCode}`)
+      audit.push({ matchId: match.id, reasonCode, attempts: 1 })
       continue
     }
-    try {
-      const verdict = await summarizeMatch(home, away, snippets)
-      if (!verdict.suitable) {
-        console.log(`skip ${match.id}: ${verdict.reason || 'model marked unsuitable'}`)
-        continue
+
+    let addedThisMatch = false
+    for (let attempt = 1; attempt <= MAX_SUMMARY_ATTEMPTS; attempt += 1) {
+      try {
+        const verdict = await summarizeMatch(
+          home,
+          away,
+          snippets,
+          attempt > 1 ? RETRY_NOTE : undefined,
+        )
+        if (!verdict.suitable) {
+          const reasonCode: AuditReasonCode = 'model_unsuitable'
+          if (attempt < MAX_SUMMARY_ATTEMPTS && shouldRetryReason(reasonCode)) continue
+          console.log(`skip ${match.id}: ${reasonCode}`)
+          audit.push({ matchId: match.id, reasonCode, attempts: attempt })
+          break
+        }
+        if (!isSafeSummary(verdict.summary)) {
+          const reasonCode: AuditReasonCode = 'safety_rejected'
+          if (attempt < MAX_SUMMARY_ATTEMPTS && shouldRetryReason(reasonCode)) continue
+          console.log(`skip ${match.id}: ${reasonCode}`)
+          audit.push({ matchId: match.id, reasonCode, attempts: attempt })
+          break
+        }
+        entertainment[match.id] = {
+          entertainmentSummary: verdict.summary,
+          entertainmentRating: verdict.rating,
+          promptVersion: ENTERTAINMENT_PROMPT_VERSION,
+        }
+        added.push(match.id)
+        audit.push({ matchId: match.id, reasonCode: 'added', attempts: attempt })
+        addedThisMatch = true
+        console.log(`added ${match.id}`)
+        break
+      } catch (e) {
+        const reasonCode = classifyModelError(e)
+        if (attempt < MAX_SUMMARY_ATTEMPTS && shouldRetryReason(reasonCode)) continue
+        console.error(`skip ${match.id}: ${reasonCode}`)
+        audit.push({ matchId: match.id, reasonCode, attempts: attempt })
+        break
       }
-      if (!isSafeSummary(verdict.summary)) {
-        console.log(`skip ${match.id}: summary failed safety validation`)
-        continue
-      }
-      entertainment[match.id] = {
-        entertainmentSummary: verdict.summary,
-        entertainmentRating: verdict.rating,
-      }
-      added.push(match.id)
-      console.log(`added ${match.id}`)
-    } catch (e) {
-      console.error(`skip ${match.id}: ${e}`)
+    }
+
+    if (addedThisMatch) {
+      await new Promise((r) => setTimeout(r, 250))
+      continue
     }
     await new Promise((r) => setTimeout(r, 250))
   }
 
   if (added.length === 0) {
     console.log('no entertainment summaries added')
+    writeAudit(audit)
     return
   }
 
   if (!dryRun) writeFileSync(FILE, serializeEntertainment(entertainment))
+  writeAudit(audit)
   console.log(`${dryRun ? 'would add' : 'added'} ${added.length} entertainment summary(s):`)
   for (const id of added) console.log(`  ${id}`)
 }
