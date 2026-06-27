@@ -49,58 +49,90 @@ jobs:
             echo "::group::cycle $cycle — $(date -u '+%H:%M:%SZ')"
             rm -f "$CURATOR_ERROR_FLAG"
             rm -f "$ENTERTAINMENT_AUDIT_FILE"
-            cp src/data/wc2026-entertainment.ts "$ENTERTAINMENT_BACKUP_FILE"
+
+            # Core updater path: keep this independent from optional entertainment AI.
             npx tsx scripts/update-results.ts || echo "::warning::results step errored this cycle"
             npx tsx scripts/fetch-odds.ts     || echo "::warning::odds step errored this cycle"
             npx tsx scripts/curate-videos.ts  || echo "::warning::curator step errored this cycle"
-            npx tsx scripts/curate-entertainment.ts || {
-              echo "::warning::entertainment step errored this cycle"
-              {
-                echo "### Entertainment audit — cycle $cycle"
-                echo "- reason: entertainment_step_error"
-                echo "- action: skipped entertainment curation for this cycle"
-                echo
-              } >> "$GITHUB_STEP_SUMMARY"
-            }
-            if [ -f "$ENTERTAINMENT_AUDIT_FILE" ]; then
-              {
-                echo "### Entertainment audit — cycle $cycle"
-                cat "$ENTERTAINMENT_AUDIT_FILE"
-                echo
-              } >> "$GITHUB_STEP_SUMMARY"
-            fi
-            check_ok=false
+
+            core_ok=false
             if npm run check:update; then
-              check_ok=true
-            elif ! cmp -s "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts; then
-              echo "::warning::validation failed after entertainment curation; restoring entertainment data and retrying"
-              cp "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts
-              {
-                echo "### Entertainment fallback — cycle $cycle"
-                echo "- reason: validation_failed_after_entertainment"
-                echo "- action: restored previous entertainment data; other update types remain eligible to commit"
-                echo
-              } >> "$GITHUB_STEP_SUMMARY"
-              if npm run check:update; then
-                check_ok=true
-              else
-                echo "::error::validation still failed after restoring entertainment data"
-              fi
+              core_ok=true
             fi
 
-            if [ "$check_ok" = true ]; then
-              if git diff --quiet; then
-                echo "no changes this cycle"
+            core_ready_for_entertainment=false
+            if [ "$core_ok" = true ]; then
+              git add src/data/wc2026.ts src/data/wc2026-videos.ts scripts/curate-skip.json scripts/curate-ai-rejections.json
+              if git diff --cached --quiet; then
+                echo "no core changes this cycle"
+                core_ready_for_entertainment=true
               else
-                git add src/data/wc2026.ts src/data/wc2026-videos.ts src/data/wc2026-entertainment.ts scripts/curate-skip.json scripts/curate-ai-rejections.json
                 git commit -m "Auto-update: World Cup 2026 data ($(date -u '+%F %H:%MZ'))"
                 git pull --rebase --autostash origin main || true
-                git push origin HEAD:main || echo "::warning::push to main failed; will retry next cycle"
+                if git push origin HEAD:main; then
+                  core_ready_for_entertainment=true
+                else
+                  echo "::warning::push to main failed; will retry next cycle"
+                fi
                 git push origin HEAD:dev  || echo "dev has diverged; skipping"
               fi
             else
               echo "::error::validation failed — not committing this cycle"
               touch "$CURATOR_ERROR_FLAG"
+            fi
+
+            # Optional entertainment AI path: never let this block core updates.
+            if [ "$core_ready_for_entertainment" = true ]; then
+              rm -f "$ENTERTAINMENT_AUDIT_FILE"
+              cp src/data/wc2026-entertainment.ts "$ENTERTAINMENT_BACKUP_FILE"
+              entertainment_ok=false
+              if npx tsx scripts/curate-entertainment.ts; then
+                entertainment_ok=true
+              else
+                echo "::warning::entertainment step errored this cycle"
+                cp "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts
+                {
+                  echo "### Entertainment audit — cycle $cycle"
+                  echo "- reason: entertainment_step_error"
+                  echo "- action: skipped entertainment curation for this cycle"
+                  echo
+                } >> "$GITHUB_STEP_SUMMARY"
+              fi
+              if [ -f "$ENTERTAINMENT_AUDIT_FILE" ]; then
+                {
+                  echo "### Entertainment audit — cycle $cycle"
+                  cat "$ENTERTAINMENT_AUDIT_FILE"
+                  echo
+                } >> "$GITHUB_STEP_SUMMARY"
+              fi
+              if [ "$entertainment_ok" = true ] && ! cmp -s "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts; then
+                if npm run check:update; then
+                  git add src/data/wc2026-entertainment.ts
+                  if git diff --cached --quiet; then
+                    echo "no entertainment changes this cycle"
+                  else
+                    git commit -m "Auto-update: World Cup 2026 entertainment ($(date -u '+%F %H:%MZ'))"
+                    git pull --rebase --autostash origin main || true
+                    if git push origin HEAD:main; then
+                      git push origin HEAD:dev  || echo "dev has diverged; skipping"
+                    else
+                      echo "::warning::entertainment push to main failed; discarding local entertainment commit"
+                      git fetch origin main && git reset --hard origin/main || echo "::warning::failed to restore local main after entertainment push failure"
+                    fi
+                  fi
+                else
+                  echo "::warning::entertainment validation failed; discarding entertainment changes"
+                  cp "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts
+                  {
+                    echo "### Entertainment audit — cycle $cycle"
+                    echo "- reason: entertainment_validation_failed"
+                    echo "- action: discarded entertainment changes for this cycle"
+                    echo
+                  } >> "$GITHUB_STEP_SUMMARY"
+                fi
+              fi
+            else
+              echo "::notice::skipping optional entertainment curation because core updater did not reach a clean commit point"
             fi
             echo "::endgroup::"
             [ "$(date +%s)" -ge "$deadline" ] && break
