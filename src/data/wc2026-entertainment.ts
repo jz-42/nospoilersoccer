@@ -344,4 +344,14 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "L5": {
+    entertainmentSummary: "By the sound of it, this was fairly flat for long stretches, with a dour feel outweighing any real flow. It seems to have been more tense than lively, landing closer to routine than genuinely absorbing.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "L6": {
+    entertainmentSummary: "It sounds fairly tense and stakes-heavy rather than free-flowing, with enough edge to feel a bit more engaging than a routine group-stage watch.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
