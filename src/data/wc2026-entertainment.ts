@@ -219,6 +219,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "G6": {
+    entertainmentSummary: "It sounds lively and fairly open, with enough rhythm that it likely felt more eventful than tense. The reaction suggests a brisk, active watch rather than a cagey or stop-start one.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "H1": {
     entertainmentSummary: "It seemed to be a tense, emotionally charged occasion, with Spain doing much of the probing while Cape Verde’s resistance gave the game a strong sense of jeopardy. Reactions suggest it was more cagey and talked-about than wildly open, but the atmosphere and underdog element kept it engaging.",
     entertainmentRating: 3,
