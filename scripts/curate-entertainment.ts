@@ -35,6 +35,9 @@ const MAX_SEARCH_RESULTS = 6
 const SEARCH_QUERIES_PER_MATCH = 2
 const MAX_SUMMARY_ATTEMPTS = 2
 const MIN_SNIPPETS = 4
+const MAX_MATCHES_PER_RUN = Number(process.env.ENTERTAINMENT_MAX_MATCHES_PER_RUN ?? 12)
+const SEARCH_TIMEOUT_MS = Number(process.env.ENTERTAINMENT_SEARCH_TIMEOUT_MS ?? 15000)
+const MODEL_TIMEOUT_MS = Number(process.env.ENTERTAINMENT_MODEL_TIMEOUT_MS ?? 45000)
 
 const SYSTEM = `You write a spoiler-safe entertainment summary for a soccer match on a no-spoilers highlights site.
 
@@ -224,9 +227,23 @@ function resolvedDdgUrl(raw: string): string {
   }
 }
 
+async function fetchWithTimeout(
+  input: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<Response> {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(input, { ...init, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 async function searchDuckDuckGo(query: string, max: number): Promise<SearchSnippet[]> {
   const url = `https://duckduckgo.com/html/?q=${encodeURIComponent(query)}`
-  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } })
+  const res = await fetchWithTimeout(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, SEARCH_TIMEOUT_MS)
   if (!res.ok) throw new Error(`duckduckgo ${res.status}`)
   const html = await res.text()
   const out: SearchSnippet[] = []
@@ -279,14 +296,14 @@ async function gatherSnippets(matchId: string, home: string, away: string): Prom
 }
 
 async function callModel(body: Record<string, unknown>): Promise<Response> {
-  return fetch(`${BASE_URL}/chat/completions`, {
+  return fetchWithTimeout(`${BASE_URL}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
     body: JSON.stringify(body),
-  })
+  }, MODEL_TIMEOUT_MS)
 }
 
 export function parseVerdict(text: string): ModelVerdict {
@@ -406,7 +423,8 @@ async function run() {
   const entertainment = Object.fromEntries(
     Object.entries(loadEntertainment()).filter(([, entry]) => isCurrentEntertainmentEntry(entry)),
   )
-  const candidates = allMatches.filter((m) => shouldCurate(m, entertainment))
+  const allCandidates = allMatches.filter((m) => shouldCurate(m, entertainment))
+  const candidates = allCandidates.slice(0, MAX_MATCHES_PER_RUN)
   const audit: AuditEntry[] = []
 
   if (!AI_ENABLED) {
@@ -420,6 +438,8 @@ async function run() {
     writeAudit(audit)
     return
   }
+
+  console.log(`curating ${candidates.length}/${allCandidates.length} entertainment candidate(s)`)
 
   const added: string[] = []
   for (const match of candidates) {
