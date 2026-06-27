@@ -692,13 +692,13 @@
    reads instantly without a heavy side-bar fighting the card geometry. */
 .preview-saved {
   position: absolute;
-  left: 11px;
+  left: 12px;
   bottom: 10px;
   z-index: 2;
-  font-size: 23px;
+  font-size: 18px;
   line-height: 1;
   color: var(--saved-ink);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6), 0 0 3px rgba(233, 184, 90, 0.12);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
   pointer-events: none;
 }
 
@@ -753,20 +753,20 @@
    The edges (border + ring) carry the signal; the inside stays gentle. */
 .preview-card.is-pinned,
 .preview-card.is-fav {
-  border-color: var(--saved);
+  border-color: color-mix(in srgb, var(--saved) 78%, var(--border));
   background:
     linear-gradient(rgba(233, 184, 90, 0.04), rgba(233, 184, 90, 0.04)),
     var(--panel);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--saved) 35%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--saved) 16%, transparent),
     var(--shadow);
 }
 
 .preview-card.is-pinned:hover,
 .preview-card.is-fav:hover {
-  border-color: var(--saved);
+  border-color: color-mix(in srgb, var(--saved) 82%, var(--border));
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--saved) 45%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--saved) 22%, transparent),
     0 2px 4px rgba(0, 0, 0, 0.35),
     0 14px 36px rgba(0, 0, 0, 0.35);
 }
@@ -956,13 +956,13 @@
    off-center bar fighting the row's geometry. */
 .tile.is-pinned,
 .tile.is-fav {
-  border-color: var(--saved);
+  border-color: color-mix(in srgb, var(--saved) 78%, var(--border));
   background: var(--saved-wash);
 }
 
 .tile.is-pinned:hover,
 .tile.is-fav:hover {
-  border-color: var(--saved);
+  border-color: color-mix(in srgb, var(--saved) 82%, var(--border));
   background: color-mix(in srgb, var(--saved) 11%, var(--panel-hover));
 }
 
@@ -974,7 +974,6 @@
   font-size: 12px;
   line-height: 1;
   color: var(--saved-ink);
-  text-shadow: 0 0 5px rgba(233, 184, 90, 0.15);
   pointer-events: none;
 }
 
@@ -1789,32 +1788,31 @@
    Symmetric: full-perimeter border + even wash, no side-only bar. */
 .ko-card.is-pinned,
 .ko-card.is-fav {
-  border-color: var(--saved);
+  border-color: color-mix(in srgb, var(--saved) 78%, var(--border));
   background:
     linear-gradient(var(--saved-wash), var(--saved-wash)),
     var(--panel);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--saved) 30%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--saved) 15%, transparent),
     var(--shadow);
 }
 
 .ko-card.is-pinned:hover,
 .ko-card.is-fav:hover {
-  border-color: var(--saved);
+  border-color: color-mix(in srgb, var(--saved) 82%, var(--border));
   background:
     linear-gradient(var(--saved-wash), var(--saved-wash)),
     var(--panel-hover);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--saved) 40%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--saved) 20%, transparent),
     var(--shadow);
 }
 
 /* Saved-match marker in the ko-card meta row (inline before the date). */
 .ko-saved {
   color: var(--saved-ink);
-  font-size: 10px;
+  font-size: 9px;
   margin-right: 5px;
-  text-shadow: 0 0 4px rgba(233, 184, 90, 0.15);
 }
 
 .ko-meta {
