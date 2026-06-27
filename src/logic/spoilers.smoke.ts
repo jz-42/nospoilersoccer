@@ -3,8 +3,10 @@
  * (also part of `npm run build`, so a regression fails the deploy).
  */
 import { wc2022 } from '../data/wc2022'
+import { wc2026 } from '../data/wc2026'
 import type { Marks } from './spoilers'
 import {
+  bestThirdSlotGroups,
   canForceReveal,
   groupComplete,
   isPlayed,
@@ -75,5 +77,46 @@ const future = { ...m49, score: undefined, penalties: undefined, homeTeam: undef
 assert(!isPlayed(future), 'match without score is not played')
 assert(!knockoutReady(t, future, fresh, new Set([future.id])), 'unplayed match is never ready')
 assert(!canForceReveal(future), 'unplayed match with unknown teams cannot be force-revealed')
+
+const live2026 = wc2026
+const r32Direct = live2026.knockoutRounds[0].matches[0] // 2A v 2B
+const r32BestThird = live2026.knockoutRounds[0].matches[6] // 1A v best 3rd
+const r32BestThirdFromB = live2026.knockoutRounds[0].matches[8] // 1D v best 3rd
+const liveMarks: Marks = {}
+
+for (const m of live2026.groupMatches.filter((x) => ['A', 'B'].includes(x.group))) {
+  liveMarks[m.id] = 'watched'
+}
+
+assert(groupComplete(live2026, 'A', liveMarks), '2026 group A complete after 6 marks')
+assert(groupComplete(live2026, 'B', liveMarks), '2026 group B complete after 6 marks')
+assert(resolveSlot(live2026, r32Direct, 'home', liveMarks) === 'RSA', '2026 R32 reveals 2A once group A is complete')
+assert(resolveSlot(live2026, r32Direct, 'away', liveMarks) === 'CAN', '2026 R32 reveals 2B once group B is complete')
+assert(resolveSlot(live2026, r32BestThird, 'home', liveMarks) === 'MEX', '2026 R32 reveals 1A once group A is complete')
+assert(resolveSlot(live2026, r32BestThirdFromB, 'away', liveMarks) === 'BIH', '2026 best-third slot reveals once the projected team group is complete')
+assert(resolveSlot(live2026, r32BestThird, 'away', liveMarks) === null, '2026 best-third slot stays hidden while its projected team group is incomplete')
+
+const canon2026 = structuredClone(wc2026)
+const storedBestThirdSlot = canon2026.knockoutRounds[0].matches[1] // m74 away
+storedBestThirdSlot.awayTeam = 'BIH'
+
+const groupBMarks: Marks = {}
+for (const m of canon2026.groupMatches.filter((x) => x.group === 'B')) {
+  groupBMarks[m.id] = 'watched'
+}
+
+const projectedSlots = bestThirdSlotGroups(canon2026, groupBMarks)
+assert(projectedSlots.get('m81-away') === 'B', '2026 projection still routes group B to its live slot before the whole best-third picture is known')
+assert(projectedSlots.get('m74-away') !== 'B', '2026 stored slot does not override the live projection early')
+assert(resolveSlot(canon2026, storedBestThirdSlot, 'away', groupBMarks) === null, '2026 stored best-third team stays hidden when the live projection puts it elsewhere')
+
+const fullGroupMarks: Marks = {}
+for (const m of canon2026.groupMatches) {
+  fullGroupMarks[m.id] = 'watched'
+}
+
+const canonicalSlots = bestThirdSlotGroups(canon2026, fullGroupMarks)
+assert(canonicalSlots.get('m74-away') === 'B', '2026 full group stage follows the stored canonical best-third slot')
+assert(resolveSlot(canon2026, storedBestThirdSlot, 'away', fullGroupMarks) === 'BIH', '2026 full group stage reveals the stored canonical best-third team')
 
 console.log('ALL PASS')

@@ -3,7 +3,7 @@ import type { Group, KnockoutMatch, Tournament } from '../data/types'
 import { matchWinner } from '../data/types'
 import { groupStandings } from '../data/standings'
 import type { StandingRow } from '../data/standings'
-import { groupComplete, resolveSlot, slotLabel } from '../logic/spoilers'
+import { bestThirdSlotGroups, groupComplete, resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
 import { FlowLayer } from './FlowLayer'
@@ -345,44 +345,6 @@ function liveBestThirds(
   return rows
 }
 
-/**
- * Slot the advancing thirds one-to-one into the R32 (group → slot key). Real
- * life is a single destination per team: FIFA's Annex C table fixes it from the
- * full set of qualifiers, so each slot takes exactly one of its candidate
- * groups. We honour any slot the data has already resolved to a real team, then
- * find a valid matching for the rest (a live projection can't know Annex C's
- * exact pick, but every team still gets one eligible slot, not a fan of them).
- */
-function assignThirds(
-  slots: { key: string; candidates: ReadonlySet<string>; fixed: string | null }[],
-  advancing: string[],
-): Map<string, string> {
-  const slotOfGroup = new Map<string, string>()
-  const groupOfSlot = new Map<string, string>()
-  const locked = new Set<string>()
-  for (const s of slots)
-    if (s.fixed && advancing.includes(s.fixed) && !groupOfSlot.has(s.key)) {
-      groupOfSlot.set(s.key, s.fixed)
-      slotOfGroup.set(s.fixed, s.key)
-      locked.add(s.key)
-    }
-  const augment = (group: string, seen: Set<string>): boolean => {
-    for (const s of slots) {
-      if (locked.has(s.key) || !s.candidates.has(group) || seen.has(s.key)) continue
-      seen.add(s.key)
-      const held = groupOfSlot.get(s.key)
-      if (held === undefined || augment(held, seen)) {
-        groupOfSlot.set(s.key, group)
-        slotOfGroup.set(group, s.key)
-        return true
-      }
-    }
-    return false
-  }
-  for (const g of advancing) if (!slotOfGroup.has(g)) augment(g, new Set())
-  return slotOfGroup
-}
-
 function BestThirdTable({
   t,
   progress,
@@ -626,8 +588,11 @@ export function Bracket({
   // heads next: 1st/2nd → R32 (green, through), 3rd → the best-third table
   // (yellow, a maybe), 4th → out (red). In the table a third then resolves to a
   // single green slot if projected through, or red (→ out) if not.
-  const groupOf = (team: string) => t.groups.find((g) => g.teams.includes(team))?.id ?? null
-  const bestThirdSlots: { key: string; candidates: ReadonlySet<string>; fixed: string | null }[] = []
+  const projectedBestThirdSlots = bestThirdSlotGroups(t, progress.marks)
+  const thirdSlotOf = new Map<string, string>()
+  for (const [slotKey, group] of projectedBestThirdSlots) {
+    thirdSlotOf.set(group, `tgt-${slotKey}`)
+  }
   for (const m of r32Matches) {
     for (const sideKey of ['home', 'away'] as const) {
       const slot = sideKey === 'home' ? m.home : m.away
@@ -641,20 +606,11 @@ export function Bracket({
           tone: 'green',
           on: groupComplete(t, slot.group, progress.marks),
         })
-      } else if (slot.type === 'best-third') {
-        const team = resolveSlot(t, m, sideKey, progress.marks, progress.revealed)
-        bestThirdSlots.push({
-          key: tgtKey,
-          candidates: new Set(slot.groups),
-          fixed: team ? groupOf(team) : null,
-        })
       }
     }
   }
 
   if (bestThirdCount > 0) {
-    // One destination per advancing third (Annex C slots them one-to-one).
-    const thirdSlotOf = assignThirds(bestThirdSlots, [...advancingThirds])
     for (const g of t.groups) {
       // 3rd → the best-third table (yellow: in the race, undecided here).
       links.push({
@@ -777,15 +733,19 @@ export function Bracket({
           <div className="b-col b-center">
             <div className="b-round-name">{finalRoundName}</div>
             <div className="b-col-body">
-              {/* The bracket's central axis doubles as the one control: a quiet
-                  toggle that unfolds the group standings, feed lines and key. */}
+              {/* Centered under the "Final" header — absolute, so it sits
+                  below the titles row without taking flow space. The Final
+                  card stays vertically centred between the two semis. */}
               <div className={`ko-detail ${detailed ? 'is-open' : ''}`}>
                 <button
                   type="button"
                   className="ko-detail-toggle"
                   aria-pressed={detailed}
                   aria-expanded={detailed}
-                  onClick={() => setDetailed((v) => !v)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setDetailed((v) => !v)
+                  }}
                 >
                   <svg
                     className="ko-detail-chev"
