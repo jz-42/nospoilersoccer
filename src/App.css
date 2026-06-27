@@ -1096,6 +1096,7 @@
 .ko-board {
   position: relative;
   width: 100%;
+  padding-bottom: 24px;
 }
 
 .ko-main {
@@ -1156,6 +1157,19 @@
      subtitle of the round, while staying above the final card */
   margin-top: 34px;
   margin-bottom: 10px;
+}
+
+/* sits inside the center column, absolutely positioned just under the "Final"
+   round header — keeps it visually below the titles row without taking flow
+   space, so the Final card still centers between the two semis (no kink in
+   the connector). */
+.b-center .ko-detail {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 2;
+  margin: 0;
+  transform: translateX(-50%);
 }
 
 .ko-detail-toggle {
@@ -1326,6 +1340,7 @@
 .bracket-deep .b-round-name {
   font-size: 10px;
   letter-spacing: 0.05em;
+  margin-bottom: 10px;
 }
 
 .b-round-name {
@@ -1942,7 +1957,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 8px;
+  bottom: 18px;
 }
 
 .b-third .b-round-name {
