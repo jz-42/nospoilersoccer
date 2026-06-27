@@ -178,7 +178,7 @@ export const wc2026: Tournament = {
     { id: 'L3', group: 'L', matchday: 2, date: '2026-06-23', kickoff: '2026-06-23T20:00Z', home: 'ENG', away: 'GHA', score: { home: 0, away: 0 }, goals: [], odds: { home: 0.745, draw: 0.165, away: 0.1, url: 'https://polymarket.com/event/fifwc-eng-gha-2026-06-23' } },
     { id: 'L4', group: 'L', matchday: 2, date: '2026-06-23', kickoff: '2026-06-23T23:00Z', home: 'PAN', away: 'CRO', score: { home: 0, away: 1 }, goals: [{ team: 'CRO', player: "Ante Budimir", minute: "54'" }], odds: { home: 0.145, draw: 0.235, away: 0.625, url: 'https://polymarket.com/event/fifwc-pan-hrv-2026-06-23' } },
     { id: 'L5', group: 'L', matchday: 3, date: '2026-06-27', kickoff: '2026-06-27T21:00Z', home: 'PAN', away: 'ENG', score: { home: 0, away: 2 }, goals: [{ team: 'ENG', player: "Jude Bellingham", minute: "62'" }, { team: 'ENG', player: "Harry Kane", minute: "67'" }], odds: { home: 0.105, draw: 0.155, away: 0.755, url: 'https://polymarket.com/event/fifwc-pan-eng-2026-06-27' } },
-    { id: 'L6', group: 'L', matchday: 3, date: '2026-06-27', kickoff: '2026-06-27T21:00Z', home: 'CRO', away: 'GHA', odds: { home: 0.585, draw: 0.25, away: 0.16, url: 'https://polymarket.com/event/fifwc-hrv-gha-2026-06-27' } },
+    { id: 'L6', group: 'L', matchday: 3, date: '2026-06-27', kickoff: '2026-06-27T21:00Z', home: 'CRO', away: 'GHA', score: { home: 2, away: 1 }, goals: [{ team: 'CRO', player: "Petar Sucic", minute: "31'" }, { team: 'GHA', player: "Derrick Luckassen", minute: "73'" }, { team: 'CRO', player: "Nikola Vlasic", minute: "83'" }], odds: { home: 0.585, draw: 0.25, away: 0.16, url: 'https://polymarket.com/event/fifwc-hrv-gha-2026-06-27' } },
   ],
 
   knockoutRounds: [
