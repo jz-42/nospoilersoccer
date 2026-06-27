@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
@@ -90,15 +90,11 @@ function DisclosureRow({
   children: ReactNode
 }) {
   const [open, setOpen] = useState(false)
+  const contentId = useId()
 
   return (
     <div className="modal-disclosure">
-      <button
-        type="button"
-        className="modal-disclosure-toggle"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
+      <div className="modal-disclosure-bar">
         <span className="modal-disclosure-head">
           <span className="modal-disclosure-label">{label}</span>
           {hint && (
@@ -111,9 +107,21 @@ function DisclosureRow({
             </span>
           )}
         </span>
-        <span className="modal-disclosure-action">{open ? 'Hide' : 'Tap to reveal'}</span>
-      </button>
-      {open && <div className="modal-disclosure-copy">{children}</div>}
+        <button
+          type="button"
+          className="modal-disclosure-trigger"
+          aria-expanded={open}
+          aria-controls={open ? contentId : undefined}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {open ? 'Hide' : 'Tap to reveal'}
+        </button>
+      </div>
+      {open && (
+        <div id={contentId} className="modal-disclosure-copy">
+          {children}
+        </div>
+      )}
     </div>
   )
 }
@@ -132,7 +140,7 @@ function EntertainmentDisclosureRow({
     >
       <div className="entertainment-disclosure">
         <div className="entertainment-rating">
-          <span className="entertainment-rating-label">Entertainment rating</span>
+          <span className="entertainment-rating-label">Rating</span>
           <span className="entertainment-stars" aria-label={`${rating} out of 5 stars`}>
             {Array.from({ length: 5 }, (_, i) => (
               <span
@@ -359,14 +367,6 @@ export function MatchModal({
                   marked
                   onReveal={() => {}}
                 />
-              )}
-              {(entertainmentDisclosure || totalGoals !== null) && (
-                <div className="modal-disclosures">
-                  {entertainmentDisclosure}
-                  {totalGoals !== null && (
-                    <DisclosureRow label="Total goals">{`${totalGoals} total goals`}</DisclosureRow>
-                  )}
-                </div>
               )}
               {m.goals && m.goals.length > 0 && (
                 <div className="modal-goals">
