@@ -3,6 +3,7 @@ import type { EntertainmentRating } from './types'
 export interface EntertainmentEntry {
   entertainmentSummary: string
   entertainmentRating: EntertainmentRating
+  promptVersion?: string
 }
 
 /**

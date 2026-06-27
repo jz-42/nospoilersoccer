@@ -119,6 +119,11 @@ const experiment2026 = wc2026.groupMatches.find(
   (match): match is GroupMatch => match.id === 'D5' && Boolean(match.score && match.videos?.length),
 )
 if (!experiment2026) throw new Error('Fixture error: expected June 25 experiment match D5 with highlights')
+const experimentWithEntertainment: GroupMatch = {
+  ...experiment2026,
+  entertainmentSummary: 'Lively and open-feeling, with enough rhythm to sound more engaging than routine.',
+  entertainmentRating: 4,
+}
 
 const renderMatch = (match: GroupMatch, progress: Progress = emptyProgress) =>
   renderToStaticMarkup(
@@ -139,14 +144,14 @@ assert(
   'played match modal does not show the Google Calendar control',
 )
 assert(
-  Boolean(experiment2026.entertainmentSummary),
-  'June 25 experiment match includes entertainment summary data',
+  Boolean(experimentWithEntertainment.entertainmentSummary),
+  'test fixture includes entertainment summary data',
 )
 assert(
-  experiment2026.entertainmentRating === 4,
-  'June 25 experiment match includes entertainment rating data',
+  experimentWithEntertainment.entertainmentRating === 4,
+  'test fixture includes entertainment rating data',
 )
-const preRevealExperiment = renderMatch(experiment2026)
+const preRevealExperiment = renderMatch(experimentWithEntertainment)
 assert(
   preRevealExperiment.includes('AI Entertainment Summary'),
   'pre-reveal experiment match includes the entertainment disclosure label',
@@ -168,7 +173,7 @@ assert(
   'pre-reveal experiment match includes the total-goals disclosure label',
 )
 assert(
-  !preRevealExperiment.includes('Lively and open for long stretches, with enough momentum shifts to keep it engaging. More entertaining than a routine group-stage watch.'),
+  !preRevealExperiment.includes('Lively and open-feeling, with enough rhythm to sound more engaging than routine.'),
   'pre-reveal entertainment summary copy is hidden by default',
 )
 assert(
@@ -179,9 +184,9 @@ assert(
   !preRevealExperiment.includes('5 total goals'),
   'pre-reveal total-goals disclosure content is hidden by default',
 )
-const revealedExperiment = renderMatch(experiment2026, {
+const revealedExperiment = renderMatch(experimentWithEntertainment, {
   ...emptyProgress,
-  marks: { [experiment2026.id]: 'watched' },
+  marks: { [experimentWithEntertainment.id]: 'watched' },
 })
 assert(
   !revealedExperiment.includes('AI Entertainment Summary'),

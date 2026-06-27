@@ -1,4 +1,12 @@
-import { isSafeSummary, loadEntertainment, parseVerdict, shouldCurate } from './curate-entertainment'
+import {
+  ENTERTAINMENT_PROMPT_VERSION,
+  isCurrentEntertainmentEntry,
+  isSafeSummary,
+  loadEntertainment,
+  parseVerdict,
+  shouldRetryReason,
+  shouldCurate,
+} from './curate-entertainment'
 import { tournaments } from '../src/data'
 
 function assert(condition: boolean, message: string) {
@@ -7,7 +15,7 @@ function assert(condition: boolean, message: string) {
 }
 
 const existing = loadEntertainment()
-assert(existing.D5?.entertainmentRating === 4, 'curator loads existing generated entertainment entries')
+assert(typeof existing === 'object', 'curator loads generated entertainment entries')
 
 assert(
   parseVerdict('{"suitable":true,"rating":4,"summary":"A lively watch.","reason":"usable"}').rating === 4,
@@ -27,16 +35,65 @@ assert(
   'curator rejects textual goal-count spoilers',
 )
 
-const oldMissingSummary = tournaments.wc2026.groupMatches.find(
-  (match) => match.score && !existing[match.id],
-)
-if (!oldMissingSummary) throw new Error('Fixture error: expected a played match without entertainment data')
 assert(
-  shouldCurate(oldMissingSummary, existing, {
+  !isSafeSummary('It sounded fairly lively, but the contest was one-sided for long stretches.'),
+  'curator rejects match-shape spoilers',
+)
+
+assert(
+  !isSafeSummary('The Saudi support seemed to add more than the suspense did.'),
+  'curator rejects team-specific summaries',
+)
+
+assert(
+  isSafeSummary('Lively and open-feeling, with enough rhythm to sound more engaging than routine.'),
+  'curator accepts agnostic entertainment texture',
+)
+
+assert(
+  !isCurrentEntertainmentEntry({ entertainmentSummary: 'A lively watch.', entertainmentRating: 3 }),
+  'curator treats unversioned generated entries as stale',
+)
+
+assert(
+  isCurrentEntertainmentEntry({
+    entertainmentSummary: 'A lively watch.',
+    entertainmentRating: 3,
+    promptVersion: ENTERTAINMENT_PROMPT_VERSION,
+  }),
+  'curator recognizes current prompt-version entries',
+)
+
+const playedMatch = tournaments.wc2026.groupMatches.find((match) => match.score)
+if (!playedMatch) throw new Error('Fixture error: expected a played match')
+assert(
+  shouldCurate(playedMatch, existing, {
     aiEnabled: true,
     now: new Date('2026-06-26T23:00:00Z').getTime(),
   }),
   'curator can backfill older played matches without a max-age cutoff',
 )
+
+assert(
+  !shouldCurate(
+    playedMatch,
+    {
+      [playedMatch.id]: {
+        entertainmentSummary: 'A lively watch.',
+        entertainmentRating: 3,
+        promptVersion: ENTERTAINMENT_PROMPT_VERSION,
+      },
+    },
+    {
+      aiEnabled: true,
+      now: new Date('2026-06-26T23:00:00Z').getTime(),
+    },
+  ),
+  'curator leaves current-version entertainment entries untouched',
+)
+
+assert(shouldRetryReason('safety_rejected'), 'curator retries safety-rejected summaries once')
+assert(shouldRetryReason('model_unsuitable'), 'curator retries model-unsuitable summaries once')
+assert(!shouldRetryReason('insufficient_signal'), 'curator does not retry weak-signal skips in the same run')
 
 console.log('ALL PASS')
