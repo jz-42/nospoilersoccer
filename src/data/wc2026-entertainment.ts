@@ -17,241 +17,306 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
   "A1": {
     entertainmentSummary: "It sounded like a lively, emotionally charged opener with a big-event atmosphere and plenty for people to debate beyond the football. Reactions suggest it was more chaotic and stop-start than consistently high quality, but not a flat watch.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "A2": {
-    entertainmentSummary: "It seems to have begun in a fairly flat, frustrating way before opening up into a much livelier and more tense contest. Reaction suggests the atmosphere built steadily, so it likely felt engaging overall even if not consistently sharp throughout.",
+    entertainmentSummary: "It sounds fairly engaging rather than routine, with a tense, lively edge and enough atmosphere to keep attention. Not everyone seemed to see it as relentlessly free-flowing, but the overall feel appears clearly above flat or cagey.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "A3": {
-    entertainmentSummary: "It seems to have been a mostly low-tempo, fairly pedestrian match that lacked sustained excitement. There was some tension and emotion around it, but the general feel sounds more cagey than lively.",
+    entertainmentSummary: "It sounds like a fairly pedestrian watch overall, with long routine spells and only a modest sense of tension to lift it above flat. The mood seems more cagey than free-flowing, so the entertainment level was probably below average rather than lifeless.",
     entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "A4": {
-    entertainmentSummary: "It seems to have been more tense than fluent, with a scrappy, error-strewn feel and not much sustained quality in the play. The crowd and fan atmosphere sounded lively enough, but the match itself was generally viewed as fairly workmanlike rather than especially exciting.",
-    entertainmentRating: 2,
+    entertainmentSummary: "It seems to have been a fairly tense, tight watch rather than a wide-open one, with the atmosphere around it giving the occasion extra energy. More engaging than flat, but perhaps not especially free-flowing.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "A5": {
     entertainmentSummary: "It seems to have been a lively occasion with a big crowd atmosphere and some emotional fan moments. As a contest, the reaction suggests it felt fairly one-directional rather than especially tense.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "A6": {
     entertainmentSummary: "It seems to have been a tense, emotionally charged game with a strong big-match atmosphere rather than a wild, end-to-end spectacle. Reaction suggests the occasion and intensity carried much of the entertainment, with a memorable feel even if the football itself may have been fairly controlled.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "B1": {
-    entertainmentSummary: "It seemed fairly engaging and competitive, with a strong host-nation atmosphere and a hard-fought feel rather than end-to-end chaos. Reaction suggests a solid, tense opener that was lively enough without being widely treated as a classic.",
-    entertainmentRating: 3,
+    entertainmentSummary: "It seems to have been a tense, hard-fought watch with a lively atmosphere rather than a smooth, free-flowing one. The reaction suggests solid engagement and a bit more edge than a routine group-stage match.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "B2": {
-    entertainmentSummary: "It seemed like a tense, competitive match with a lively atmosphere, even if it was not a nonstop end-to-end spectacle. Reaction suggests it felt emotionally engaging and more memorable than a routine group-stage game.",
+    entertainmentSummary: "It seems to have felt tense and emotionally charged rather than constantly action-packed, with uncertainty and atmosphere carrying much of the entertainment. Probably more engaging than routine, even if not especially free-flowing throughout.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "B3": {
-    entertainmentSummary: "It sounds like a lively, attack-minded match with quite a lot going on, feeling more open than cagey. Reaction seems to place it closer to a memorable, conversation-starting watch than a routine one.",
-    entertainmentRating: 4,
+    entertainmentSummary: "Lively and high-event, with reactions suggesting a tense, engaging watch rather than anything routine. It seems to have felt open and buzzworthy, with enough uncertainty and intensity to keep attention throughout.",
+    entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "B4": {
-    entertainmentSummary: "It seemed lively and eventful overall, with a big home atmosphere and plenty happening, even if the contest itself was fairly one-sided. The crowd energy and heated edge appear to have kept it engaging more than tense.",
+    entertainmentSummary: "It seems to have felt lively and emotionally charged, with a big-occasion atmosphere making it more engaging than a routine watch. The buzz sounds to have come more from the occasion and crowd energy than from a cagey, suspense-heavy kind of match.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "B5": {
-    entertainmentSummary: "It seems to have been a fairly engaging, competitive match with decent intensity and a lively crowd backdrop. Reactions hint that it was influenced a lot by individual mistakes, so the flow may have felt more tense than consistently open or high quality.",
+    entertainmentSummary: "It seems to have felt tense and purposeful, with the main pull coming from the occasion and uncertainty rather than a wildly open flow. Probably more engaging than routine, but not widely described as a full-throttle spectacle.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "B6": {
+    entertainmentSummary: "It seems to have felt lively in the stands and reasonably engaging overall, without sounding like a relentlessly dramatic watch. Reactions suggest a solid tournament game with some atmosphere, but the available chatter is too result-focused to imply much more than that.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "C1": {
     entertainmentSummary: "It seemed fairly tense and lively rather than free-flowing, with strong crowd energy and plenty of emotion around Brazil’s uneven start. The reaction suggests a decent watch for atmosphere and edge, even if the football itself was a bit stop-start.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "C2": {
     entertainmentSummary: "It seems to have been a tense, nervy contest more than a free-flowing spectacle, with Haiti's spirited, attack-minded moments helping keep it engaging. Reactions sound mixed: watchable for the pressure and emotion, but not especially smooth or expansive overall.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "C3": {
     entertainmentSummary: "An early jolt seemed to give this match immediate tension, and much of the reaction suggests it stayed competitive and emotionally charged rather than turning into a free-flowing spectacle. Scotland’s penalty appeals were a major talking point, while Morocco’s lively support appeared to add to the atmosphere.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "C4": {
     entertainmentSummary: "It seemed fairly lively at times, with some quality attacking play and a strong crowd atmosphere, but it also sounded quite one-sided and not especially tense. Overall, it felt more comfortable and routine than dramatic or edge-of-seat.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "C5": {
     entertainmentSummary: "It seems to have been fairly lively at times thanks to Brazil’s flair going forward, but not especially tense overall. The general tone suggests a clear imbalance, with Scotland’s defensive errors making it feel more one-sided than dramatic.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "C6": {
     entertainmentSummary: "This sounded like a very lively, open game with a big-match atmosphere and several memorable attacking moments. Reactions suggest it was more chaotic and entertaining than many expected, with plenty happening throughout.",
     entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "D1": {
     entertainmentSummary: "It seemed like a lively, fairly open match with strong early energy and a big-event atmosphere rather than much sustained tension. Reactions mostly described the United States as setting the pace, so it came off as more emphatic and upbeat than dramatic or cagey.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "D2": {
     entertainmentSummary: "It seemed like a fairly engaging watch, with a clear contrast in styles: long spells of possession for one side and quick, dangerous transition play from the other. Reaction suggests it felt lively and tense for much of the match, even if it was not a full-on end-to-end spectacle.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "D3": {
     entertainmentSummary: "It seems to have been a solid, crowd-energized match with a positive atmosphere, but not especially suspenseful for neutrals. The general tone suggests one side controlled a lot of it, so it likely felt more comfortable than chaotic or end-to-end.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "D4": {
     entertainmentSummary: "It seems to have been a highly charged, chaotic watch with a big-crowd atmosphere, plenty of emotion, and a major talking point that kept people buzzing. The mood sounded lively and tense rather than routine, even if the football itself may not have been polished throughout.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "D5": {
     entertainmentSummary: "Lively and open for long stretches, with enough momentum shifts to keep it engaging. More entertaining than a routine group-stage watch.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "D6": {
     entertainmentSummary: "More tense than open, with caution outweighing sustained drama. The intrigue seems to have come more from the atmosphere than from a steady run of memorable moments.",
     entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "E1": {
     entertainmentSummary: "It seemed like a lively, open match with a lot going on, leaning more toward spectacle than sustained tension. The atmosphere sounded energetic and memorable, with plenty of talking points rather than a cagey or routine feel.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "E2": {
     entertainmentSummary: "It seemed like a lively, open match with a steady stream of chances and several near-misses off the woodwork. The general feel was tense and engaging rather than cagey, even if the finishing sounded a bit erratic.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "E3": {
     entertainmentSummary: "It looked like a lively, tense contest with a strong crowd atmosphere and plenty of emotional swings. Reaction seems to frame it as an engaging, spirited match rather than a flat or routine one.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "E4": {
     entertainmentSummary: "It sounds like a surprisingly tense, siege-like match, with long spells of pressure and a standout goalkeeping display keeping the crowd engaged. Reaction suggests it was more compelling for the mounting frustration, resistance, and atmosphere than for end-to-end flow.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "E5": {
     entertainmentSummary: "One of the more gripping matches of the day, with real intensity and long stretches of pressure. Engaging from early on rather than fading into something routine.",
     entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "E6": {
     entertainmentSummary: "A steadier watch with a few sharp moments, but not one of the livelier matches on the slate. More controlled than dramatic overall.",
     entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "F1": {
     entertainmentSummary: "This seems to have been a lively, tense match with plenty of emotional swings and a notably engaging second half. Reactions also suggest a strong stadium atmosphere, making it feel open and dramatic rather than flat or cagey.",
     entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "F2": {
     entertainmentSummary: "It sounded like a lively, fairly open match with plenty of attacking action and a few especially eye-catching moments. The mood seems more comfortable than tense, so the entertainment was likely driven by flow and chance creation rather than suspense.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "F3": {
     entertainmentSummary: "It seems to have been a lively, attack-minded match with plenty happening and a strong tournament atmosphere. Most reactions suggest it was engaging and fairly open, even if the tension may have faded as it went on.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "F4": {
     entertainmentSummary: "It sounded fairly lively but not especially tense, with Japan doing most of the attacking and the game feeling quite one-sided for long stretches. The reaction suggests an open match with recurring pressure rather than a back-and-forth contest.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "F5": {
     entertainmentSummary: "Mixed at first, but warmer on the overall watch once it opened up. More tense and engaging than chaotic.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "F6": {
     entertainmentSummary: "Mildly positive overall, mostly because it moved along and stayed reasonably watchable. More solid than electric.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "G1": {
     entertainmentSummary: "This seems to have been a fairly lively, open match with both sides having good spells and a decent sense of tension. Belgium were reportedly sluggish early before it opened up more, so it sounds more engaging than polished.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "G2": {
     entertainmentSummary: "It seemed like a lively, open game with plenty happening at both ends, and the general reaction painted it as engaging rather than cagey. The atmosphere also sounded unusually charged, which added extra edge beyond the football itself.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "G3": {
     entertainmentSummary: "This sounded like a tense, competitive match with plenty of goalmouth action despite the lack of finishing. It seems to have started a bit cagey before becoming more open, with both goalkeepers drawing a lot of attention and the atmosphere feeling lively.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "G4": {
     entertainmentSummary: "It seems to have felt fairly lively, with a lot of energy around the occasion and strong fan emotion. The reaction sounds more focused on the significance of the result than on a nonstop, edge-of-your-seat match.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "H1": {
     entertainmentSummary: "It seemed to be a tense, emotionally charged occasion, with Spain doing much of the probing while Cape Verde’s resistance gave the game a strong sense of jeopardy. Reactions suggest it was more cagey and talked-about than wildly open, but the atmosphere and underdog element kept it engaging.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "H2": {
     entertainmentSummary: "It seems to have been a mixed watch: a scratchy, fairly cagey first half gave way to a more open and livelier second half as Uruguay improved. The general tone suggests decent tension and some sustained pressure without it sounding like an all-out classic.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "H3": {
     entertainmentSummary: "This sounded more lively than tense, with plenty of attacking action and some eye-catching individual moments. It also seems to have been fairly one-sided, so the atmosphere—especially from the Saudi support—may have added more than the suspense did.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "H4": {
     entertainmentSummary: "It seemed to be a lively, unexpectedly gripping match with a strong underdog energy and plenty of emotion around it. The reaction suggests an open, memorable contest that felt more eventful than routine.",
     entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "I1": {
     entertainmentSummary: "This seems to have been a pretty engaging watch: a somewhat disjointed opening gave way to a more open, lively contest with clear attacking quality on show. The reaction suggests it felt entertaining rather than breathless throughout, with the second half carrying more spark than the first.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "I2": {
     entertainmentSummary: "It seemed like a lively, fairly open match with plenty of attacking action and a strong stadium atmosphere. The mood sounds more eventful than tense, with fan energy and one debated moment adding to the buzz.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "I4": {
     entertainmentSummary: "It seems to have been a lively, open game with a clear attacking slant rather than a cagey or stop-start contest. The reaction sounds upbeat and energetic, with enough momentum shifts and standout moments to keep it engaging.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "I5": {
     entertainmentSummary: "It seemed like a lively, open game with plenty of attacking action and a few memorable moments of individual quality. The tension may have dipped because it sounds more emphatic than truly back-and-forth, but the overall feel was still quite engaging.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "I6": {
     entertainmentSummary: "It sounds like a lively but fairly one-sided match, with plenty of attacking moments and much more of a showcase than a tense back-and-forth contest. The entertainment seems to have come from the flow and frequency of chances rather than from suspense.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "J1": {
     entertainmentSummary: "It seems to have felt lively and star-driven, with Messi-centered moments and a strong crowd atmosphere carrying much of the entertainment. The buzz sounded high, though the contest itself may not have been especially tense for long stretches.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "J2": {
     entertainmentSummary: "It seemed like a lively, tense match with a competitive feel and plenty of notable moments. Reactions suggest it was more engaging than polished, with the occasion and crowd energy adding to the interest.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "J3": {
     entertainmentSummary: "It sounds more like a professional, fairly controlled World Cup outing than a chaotic classic, with much of the buzz centered on Messi making history. There seems to have been enough quality and occasion to keep it engaging, but not much sign of a wild end-to-end contest.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "J4": {
     entertainmentSummary: "It seems to have been a lively, tense contest rather than a cagey one, with enough momentum shifts to keep it engaging. Reactions suggest strong crowd emotion and a more dramatic feel than a routine group-stage match.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "K1": {
     entertainmentSummary: "It sounded fairly tense and competitive, with DR Congo making a fancied Portugal side work hard for long stretches. Reactions were mixed on the spectacle, though, with quite a few describing it as more frustrating and drab than genuinely flowing or thrilling.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "K2": {
     entertainmentSummary: "It seems to have been a reasonably lively game with a fair bit of attacking intent, though not an especially polished or edge-of-your-seat contest. Reaction suggests Uzbekistan’s energy helped keep it engaging, but the overall feel was more workmanlike than dramatic.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "K3": {
     entertainmentSummary: "It seemed like a lively, attack-minded match rather than a tense one, with frequent forward moments and a lot of attention on a marquee individual display. The reaction suggests more spectacle and momentum than genuine back-and-forth drama.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "K4": {
     entertainmentSummary: "It seemed fairly tense rather than chaotic, with Colombia doing most of the attacking against a stubborn DR Congo defense. The game likely had steady pressure and some engagement, but not the feel of a wildly open end-to-end contest.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "L1": {
     entertainmentSummary: "It seems to have been a lively, open match with a lot going on and a strong big-event atmosphere. Reactions suggest it felt frantic and entertaining rather than cagey, especially after the break.",
     entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "L2": {
     entertainmentSummary: "It sounds like a lively, chaotic match that kept people engaged, with plenty of intensity and an open, eventful feel. The play may not have been especially polished throughout, but it seems to have been more scrappy-fun than flat.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "L3": {
     entertainmentSummary: "It seemed like a fairly flat, frustrating watch, with long spells of England control but not much cutting edge to lift the tempo. Ghana’s resistance added some tension, yet the general reaction suggests a cagey, underwhelming contest rather than a lively one.",
     entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "L4": {
     entertainmentSummary: "It seemed like a tense, fairly cagey match rather than a free-flowing spectacle, with Panama keeping it uncomfortable throughout. The main lift in entertainment appears to have come from the lively, Croatia-heavy crowd and the sense of sustained pressure more than from open end-to-end action.",
     entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
 }
