@@ -37,6 +37,7 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           CURATOR_ERROR_FLAG: /tmp/curator-error
           ENTERTAINMENT_AUDIT_FILE: /tmp/entertainment-audit.md
+          ENTERTAINMENT_BACKUP_FILE: /tmp/wc2026-entertainment.ts.before
           # Optional: OPENAI_MODEL (default gpt-5.4), OPENAI_REASONING_EFFORT (default medium)
         run: |
           git config user.name "results-bot"
@@ -48,6 +49,7 @@ jobs:
             echo "::group::cycle $cycle — $(date -u '+%H:%M:%SZ')"
             rm -f "$CURATOR_ERROR_FLAG"
             rm -f "$ENTERTAINMENT_AUDIT_FILE"
+            cp src/data/wc2026-entertainment.ts "$ENTERTAINMENT_BACKUP_FILE"
             npx tsx scripts/update-results.ts || echo "::warning::results step errored this cycle"
             npx tsx scripts/fetch-odds.ts     || echo "::warning::odds step errored this cycle"
             npx tsx scripts/curate-videos.ts  || echo "::warning::curator step errored this cycle"
@@ -59,7 +61,26 @@ jobs:
                 echo
               } >> "$GITHUB_STEP_SUMMARY"
             fi
+            check_ok=false
             if npm run check; then
+              check_ok=true
+            elif ! cmp -s "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts; then
+              echo "::warning::validation failed after entertainment curation; restoring entertainment data and retrying"
+              cp "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts
+              {
+                echo "### Entertainment fallback — cycle $cycle"
+                echo "- reason: validation_failed_after_entertainment"
+                echo "- action: restored previous entertainment data; other update types remain eligible to commit"
+                echo
+              } >> "$GITHUB_STEP_SUMMARY"
+              if npm run check; then
+                check_ok=true
+              else
+                echo "::error::validation still failed after restoring entertainment data"
+              fi
+            fi
+
+            if [ "$check_ok" = true ]; then
               if git diff --quiet; then
                 echo "no changes this cycle"
               else
