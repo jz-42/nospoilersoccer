@@ -214,6 +214,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "G5": {
+    entertainmentSummary: "Tense and emotionally charged rather than consistently free-flowing, with the atmosphere and uncertainty seeming to matter as much as the football itself. It sounded engaging enough overall, though perhaps more nervey than outright thrilling.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "H1": {
     entertainmentSummary: "It seemed to be a tense, emotionally charged occasion, with Spain doing much of the probing while Cape Verde’s resistance gave the game a strong sense of jeopardy. Reactions suggest it was more cagey and talked-about than wildly open, but the atmosphere and underdog element kept it engaging.",
     entertainmentRating: 3,
