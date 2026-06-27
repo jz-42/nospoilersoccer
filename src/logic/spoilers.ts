@@ -18,6 +18,9 @@
  * UI and the persistence layer stay trivial.
  */
 import type { GroupId, KnockoutMatch, SlotRef, TeamId, Tournament } from '../data/types'
+import { matchWinner, matchLoser } from '../data/types'
+import { groupStandings } from '../data/standings'
+import type { StandingRow } from '../data/standings'
 
 export type Mark = 'watched' | 'skipped'
 export type Marks = Record<string, Mark>
@@ -57,10 +60,150 @@ export function slotUnlocked(t: Tournament, slot: SlotRef, marks: Marks): boolea
   }
 }
 
+function findKnockout(t: Tournament, id: string): KnockoutMatch | null {
+  for (const r of t.knockoutRounds) {
+    const m = r.matches.find((x) => x.id === id)
+    if (m) return m
+  }
+  return null
+}
+
+function groupOfTeam(t: Tournament, team: TeamId): GroupId | null {
+  for (const g of t.groups) {
+    if (g.teams.includes(team)) return g.id
+  }
+  return null
+}
+
+function liveBestThirds(
+  t: Tournament,
+  marks: Marks,
+): { group: string; row: StandingRow }[] {
+  const include = (id: string) => marks[id] !== undefined
+  const rows: { group: string; row: StandingRow }[] = []
+  for (const g of t.groups) {
+    const s = groupStandings(t, g.id, include)
+    if (s[2]) rows.push({ group: g.id, row: s[2] })
+  }
+  const gd = (r: StandingRow) => r.goalsFor - r.goalsAgainst
+  rows.sort(
+    (a, b) =>
+      b.row.points - a.row.points || gd(b.row) - gd(a.row) || b.row.goalsFor - a.row.goalsFor,
+  )
+  return rows
+}
+
+export function bestThirdSlotGroups(t: Tournament, marks: Marks): Map<string, string> {
+  if (!t.bestThirdCount) return new Map()
+  const thirds = liveBestThirds(t, marks)
+  const advancing = thirds.slice(0, t.bestThirdCount).map((r) => r.group)
+  const allGroupsComplete = t.groups.every((g) => groupComplete(t, g.id, marks))
+
+  const allSlots: {
+    matchId: string
+    side: 'home' | 'away'
+    candidates: ReadonlySet<string>
+    fixed: string | null
+  }[] = []
+  for (const r of t.knockoutRounds) {
+    for (const km of r.matches) {
+      for (const s of ['home', 'away'] as const) {
+        const sl = s === 'home' ? km.home : km.away
+        if (sl.type === 'best-third') {
+          const storedTeam = s === 'home' ? km.homeTeam : km.awayTeam
+          const fixedGroup = storedTeam
+            ? allGroupsComplete
+              ? t.groups.find((g) => g.teams.includes(storedTeam))?.id ?? null
+              : null
+            : null
+          allSlots.push({
+            matchId: km.id,
+            side: s,
+            candidates: new Set(sl.groups),
+            fixed: fixedGroup,
+          })
+        }
+      }
+    }
+  }
+
+  const key = (s: { matchId: string; side: string }) => `${s.matchId}-${s.side}`
+  const groupOfSlot = new Map<string, string>()
+  const slotOfGroup = new Map<string, string>()
+  const locked = new Set<string>()
+  for (const s of allSlots) {
+    const k = key(s)
+    if (s.fixed && advancing.includes(s.fixed) && !groupOfSlot.has(k)) {
+      groupOfSlot.set(k, s.fixed)
+      slotOfGroup.set(s.fixed, k)
+      locked.add(k)
+    }
+  }
+  const augment = (group: string, seen: Set<string>): boolean => {
+    for (const s of allSlots) {
+      const k = key(s)
+      if (locked.has(k) || !s.candidates.has(group) || seen.has(k)) continue
+      seen.add(k)
+      const held = groupOfSlot.get(k)
+      if (held === undefined || augment(held, seen)) {
+        groupOfSlot.set(k, group)
+        slotOfGroup.set(group, k)
+        return true
+      }
+    }
+    return false
+  }
+  for (const g of advancing) if (!slotOfGroup.has(g)) augment(g, new Set())
+  return groupOfSlot
+}
+
+function deriveBestThird(
+  t: Tournament,
+  m: KnockoutMatch,
+  side: 'home' | 'away',
+  marks: Marks,
+): TeamId | null {
+  if (!t.bestThirdCount) return null
+  const thirds = liveBestThirds(t, marks)
+  const thisKey = `${m.id}-${side}`
+  const assignedGroup = bestThirdSlotGroups(t, marks).get(thisKey)
+  if (!assignedGroup) return null
+  const third = thirds.find((r) => r.group === assignedGroup)
+  return third?.row.team ?? null
+}
+
+function deriveSlotTeam(
+  t: Tournament,
+  m: KnockoutMatch,
+  side: 'home' | 'away',
+  slot: SlotRef,
+  marks: Marks,
+): TeamId | null {
+  switch (slot.type) {
+    case 'group-rank': {
+      const include = (id: string) => marks[id] !== undefined
+      const rows = groupStandings(t, slot.group, include)
+      return rows[slot.rank - 1]?.team ?? null
+    }
+    case 'best-third':
+      return deriveBestThird(t, m, side, marks)
+    case 'match-winner': {
+      const src = findKnockout(t, slot.match)
+      return src ? matchWinner(src) : null
+    }
+    case 'match-loser': {
+      const src = findKnockout(t, slot.match)
+      return src ? matchLoser(src) : null
+    }
+  }
+}
+
 /**
  * The revealed team for a slot, or null while it's still hidden.
  * A slot shows its team when its feeders are settled, or when the user
  * force-revealed this match — and the data actually knows the team.
+ * For unplayed matches whose feeders are decided, derives the team
+ * from group standings or feeder-match results.
  */
 export function resolveSlot(
   t: Tournament,
@@ -70,8 +213,19 @@ export function resolveSlot(
   revealed: Revealed = NONE,
 ): TeamId | null {
   const slot = side === 'home' ? m.home : m.away
-  if (!slotUnlocked(t, slot, marks) && !revealed.has(m.id)) return null
-  return (side === 'home' ? m.homeTeam : m.awayTeam) ?? null
+  const stored = side === 'home' ? m.homeTeam : m.awayTeam
+  if (revealed.has(m.id)) return stored ?? deriveSlotTeam(t, m, side, slot, marks)
+
+  if (slot.type === 'best-third') {
+    if (slotUnlocked(t, slot, marks)) return stored ?? deriveSlotTeam(t, m, side, slot, marks)
+    const team = deriveSlotTeam(t, m, side, slot, marks)
+    if (team === null) return null
+    const group = groupOfTeam(t, team)
+    return group && groupComplete(t, group, marks) ? team : null
+  }
+
+  if (!slotUnlocked(t, slot, marks)) return null
+  return stored ?? deriveSlotTeam(t, m, side, slot, marks)
 }
 
 /** Both teams visible — the match can be watched and marked (if played). */
@@ -82,8 +236,10 @@ export function knockoutReady(
   revealed: Revealed = NONE,
 ): boolean {
   if (!isPlayed(m)) return false
-  if (revealed.has(m.id)) return m.homeTeam !== undefined && m.awayTeam !== undefined
-  return slotUnlocked(t, m.home, marks) && slotUnlocked(t, m.away, marks)
+  return (
+    resolveSlot(t, m, 'home', marks, revealed) !== null &&
+    resolveSlot(t, m, 'away', marks, revealed) !== null
+  )
 }
 
 /** Whether the "jump ahead" reveal is even possible (teams known to the data). */
