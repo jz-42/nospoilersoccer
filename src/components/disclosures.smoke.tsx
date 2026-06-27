@@ -160,6 +160,10 @@ assert(
   'pre-reveal experiment match includes the entertainment hint copy',
 )
 assert(
+  preRevealExperiment.includes('class="modal-disclosure-trigger"'),
+  'pre-reveal experiment match uses a dedicated disclosure trigger control',
+)
+assert(
   preRevealExperiment.includes('Total goals'),
   'pre-reveal experiment match includes the total-goals disclosure label',
 )
@@ -180,16 +184,12 @@ const revealedExperiment = renderMatch(experiment2026, {
   marks: { [experiment2026.id]: 'watched' },
 })
 assert(
-  revealedExperiment.includes('AI Entertainment Summary'),
-  'revealed experiment match includes the entertainment disclosure label',
+  !revealedExperiment.includes('AI Entertainment Summary'),
+  'revealed experiment match hides the entertainment disclosure block',
 )
 assert(
-  revealedExperiment.includes('Total goals'),
-  'revealed experiment match includes the total-goals disclosure label',
-)
-assert(
-  !revealedExperiment.includes('Lively and open for long stretches, with enough momentum shifts to keep it engaging. More entertaining than a routine group-stage watch.'),
-  'revealed entertainment summary copy is hidden by default',
+  !revealedExperiment.includes('Total goals'),
+  'revealed experiment match hides the total-goals disclosure block',
 )
 assert(
   !renderMatch(played2026, {
