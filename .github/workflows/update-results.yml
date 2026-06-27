@@ -53,7 +53,15 @@ jobs:
             npx tsx scripts/update-results.ts || echo "::warning::results step errored this cycle"
             npx tsx scripts/fetch-odds.ts     || echo "::warning::odds step errored this cycle"
             npx tsx scripts/curate-videos.ts  || echo "::warning::curator step errored this cycle"
-            npx tsx scripts/curate-entertainment.ts || echo "::warning::entertainment step errored this cycle"
+            npx tsx scripts/curate-entertainment.ts || {
+              echo "::warning::entertainment step errored this cycle"
+              {
+                echo "### Entertainment audit — cycle $cycle"
+                echo "- reason: entertainment_step_error"
+                echo "- action: skipped entertainment curation for this cycle"
+                echo
+              } >> "$GITHUB_STEP_SUMMARY"
+            }
             if [ -f "$ENTERTAINMENT_AUDIT_FILE" ]; then
               {
                 echo "### Entertainment audit — cycle $cycle"
@@ -62,7 +70,7 @@ jobs:
               } >> "$GITHUB_STEP_SUMMARY"
             fi
             check_ok=false
-            if npm run check; then
+            if npm run check:update; then
               check_ok=true
             elif ! cmp -s "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts; then
               echo "::warning::validation failed after entertainment curation; restoring entertainment data and retrying"
@@ -73,7 +81,7 @@ jobs:
                 echo "- action: restored previous entertainment data; other update types remain eligible to commit"
                 echo
               } >> "$GITHUB_STEP_SUMMARY"
-              if npm run check; then
+              if npm run check:update; then
                 check_ok=true
               else
                 echo "::error::validation still failed after restoring entertainment data"
