@@ -175,6 +175,12 @@ export function loadEntertainment(): Record<string, EntertainmentEntry> {
   return { ...wc2026Entertainment }
 }
 
+export function initializeEntertainmentMap(
+  existing: Record<string, EntertainmentEntry>,
+): Record<string, EntertainmentEntry> {
+  return { ...existing }
+}
+
 function serializeEntertainment(map: Record<string, EntertainmentEntry>): string {
   const ids = Object.keys(map).sort()
   const header = `import type { EntertainmentRating } from './types'
@@ -420,10 +426,9 @@ export function shouldCurate(
 }
 
 async function run() {
-  const entertainment = Object.fromEntries(
-    Object.entries(loadEntertainment()).filter(([, entry]) => isCurrentEntertainmentEntry(entry)),
-  )
-  const allCandidates = allMatches.filter((m) => shouldCurate(m, entertainment))
+  const existingEntertainment = loadEntertainment()
+  const entertainment = initializeEntertainmentMap(existingEntertainment)
+  const allCandidates = allMatches.filter((m) => shouldCurate(m, existingEntertainment))
   const candidates = allCandidates.slice(0, MAX_MATCHES_PER_RUN)
   const audit: AuditEntry[] = []
 
