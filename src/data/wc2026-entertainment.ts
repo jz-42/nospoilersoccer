@@ -234,6 +234,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "H5": {
+    entertainmentSummary: "It seems to have been a cagey, hard-fought watch, with tension and atmosphere doing more of the entertainment work than free-flowing action. More absorbing for its uncertainty than for a lively rhythm.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "H6": {
     entertainmentSummary: "It sounds like a tense, high-pressure match that was more cagey than flowing, with long stretches described as flat rather than lively. The atmosphere and uncertainty seem to have carried more of the intrigue than the football quality itself.",
     entertainmentRating: 2,
