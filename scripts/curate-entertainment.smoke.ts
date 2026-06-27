@@ -1,4 +1,5 @@
 import {
+  initializeEntertainmentMap,
   ENTERTAINMENT_PROMPT_VERSION,
   isCurrentEntertainmentEntry,
   isSafeSummary,
@@ -72,6 +73,29 @@ assert(
     now: new Date('2026-06-26T23:00:00Z').getTime(),
   }),
   'curator can backfill older played matches without a max-age cutoff',
+)
+
+assert(
+  shouldCurate(
+    playedMatch,
+    {
+      [playedMatch.id]: {
+        entertainmentSummary: 'A lively watch.',
+        entertainmentRating: 3,
+      },
+    },
+    {
+      aiEnabled: true,
+      now: new Date('2026-06-26T23:00:00Z').getTime(),
+    },
+  ),
+  'curator retries stale entertainment entries from older prompt versions',
+)
+
+const initialized = initializeEntertainmentMap(existing)
+assert(
+  Object.keys(initialized).length === Object.keys(existing).length,
+  'curator preserves existing generated entries while replacing them in later batches',
 )
 
 assert(
