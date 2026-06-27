@@ -10,6 +10,7 @@
     "test:components": "tsx --tsconfig tsconfig.app.json src/components/disclosures.smoke.tsx",
     "test:analytics": "tsx --tsconfig tsconfig.app.json src/analytics.smoke.ts",
     "check": "npm run validate:data && npm run test:logic && npm run test:components && npm run test:analytics && tsc -b",
+    "check:update": "npm run validate:data && tsx src/data/videos.smoke.ts && tsc -b",
     "build": "npm run check && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
