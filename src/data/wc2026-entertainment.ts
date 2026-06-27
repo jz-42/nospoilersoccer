@@ -234,6 +234,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "H6": {
+    entertainmentSummary: "It sounds like a tense, high-pressure match that was more cagey than flowing, with long stretches described as flat rather than lively. The atmosphere and uncertainty seem to have carried more of the intrigue than the football quality itself.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "I1": {
     entertainmentSummary: "This seems to have been a pretty engaging watch: a somewhat disjointed opening gave way to a more open, lively contest with clear attacking quality on show. The reaction suggests it felt entertaining rather than breathless throughout, with the second half carrying more spark than the first.",
     entertainmentRating: 4,
@@ -242,6 +247,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
   "I2": {
     entertainmentSummary: "It seemed like a lively, fairly open match with plenty of attacking action and a strong stadium atmosphere. The mood sounds more eventful than tense, with fan energy and one debated moment adding to the buzz.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "I3": {
+    entertainmentSummary: "It seems to have felt fairly routine and only intermittently lively, with less tension than many tournament matches. The atmosphere may have added a bit, but the overall texture sounds steadier than gripping.",
+    entertainmentRating: 2,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
   "I4": {
