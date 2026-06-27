@@ -68,7 +68,7 @@ assert(
 const playedMatch = tournaments.wc2026.groupMatches.find((match) => match.score)
 if (!playedMatch) throw new Error('Fixture error: expected a played match')
 assert(
-  shouldCurate(playedMatch, existing, {
+  shouldCurate(playedMatch, {}, {
     aiEnabled: true,
     now: new Date('2026-06-26T23:00:00Z').getTime(),
   }),
