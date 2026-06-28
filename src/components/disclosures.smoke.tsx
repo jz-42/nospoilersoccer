@@ -295,6 +295,18 @@ assert(
   upcoming2026Markup.includes(upcomingTimeZoneQuery),
   'upcoming group match calendar link includes the viewer local timezone',
 )
+assert(
+  upcoming2026.odds !== undefined,
+  'test fixture includes odds data',
+)
+assert(
+  upcoming2026Markup.includes('Pre-match odds'),
+  'past-kickoff unrevealed match still shows snapshotted pre-match odds',
+)
+assert(
+  !upcoming2026Markup.includes('Polymarket'),
+  'past-kickoff unrevealed match hides the Polymarket source link',
+)
 
 const upcomingKnockoutRound = wc2026.knockoutRounds.find((round) =>
   round.matches.some((match) => Boolean(match.kickoff)),
