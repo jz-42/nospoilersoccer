@@ -12,6 +12,7 @@
  */
 import { readFileSync, writeFileSync } from 'fs'
 import { tournaments } from '../src/data'
+import { resolveSlot } from '../src/logic/spoilers'
 import type { GroupMatch, KnockoutMatch, TeamId, Tournament } from '../src/data/types'
 
 const FILE = 'src/data/wc2026.ts'
@@ -81,33 +82,44 @@ function playedGroupFixture(m: GroupMatch): HistoricalOddsFixture | null {
   }
 }
 
-function playedKnockoutFixture(m: KnockoutMatch): HistoricalOddsFixture | null {
-  if (
-    m.score === undefined ||
-    m.odds !== undefined ||
-    !m.kickoff ||
-    m.homeTeam === undefined ||
-    m.awayTeam === undefined
-  ) {
+function actualMarks(tt: Tournament): Record<string, 'watched'> {
+  const marks: Record<string, 'watched'> = {}
+  for (const m of tt.groupMatches) if (m.score !== undefined) marks[m.id] = 'watched'
+  for (const m of tt.knockoutRounds.flatMap((round) => round.matches)) {
+    if (m.score !== undefined) marks[m.id] = 'watched'
+  }
+  return marks
+}
+
+function playedKnockoutFixture(
+  tt: Tournament,
+  m: KnockoutMatch,
+  marks: Record<string, 'watched'>,
+): HistoricalOddsFixture | null {
+  if (m.score === undefined || m.odds !== undefined || !m.kickoff) {
     return null
   }
+  const home = m.homeTeam ?? resolveSlot(tt, m, 'home', marks)
+  const away = m.awayTeam ?? resolveSlot(tt, m, 'away', marks)
+  if (!home || !away) return null
   return {
     id: m.id,
     date: m.date,
     kickoff: m.kickoff,
-    home: m.homeTeam,
-    away: m.awayTeam,
+    home,
+    away,
     kind: 'knockout',
   }
 }
 
 export function eligibleHistoricalOddsFixtures(tt: Tournament): HistoricalOddsFixture[] {
+  const marks = actualMarks(tt)
   const groups = tt.groupMatches
     .map(playedGroupFixture)
     .filter((m): m is HistoricalOddsFixture => m !== null)
   const knockouts = tt.knockoutRounds
     .flatMap((round) => round.matches)
-    .map(playedKnockoutFixture)
+    .map((m) => playedKnockoutFixture(tt, m, marks))
     .filter((m): m is HistoricalOddsFixture => m !== null)
   return [...groups, ...knockouts]
 }

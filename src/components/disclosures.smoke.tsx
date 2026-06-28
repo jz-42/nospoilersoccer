@@ -256,11 +256,13 @@ assert(
 
 const upcoming2026: GroupMatch = {
   ...group2026Source,
+  kickoff: '2099-06-01T18:00:00Z',
   score: undefined,
   goals: undefined,
   videos: undefined,
   entertainmentSummary: undefined,
   entertainmentRating: undefined,
+  odds: undefined,
 }
 const upcoming2026Markup = renderMatch(upcoming2026)
 const upcomingTitle = `${wc2026.teams[upcoming2026.home].name} vs ${wc2026.teams[upcoming2026.away].name}`
@@ -296,15 +298,26 @@ assert(
   'upcoming group match calendar link includes the viewer local timezone',
 )
 assert(
-  upcoming2026.odds !== undefined,
-  'test fixture includes odds data',
+  !upcoming2026Markup.includes('Pre-match odds'),
+  'future unrevealed match without odds does not show the odds bar',
+)
+
+const pastKickoffSnapshot2026: GroupMatch = {
+  ...upcoming2026,
+  kickoff: '2000-06-01T18:00:00Z',
+  odds: { home: 0.44, draw: 0.28, away: 0.28, url: 'https://polymarket.com/event/test-snapshot' },
+}
+const pastKickoffSnapshotMarkup = renderMatch(pastKickoffSnapshot2026)
+assert(
+  pastKickoffSnapshot2026.odds !== undefined,
+  'test fixture includes snapshot odds data',
 )
 assert(
-  upcoming2026Markup.includes('Pre-match odds'),
+  pastKickoffSnapshotMarkup.includes('Pre-match odds'),
   'past-kickoff unrevealed match still shows snapshotted pre-match odds',
 )
 assert(
-  !upcoming2026Markup.includes('Polymarket'),
+  !pastKickoffSnapshotMarkup.includes('Polymarket'),
   'past-kickoff unrevealed match hides the Polymarket source link',
 )
 
@@ -322,6 +335,7 @@ if (!upcomingKnockoutSource) {
 }
 const upcomingKnockout: KnockoutMatch = {
   ...upcomingKnockoutSource,
+  kickoff: '2099-07-01T20:00:00Z',
   score: undefined,
   goals: undefined,
   penalties: undefined,
