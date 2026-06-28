@@ -324,6 +324,16 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "K5": {
+    entertainmentSummary: "Seemingly quite lively for a match without many clear release moments, with an open feel and enough tension to keep it from feeling routine. It sounds engaging rather than chaotic, with atmosphere and uncertainty adding to the viewing texture.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "K6": {
+    entertainmentSummary: "Seemingly lively and fairly open, with enough edge to feel more engaging than a routine group-stage watch. It also sounds like there was a steady layer of tension, even if it may not have been relentlessly end-to-end throughout.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "L1": {
     entertainmentSummary: "It seems to have been a lively, open match with a lot going on and a strong big-event atmosphere. Reactions suggest it felt frantic and entertaining rather than cagey, especially after the break.",
     entertainmentRating: 5,
