@@ -78,8 +78,8 @@ function loadYouTubeApi(): Promise<YTNamespace> {
 const END_GUARD_SECONDS = 9
 
 const KIND_LABEL: Record<HighlightVideo['kind'], string> = {
-  normal: 'Quick highlights',
-  extended: 'Extended highlights',
+  normal: 'Quick Highlights',
+  extended: 'Extended Highlights',
 }
 
 export function HighlightPlayer({

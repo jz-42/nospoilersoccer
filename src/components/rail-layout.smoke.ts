@@ -25,8 +25,14 @@ assert(centered.fade === 1, `expected centered fade 1, got ${centered.fade}`)
 assert(centered.scale === 1, `expected centered scale 1, got ${centered.scale}`)
 
 const offset = getCarouselVisualState(260, 200, 100)
-assert(offset.fade === 0.8, `expected offset fade 0.8, got ${offset.fade}`)
-assert(offset.scale === 0.92, `expected offset scale 0.92, got ${offset.scale}`)
+assert(
+  offset.fade.toFixed(3) === '0.833',
+  `expected offset fade 0.833, got ${offset.fade.toFixed(3)}`,
+)
+assert(
+  offset.scale.toFixed(3) === '0.953',
+  `expected offset scale 0.953, got ${offset.scale.toFixed(3)}`,
+)
 
 assert(
   findNearestItemIndex([100, 260, 420], 395) === 2,

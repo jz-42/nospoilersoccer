@@ -292,6 +292,7 @@ export function MatchModal({
   const goalCountDisclosure = totalGoals !== null && !mark ? (
     <DisclosureRow label="Total Goals">{`${totalGoals} total`}</DisclosureRow>
   ) : null
+  const hasHighlights = Boolean(m.videos?.length)
 
   return (
     <div
@@ -319,7 +320,12 @@ export function MatchModal({
         }}
       >
         <span className="modal-drag-handle" aria-hidden="true" />
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>
+        <button
+          type="button"
+          className={`modal-close ${hasHighlights ? '' : 'modal-close-compact'}`.trim()}
+          aria-label="Close"
+          onClick={onClose}
+        >
           <svg
             className="modal-close-icon"
             viewBox="0 0 20 20"

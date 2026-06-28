@@ -21,10 +21,10 @@ export function getCarouselVisualState(
   itemWidth: number,
 ): CarouselVisualState {
   const distance = itemWidth > 0 ? Math.abs(itemCenter - viewportCenter) / itemWidth : Infinity
-  const fade = Math.max(0, 1 - distance / 3)
+  const fade = Math.max(0.16, 1 - distance / 3.6)
   return {
     fade,
-    scale: 0.6 + fade * 0.4,
+    scale: 0.72 + fade * 0.28,
   }
 }
 

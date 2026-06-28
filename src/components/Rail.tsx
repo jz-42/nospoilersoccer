@@ -215,7 +215,6 @@ function DaySwitcher({
       moved: false,
       velocity: 0,
     }
-    w.setPointerCapture(e.pointerId)
   }
 
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -228,6 +227,7 @@ function DaySwitcher({
       drag.moved = true
       setIsDragging(true)
       setIsFreeScrolling(true)
+      if (!w.hasPointerCapture(e.pointerId)) w.setPointerCapture(e.pointerId)
     }
     if (!drag.moved) return
     const now = performance.now()
