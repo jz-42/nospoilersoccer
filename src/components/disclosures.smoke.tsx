@@ -117,7 +117,7 @@ const group2026Source = wc2026.groupMatches.find(
 if (!group2026Source) throw new Error('Fixture error: expected a 2026 group match with kickoff data')
 const played2026: GroupMatch = {
   ...group2026Source,
-  score: { home: 1, away: 0 },
+  score: { home: 3, away: 2 },
   goals: [],
   videos: [{ youtubeId: 'fixture-video', kind: 'normal', durationSeconds: 300 }],
 }
@@ -126,6 +126,7 @@ const experimentWithEntertainment: GroupMatch = {
   entertainmentSummary: 'Lively and open-feeling, with enough rhythm to sound more engaging than routine.',
   entertainmentRating: 4,
 }
+const hiddenGoalCountCopy = `${played2026.score!.home + played2026.score!.away} total goals`
 
 const renderMatch = (match: GroupMatch, progress: Progress = emptyProgress) =>
   renderToStaticMarkup(
@@ -183,7 +184,7 @@ assert(
   'pre-reveal entertainment rating content is hidden by default',
 )
 assert(
-  !preRevealExperiment.includes('5 total goals'),
+  !preRevealExperiment.includes(hiddenGoalCountCopy),
   'pre-reveal total-goals disclosure content is hidden by default',
 )
 const revealedExperiment = renderMatch(experimentWithEntertainment, {
