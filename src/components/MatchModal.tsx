@@ -44,6 +44,10 @@ function knockoutPhase(t: Tournament, matchId: string): Phase {
   return 'final'
 }
 
+function hasKickedOff(m: { kickoff?: string }, now = new Date()): boolean {
+  return m.kickoff !== undefined && now >= new Date(m.kickoff)
+}
+
 function TeamSide({
   t,
   teamId,
@@ -219,6 +223,7 @@ export function MatchModal({
   const m = target.match
   const mark = progress.marks[m.id]
   const played = isPlayed(m)
+  const kickedOff = hasKickedOff(m)
   const km = target.kind === 'knockout' ? target.match : null
 
   const homeTeam = km
@@ -388,7 +393,7 @@ export function MatchModal({
             odds={m.odds}
             homeCode={t.teams[homeTeam].id}
             awayCode={t.teams[awayTeam].id}
-            showLink={!played}
+            showLink={!kickedOff}
           />
         )}
         {!mark && !m.odds && target.kind === 'group' && (

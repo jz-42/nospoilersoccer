@@ -38,6 +38,10 @@ jobs:
           CURATOR_ERROR_FLAG: /tmp/curator-error
           ENTERTAINMENT_AUDIT_FILE: /tmp/entertainment-audit.md
           ENTERTAINMENT_BACKUP_FILE: /tmp/wc2026-entertainment.ts.before
+          RESULTS_BACKUP_FILE: /tmp/wc2026-before-results.ts
+          ODDS_BACKUP_FILE: /tmp/wc2026-before-odds.ts
+          BACKFILL_BACKUP_FILE: /tmp/wc2026-before-odds-backfill.ts
+          VIDEOS_BACKUP_DIR: /tmp/wc2026-videos-backup
           # Optional: OPENAI_MODEL (default gpt-5.4), OPENAI_REASONING_EFFORT (default medium)
         run: |
           git config user.name "results-bot"
@@ -51,9 +55,57 @@ jobs:
             rm -f "$ENTERTAINMENT_AUDIT_FILE"
 
             # Core updater path: keep this independent from optional entertainment AI.
-            npx tsx scripts/update-results.ts || echo "::warning::results step errored this cycle"
-            npx tsx scripts/fetch-odds.ts     || echo "::warning::odds step errored this cycle"
-            npx tsx scripts/curate-videos.ts  || echo "::warning::curator step errored this cycle"
+            cp src/data/wc2026.ts "$RESULTS_BACKUP_FILE"
+            if npx tsx scripts/update-results.ts; then
+              if ! (npm run validate:data && npx tsc -b); then
+                echo "::warning::results validation failed; discarding results changes for this cycle"
+                cp "$RESULTS_BACKUP_FILE" src/data/wc2026.ts
+              fi
+            else
+              echo "::warning::results step errored; discarding results changes for this cycle"
+              cp "$RESULTS_BACKUP_FILE" src/data/wc2026.ts
+            fi
+
+            cp src/data/wc2026.ts "$ODDS_BACKUP_FILE"
+            if npx tsx scripts/fetch-odds.ts; then
+              if ! (npm run validate:data && npx tsc -b); then
+                echo "::warning::odds validation failed; discarding odds changes for this cycle"
+                cp "$ODDS_BACKUP_FILE" src/data/wc2026.ts
+              fi
+            else
+              echo "::warning::odds step errored; discarding odds changes for this cycle"
+              cp "$ODDS_BACKUP_FILE" src/data/wc2026.ts
+            fi
+
+            cp src/data/wc2026.ts "$BACKFILL_BACKUP_FILE"
+            if npx tsx scripts/backfill-odds-history.ts; then
+              if ! (npm run validate:data && npx tsc -b); then
+                echo "::warning::odds backfill validation failed; discarding historical odds changes for this cycle"
+                cp "$BACKFILL_BACKUP_FILE" src/data/wc2026.ts
+              fi
+            else
+              echo "::warning::odds backfill step errored; discarding historical odds changes for this cycle"
+              cp "$BACKFILL_BACKUP_FILE" src/data/wc2026.ts
+            fi
+
+            rm -rf "$VIDEOS_BACKUP_DIR"
+            mkdir -p "$VIDEOS_BACKUP_DIR"
+            cp src/data/wc2026-videos.ts "$VIDEOS_BACKUP_DIR/wc2026-videos.ts"
+            cp scripts/curate-skip.json "$VIDEOS_BACKUP_DIR/curate-skip.json"
+            cp scripts/curate-ai-rejections.json "$VIDEOS_BACKUP_DIR/curate-ai-rejections.json"
+            if npx tsx scripts/curate-videos.ts; then
+              if ! (npm run validate:data && npx tsx src/data/videos.smoke.ts && npx tsc -b); then
+                echo "::warning::video validation failed; discarding video changes for this cycle"
+                cp "$VIDEOS_BACKUP_DIR/wc2026-videos.ts" src/data/wc2026-videos.ts
+                cp "$VIDEOS_BACKUP_DIR/curate-skip.json" scripts/curate-skip.json
+                cp "$VIDEOS_BACKUP_DIR/curate-ai-rejections.json" scripts/curate-ai-rejections.json
+              fi
+            else
+              echo "::warning::video curator step errored; discarding video changes for this cycle"
+              cp "$VIDEOS_BACKUP_DIR/wc2026-videos.ts" src/data/wc2026-videos.ts
+              cp "$VIDEOS_BACKUP_DIR/curate-skip.json" scripts/curate-skip.json
+              cp "$VIDEOS_BACKUP_DIR/curate-ai-rejections.json" scripts/curate-ai-rejections.json
+            fi
 
             core_ok=false
             if npm run check:update; then
