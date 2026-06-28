@@ -22,6 +22,26 @@ function assert(cond: boolean, msg: string) {
   console.log(`ok - ${msg}`)
 }
 
+function marksForGroups(t: typeof wc2026, groups: readonly string[]): Marks {
+  const marks: Marks = {}
+  const picked = new Set(groups)
+  for (const m of t.groupMatches) {
+    if (picked.has(m.group)) marks[m.id] = 'watched'
+  }
+  return marks
+}
+
+function bestThirdEntries(t: typeof wc2026) {
+  return t.knockoutRounds.flatMap((round) =>
+    round.matches.flatMap((match) =>
+      (['home', 'away'] as const).flatMap((side) => {
+        const slot = side === 'home' ? match.home : match.away
+        return slot.type === 'best-third' ? [{ match, side }] : []
+      }),
+    ),
+  )
+}
+
 const t = wc2022
 const m49 = t.knockoutRounds[0].matches[0] // NED vs USA (1A v 2B)
 const m58 = t.knockoutRounds[1].matches[1] // winner m49 vs winner m50
@@ -79,44 +99,53 @@ assert(!knockoutReady(t, future, fresh, new Set([future.id])), 'unplayed match i
 assert(!canForceReveal(future), 'unplayed match with unknown teams cannot be force-revealed')
 
 const live2026 = wc2026
-const r32Direct = live2026.knockoutRounds[0].matches[0] // 2A v 2B
-const r32BestThird = live2026.knockoutRounds[0].matches[6] // 1A v best 3rd
-const r32BestThirdFromB = live2026.knockoutRounds[0].matches[8] // 1D v best 3rd
-const liveMarks: Marks = {}
+const bestThird2026 = bestThirdEntries(live2026)
+assert(bestThird2026.length > 0, '2026 has best-third knockout slots to protect')
 
-for (const m of live2026.groupMatches.filter((x) => ['A', 'B'].includes(x.group))) {
-  liveMarks[m.id] = 'watched'
+let partial2026:
+  | { marks: Marks; completeGroups: Set<string>; projected: Map<string, string> }
+  | null = null
+for (let n = 1; n < live2026.groups.length; n++) {
+  const complete = live2026.groups.slice(0, n).map((g) => g.id)
+  const marks = marksForGroups(live2026, complete)
+  const projected = bestThirdSlotGroups(live2026, marks)
+  if ([...projected.values()].some((g) => complete.includes(g))) {
+    partial2026 = { marks, completeGroups: new Set(complete), projected }
+    break
+  }
 }
 
-assert(groupComplete(live2026, 'A', liveMarks), '2026 group A complete after 6 marks')
-assert(groupComplete(live2026, 'B', liveMarks), '2026 group B complete after 6 marks')
-assert(resolveSlot(live2026, r32Direct, 'home', liveMarks) === 'RSA', '2026 R32 reveals 2A once group A is complete')
-assert(resolveSlot(live2026, r32Direct, 'away', liveMarks) === 'CAN', '2026 R32 reveals 2B once group B is complete')
-assert(resolveSlot(live2026, r32BestThird, 'home', liveMarks) === 'MEX', '2026 R32 reveals 1A once group A is complete')
-assert(resolveSlot(live2026, r32BestThirdFromB, 'away', liveMarks) === 'BIH', '2026 best-third slot reveals once the projected team group is complete')
-assert(resolveSlot(live2026, r32BestThird, 'away', liveMarks) === null, '2026 best-third slot stays hidden while its projected team group is incomplete')
+assert(partial2026 !== null, '2026 partial progress can project a best-third qualifier before the full group stage is revealed')
 
-const canon2026 = structuredClone(wc2026)
-const storedBestThirdSlot = canon2026.knockoutRounds[0].matches[1] // m74 away
-storedBestThirdSlot.awayTeam = 'BIH'
-
-const groupBMarks: Marks = {}
-for (const m of canon2026.groupMatches.filter((x) => x.group === 'B')) {
-  groupBMarks[m.id] = 'watched'
+const partialMarks2026 = partial2026!.marks
+assert(
+  live2026.knockoutRounds[0].matches.some((match) => {
+    const home = resolveSlot(live2026, match, 'home', partialMarks2026)
+    const away = resolveSlot(live2026, match, 'away', partialMarks2026)
+    return (home === null) !== (away === null)
+  }),
+  '2026 partial progress can show one confirmed knockout team plus one placeholder',
+)
+assert(
+  [...partial2026!.projected.values()].some((g) => partial2026!.completeGroups.has(g)),
+  '2026 partial progress includes at least one best-third projection from a fully revealed group',
+)
+for (const { match, side } of bestThird2026) {
+  assert(
+    resolveSlot(live2026, match, side, partialMarks2026) === null,
+    `2026 best-third slot ${match.id}-${side} stays hidden before every group is revealed`,
+  )
 }
 
-const projectedSlots = bestThirdSlotGroups(canon2026, groupBMarks)
-assert(projectedSlots.get('m81-away') === 'B', '2026 projection still routes group B to its live slot before the whole best-third picture is known')
-assert(projectedSlots.get('m74-away') !== 'B', '2026 stored slot does not override the live projection early')
-assert(resolveSlot(canon2026, storedBestThirdSlot, 'away', groupBMarks) === null, '2026 stored best-third team stays hidden when the live projection puts it elsewhere')
-
-const fullGroupMarks: Marks = {}
-for (const m of canon2026.groupMatches) {
-  fullGroupMarks[m.id] = 'watched'
+const fullGroupMarks = marksForGroups(
+  live2026,
+  live2026.groups.map((g) => g.id),
+)
+for (const { match, side } of bestThird2026) {
+  assert(
+    resolveSlot(live2026, match, side, fullGroupMarks) !== null,
+    `2026 best-third slot ${match.id}-${side} reveals after the full group stage is revealed`,
+  )
 }
-
-const canonicalSlots = bestThirdSlotGroups(canon2026, fullGroupMarks)
-assert(canonicalSlots.get('m74-away') === 'B', '2026 full group stage follows the stored canonical best-third slot')
-assert(resolveSlot(canon2026, storedBestThirdSlot, 'away', fullGroupMarks) === 'BIH', '2026 full group stage reveals the stored canonical best-third team')
 
 console.log('ALL PASS')

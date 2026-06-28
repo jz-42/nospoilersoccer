@@ -68,13 +68,6 @@ function findKnockout(t: Tournament, id: string): KnockoutMatch | null {
   return null
 }
 
-function groupOfTeam(t: Tournament, team: TeamId): GroupId | null {
-  for (const g of t.groups) {
-    if (g.teams.includes(team)) return g.id
-  }
-  return null
-}
-
 function liveBestThirds(
   t: Tournament,
   marks: Marks,
@@ -203,7 +196,8 @@ function deriveSlotTeam(
  * A slot shows its team when its feeders are settled, or when the user
  * force-revealed this match — and the data actually knows the team.
  * For unplayed matches whose feeders are decided, derives the team
- * from group standings or feeder-match results.
+ * from group standings or feeder-match results. Best-third slots are stricter:
+ * their bracket placement stays hidden until the entire group stage is marked.
  */
 export function resolveSlot(
   t: Tournament,
@@ -217,11 +211,8 @@ export function resolveSlot(
   if (revealed.has(m.id)) return stored ?? deriveSlotTeam(t, m, side, slot, marks)
 
   if (slot.type === 'best-third') {
-    if (slotUnlocked(t, slot, marks)) return stored ?? deriveSlotTeam(t, m, side, slot, marks)
-    const team = deriveSlotTeam(t, m, side, slot, marks)
-    if (team === null) return null
-    const group = groupOfTeam(t, team)
-    return group && groupComplete(t, group, marks) ? team : null
+    if (!slotUnlocked(t, slot, marks)) return null
+    return stored ?? deriveSlotTeam(t, m, side, slot, marks)
   }
 
   if (!slotUnlocked(t, slot, marks)) return null
