@@ -126,7 +126,6 @@ export function buildWindowReport(matches, now = new Date()) {
 }
 
 export function chooseAction({ insideWindow, activeRunCount }) {
-  if (!insideWindow) return 'skip_outside_window'
   if (activeRunCount > 0) return 'skip_active_run'
   return 'dispatch'
 }
@@ -213,23 +212,21 @@ export async function runScheduler({
   const report = buildWindowReport(matches, now)
 
   let activeRunCount = 0
-  let action = 'skip_outside_window'
+  let action = 'pending'
   let github = null
   let caughtError = null
 
-  if (report.insideWindow) {
-    try {
-      activeRunCount = await githubClient.getActiveRunCount()
-      action = chooseAction({ insideWindow: report.insideWindow, activeRunCount })
+  try {
+    activeRunCount = await githubClient.getActiveRunCount()
+    action = chooseAction({ insideWindow: report.insideWindow, activeRunCount })
 
-      if (action === 'dispatch') {
-        await githubClient.dispatchWorkflow()
-      }
-    } catch (error) {
-      action = 'error'
-      github = safeGitHubError(error)
-      caughtError = error
+    if (action === 'dispatch') {
+      await githubClient.dispatchWorkflow()
     }
+  } catch (error) {
+    action = 'error'
+    github = safeGitHubError(error)
+    caughtError = error
   }
 
   const entry = {

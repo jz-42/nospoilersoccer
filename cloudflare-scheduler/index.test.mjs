@@ -109,8 +109,8 @@ test('buildWindowReport covers date-only knockout matches for the full match dat
   ])
 })
 
-test('chooseAction skips dispatch when outside window or action already running', () => {
-  assert.equal(chooseAction({ insideWindow: false, activeRunCount: 0 }), 'skip_outside_window')
+test('chooseAction dispatches whenever no workflow run is active', () => {
+  assert.equal(chooseAction({ insideWindow: false, activeRunCount: 0 }), 'dispatch')
   assert.equal(chooseAction({ insideWindow: true, activeRunCount: 2 }), 'skip_active_run')
   assert.equal(chooseAction({ insideWindow: true, activeRunCount: 0 }), 'dispatch')
 })
@@ -172,6 +172,26 @@ test('runScheduler logs a dispatch decision with active run count and action', a
   assert.equal(messages[0].action, 'dispatch')
   assert.equal(messages[0].insideWindow, true)
   assert.equal(messages[0].activeWindowCount, 1)
+})
+
+test('runScheduler dispatches outside match windows so the updater runs 24/7', async () => {
+  const messages = []
+  const result = await runScheduler({
+    now: new Date('2026-06-25T10:00:00Z'),
+    fetchSchedule: async () => SAMPLE_TS,
+    githubClient: {
+      getActiveRunCount: async () => 0,
+      dispatchWorkflow: async () => {},
+    },
+    logger: (entry) => messages.push(entry),
+  })
+
+  assert.equal(result.action, 'dispatch')
+  assert.equal(result.insideWindow, false)
+  assert.equal(result.activeRunCount, 0)
+  assert.equal(messages.length, 1)
+  assert.equal(messages[0].action, 'dispatch')
+  assert.equal(messages[0].insideWindow, false)
 })
 
 test('runScheduler can fail cron execution after logging GitHub errors', async () => {
