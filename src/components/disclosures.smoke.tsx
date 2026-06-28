@@ -183,6 +183,14 @@ assert(
   !preRevealExperiment.includes(hiddenGoalCountCopy),
   'pre-reveal total-goals disclosure content is hidden by default',
 )
+assert(
+  preRevealExperiment.indexOf('Reveal Result') < preRevealExperiment.indexOf('AI Watchability Rating'),
+  'pre-reveal experiment match places reveal result before the entertainment disclosure',
+)
+assert(
+  preRevealExperiment.indexOf('Reveal Result') < preRevealExperiment.indexOf('Total Goals'),
+  'pre-reveal experiment match places reveal result before the total-goals disclosure',
+)
 const revealedExperiment = renderMatch(experimentWithEntertainment, {
   ...emptyProgress,
   marks: { [experimentWithEntertainment.id]: 'watched' },

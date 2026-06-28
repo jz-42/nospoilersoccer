@@ -11,8 +11,8 @@
  * Finished tournaments get "Continue": the next unwatched games in
  * tournament order.
  */
-import { useLayoutEffect, useRef, useState } from 'react'
-import type { CSSProperties } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type { CSSProperties, PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react'
 import type { Tournament } from '../data/types'
 import { isPlayed, knockoutReady } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
@@ -22,6 +22,11 @@ import type { RailEntry } from './PreviewCard'
 import { formatDate, formatWeekday, formatWeekdayLong } from './format'
 import { matchLocalDate } from './schedule'
 import { addLocalDays, localDateKey, relativeDayLabel } from '../time/local'
+import {
+  findNearestItemIndex,
+  getCarouselVisualState,
+  getDayCardMetrics,
+} from './railLayout'
 
 function allEntries(t: Tournament): RailEntry[] {
   const out: RailEntry[] = []
@@ -83,8 +88,11 @@ function useBalancedColumns(count: number) {
     return () => ro.disconnect()
   }, [count])
 
+  const { flagSize, flagGap } = getDayCardMetrics(layout.width)
   const style: CSSProperties = {
     gridTemplateColumns: `repeat(${layout.cols}, ${layout.width}px)`,
+    ['--day-flag-size' as string]: `${flagSize}px`,
+    ['--day-flag-gap' as string]: `${flagGap}px`,
   }
   return [ref, style] as const
 }
@@ -107,25 +115,213 @@ function DaySwitcher({
   const todayIndex = dates.indexOf(today)
 
   const [active, setActive] = useState(todayIndex)
-
   const idx = Math.min(Math.max(active, 0), dates.length - 1)
+  const windowRef = useRef<HTMLDivElement>(null)
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const rafRef = useRef<number | null>(null)
+  const momentumRef = useRef<number | null>(null)
+  const wheelSnapRef = useRef<number | null>(null)
+  const suppressScrollSync = useRef(false)
+  const suppressClickUntilRef = useRef(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isFreeScrolling, setIsFreeScrolling] = useState(false)
 
-  const swipeStart = useRef<{ x: number; y: number } | null>(null)
-  const onCarouselTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches[0]
-    swipeStart.current = { x: t.clientX, y: t.clientY }
+  const setItemRef = (i: number) => (el: HTMLButtonElement | null) => {
+    itemRefs.current[i] = el
   }
-  const onCarouselTouchEnd = (e: React.TouchEvent) => {
-    const start = swipeStart.current
-    swipeStart.current = null
-    if (!start) return
-    const end = e.changedTouches[0]
-    const dx = end.clientX - start.x
-    const dy = end.clientY - start.y
-    if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return
-    if (dx < 0 && idx < dates.length - 1) setActive(idx + 1)
-    if (dx > 0 && idx > 0) setActive(idx - 1)
+
+  const updateFade = () => {
+    rafRef.current = null
+    const w = windowRef.current
+    if (!w) return
+    const viewportCenter = w.scrollLeft + w.clientWidth / 2
+    const centers: number[] = []
+
+    for (let i = 0; i < itemRefs.current.length; i++) {
+      const el = itemRefs.current[i]
+      if (!el) continue
+      const itemCenter = el.offsetLeft + el.clientWidth / 2
+      centers.push(itemCenter)
+      const { fade, scale } = getCarouselVisualState(itemCenter, viewportCenter, el.clientWidth)
+      el.style.setProperty('--day-fade', fade.toFixed(3))
+      el.style.setProperty('--day-scale', scale.toFixed(3))
+    }
+
+    const bestIndex = findNearestItemIndex(centers, viewportCenter)
+    if (!suppressScrollSync.current) {
+      setActive((prev) => (prev === bestIndex ? prev : bestIndex))
+    }
   }
+
+  const onScroll = () => {
+    if (rafRef.current === null) {
+      rafRef.current = requestAnimationFrame(updateFade)
+    }
+  }
+
+  const clearWheelSnap = () => {
+    if (wheelSnapRef.current !== null) {
+      window.clearTimeout(wheelSnapRef.current)
+      wheelSnapRef.current = null
+    }
+  }
+
+  const cancelMomentum = () => {
+    if (momentumRef.current !== null) {
+      cancelAnimationFrame(momentumRef.current)
+      momentumRef.current = null
+    }
+  }
+
+  const scrollToIndex = (i: number, smooth: boolean) => {
+    const clamped = Math.min(Math.max(i, 0), dates.length - 1)
+    const w = windowRef.current
+    const el = itemRefs.current[clamped]
+    if (!w || !el) return
+    const target = el.offsetLeft - (w.clientWidth - el.clientWidth) / 2
+    w.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' })
+  }
+
+  const snapToNearest = () => {
+    const w = windowRef.current
+    if (!w) return
+    const viewportCenter = w.scrollLeft + w.clientWidth / 2
+    const centers = itemRefs.current.flatMap((el) => (el ? [el.offsetLeft + el.clientWidth / 2] : []))
+    scrollToIndex(findNearestItemIndex(centers, viewportCenter), true)
+  }
+
+  const dragRef = useRef<{
+    pointerId: number
+    startX: number
+    lastX: number
+    lastT: number
+    startScroll: number
+    moved: boolean
+    velocity: number
+  } | null>(null)
+
+  const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return
+    const w = windowRef.current
+    if (!w) return
+    cancelMomentum()
+    clearWheelSnap()
+    dragRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      lastX: e.clientX,
+      lastT: performance.now(),
+      startScroll: w.scrollLeft,
+      moved: false,
+      velocity: 0,
+    }
+    w.setPointerCapture(e.pointerId)
+  }
+
+  const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || e.pointerId !== drag.pointerId) return
+    const w = windowRef.current
+    if (!w) return
+    const dx = e.clientX - drag.startX
+    if (!drag.moved && Math.abs(dx) > 4) {
+      drag.moved = true
+      setIsDragging(true)
+      setIsFreeScrolling(true)
+    }
+    if (!drag.moved) return
+    const now = performance.now()
+    const dt = Math.max(1, now - drag.lastT)
+    drag.velocity = (e.clientX - drag.lastX) / dt
+    drag.lastX = e.clientX
+    drag.lastT = now
+    w.scrollLeft = drag.startScroll - dx
+    e.preventDefault()
+  }
+
+  const startMomentum = (velocity: number) => {
+    const w = windowRef.current
+    if (!w) return
+    let v = Math.max(-2.4, Math.min(2.4, velocity))
+    let last = performance.now()
+
+    const tick = (now: number) => {
+      const dt = now - last
+      last = now
+      w.scrollLeft += v * dt
+      v *= Math.pow(0.92, dt / 16)
+      if (Math.abs(v) < 0.03) {
+        momentumRef.current = null
+        setIsFreeScrolling(false)
+        snapToNearest()
+        return
+      }
+      momentumRef.current = requestAnimationFrame(tick)
+    }
+
+    momentumRef.current = requestAnimationFrame(tick)
+  }
+
+  const finishPointer = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragRef.current
+    if (!drag || e.pointerId !== drag.pointerId) return
+    const w = windowRef.current
+    if (w?.hasPointerCapture(e.pointerId)) w.releasePointerCapture(e.pointerId)
+    dragRef.current = null
+    if (!drag.moved) return
+    setIsDragging(false)
+    suppressClickUntilRef.current = performance.now() + 180
+    if (Math.abs(drag.velocity) > 0.02) {
+      startMomentum(-drag.velocity)
+      return
+    }
+    setIsFreeScrolling(false)
+    snapToNearest()
+  }
+
+  const onWheel = (e: ReactWheelEvent<HTMLDivElement>) => {
+    const w = windowRef.current
+    if (!w) return
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+    if (delta === 0) return
+    cancelMomentum()
+    clearWheelSnap()
+    setIsFreeScrolling(true)
+    w.scrollLeft += delta
+    e.preventDefault()
+    wheelSnapRef.current = window.setTimeout(() => {
+      wheelSnapRef.current = null
+      setIsFreeScrolling(false)
+      snapToNearest()
+    }, 130)
+  }
+
+  useLayoutEffect(() => {
+    suppressScrollSync.current = true
+    scrollToIndex(todayIndex, false)
+    updateFade()
+    suppressScrollSync.current = false
+  }, [todayIndex, dates.length])
+
+  useEffect(() => {
+    const w = windowRef.current
+    if (!w) return
+    const ro = new ResizeObserver(() => {
+      suppressScrollSync.current = true
+      scrollToIndex(idx, false)
+      updateFade()
+      suppressScrollSync.current = false
+    })
+    ro.observe(w)
+    return () => {
+      ro.disconnect()
+      cancelMomentum()
+      clearWheelSnap()
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const date = dates[idx]
   const dayEntries = entries.filter((e) => e.date === date)
   const [gridRef, gridStyle] = useBalancedColumns(dayEntries.length)
@@ -156,7 +352,7 @@ function DaySwitcher({
     <section className="day-rail" aria-label="Matchday">
       <div className="day-toolbar">
         {idx !== todayIndex && (
-          <button type="button" className="day-jump-btn" onClick={() => setActive(todayIndex)}>
+          <button type="button" className="day-jump-btn" onClick={() => scrollToIndex(todayIndex, true)}>
             Today
           </button>
         )}
@@ -165,30 +361,34 @@ function DaySwitcher({
         <button
           type="button"
           className="day-arrow"
-          onClick={() => setActive(idx - 1)}
+          onClick={() => scrollToIndex(idx - 1, true)}
           disabled={idx === 0}
           aria-label="Previous matchday"
         >
           ‹
         </button>
         <div
-          className="day-carousel-window"
-          onTouchStart={onCarouselTouchStart}
-          onTouchEnd={onCarouselTouchEnd}
+          className={`day-carousel-window ${isDragging ? 'is-dragging' : ''} ${isFreeScrolling ? 'is-free-scrolling' : ''}`}
+          ref={windowRef}
+          onScroll={onScroll}
+          onWheel={onWheel}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={finishPointer}
+          onPointerCancel={finishPointer}
         >
-          <div
-            className="day-track"
-            style={{ transform: `translateX(calc(${-(idx + 0.5)} * var(--day-item-w)))` }}
-          >
+          <div className="day-track">
             {dates.map((d, i) => (
               <button
                 key={d}
                 type="button"
+                ref={setItemRef(i)}
                 className={`day-item ${i === idx ? 'is-active' : ''}`}
-                data-dist={Math.min(Math.abs(i - idx), 3)}
                 aria-current={i === idx ? 'date' : undefined}
-                tabIndex={i === idx ? 0 : -1}
-                onClick={() => setActive(i)}
+                onClick={() => {
+                  if (performance.now() < suppressClickUntilRef.current) return
+                  scrollToIndex(i, true)
+                }}
               >
                 <span className="day-item-label">
                   {headlineFor(d)}
@@ -202,7 +402,7 @@ function DaySwitcher({
         <button
           type="button"
           className="day-arrow"
-          onClick={() => setActive(idx + 1)}
+          onClick={() => scrollToIndex(idx + 1, true)}
           disabled={idx === dates.length - 1}
           aria-label="Next matchday"
         >
