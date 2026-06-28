@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { tournaments } from '../data'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
@@ -12,6 +13,7 @@ function assert(condition: boolean, message: string) {
 
 const noop = () => {}
 const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
 
 function googleCalendarDateTime(instant: string | Date, timeZone = localTimeZone) {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -182,6 +184,55 @@ assert(
 assert(
   !preRevealExperiment.includes(hiddenGoalCountCopy),
   'pre-reveal total-goals disclosure content is hidden by default',
+)
+assert(
+  /\.modal-close\s*\{[\s\S]*?width:\s*52px;[\s\S]*?height:\s*52px;/.test(appCss),
+  'desktop modal close control is substantially larger',
+)
+assert(
+  /\.modal\s*\{[\s\S]*?padding:\s*24px 28px 14px;/.test(appCss),
+  'desktop modal uses tighter vertical padding',
+)
+assert(
+  !preRevealExperiment.includes('class="modal-close modal-close-compact"'),
+  'highlight-ready modals keep the larger desktop close control',
+)
+assert(
+  /\.modal-close-icon\s*\{[\s\S]*?width:\s*20px;[\s\S]*?height:\s*20px;/.test(appCss),
+  'desktop modal close icon scales with the larger close control',
+)
+assert(
+  /\.modal-close-compact\s*\{[\s\S]*?width:\s*44px;[\s\S]*?height:\s*44px;/.test(appCss),
+  'no-highlight modals use a slightly smaller desktop close control',
+)
+assert(
+  /\.modal-pre-reveal-stack\s*\{[\s\S]*?gap:\s*10px;[\s\S]*?margin-top:\s*0;/.test(appCss),
+  'desktop pre-reveal stack uses tighter neutral spacing',
+)
+assert(
+  /\.modal-pre-reveal-cta\s*\{[\s\S]*?order:\s*2;[\s\S]*?margin-top:\s*0;/.test(appCss),
+  'desktop pre-reveal CTA returns below the disclosures',
+)
+assert(
+  /\.modal-pre-reveal-disclosures\s*\{[\s\S]*?order:\s*1;/.test(appCss),
+  'desktop disclosures sit above the pre-reveal CTA',
+)
+const noHighlightExperiment: GroupMatch = {
+  ...experimentWithEntertainment,
+  videos: undefined,
+}
+const noHighlightPreReveal = renderMatch(noHighlightExperiment)
+assert(
+  noHighlightPreReveal.includes('class="modal-close modal-close-compact"'),
+  'no-highlight ready modals use the compact close control',
+)
+assert(
+  /\.modal-disclosure-bar\s*\{[\s\S]*?padding:\s*9px 12px;/.test(appCss),
+  'disclosure bars use tighter vertical padding',
+)
+assert(
+  /\.player-poster\s*\{[\s\S]*?min-height:\s*150px;/.test(appCss),
+  'highlight poster height is reduced to 150px',
 )
 const revealedExperiment = renderMatch(experimentWithEntertainment, {
   ...emptyProgress,
