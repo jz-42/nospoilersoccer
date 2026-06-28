@@ -304,6 +304,16 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "J5": {
+    entertainmentSummary: "Very lively and open-feeling, with a lot of energy and a sense that it rarely settled into anything routine. The atmosphere seems to have added extra tension, so it comes across as one of the more eventful group-stage watches.",
+    entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "J6": {
+    entertainmentSummary: "Fairly lively without sounding especially tense, with a sense that the occasion and atmosphere added as much as the match rhythm itself. It seems to have felt more engaging than flat, but not like a particularly dramatic watch.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "K1": {
     entertainmentSummary: "It sounded fairly tense and competitive, with DR Congo making a fancied Portugal side work hard for long stretches. Reactions were mixed on the spectacle, though, with quite a few describing it as more frustrating and drab than genuinely flowing or thrilling.",
     entertainmentRating: 3,
