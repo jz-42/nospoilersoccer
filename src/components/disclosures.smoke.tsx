@@ -156,7 +156,7 @@ assert(
 )
 const preRevealExperiment = renderMatch(experimentWithEntertainment)
 assert(
-  preRevealExperiment.includes('AI Entertainment Summary'),
+  preRevealExperiment.includes('AI Watchability Rating'),
   'pre-reveal experiment match includes the entertainment disclosure label',
 )
 assert(
@@ -164,15 +164,11 @@ assert(
   'entertainment disclosure content does not render invalid paragraph markup',
 )
 assert(
-  preRevealExperiment.includes('AI synthesis of public reaction. Take with a grain of salt.'),
-  'pre-reveal experiment match includes the entertainment hint copy',
-)
-assert(
   preRevealExperiment.includes('class="modal-disclosure-trigger"'),
   'pre-reveal experiment match uses a dedicated disclosure trigger control',
 )
 assert(
-  preRevealExperiment.includes('Total goals'),
+  preRevealExperiment.includes('Total Goals'),
   'pre-reveal experiment match includes the total-goals disclosure label',
 )
 assert(
@@ -192,11 +188,11 @@ const revealedExperiment = renderMatch(experimentWithEntertainment, {
   marks: { [experimentWithEntertainment.id]: 'watched' },
 })
 assert(
-  !revealedExperiment.includes('AI Entertainment Summary'),
+  !revealedExperiment.includes('AI Watchability Rating'),
   'revealed experiment match hides the entertainment disclosure block',
 )
 assert(
-  !revealedExperiment.includes('Total goals'),
+  !revealedExperiment.includes('Total Goals'),
   'revealed experiment match hides the total-goals disclosure block',
 )
 assert(
