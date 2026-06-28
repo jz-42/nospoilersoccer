@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { ReactNode, TouchEvent as ReactTouchEvent } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
 import { buildGoogleCalendarUrl } from '../calendar/google'
@@ -82,11 +82,11 @@ function CalendarIcon() {
 
 function DisclosureRow({
   label,
-  hint,
+  accessoryOpen,
   children,
 }: {
   label: string
-  hint?: string
+  accessoryOpen?: ReactNode
   children: ReactNode
 }) {
   const [open, setOpen] = useState(false)
@@ -97,15 +97,7 @@ function DisclosureRow({
       <div className="modal-disclosure-bar">
         <span className="modal-disclosure-head">
           <span className="modal-disclosure-label">{label}</span>
-          {hint && (
-            <span
-              className="modal-disclosure-hint"
-              aria-label={hint}
-              title={hint}
-            >
-              i
-            </span>
-          )}
+          {open && accessoryOpen}
         </span>
         <button
           type="button"
@@ -114,7 +106,7 @@ function DisclosureRow({
           aria-controls={open ? contentId : undefined}
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? 'Hide' : 'Tap to reveal'}
+          {open ? 'Hide' : 'Reveal'}
         </button>
       </div>
       {open && (
@@ -135,25 +127,24 @@ function EntertainmentDisclosureRow({
 }) {
   return (
     <DisclosureRow
-      label="AI Entertainment Summary"
-      hint="AI synthesis of public reaction. Take with a grain of salt."
+      label="AI Watchability Rating"
+      accessoryOpen={
+        <span className="entertainment-stars" aria-label={`${rating} out of 5 stars`}>
+          {Array.from({ length: 5 }, (_, i) => (
+            <span
+              key={i}
+              className={`entertainment-star ${i < rating ? 'filled' : ''}`}
+              aria-hidden="true"
+            >
+              ★
+            </span>
+          ))}
+        </span>
+      }
     >
       <div className="entertainment-disclosure">
-        <div className="entertainment-rating">
-          <span className="entertainment-rating-label">Rating</span>
-          <span className="entertainment-stars" aria-label={`${rating} out of 5 stars`}>
-            {Array.from({ length: 5 }, (_, i) => (
-              <span
-                key={i}
-                className={`entertainment-star ${i < rating ? 'filled' : ''}`}
-                aria-hidden="true"
-              >
-                ★
-              </span>
-            ))}
-          </span>
-        </div>
         <p className="entertainment-summary-copy">{summary}</p>
+        <p className="entertainment-disclaimer">AI generated — take with a grain of salt.</p>
       </div>
     </DisclosureRow>
   )
@@ -177,6 +168,53 @@ export function MatchModal({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  const modalRef = useRef<HTMLDivElement>(null)
+  const dragStart = useRef<{ y: number; time: number } | null>(null)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [dragging, setDragging] = useState(false)
+
+  const DISMISS_DISTANCE = 150
+  const FLICK_MIN_DISTANCE = 70
+  const FLICK_VELOCITY = 0.8
+
+  const onModalTouchStart = (e: ReactTouchEvent<HTMLDivElement>) => {
+    const el = modalRef.current
+    if (!el || el.scrollTop > 0) return
+    dragStart.current = { y: e.touches[0].clientY, time: Date.now() }
+  }
+  const onModalTouchMove = (e: ReactTouchEvent<HTMLDivElement>) => {
+    const start = dragStart.current
+    if (!start) return
+    const dy = e.touches[0].clientY - start.y
+    if (dy <= 0) {
+      if (dragOffset !== 0) setDragOffset(0)
+      return
+    }
+    if (!dragging) setDragging(true)
+    setDragOffset(dy)
+  }
+  const onModalTouchEnd = (e: ReactTouchEvent<HTMLDivElement>) => {
+    const start = dragStart.current
+    dragStart.current = null
+    if (!start) {
+      setDragging(false)
+      return
+    }
+    const dy = e.changedTouches[0].clientY - start.y
+    const dt = Math.max(1, Date.now() - start.time)
+    const velocity = dy / dt
+    setDragging(false)
+    const isFlick = dy > FLICK_MIN_DISTANCE && velocity > FLICK_VELOCITY
+    if (dy > DISMISS_DISTANCE || isFlick) {
+      onClose()
+    } else {
+      setDragOffset(0)
+    }
+  }
+
+  const dragProgress = Math.min(1, dragOffset / DISMISS_DISTANCE)
+  const willDismiss = dragOffset > DISMISS_DISTANCE
 
   const m = target.match
   const mark = progress.marks[m.id]
@@ -252,12 +290,35 @@ export function MatchModal({
     ) : null
 
   const goalCountDisclosure = totalGoals !== null && !mark ? (
-    <DisclosureRow label="Total goals">{`${totalGoals} total goals`}</DisclosureRow>
+    <DisclosureRow label="Total Goals">{`${totalGoals} total`}</DisclosureRow>
   ) : null
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="modal-backdrop"
+      onClick={onClose}
+      style={
+        dragging
+          ? { opacity: Math.max(0.35, 1 - dragProgress * 0.55), transition: 'none' }
+          : undefined
+      }
+    >
+      <div
+        ref={modalRef}
+        className={`modal ${dragging ? 'is-dragging' : ''} ${willDismiss ? 'will-dismiss' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={onModalTouchStart}
+        onTouchMove={onModalTouchMove}
+        onTouchEnd={onModalTouchEnd}
+        onTouchCancel={onModalTouchEnd}
+        style={{
+          transform: dragOffset ? `translateY(${dragOffset}px)` : undefined,
+          transition: dragging ? 'none' : undefined,
+        }}
+      >
+        <span className="modal-drag-handle" aria-hidden="true" />
         <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>
           ✕
         </button>
@@ -397,7 +458,7 @@ export function MatchModal({
               )}
               <button
                 type="button"
-                className="btn-ghost btn-subtle"
+                className="btn-ghost btn-subtle modal-hide-result"
                 onClick={() => progress.unmark(m.id)}
                 title="Anything that depended on this result will be hidden again too"
               >

@@ -109,6 +109,23 @@ function DaySwitcher({
   const [active, setActive] = useState(todayIndex)
 
   const idx = Math.min(Math.max(active, 0), dates.length - 1)
+
+  const swipeStart = useRef<{ x: number; y: number } | null>(null)
+  const onCarouselTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0]
+    swipeStart.current = { x: t.clientX, y: t.clientY }
+  }
+  const onCarouselTouchEnd = (e: React.TouchEvent) => {
+    const start = swipeStart.current
+    swipeStart.current = null
+    if (!start) return
+    const end = e.changedTouches[0]
+    const dx = end.clientX - start.x
+    const dy = end.clientY - start.y
+    if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return
+    if (dx < 0 && idx < dates.length - 1) setActive(idx + 1)
+    if (dx > 0 && idx > 0) setActive(idx - 1)
+  }
   const date = dates[idx]
   const dayEntries = entries.filter((e) => e.date === date)
   const [gridRef, gridStyle] = useBalancedColumns(dayEntries.length)
@@ -154,7 +171,11 @@ function DaySwitcher({
         >
           ‹
         </button>
-        <div className="day-carousel-window">
+        <div
+          className="day-carousel-window"
+          onTouchStart={onCarouselTouchStart}
+          onTouchEnd={onCarouselTouchEnd}
+        >
           <div
             className="day-track"
             style={{ transform: `translateX(calc(${-(idx + 0.5)} * var(--day-item-w)))` }}

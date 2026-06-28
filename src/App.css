@@ -177,7 +177,7 @@
   border-radius: 10px;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: filter 0.15s, transform 0.1s;
+  transition: filter 0.15s, transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .btn-primary:hover {
@@ -185,7 +185,8 @@
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
+  transform: scale(0.96);
+  filter: brightness(0.92);
 }
 
 .btn-primary-danger {
@@ -205,12 +206,19 @@
   padding: 7px 16px;
   border-radius: 9px;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .btn-ghost:hover {
   border-color: var(--border-strong);
   color: var(--text-h);
+}
+
+.btn-ghost:active {
+  transform: scale(0.96);
 }
 
 .btn-danger:hover {
@@ -424,7 +432,15 @@
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, opacity 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    opacity 0.15s,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.day-arrow:active:not(:disabled) {
+  transform: scale(0.9);
 }
 .day-arrow:hover:not(:disabled) {
   color: var(--text-h);
@@ -496,7 +512,11 @@
   overflow: hidden;
   text-align: left;
   color: var(--text);
-  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 0.15s,
+    opacity 0.15s;
   box-shadow: var(--shadow);
 }
 
@@ -504,6 +524,11 @@
   border-color: var(--border-strong);
   transform: translateY(-2px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), 0 14px 36px rgba(0, 0, 0, 0.35);
+}
+
+.preview-card:active {
+  transform: scale(0.985);
+  transition-duration: 0.12s;
 }
 
 .preview-card.state-seen {
@@ -917,13 +942,22 @@
   font-size: 13px;
   cursor: pointer;
   text-align: left;
-  transition: border-color 0.15s, background 0.15s, opacity 0.15s, transform 0.1s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    opacity 0.15s,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .tile:hover {
   border-color: var(--border-strong);
   background: var(--panel-hover);
   transform: translateY(-1px);
+}
+
+.tile:active {
+  transform: scale(0.985);
+  transition-duration: 0.12s;
 }
 
 .tile.state-watch {
@@ -1980,7 +2014,13 @@
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 10px;
-  transition: color 0.15s, transform 0.15s;
+  transition:
+    color 0.15s,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.modal-pin:active {
+  transform: scale(0.88);
 }
 
 .modal-pin:hover {
@@ -2165,6 +2205,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
+  transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .modal {
@@ -2205,6 +2246,10 @@
 .modal-close:hover {
   color: var(--text-h);
   background: var(--panel-hover);
+}
+
+.modal-drag-handle {
+  display: none;
 }
 
 .modal-context {
@@ -2579,13 +2624,19 @@
   transition:
     background 120ms ease,
     border-color 120ms ease,
-    color 120ms ease;
+    color 120ms ease,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .modal-disclosure-trigger:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(154, 173, 203, 0.38);
+}
+
+.modal-disclosure-trigger:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .modal-disclosure-copy {
@@ -2599,29 +2650,15 @@
   padding: 0 13px 12px;
 }
 
-.entertainment-rating {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.entertainment-rating-label {
-  font-size: 11px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .entertainment-stars {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
+  margin-left: 2px;
 }
 
 .entertainment-star {
-  font-size: 15px;
+  font-size: 12.5px;
   line-height: 1;
   color: rgba(154, 173, 203, 0.22);
 }
@@ -2631,9 +2668,21 @@
 }
 
 .entertainment-summary-copy {
+  margin: 0;
   font-size: 12.5px;
-  line-height: 1.55;
+  line-height: 1.5;
+  color: var(--text);
+  text-align: left;
+}
+
+.entertainment-disclaimer {
+  margin: 8px 0 0;
+  font-size: 10.5px;
+  line-height: 1.4;
   color: var(--muted);
+  opacity: 0.65;
+  font-style: italic;
+  text-align: left;
 }
 
 .modal-hint {
@@ -3118,10 +3167,210 @@
   }
 
   .preview-flag {
-    font-size: 34px;
+    font-size: 56px;
+  }
+
+  .preview-flag-tbd {
+    width: 56px;
+    height: 56px;
   }
 
   .group-grid {
     grid-template-columns: 1fr;
+  }
+
+  .modal-backdrop {
+    padding: 14px 0 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .modal {
+    width: 100%;
+    max-width: none;
+    min-height: calc(100dvh - 14px);
+    border-radius: 18px 18px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    padding: 52px 18px calc(24px + env(safe-area-inset-bottom));
+    box-shadow: none;
+    animation: modal-in-mobile 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    touch-action: pan-y;
+  }
+
+  .modal-drag-handle {
+    display: block;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 38px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(235, 235, 245, 0.28);
+    pointer-events: none;
+    transition:
+      background 160ms ease,
+      width 160ms ease;
+  }
+
+  .modal.is-dragging .modal-drag-handle {
+    width: 46px;
+    background: rgba(235, 235, 245, 0.55);
+  }
+
+  .modal.will-dismiss .modal-drag-handle {
+    width: 54px;
+    background: #6fd29a;
+  }
+
+  .modal-close {
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 0;
+    background: rgba(120, 120, 128, 0.32);
+    border: none;
+    border-radius: 50%;
+    color: rgba(235, 235, 245, 0.78);
+    box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      background 150ms ease,
+      color 150ms ease,
+      transform 120ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .modal-close:hover,
+  .modal-close:focus-visible {
+    background: rgba(120, 120, 128, 0.42);
+    color: #fff;
+  }
+
+  .modal-close:active {
+    transform: scale(0.92);
+    background: rgba(120, 120, 128, 0.5);
+  }
+
+  .modal-pin {
+    top: 7px;
+    left: 7px;
+    width: 44px;
+    height: 44px;
+    font-size: 26px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-hide-result {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text);
+    border-color: var(--border-strong);
+    padding: 9px 18px;
+  }
+
+  .modal-context {
+    margin-bottom: 16px;
+  }
+
+  .modal-disclosures {
+    margin-top: 8px;
+    gap: 6px;
+  }
+
+  .modal-flag {
+    font-size: 48px;
+  }
+
+  .modal-team-name {
+    font-size: 17.5px;
+  }
+
+  .modal-teams {
+    margin-bottom: 18px;
+  }
+
+  .oddsbar {
+    padding: 5px 9px;
+    margin: -4px 0 14px;
+  }
+
+  .oddsbar-label {
+    font-size: 8.5px;
+  }
+
+  .oddsbar-src {
+    font-size: 9.5px;
+  }
+
+  .oddsbar-head {
+    margin-bottom: 5px;
+  }
+
+  .oddsbar-track {
+    height: 5px;
+  }
+
+  .oddsbar-keys {
+    font-size: 10px;
+    margin-top: 5px;
+  }
+
+  .modal-disclosures {
+    gap: 10px;
+  }
+
+  .modal-disclosure-bar {
+    padding: 9px 12px;
+    gap: 10px;
+  }
+
+  .modal-disclosure-label {
+    font-size: 12.5px;
+  }
+
+  .modal-disclosure-hint {
+    display: none;
+  }
+
+  .modal-disclosure-trigger {
+    font-size: 11.5px;
+    padding: 5px 11px;
+    min-height: 0;
+  }
+
+  .modal-disclosure-copy,
+  .entertainment-disclosure {
+    padding: 0 12px 11px;
+    font-size: 12.5px;
+  }
+
+  .tile-thumb {
+    font-size: 25px;
+    padding: 0 9px;
+  }
+}
+
+@keyframes modal-in-mobile {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
