@@ -4,6 +4,7 @@
  */
 import { wc2022 } from '../data/wc2022'
 import { wc2026 } from '../data/wc2026'
+import type { GroupId, Tournament } from '../data/types'
 import type { Marks } from './spoilers'
 import {
   bestThirdSlotGroups,
@@ -20,6 +21,41 @@ import {
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(`FAIL: ${msg}`)
   console.log(`ok - ${msg}`)
+}
+
+function stable2026Fixture(): Tournament {
+  const fixture = structuredClone(wc2026)
+  // Preserve the official 12-group, 32-team knockout shape while making the
+  // standings deterministic instead of dependent on live/generated results.
+  for (const group of fixture.groups) {
+    const order = new Map(group.teams.map((team, index) => [team, index]))
+    for (const match of fixture.groupMatches.filter((m) => m.group === group.id)) {
+      const homeRank = order.get(match.home)
+      const awayRank = order.get(match.away)
+      if (homeRank === undefined || awayRank === undefined) continue
+      match.score = homeRank < awayRank ? { home: 3, away: 0 } : { home: 0, away: 3 }
+      match.goals = []
+      match.videos = undefined
+    }
+  }
+  for (const round of fixture.knockoutRounds) {
+    for (const match of round.matches) {
+      match.score = undefined
+      match.goals = undefined
+      match.homeTeam = undefined
+      match.awayTeam = undefined
+      match.penalties = undefined
+      match.afterExtraTime = undefined
+      match.videos = undefined
+    }
+  }
+  return fixture
+}
+
+function groupTeams(tournament: Tournament, group: GroupId): readonly string[] {
+  const teams = tournament.groups.find((g) => g.id === group)?.teams
+  if (!teams) throw new Error(`Fixture error: expected group ${group}`)
+  return teams
 }
 
 const t = wc2022
@@ -78,11 +114,13 @@ assert(!isPlayed(future), 'match without score is not played')
 assert(!knockoutReady(t, future, fresh, new Set([future.id])), 'unplayed match is never ready')
 assert(!canForceReveal(future), 'unplayed match with unknown teams cannot be force-revealed')
 
-const live2026 = wc2026
+const live2026 = stable2026Fixture()
 const r32Direct = live2026.knockoutRounds[0].matches[0] // 2A v 2B
 const r32BestThird = live2026.knockoutRounds[0].matches[6] // 1A v best 3rd
 const r32BestThirdFromB = live2026.knockoutRounds[0].matches[8] // 1D v best 3rd
 const liveMarks: Marks = {}
+const groupA = groupTeams(live2026, 'A')
+const groupB = groupTeams(live2026, 'B')
 
 for (const m of live2026.groupMatches.filter((x) => ['A', 'B'].includes(x.group))) {
   liveMarks[m.id] = 'watched'
@@ -90,15 +128,16 @@ for (const m of live2026.groupMatches.filter((x) => ['A', 'B'].includes(x.group)
 
 assert(groupComplete(live2026, 'A', liveMarks), '2026 group A complete after 6 marks')
 assert(groupComplete(live2026, 'B', liveMarks), '2026 group B complete after 6 marks')
-assert(resolveSlot(live2026, r32Direct, 'home', liveMarks) === 'RSA', '2026 R32 reveals 2A once group A is complete')
-assert(resolveSlot(live2026, r32Direct, 'away', liveMarks) === 'CAN', '2026 R32 reveals 2B once group B is complete')
-assert(resolveSlot(live2026, r32BestThird, 'home', liveMarks) === 'MEX', '2026 R32 reveals 1A once group A is complete')
-assert(resolveSlot(live2026, r32BestThirdFromB, 'away', liveMarks) === 'BIH', '2026 best-third slot reveals once the projected team group is complete')
+assert(resolveSlot(live2026, r32Direct, 'home', liveMarks) === groupA[1], '2026 R32 reveals 2A once group A is complete')
+assert(resolveSlot(live2026, r32Direct, 'away', liveMarks) === groupB[1], '2026 R32 reveals 2B once group B is complete')
+assert(resolveSlot(live2026, r32BestThird, 'home', liveMarks) === groupA[0], '2026 R32 reveals 1A once group A is complete')
+assert(resolveSlot(live2026, r32BestThirdFromB, 'away', liveMarks) === groupB[2], '2026 best-third slot reveals once the projected team group is complete')
 assert(resolveSlot(live2026, r32BestThird, 'away', liveMarks) === null, '2026 best-third slot stays hidden while its projected team group is incomplete')
 
-const canon2026 = structuredClone(wc2026)
+const canon2026 = stable2026Fixture()
 const storedBestThirdSlot = canon2026.knockoutRounds[0].matches[1] // m74 away
-storedBestThirdSlot.awayTeam = 'BIH'
+const groupBThird = groupTeams(canon2026, 'B')[2]
+storedBestThirdSlot.awayTeam = groupBThird
 
 const groupBMarks: Marks = {}
 for (const m of canon2026.groupMatches.filter((x) => x.group === 'B')) {
@@ -117,6 +156,6 @@ for (const m of canon2026.groupMatches) {
 
 const canonicalSlots = bestThirdSlotGroups(canon2026, fullGroupMarks)
 assert(canonicalSlots.get('m74-away') === 'B', '2026 full group stage follows the stored canonical best-third slot')
-assert(resolveSlot(canon2026, storedBestThirdSlot, 'away', fullGroupMarks) === 'BIH', '2026 full group stage reveals the stored canonical best-third team')
+assert(resolveSlot(canon2026, storedBestThirdSlot, 'away', fullGroupMarks) === groupBThird, '2026 full group stage reveals the stored canonical best-third team')
 
 console.log('ALL PASS')

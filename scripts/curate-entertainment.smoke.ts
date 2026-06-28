@@ -9,6 +9,7 @@ import {
   shouldCurate,
 } from './curate-entertainment'
 import { tournaments } from '../src/data'
+import type { GroupMatch } from '../src/data/types'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -65,8 +66,15 @@ assert(
   'curator recognizes current prompt-version entries',
 )
 
-const playedMatch = tournaments.wc2026.groupMatches.find((match) => match.score)
-if (!playedMatch) throw new Error('Fixture error: expected a played match')
+const matchSource = tournaments.wc2026.groupMatches.find(
+  (match): match is GroupMatch => Boolean(match.kickoff),
+)
+if (!matchSource) throw new Error('Fixture error: expected a 2026 group match with kickoff data')
+const playedMatch: GroupMatch = {
+  ...matchSource,
+  score: { home: 1, away: 0 },
+  goals: [],
+}
 assert(
   shouldCurate(playedMatch, {}, {
     aiEnabled: true,

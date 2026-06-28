@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { tournaments } from '../data'
-import type { GroupMatch } from '../data/types'
+import type { GroupMatch, KnockoutMatch } from '../data/types'
 import type { Progress } from '../state/progress'
 import { DisclosureContent, Onboarding } from './Dialogs'
 import { MatchModal } from './MatchModal'
@@ -111,16 +111,18 @@ assert(
 )
 
 const wc2026 = tournaments.wc2026
-const played2026 = wc2026.groupMatches.find(
-  (match): match is GroupMatch => Boolean(match.score && match.videos?.length),
+const group2026Source = wc2026.groupMatches.find(
+  (match): match is GroupMatch => Boolean(match.kickoff),
 )
-if (!played2026) throw new Error('Fixture error: expected a played 2026 match with highlights')
-const experiment2026 = wc2026.groupMatches.find(
-  (match): match is GroupMatch => match.id === 'D5' && Boolean(match.score && match.videos?.length),
-)
-if (!experiment2026) throw new Error('Fixture error: expected June 25 experiment match D5 with highlights')
+if (!group2026Source) throw new Error('Fixture error: expected a 2026 group match with kickoff data')
+const played2026: GroupMatch = {
+  ...group2026Source,
+  score: { home: 1, away: 0 },
+  goals: [],
+  videos: [{ youtubeId: 'fixture-video', kind: 'normal', durationSeconds: 300 }],
+}
 const experimentWithEntertainment: GroupMatch = {
-  ...experiment2026,
+  ...played2026,
   entertainmentSummary: 'Lively and open-feeling, with enough rhythm to sound more engaging than routine.',
   entertainmentRating: 4,
 }
@@ -204,8 +206,14 @@ assert(
   'FOX warning stays out of revealed 2026 highlights by default',
 )
 
-const upcoming2026 = wc2026.groupMatches.find((match) => !match.score && !match.videos?.length)
-if (!upcoming2026) throw new Error('Fixture error: expected an upcoming 2026 match without highlights')
+const upcoming2026: GroupMatch = {
+  ...group2026Source,
+  score: undefined,
+  goals: undefined,
+  videos: undefined,
+  entertainmentSummary: undefined,
+  entertainmentRating: undefined,
+}
 const upcoming2026Markup = renderMatch(upcoming2026)
 const upcomingTitle = `${wc2026.teams[upcoming2026.home].name} vs ${wc2026.teams[upcoming2026.away].name}`
 const upcomingTitleQuery = new URLSearchParams({ text: upcomingTitle }).toString().replace('text=', '')
@@ -241,16 +249,26 @@ assert(
 )
 
 const upcomingKnockoutRound = wc2026.knockoutRounds.find((round) =>
-  round.matches.some((match) => !match.score && Boolean(match.kickoff)),
+  round.matches.some((match) => Boolean(match.kickoff)),
 )
 if (!upcomingKnockoutRound) {
-  throw new Error('Fixture error: expected an upcoming 2026 knockout round with kickoff data')
+  throw new Error('Fixture error: expected a 2026 knockout round with kickoff data')
 }
-const upcomingKnockout = upcomingKnockoutRound.matches.find(
-  (match) => !match.score && Boolean(match.kickoff),
+const upcomingKnockoutSource = upcomingKnockoutRound.matches.find(
+  (match): match is KnockoutMatch => Boolean(match.kickoff),
 )
-if (!upcomingKnockout) {
-  throw new Error('Fixture error: expected an upcoming 2026 knockout match with kickoff data')
+if (!upcomingKnockoutSource) {
+  throw new Error('Fixture error: expected a 2026 knockout match with kickoff data')
+}
+const upcomingKnockout: KnockoutMatch = {
+  ...upcomingKnockoutSource,
+  score: undefined,
+  goals: undefined,
+  penalties: undefined,
+  afterExtraTime: undefined,
+  videos: undefined,
+  entertainmentSummary: undefined,
+  entertainmentRating: undefined,
 }
 const upcomingKnockoutMarkup = renderToStaticMarkup(
   <MatchModal
