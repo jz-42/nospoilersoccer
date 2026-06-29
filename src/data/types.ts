@@ -166,6 +166,13 @@ export interface Tournament {
   advancingRanks: number[]
   /** 2026: how many best third-placed teams also advance. */
   bestThirdCount?: number
+  /**
+   * 2026: FIFA's official Annexe C allocation of the best third-placed teams.
+   * Key is the sorted set of advancing third-place groups (e.g. 'BDEFIJKL');
+   * value maps each group winner to the group whose third it faces. When set,
+   * the spoiler engine uses this exact table instead of guessing a pairing.
+   */
+  bestThirdAllocation?: Record<string, Record<string, GroupId>>
   teams: Record<TeamId, Team>
   groups: Group[]
   groupMatches: GroupMatch[]

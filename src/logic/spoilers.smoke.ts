@@ -78,6 +78,12 @@ function bestThirdEntries(t: Tournament) {
   )
 }
 
+function knockoutMatchById(tournament: Tournament, matchId: string) {
+  const match = tournament.knockoutRounds.flatMap((round) => round.matches).find((m) => m.id === matchId)
+  if (!match) throw new Error(`Fixture error: expected knockout match ${matchId}`)
+  return match
+}
+
 const t = wc2022
 const m49 = t.knockoutRounds[0].matches[0] // NED vs USA (1A v 2B)
 const m58 = t.knockoutRounds[1].matches[1] // winner m49 vs winner m50
@@ -230,25 +236,91 @@ assert(
   '2026 stored best-third team stays hidden when the live projection puts it elsewhere',
 )
 
+// Degenerate fixture: every group is identical, so all 12 third-placed teams
+// tie exactly. FIFA breaks that with data we don't carry, so a best-third slot
+// must stay a placeholder even with the whole group stage marked — never a guess.
 const fullGroupMarks = marksForGroups(
   canon2026,
   canon2026.groups.map((g) => g.id),
 )
 for (const { match, side } of bestThirdEntries(canon2026)) {
+  const stored = side === 'home' ? match.homeTeam : match.awayTeam
+  if (stored) continue // m74 away was given a stored team above
   assert(
-    resolveSlot(canon2026, match, side, fullGroupMarks) !== null,
-    `2026 best-third slot ${match.id}-${side} reveals after the full group stage is revealed`,
+    resolveSlot(canon2026, match, side, fullGroupMarks) === null,
+    `2026 best-third slot ${match.id}-${side} stays a placeholder when the third-place ranking is an exact tie`,
   )
 }
 
-const canonicalSlots = bestThirdSlotGroups(canon2026, fullGroupMarks)
-assert(
-  canonicalSlots.get('m74-away') === 'B',
-  '2026 full group stage follows the stored canonical best-third slot',
+// Real dataset: the eight advancing thirds are unambiguous, so best-third slots
+// resolve to their official Annexe C teams — and from the table alone, even with
+// every stored homeTeam/awayTeam stripped (no manual backfill required).
+const official2026 = new Map<string, string>()
+for (const { match, side } of bestThirdEntries(wc2026)) {
+  const stored = side === 'home' ? match.homeTeam : match.awayTeam
+  if (stored) official2026.set(`${match.id}-${side}`, stored)
+}
+const tableOnly2026 = structuredClone(wc2026)
+for (const round of tableOnly2026.knockoutRounds) {
+  for (const km of round.matches) {
+    km.homeTeam = undefined
+    km.awayTeam = undefined
+    km.score = undefined
+    km.goals = undefined
+    km.penalties = undefined
+    km.afterExtraTime = undefined
+  }
+}
+const fullMarks2026 = marksForGroups(
+  tableOnly2026,
+  tableOnly2026.groups.map((g) => g.id),
 )
+assert(official2026.size === bestThirdEntries(wc2026).length, '2026 every best-third slot has an official team to check against')
+for (const { match, side } of bestThirdEntries(tableOnly2026)) {
+  const key = `${match.id}-${side}`
+  assert(
+    resolveSlot(tableOnly2026, match, side, fullMarks2026) === official2026.get(key),
+    `2026 ${key} resolves to its official Annexe C team without any stored backfill`,
+  )
+}
 assert(
-  resolveSlot(canon2026, storedBestThirdSlot, 'away', fullGroupMarks) === groupBThird,
-  '2026 full group stage reveals the stored canonical best-third team',
+  bestThirdSlotGroups(wc2026, fullMarks2026).get('m74-away') === 'D',
+  '2026 full group stage uses the official Annexe C allocation (1E faces the 3rd from D)',
 )
+
+const publishedGroupStageMarks2026 = marksForGroups(
+  wc2026,
+  wc2026.groups.map((g) => g.id),
+)
+const publishedRoundOf32Teams2026: Record<string, readonly [string, string]> = {
+  m73: ['RSA', 'CAN'],
+  m74: ['GER', 'PAR'],
+  m75: ['NED', 'MAR'],
+  m76: ['BRA', 'JPN'],
+  m77: ['FRA', 'SWE'],
+  m78: ['CIV', 'NOR'],
+  m79: ['MEX', 'ECU'],
+  m80: ['ENG', 'COD'],
+  m81: ['USA', 'BIH'],
+  m82: ['BEL', 'SEN'],
+  m83: ['POR', 'CRO'],
+  m84: ['ESP', 'AUT'],
+  m85: ['SUI', 'ALG'],
+  m86: ['ARG', 'CPV'],
+  m87: ['COL', 'GHA'],
+  m88: ['AUS', 'EGY'],
+}
+
+for (const [matchId, [homeTeam, awayTeam]] of Object.entries(publishedRoundOf32Teams2026)) {
+  const match = knockoutMatchById(wc2026, matchId)
+  assert(
+    resolveSlot(wc2026, match, 'home', publishedGroupStageMarks2026) === homeTeam,
+    `2026 published Round of 32 ${matchId} home team stays canonical`,
+  )
+  assert(
+    resolveSlot(wc2026, match, 'away', publishedGroupStageMarks2026) === awayTeam,
+    `2026 published Round of 32 ${matchId} away team stays canonical`,
+  )
+}
 
 console.log('ALL PASS')

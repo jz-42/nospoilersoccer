@@ -2,6 +2,8 @@ import type { Tournament } from './types'
 import { validateTournament } from './validate'
 import { wc2026 } from './wc2026'
 import { FIFA_WC2026_KICKOFFS, FIFA_WC2026_SCHEDULE } from './wc2026-official-schedule'
+import { formatMatchDate } from '../components/format'
+import { formatKickoffLocal } from '../time/local'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -58,6 +60,26 @@ fractionalEntertainmentRating.groupMatches[0].entertainmentRating = 3.5 as never
 assert(
   validateTournament(fractionalEntertainmentRating).some((error) => error.includes('invalid entertainmentRating')),
   'validator rejects fractional entertainment ratings',
+)
+
+const knockoutEdge = wc2026.knockoutRounds.flatMap((round) => round.matches).find((match) => match.id === 'm94')
+if (!knockoutEdge?.kickoff) throw new Error('Fixture error: expected knockout edge match m94 with kickoff data')
+assert(
+  formatMatchDate(knockoutEdge.date, knockoutEdge.kickoff, 'America/New_York') === 'Jul 6',
+  'July 6 knockout date renders from the kickoff instant in Eastern Time',
+)
+assert(
+  formatKickoffLocal(knockoutEdge.kickoff, 'America/New_York') === '8:00 PM ET',
+  'July 6 knockout kickoff renders as 8:00 PM ET',
+)
+
+const shiftedKnockoutDate = cloneTournament(wc2026)
+const shiftedM94 = shiftedKnockoutDate.knockoutRounds.flatMap((round) => round.matches).find((match) => match.id === 'm94')
+if (!shiftedM94) throw new Error('Fixture error: expected mutable knockout edge match m94')
+shiftedM94.date = '2026-07-07'
+assert(
+  validateTournament(shiftedKnockoutDate).some((error) => error.includes('published date')),
+  'validator rejects a 2026 published date that disagrees with its Eastern kickoff date',
 )
 
 console.log('ALL OFFICIAL SCHEDULE TESTS PASS')
