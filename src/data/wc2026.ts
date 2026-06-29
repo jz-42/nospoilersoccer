@@ -188,7 +188,7 @@ export const wc2026: Tournament = {
       id: 'r32',
       name: 'Round of 32',
       matches: [
-        { id: 'm73', date: '2026-06-28', kickoff: '2026-06-28T19:00Z', home: { type: 'group-rank', group: 'A', rank: 2 }, away: { type: 'group-rank', group: 'B', rank: 2 }, homeTeam: 'RSA', awayTeam: 'CAN' },
+        { id: 'm73', date: '2026-06-28', home: { type: 'group-rank', group: 'A', rank: 2 }, away: { type: 'group-rank', group: 'B', rank: 2 }, kickoff: '2026-06-28T19:00Z', homeTeam: 'RSA', awayTeam: 'CAN', score: { home: 0, away: 1 }, goals: [{ team: 'CAN', player: "Stephen Eustáquio", minute: "90'+2'" }] },
         { id: 'm74', date: '2026-06-29', kickoff: '2026-06-29T20:30Z', home: { type: 'group-rank', group: 'E', rank: 1 }, away: { type: 'best-third', groups: ['A', 'B', 'C', 'D', 'F'] }, homeTeam: 'GER', awayTeam: 'PAR' },
         { id: 'm75', date: '2026-06-29', kickoff: '2026-06-30T01:00Z', home: { type: 'group-rank', group: 'F', rank: 1 }, away: { type: 'group-rank', group: 'C', rank: 2 }, homeTeam: 'NED', awayTeam: 'MAR' },
         { id: 'm76', date: '2026-06-29', kickoff: '2026-06-29T17:00Z', home: { type: 'group-rank', group: 'C', rank: 1 }, away: { type: 'group-rank', group: 'F', rank: 2 }, homeTeam: 'BRA', awayTeam: 'JPN' },
