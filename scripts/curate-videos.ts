@@ -23,7 +23,9 @@
 import { appendFileSync, readFileSync, writeFileSync } from 'fs'
 import { tournaments } from '../src/data'
 import { wc2026Videos } from '../src/data/wc2026-videos'
-import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId } from '../src/data/types'
+import { groupStandings } from '../src/data/standings'
+import { matchLoser, matchWinner } from '../src/data/types'
+import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId, Tournament, SlotRef } from '../src/data/types'
 import { highlightKey, isFoxHighlight, isYouTubeHighlight } from '../src/data/videos'
 import { isPlayed } from '../src/logic/spoilers'
 import { checkEmbeddable, FOX_CHANNEL_ID, getVideoMeta, listFoxUploads, parseHighlightTitle } from './youtube'
@@ -80,10 +82,44 @@ Object.assign(nameToId, {
 
 type AnyMatch = (GroupMatch | KnockoutMatch) & { videos?: HighlightVideo[] }
 
-function pairOf(m: AnyMatch): [TeamId, TeamId] | null {
+function explicitPairOf(m: AnyMatch): [TeamId, TeamId] | null {
   if ('group' in m) return [m.home, m.away]
   return m.homeTeam && m.awayTeam ? [m.homeTeam, m.awayTeam] : null
 }
+
+function resolvedTeam(slot: SlotRef, tournament: Tournament): TeamId | null {
+  switch (slot.type) {
+    case 'group-rank': {
+      const rows = groupStandings(tournament, slot.group)
+      return rows[slot.rank - 1]?.team ?? null
+    }
+    case 'best-third':
+      // Which third-placed team fills this slot is a predetermined FIFA table
+      // (Annexe C) that can't be derived from standings here, so never guess.
+      // Resolved knockout matches carry explicit homeTeam/awayTeam; until then
+      // this stays null and the highlight is retried rather than matched to a
+      // wrong fixture.
+      return null
+    case 'match-winner': {
+      const feeder = tournament.knockoutRounds.flatMap((round) => round.matches).find((match) => match.id === slot.match)
+      return feeder ? matchWinner(feeder) : null
+    }
+    case 'match-loser': {
+      const feeder = tournament.knockoutRounds.flatMap((round) => round.matches).find((match) => match.id === slot.match)
+      return feeder ? matchLoser(feeder) : null
+    }
+  }
+}
+
+function pairForMatching(m: AnyMatch, tournament: Tournament): [TeamId, TeamId] | null {
+  const explicit = explicitPairOf(m)
+  if (explicit) return explicit
+  if ('group' in m) return null
+  const home = resolvedTeam(m.home, tournament)
+  const away = resolvedTeam(m.away, tournament)
+  return home && away ? [home, away] : null
+}
+
 const pairKey = (a: TeamId, b: TeamId) => [a, b].sort().join('|')
 function kickoffMs(m: AnyMatch): number {
   return new Date(m.kickoff ?? `${m.date}T00:00:00Z`).getTime()
@@ -99,10 +135,13 @@ function matchLabel(m: AnyMatch): string {
   return `${m.id} (knockout)`
 }
 
-const allMatches: AnyMatch[] = [
-  ...t.groupMatches,
-  ...t.knockoutRounds.flatMap((r) => r.matches),
-]
+function allMatchesFor(tournament: Tournament): AnyMatch[] {
+  return [...tournament.groupMatches, ...tournament.knockoutRounds.flatMap((round) => round.matches)]
+}
+
+export function shouldRetrySkippedId(reason: string): boolean {
+  return reason === 'no matching played fixture'
+}
 
 type FixtureResult =
   | { status: 'ok'; match: AnyMatch }
@@ -120,7 +159,8 @@ function hasCut(m: AnyMatch, kind: HighlightVideo['kind'], source?: HighlightVid
   })
 }
 
-function findFixture(
+export function findFixtureForCandidate(
+  tournament: Tournament,
   home: TeamId,
   away: TeamId,
   kind: HighlightVideo['kind'],
@@ -128,8 +168,8 @@ function findFixture(
   source?: HighlightVideo['source'],
 ): FixtureResult {
   const key = pairKey(home, away)
-  const byPair = allMatches.filter((m) => {
-    const p = pairOf(m)
+  const byPair = allMatchesFor(tournament).filter((m) => {
+    const p = pairForMatching(m, tournament)
     return p && pairKey(p[0], p[1]) === key
   })
   if (byPair.length === 0) return { status: 'none' }
@@ -144,6 +184,16 @@ function findFixture(
   need.sort((a, b) => kickoffMs(b) - kickoffMs(a))
   if (kickoffMs(need[0]) !== kickoffMs(need[1])) return { status: 'ok', match: need[0] }
   return { status: 'ambiguous' }
+}
+
+function findFixture(
+  home: TeamId,
+  away: TeamId,
+  kind: HighlightVideo['kind'],
+  publishedMs: number,
+  source?: HighlightVideo['source'],
+): FixtureResult {
+  return findFixtureForCandidate(t, home, away, kind, publishedMs, source)
 }
 
 // ---- skip-list (persistent so each id is judged once) ----------------------
@@ -359,8 +409,12 @@ async function runCurate() {
   const skip = loadSkip()
   const aiRejections = loadAiRejections()
   const seen = new Set<string>()
-  for (const m of allMatches) for (const v of m.videos ?? []) seen.add(isFoxHighlight(v) ? v.foxId : v.youtubeId)
-  for (const id of Object.keys(skip)) seen.add(id)
+  for (const m of allMatchesFor(t)) {
+    for (const v of m.videos ?? []) seen.add(isFoxHighlight(v) ? v.foxId : v.youtubeId)
+  }
+  for (const [id, entry] of Object.entries(skip)) {
+    if (!shouldRetrySkippedId(entry.reason)) seen.add(id)
+  }
 
   // Working copy of the map to append into.
   const map: Record<string, HighlightVideo[]> = {}
@@ -386,7 +440,7 @@ async function runCurate() {
     reason: string
     verdict: string
   }) => {
-    const p = pairOf(args.match)
+    const p = explicitPairOf(args.match)
     const matchHuman = p
       ? `${args.match.id} ${t.teams[p[0]].name} v ${t.teams[p[1]].name}`
       : args.match.id
@@ -602,10 +656,12 @@ async function runCurate() {
   }
 }
 
-try {
-  if (validate) await runValidate()
-  else await runCurate()
-} catch (e) {
-  // Never fail the workflow over curation — log and move on.
-  console.error(`curate-videos failed: ${e}`)
+if (import.meta.main) {
+  try {
+    if (validate) await runValidate()
+    else await runCurate()
+  } catch (e) {
+    // Never fail the workflow over curation — log and move on.
+    console.error(`curate-videos failed: ${e}`)
+  }
 }

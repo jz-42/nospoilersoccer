@@ -86,11 +86,65 @@ function liveBestThirds(
   return rows
 }
 
+function thirdsTied(a: StandingRow, b: StandingRow): boolean {
+  const gd = (r: StandingRow) => r.goalsFor - r.goalsAgainst
+  return a.points === b.points && gd(a) === gd(b) && a.goalsFor === b.goalsFor
+}
+
+/**
+ * FIFA's official Annexe C allocation: once the eight advancing third-placed
+ * teams are known, the slot each one fills is fixed (not computed). Returns the
+ * slotKey → group map, or null when we can't name the teams safely — no
+ * allocation table, or an exact ranking tie at the cut-off that FIFA breaks with
+ * fair-play/world-ranking/drawing of lots (data we don't carry). In that case a
+ * placeholder is correct; a guessed team is not.
+ */
+function officialBestThirdSlots(
+  t: Tournament,
+  thirds: { group: string; row: StandingRow }[],
+): Map<string, string> | null {
+  const allocation = t.bestThirdAllocation
+  const count = t.bestThirdCount
+  if (!allocation || !count || thirds.length < count) return null
+  if (thirds.length > count && thirdsTied(thirds[count - 1].row, thirds[count].row)) return null
+
+  const advancing = thirds.slice(0, count).map((r) => r.group)
+  const row = allocation[[...advancing].sort().join('')]
+  if (!row) return null
+
+  const map = new Map<string, string>()
+  for (const r of t.knockoutRounds) {
+    for (const km of r.matches) {
+      for (const side of ['home', 'away'] as const) {
+        const sl = side === 'home' ? km.home : km.away
+        if (sl.type !== 'best-third') continue
+        // The other side of a best-third match is always the group winner that
+        // Annexe C keys on, so we never hard-code which slot maps to which winner.
+        const other = side === 'home' ? km.away : km.home
+        const winnerGroup = other.type === 'group-rank' ? other.group : null
+        const group = winnerGroup ? row[winnerGroup] : undefined
+        if (group) map.set(`${km.id}-${side}`, group)
+      }
+    }
+  }
+  return map
+}
+
 export function bestThirdSlotGroups(t: Tournament, marks: Marks): Map<string, string> {
   if (!t.bestThirdCount) return new Map()
   const thirds = liveBestThirds(t, marks)
-  const advancing = thirds.slice(0, t.bestThirdCount).map((r) => r.group)
   const allGroupsComplete = t.groups.every((g) => groupComplete(t, g.id, marks))
+
+  // Once the user's own canon covers the whole group stage, the advancing thirds
+  // are settled, so use FIFA's exact Annexe C allocation. If it can't name them
+  // (no table / a ranking tie), resolve nothing — resolveSlot then shows the
+  // placeholder rather than a possibly-wrong team.
+  if (allGroupsComplete) return officialBestThirdSlots(t, thirds) ?? new Map()
+
+  // Group stage not yet fully marked: project a provisional routing for the
+  // bracket's path lines only. resolveSlot keeps best-third slots locked until
+  // every group is marked, so this never names a concrete Round-of-32 team.
+  const advancing = thirds.slice(0, t.bestThirdCount).map((r) => r.group)
 
   const allSlots: {
     matchId: string

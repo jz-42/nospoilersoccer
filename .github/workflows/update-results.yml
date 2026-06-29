@@ -36,6 +36,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.OPENAI_REVIEW_KEY || secrets.GPT_VIDEO_REVIEW_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           CURATOR_ERROR_FLAG: /tmp/curator-error
+          RESULTS_AUDIT_FILE: /tmp/results-audit.md
           ENTERTAINMENT_AUDIT_FILE: /tmp/entertainment-audit.md
           ENTERTAINMENT_BACKUP_FILE: /tmp/wc2026-entertainment.ts.before
           # Optional: OPENAI_MODEL (default gpt-5.4), OPENAI_REASONING_EFFORT (default medium)
@@ -48,12 +49,20 @@ jobs:
             cycle=$((cycle + 1))
             echo "::group::cycle $cycle — $(date -u '+%H:%M:%SZ')"
             rm -f "$CURATOR_ERROR_FLAG"
+            rm -f "$RESULTS_AUDIT_FILE"
             rm -f "$ENTERTAINMENT_AUDIT_FILE"
 
             # Core updater path: keep this independent from optional entertainment AI.
             npx tsx scripts/update-results.ts || echo "::warning::results step errored this cycle"
             npx tsx scripts/fetch-odds.ts     || echo "::warning::odds step errored this cycle"
             npx tsx scripts/curate-videos.ts  || echo "::warning::curator step errored this cycle"
+            if [ -f "$RESULTS_AUDIT_FILE" ]; then
+              {
+                echo "### Results audit — cycle $cycle"
+                cat "$RESULTS_AUDIT_FILE"
+                echo
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
 
             core_ok=false
             if npm run check:update; then

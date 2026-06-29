@@ -2,6 +2,7 @@ import type { GroupId, KnockoutMatch, Tournament } from './types'
 import { matchLoser, matchWinner } from './types'
 import { groupStandings } from './standings'
 import { FIFA_WC2026_KICKOFFS } from './wc2026-official-schedule'
+import { localDateKey } from '../time/local'
 
 /** Returns a list of problems; an empty list means the dataset is consistent. */
 export function validateTournament(t: Tournament): string[] {
@@ -81,6 +82,11 @@ export function validateTournament(t: Tournament): string[] {
         err(`match ${m.id}: missing kickoff (official kickoff is ${official})`)
       } else if (m.kickoff !== official) {
         err(`match ${m.id}: kickoff ${m.kickoff} disagrees with official kickoff ${official}`)
+      } else if (localDateKey(m.kickoff, 'America/New_York') !== m.date) {
+        err(
+          `match ${m.id}: published date ${m.date} disagrees with Eastern kickoff date ` +
+            `${localDateKey(m.kickoff, 'America/New_York')}`,
+        )
       }
     }
     for (const id of Object.keys(FIFA_WC2026_KICKOFFS)) {
