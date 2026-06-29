@@ -379,4 +379,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m76": {
+    entertainmentSummary: "It sounds lively and tense, with a high-stakes feel that made it seem well above routine. The reaction suggests sustained uncertainty and an engaging atmosphere rather than a flat or cagey contest.",
+    entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
