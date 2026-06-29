@@ -76,4 +76,5 @@ export const wc2026Videos: Record<string, HighlightVideo[]> = {
   'L5': [{ source: 'fox', foxId: 'fmc-2jhtl03gnrdg1t76', kind: 'normal', durationSeconds: 257 }, { youtubeId: 'JOPTAAFb3_s', kind: 'extended', durationSeconds: 864 }],
   'L6': [{ source: 'fox', foxId: 'fmc-ykpqxkz63loolbrq', kind: 'normal', durationSeconds: 244 }, { youtubeId: 'j4wJ3nGXuas', kind: 'extended', durationSeconds: 738 }],
   'm73': [{ youtubeId: 'VoCkhiVWDdY', kind: 'extended', durationSeconds: 817 }, { source: 'fox', foxId: 'fmc-pymg07rpco9jx4dv', kind: 'normal', durationSeconds: 294 }],
+  'm76': [{ source: 'fox', foxId: 'fmc-uksp00ogpawvvg8q', kind: 'normal', durationSeconds: 295 }],
 }
