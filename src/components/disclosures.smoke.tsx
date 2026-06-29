@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { tournaments } from '../data'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
@@ -12,6 +13,7 @@ function assert(condition: boolean, message: string) {
 
 const noop = () => {}
 const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
 
 function googleCalendarDateTime(instant: string | Date, timeZone = localTimeZone) {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -183,6 +185,55 @@ assert(
   !preRevealExperiment.includes(hiddenGoalCountCopy),
   'pre-reveal total-goals disclosure content is hidden by default',
 )
+assert(
+  /\.modal-close\s*\{[\s\S]*?width:\s*52px;[\s\S]*?height:\s*52px;/.test(appCss),
+  'desktop modal close control is substantially larger',
+)
+assert(
+  /\.modal\s*\{[\s\S]*?padding:\s*24px 28px 14px;/.test(appCss),
+  'desktop modal uses tighter vertical padding',
+)
+assert(
+  !preRevealExperiment.includes('class="modal-close modal-close-compact"'),
+  'highlight-ready modals keep the larger desktop close control',
+)
+assert(
+  /\.modal-close-icon\s*\{[\s\S]*?width:\s*20px;[\s\S]*?height:\s*20px;/.test(appCss),
+  'desktop modal close icon scales with the larger close control',
+)
+assert(
+  /\.modal-close-compact\s*\{[\s\S]*?width:\s*44px;[\s\S]*?height:\s*44px;/.test(appCss),
+  'no-highlight modals use a slightly smaller desktop close control',
+)
+assert(
+  /\.modal-pre-reveal-stack\s*\{[\s\S]*?gap:\s*10px;[\s\S]*?margin-top:\s*0;/.test(appCss),
+  'desktop pre-reveal stack uses tighter neutral spacing',
+)
+assert(
+  /\.modal-pre-reveal-cta\s*\{[\s\S]*?order:\s*2;[\s\S]*?margin-top:\s*0;/.test(appCss),
+  'desktop pre-reveal CTA returns below the disclosures',
+)
+assert(
+  /\.modal-pre-reveal-disclosures\s*\{[\s\S]*?order:\s*1;/.test(appCss),
+  'desktop disclosures sit above the pre-reveal CTA',
+)
+const noHighlightExperiment: GroupMatch = {
+  ...experimentWithEntertainment,
+  videos: undefined,
+}
+const noHighlightPreReveal = renderMatch(noHighlightExperiment)
+assert(
+  noHighlightPreReveal.includes('class="modal-close modal-close-compact"'),
+  'no-highlight ready modals use the compact close control',
+)
+assert(
+  /\.modal-disclosure-bar\s*\{[\s\S]*?padding:\s*9px 12px;/.test(appCss),
+  'disclosure bars use tighter vertical padding',
+)
+assert(
+  /\.player-poster\s*\{[\s\S]*?min-height:\s*150px;/.test(appCss),
+  'highlight poster height is reduced to 150px',
+)
 const revealedExperiment = renderMatch(experimentWithEntertainment, {
   ...emptyProgress,
   marks: { [experimentWithEntertainment.id]: 'watched' },
@@ -205,11 +256,13 @@ assert(
 
 const upcoming2026: GroupMatch = {
   ...group2026Source,
+  kickoff: '2099-06-01T18:00:00Z',
   score: undefined,
   goals: undefined,
   videos: undefined,
   entertainmentSummary: undefined,
   entertainmentRating: undefined,
+  odds: undefined,
 }
 const upcoming2026Markup = renderMatch(upcoming2026)
 const upcomingTitle = `${wc2026.teams[upcoming2026.home].name} vs ${wc2026.teams[upcoming2026.away].name}`
@@ -244,6 +297,29 @@ assert(
   upcoming2026Markup.includes(upcomingTimeZoneQuery),
   'upcoming group match calendar link includes the viewer local timezone',
 )
+assert(
+  !upcoming2026Markup.includes('Pre-match odds'),
+  'future unrevealed match without odds does not show the odds bar',
+)
+
+const pastKickoffSnapshot2026: GroupMatch = {
+  ...upcoming2026,
+  kickoff: '2000-06-01T18:00:00Z',
+  odds: { home: 0.44, draw: 0.28, away: 0.28, url: 'https://polymarket.com/event/test-snapshot' },
+}
+const pastKickoffSnapshotMarkup = renderMatch(pastKickoffSnapshot2026)
+assert(
+  pastKickoffSnapshot2026.odds !== undefined,
+  'test fixture includes snapshot odds data',
+)
+assert(
+  pastKickoffSnapshotMarkup.includes('Pre-match odds'),
+  'past-kickoff unrevealed match still shows snapshotted pre-match odds',
+)
+assert(
+  !pastKickoffSnapshotMarkup.includes('Polymarket'),
+  'past-kickoff unrevealed match hides the Polymarket source link',
+)
 
 const upcomingKnockoutRound = wc2026.knockoutRounds.find((round) =>
   round.matches.some((match) => Boolean(match.kickoff)),
@@ -259,6 +335,7 @@ if (!upcomingKnockoutSource) {
 }
 const upcomingKnockout: KnockoutMatch = {
   ...upcomingKnockoutSource,
+  kickoff: '2099-07-01T20:00:00Z',
   score: undefined,
   goals: undefined,
   penalties: undefined,

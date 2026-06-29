@@ -44,6 +44,10 @@ function knockoutPhase(t: Tournament, matchId: string): Phase {
   return 'final'
 }
 
+function hasKickedOff(m: { kickoff?: string }, now = new Date()): boolean {
+  return m.kickoff !== undefined && now >= new Date(m.kickoff)
+}
+
 function TeamSide({
   t,
   teamId,
@@ -219,6 +223,7 @@ export function MatchModal({
   const m = target.match
   const mark = progress.marks[m.id]
   const played = isPlayed(m)
+  const kickedOff = hasKickedOff(m)
   const km = target.kind === 'knockout' ? target.match : null
 
   const homeTeam = km
@@ -292,6 +297,7 @@ export function MatchModal({
   const goalCountDisclosure = totalGoals !== null && !mark ? (
     <DisclosureRow label="Total Goals">{`${totalGoals} total`}</DisclosureRow>
   ) : null
+  const hasHighlights = Boolean(m.videos?.length)
 
   return (
     <div
@@ -319,8 +325,20 @@ export function MatchModal({
         }}
       >
         <span className="modal-drag-handle" aria-hidden="true" />
-        <button type="button" className="modal-close" aria-label="Close" onClick={onClose}>
-          ✕
+        <button
+          type="button"
+          className={`modal-close ${hasHighlights ? '' : 'modal-close-compact'}`.trim()}
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <svg
+            className="modal-close-icon"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M5 5l10 10M15 5L5 15" />
+          </svg>
         </button>
         <button
           type="button"
@@ -388,7 +406,7 @@ export function MatchModal({
             odds={m.odds}
             homeCode={t.teams[homeTeam].id}
             awayCode={t.teams[awayTeam].id}
-            showLink={!played}
+            showLink={!kickedOff}
           />
         )}
         {!mark && !m.odds && target.kind === 'group' && (
@@ -491,26 +509,28 @@ export function MatchModal({
                   <span>Highlights coming soon</span>
                 </div>
               )}
-              {(entertainmentDisclosure || goalCountDisclosure) && (
-                <div className="modal-disclosures">
-                  {entertainmentDisclosure}
-                  {goalCountDisclosure}
-                </div>
-              )}
-              <button
-                type="button"
-                className="btn-primary"
-                onClick={() => {
-                  analytics.resultRevealed({
-                    tournament_year: t.year,
-                    tournament_phase: phase,
-                    reveal_source: 'manual',
-                  })
-                  progress.setMark(m.id, 'watched')
-                }}
-              >
-                Reveal Result
-              </button>
+              <div className="modal-pre-reveal-stack">
+                <button
+                  type="button"
+                  className="btn-primary modal-pre-reveal-cta"
+                  onClick={() => {
+                    analytics.resultRevealed({
+                      tournament_year: t.year,
+                      tournament_phase: phase,
+                      reveal_source: 'manual',
+                    })
+                    progress.setMark(m.id, 'watched')
+                  }}
+                >
+                  Reveal Result
+                </button>
+                {(entertainmentDisclosure || goalCountDisclosure) && (
+                  <div className="modal-disclosures modal-pre-reveal-disclosures">
+                    {entertainmentDisclosure}
+                    {goalCountDisclosure}
+                  </div>
+                )}
+              </div>
               {Object.keys(progress.marks).length < 3 && (
                 <p className="modal-hint modal-hint-small">Reveals the score and team progression.</p>
               )}

@@ -4,28 +4,24 @@
 
 Cloudflare is the scheduler. GitHub Actions remains the executor.
 
-The Worker wakes up every 5 minutes, checks whether the current time falls inside any oversized World Cup match polling window, and only then decides whether to trigger `.github/workflows/update-results.yml` on `main`.
+The Worker wakes up every 5 minutes and triggers `.github/workflows/update-results.yml` on `main` whenever no previous run is still active.
 
-This exists because GitHub `schedule` is not reliable enough to provide continuous coverage during match windows.
+This exists because GitHub `schedule` is not reliable enough to provide continuous coverage during the live tournament. The GitHub workflow itself decides whether anything changed and commits only validated updates.
 
 ## Files
 
-- Worker source: [cloudflare-scheduler/index.mjs](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/havana/cloudflare-scheduler/index.mjs)
-- Worker tests: [cloudflare-scheduler/index.test.mjs](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/havana/cloudflare-scheduler/index.test.mjs)
+- Worker source: [cloudflare-scheduler/index.mjs](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/casablanca/cloudflare-scheduler/index.mjs)
+- Worker tests: [cloudflare-scheduler/index.test.mjs](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/casablanca/cloudflare-scheduler/index.test.mjs)
 
 ## Match windows
 
-- Group matches with `kickoff`:
-  - start at `kickoff + 90 minutes`
-  - end at `kickoff + 8 hours`
-- Knockout matches with `kickoff`:
-  - start at `kickoff + 90 minutes`
-  - end at `kickoff + 12 hours`
-- Knockout matches with only `date`:
-  - start at `date 00:00 UTC`
-  - end at `date + 36 hours`
+The Worker still parses and reports conservative match windows for diagnostics:
 
-These windows are intentionally conservative so the scheduler is active well after ordinary match completion and FOX upload time.
+- Group matches with `kickoff`: `kickoff + 90 minutes` through `kickoff + 8 hours`
+- Knockout matches with `kickoff`: `kickoff + 90 minutes` through `kickoff + 12 hours`
+- Knockout matches with only `date`: `date 00:00 UTC` through `date + 36 hours`
+
+These windows no longer gate dispatch. They remain useful for checking whether the scheduler is running during expected result/highlight periods.
 
 ## Schedule source
 
@@ -41,7 +37,7 @@ Create a dedicated Worker, not a Pages build/deploy integration.
 
 The reproducible deployment config is:
 
-- [cloudflare-scheduler/wrangler.toml](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/havana/cloudflare-scheduler/wrangler.toml)
+- [cloudflare-scheduler/wrangler.toml](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/casablanca/cloudflare-scheduler/wrangler.toml)
 
 Deploy from the Worker directory:
 
@@ -131,7 +127,6 @@ The Worker logs one structured JSON object per scheduled execution:
 
 Possible `action` values:
 
-- `skip_outside_window`
 - `skip_active_run`
 - `dispatch`
 - `error`
@@ -181,5 +176,5 @@ After a successful deploy, open:
 Expected diagnostic signals:
 
 - `ok: true`
-- `insideWindow: true` during a configured match polling window
+- `insideWindow` reports whether the current time is inside a configured match polling window
 - `parsedMatchCount: 104` while `main` contains the full 2026 World Cup schedule
