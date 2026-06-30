@@ -1,0 +1,126 @@
+import type { MatchLiveStatus, Tournament } from '../src/data/types'
+import { parseEvent, type EspnEvent } from './espn'
+import {
+  applyParsedStatuses,
+  summarizeLiveStatusAudit,
+  type ParsedLiveStatusEvent,
+} from './update-live-status-lib'
+
+function assert(condition: boolean, message: string) {
+  if (!condition) throw new Error(`FAIL: ${message}`)
+  console.log(`ok - ${message}`)
+}
+
+function makeTournament(): Tournament {
+  return {
+    id: 'smoke',
+    name: 'Smoke Cup',
+    year: 2026,
+    advancingRanks: [1, 2],
+    teams: {
+      NED: { id: 'NED', name: 'Netherlands', flag: 'NL' },
+      MOR: { id: 'MOR', name: 'Morocco', flag: 'MA' },
+      BRA: { id: 'BRA', name: 'Brazil', flag: 'BR' },
+      JPN: { id: 'JPN', name: 'Japan', flag: 'JP' },
+    },
+    groups: [{ id: 'A', teams: ['NED', 'MOR', 'BRA', 'JPN'] }],
+    groupMatches: [
+      {
+        id: 'gm1',
+        group: 'A',
+        matchday: 1,
+        date: '2026-06-30',
+        kickoff: '2026-06-30T01:00Z',
+        home: 'NED',
+        away: 'MOR',
+      },
+      {
+        id: 'gm2',
+        group: 'A',
+        matchday: 1,
+        date: '2026-06-30',
+        kickoff: '2026-06-30T17:00Z',
+        home: 'BRA',
+        away: 'JPN',
+      },
+    ],
+    knockoutRounds: [],
+  }
+}
+
+const tournament = makeTournament()
+
+const liveEvent = {
+  date: '2026-06-30T01:00Z',
+  competitions: [
+    {
+      competitors: [
+        { homeAway: 'home', team: { id: '1', displayName: 'Netherlands' } },
+        { homeAway: 'away', team: { id: '2', displayName: 'Morocco' } },
+      ],
+      status: { type: { completed: false, detail: "48'", shortDetail: "48'", state: 'in' } },
+    },
+  ],
+} as EspnEvent
+
+const parsedLive = parseEvent(tournament, liveEvent)
+assert(parsedLive?.liveStatus?.kind === 'live', 'ESPN in-progress state maps to live')
+
+const delayedEvent = {
+  date: '2026-06-30T17:00Z',
+  competitions: [
+    {
+      competitors: [
+        { homeAway: 'home', team: { id: '3', displayName: 'Brazil' } },
+        { homeAway: 'away', team: { id: '4', displayName: 'Japan' } },
+      ],
+      status: {
+        type: { completed: false, detail: 'Delayed', shortDetail: 'Delayed', state: 'pre' },
+      },
+    },
+  ],
+} as EspnEvent
+
+const parsedDelayed = parseEvent(tournament, delayedEvent)
+assert(parsedDelayed?.liveStatus?.kind === 'delayed', 'delayed feed detail maps to delayed')
+
+const sourceText = `
+export const tournament = {
+  groupMatches: [
+    { id: 'gm1', group: 'A', matchday: 1, date: '2026-06-30', kickoff: '2026-06-30T01:00Z', home: 'NED', away: 'MOR' },
+    { id: 'gm2', group: 'A', matchday: 1, date: '2026-06-30', kickoff: '2026-06-30T17:00Z', home: 'BRA', away: 'JPN' },
+  ],
+}
+`
+
+const applied = applyParsedStatuses({
+  sourceText,
+  events: [
+    { day: '20260630', matchId: 'missing', liveStatus: { kind: 'live' } as MatchLiveStatus },
+    { day: '20260630', matchId: 'gm2', liveStatus: { kind: 'delayed' } as MatchLiveStatus },
+  ] satisfies ParsedLiveStatusEvent[],
+})
+
+assert(applied.updatedIds.includes('gm2'), 'a later clean status still applies after an earlier failure')
+assert(
+  applied.audit.some((entry) => entry.code === 'live_status_apply_failed' && entry.matchId === 'missing'),
+  'per-match live-status apply failure becomes a spoiler-free audit entry',
+)
+assert(
+  applied.sourceText.includes(`liveStatus: { kind: 'delayed' }`),
+  'successful live-status writes update source text',
+)
+
+const summary = summarizeLiveStatusAudit(applied.audit)
+assert(summary.includes('live_status_apply_failed'), 'audit summary includes spoiler-free error codes')
+
+const cleared = applyParsedStatuses({
+  sourceText: applied.sourceText,
+  events: [{ day: '20260630', matchId: 'gm2', liveStatus: undefined }],
+})
+assert(
+  !cleared.sourceText.includes(`liveStatus: { kind: 'delayed' }`),
+  'non-live source events clear stale live status',
+)
+
+console.log('ALL LIVE STATUS TESTS PASS')

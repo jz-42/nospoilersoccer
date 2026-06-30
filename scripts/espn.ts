@@ -2,7 +2,7 @@
  * Shared helpers for ESPN's public World Cup scoreboard API — used by the
  * one-off backfill (scripts/backfill-espn.ts) and the daily results updater.
  */
-import type { Goal, Tournament } from '../src/data/types'
+import type { Goal, MatchLiveStatus, Tournament } from '../src/data/types'
 
 const BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard'
 
@@ -39,7 +39,7 @@ export interface EspnEvent {
       winner?: boolean
       team: { id: string; displayName: string }
     }[]
-    status: { type: { completed: boolean; detail: string } }
+    status: { type: { completed: boolean; detail: string; shortDetail?: string; state?: string } }
     details?: EspnGoalDetail[]
   }[]
 }
@@ -65,9 +65,16 @@ export interface ParsedEvent {
   kickoff: string
   completed: boolean
   afterExtraTime: boolean
+  liveStatus?: MatchLiveStatus
   score?: { home: number; away: number }
   penalties?: { home: number; away: number }
   goals?: Goal[]
+}
+
+function parseLiveStatus(detail: string, state?: string): MatchLiveStatus | undefined {
+  if (state === 'in') return { kind: 'live' }
+  if (/delay|suspend|postpone/i.test(detail)) return { kind: 'delayed' }
+  return undefined
 }
 
 /**
@@ -92,6 +99,8 @@ export function parseEvent(t: Tournament, ev: EspnEvent): ParsedEvent | null {
     completed,
     afterExtraTime: /AET|pen/i.test(comp.status.type.detail),
   }
+  const liveStatus = parseLiveStatus(comp.status.type.detail, comp.status.type.state)
+  if (liveStatus) out.liveStatus = liveStatus
   if (!completed) return out
 
   const score = { home: Number(home.score ?? 0), away: Number(away.score ?? 0) }
