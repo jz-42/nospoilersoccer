@@ -384,6 +384,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m75": {
+    entertainmentSummary: "Tense and emotionally charged, it seemed to carry a strong big-match atmosphere rather than feeling routine. The reaction suggests an engaging watch overall, even if the entertainment may have come as much from the occasion and uncertainty as from constant flow.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m76": {
     entertainmentSummary: "It sounds lively and tense, with a high-stakes feel that made it seem well above routine. The reaction suggests sustained uncertainty and an engaging atmosphere rather than a flat or cagey contest.",
     entertainmentRating: 5,
