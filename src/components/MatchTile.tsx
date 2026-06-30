@@ -7,8 +7,9 @@
  */
 import type { GroupMatch, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
+import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
-import { matchState } from './status'
+import { matchLiveStatus, matchState } from './status'
 import { KickoffTime } from './KickoffTime'
 
 export function MatchTile({
@@ -23,6 +24,7 @@ export function MatchTile({
   onOpen: (target: ModalTarget) => void
 }) {
   const state = matchState(t, { kind: 'group', match: m }, progress)
+  const liveStatus = matchLiveStatus({ kind: 'group', match: m }, progress)
   const home = t.teams[m.home]
   const away = t.teams[m.away]
   const mark = progress.marks[m.id]
@@ -34,7 +36,9 @@ export function MatchTile({
     (progress.favorites.includes(m.home) || progress.favorites.includes(m.away))
 
   const badge =
-    state === 'seen' && m.score ? (
+    liveStatus ? (
+      <LiveStatusBadge status={liveStatus} className="tile-badge" />
+    ) : state === 'seen' && m.score ? (
       <span className="tile-badge badge-seen">
         {m.score.home}–{m.score.away} <span className="tile-badge-check">✓</span>
       </span>
@@ -55,7 +59,7 @@ export function MatchTile({
       <span className="tile-thumb" aria-hidden="true">
         <span className="tile-thumb-flag">{home.flag}</span>
         <span className="tile-thumb-flag">{away.flag}</span>
-        {state === 'watch' && (
+        {!liveStatus && state === 'watch' && (
           <span className="tile-play">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor">
               <path d="M8 5.5v13l11-6.5z" />

@@ -8,8 +8,9 @@ import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
 import { FlowLayer } from './FlowLayer'
 import type { FeedLink } from './FlowLayer'
+import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
-import { matchState } from './status'
+import { matchLiveStatus, matchState } from './status'
 import { formatMatchDate } from './format'
 import { KickoffTime } from './KickoffTime'
 
@@ -176,7 +177,9 @@ function KnockoutCard({
   feedKeys?: { home: string; away: string }
   activeTone?: ReadonlyMap<string, HiTone>
 }) {
-  const state = matchState(t, { kind: 'knockout', match: m, roundName }, progress)
+  const target = { kind: 'knockout', match: m, roundName } as const
+  const state = matchState(t, target, progress)
+  const liveStatus = matchLiveStatus(target, progress)
   const pinned = progress.pins.has(m.id)
   const homeR = resolveSlot(t, m, 'home', progress.marks, progress.revealed)
   const awayR = resolveSlot(t, m, 'away', progress.marks, progress.revealed)
@@ -186,7 +189,9 @@ function KnockoutCard({
       (awayR !== null && progress.favorites.includes(awayR)))
 
   const status =
-    state === 'watch' ? (
+    liveStatus ? (
+      <LiveStatusBadge status={liveStatus} className="ko-pill" />
+    ) : state === 'watch' ? (
       <span className="ko-pill pill-watch">
         <svg viewBox="0 0 24 24" width="8" height="8" fill="currentColor" aria-hidden="true">
           <path d="M8 5.5v13l11-6.5z" />

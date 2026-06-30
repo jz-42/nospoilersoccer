@@ -8,7 +8,7 @@
  *   upcoming — kickoff is in the future
  *   locked   — played, but the games that decide this matchup are still unseen
  */
-import type { Tournament } from '../data/types'
+import type { MatchLiveStatus, Tournament } from '../data/types'
 import { isPlayed, knockoutReady } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
@@ -26,4 +26,11 @@ export function matchState(t: Tournament, target: ModalTarget, progress: Progres
     return 'locked'
   }
   return m.videos?.length ? 'watch' : 'ft'
+}
+
+export function matchLiveStatus(target: ModalTarget, progress: Progress): MatchLiveStatus | undefined {
+  const m = target.match
+  if (progress.marks[m.id] !== undefined) return undefined
+  if (m.score !== undefined) return undefined
+  return m.liveStatus
 }

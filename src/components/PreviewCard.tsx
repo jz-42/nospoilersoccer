@@ -9,8 +9,9 @@ import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
 import { resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
+import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
-import { matchState } from './status'
+import { matchLiveStatus, matchState } from './status'
 import { formatDate, formatRuntimeBadge } from './format'
 import { KickoffTime } from './KickoffTime'
 
@@ -35,6 +36,7 @@ export function PreviewCard({
   const { target } = entry
   const m = target.match
   const state = matchState(t, target, progress)
+  const liveStatus = matchLiveStatus(target, progress)
 
   let homeLabel: string
   let awayLabel: string
@@ -61,7 +63,9 @@ export function PreviewCard({
   }
 
   const badge =
-    state === 'watch' || state === 'ft'
+    liveStatus ? (
+      <LiveStatusBadge status={liveStatus} className="preview-badge" />
+    ) : state === 'watch' || state === 'ft'
       ? 'FT'
       : state === 'upcoming'
         ? (m.kickoff ? <KickoffTime kickoff={m.kickoff} /> : 'Upcoming')
@@ -72,7 +76,11 @@ export function PreviewCard({
   const runtimeBadge = formatRuntimeBadge(m.videos)
 
   const sub =
-    state === 'watch'
+    liveStatus
+      ? liveStatus.kind === 'live'
+        ? 'Live now'
+        : 'Currently delayed'
+      : state === 'watch'
       ? 'Highlights ready'
       : state === 'ft'
         ? 'Result in · highlights soon'
@@ -104,7 +112,9 @@ export function PreviewCard({
     >
       <div className="preview-media">
         <span className="preview-tag">{context}</span>
-        {badge && <span className={`preview-badge badge-${state}`}>{badge}</span>}
+        {liveStatus
+          ? badge
+          : badge && <span className={`preview-badge badge-${state}`}>{badge}</span>}
         {state === 'seen' && (
           <span className="preview-badge badge-seen" aria-label="Watched">
             ✓
@@ -129,14 +139,14 @@ export function PreviewCard({
             <span className="preview-flag preview-flag-tbd">?</span>
           )}
         </div>
-        {state === 'watch' && (
+        {!liveStatus && state === 'watch' && (
           <span className="preview-play" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
               <path d="M8.3 5.5v13l11-6.5z" />
             </svg>
           </span>
         )}
-        {state === 'watch' && runtimeBadge && (
+        {!liveStatus && state === 'watch' && runtimeBadge && (
           <span className="preview-duration">{runtimeBadge}</span>
         )}
         {(pinned || fav) && (

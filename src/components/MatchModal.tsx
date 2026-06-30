@@ -13,9 +13,11 @@ import {
 } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { HighlightPlayer } from './HighlightPlayer'
+import { LiveStatusBadge } from './live-status'
 import { OddsBar } from './OddsBar'
 import { formatMatchDateLong } from './format'
 import { KickoffTime } from './KickoffTime'
+import { matchLiveStatus } from './status'
 
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
@@ -225,6 +227,7 @@ export function MatchModal({
   const played = isPlayed(m)
   const kickedOff = hasKickedOff(m)
   const km = target.kind === 'knockout' ? target.match : null
+  const liveStatus = matchLiveStatus(target, progress)
 
   const homeTeam = km
     ? resolveSlot(t, km, 'home', progress.marks, progress.revealed)
@@ -244,7 +247,7 @@ export function MatchModal({
   const phase: Phase = target.kind === 'group' ? 'group' : knockoutPhase(t, m.id)
   const totalGoals = score ? score.home + score.away : null
   const calendarUrl =
-    !played && m.kickoff
+    !played && !liveStatus && m.kickoff
       ? buildGoogleCalendarUrl({
           title: `${homeNameForAnalytics} vs ${awayNameForAnalytics}`,
           kickoff: m.kickoff,
@@ -362,6 +365,7 @@ export function MatchModal({
                 </>
               )}
             </span>
+            {liveStatus && <LiveStatusBadge status={liveStatus} className="modal-live-status" />}
             {calendarUrl && (
               <a
                 className="modal-calendar-link"
@@ -428,6 +432,12 @@ export function MatchModal({
             ) : (
               <p className="modal-hint">This matchup hasn't been decided yet.</p>
             )
+          ) : liveStatus ? (
+            <p className="modal-hint">
+              {liveStatus.kind === 'live'
+                ? 'This match is live right now. Result stays hidden until it is over.'
+                : 'This match is currently delayed. Result stays hidden until it is over.'}
+            </p>
           ) : !played ? (
             <>
               <p className="modal-hint">This match hasn't been played yet.</p>
