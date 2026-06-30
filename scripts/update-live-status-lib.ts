@@ -188,7 +188,6 @@ export function summarizeLiveStatusAudit(audit: LiveStatusAuditEntry[]): string 
     .map((entry) => {
       const parts = [`- day: ${entry.day}`, `code: ${entry.code}`]
       if (entry.matchId) parts.push(`matchId: ${entry.matchId}`)
-      if (entry.note) parts.push(`note: ${entry.note}`)
       return parts.join(', ')
     })
     .join('\n')

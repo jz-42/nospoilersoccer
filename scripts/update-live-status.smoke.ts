@@ -1,6 +1,6 @@
 import type { MatchLiveStatus, Tournament } from '../src/data/types'
 import { parseEvent, type EspnEvent } from './espn'
-import { mapLiveStatusEventsForDay, resolveLiveStatusMatchId } from './update-live-status'
+import { liveStatusDaysToPoll, mapLiveStatusEventsForDay, resolveLiveStatusMatchId } from './update-live-status'
 import {
   applyParsedStatuses,
   summarizeLiveStatusAudit,
@@ -193,6 +193,7 @@ assert(
 
 const summary = summarizeLiveStatusAudit(applied.audit)
 assert(summary.includes('live_status_apply_failed'), 'audit summary includes spoiler-free error codes')
+assert(!summary.includes('live_status_match_not_found:missing'), 'audit summary does not include raw internal error detail')
 
 const cleared = applyParsedStatuses({
   sourceText: applied.sourceText,
@@ -211,6 +212,15 @@ const shiftedKickoffMatchId = resolveLiveStatusMatchId(tournament, {
 assert(
   shiftedKickoffMatchId === 'gm2',
   'shifted kickoff still resolves to the same match when teams uniquely identify it',
+)
+
+const pollTournament = makeTournament()
+pollTournament.groupMatches[0].date = '2026-06-29'
+pollTournament.groupMatches[0].kickoff = '2026-06-29T01:00Z'
+pollTournament.groupMatches[0].score = { home: 1, away: 0 }
+assert(
+  JSON.stringify(liveStatusDaysToPoll(pollTournament, '2026-06-30')) === JSON.stringify(['20260630']),
+  'poller only includes dates that still have unresolved live-status candidates',
 )
 
 console.log('ALL LIVE STATUS TESTS PASS')

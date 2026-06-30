@@ -81,10 +81,14 @@ export function resolveLiveStatusMatchId(
   return null
 }
 
-function daysToPoll(today: string) {
+export function liveStatusDaysToPoll(tournament: typeof t, today: string) {
   const eligible: Array<GroupMatch | KnockoutMatch> = [
-    ...t.groupMatches.filter((match) => match.date <= today),
-    ...t.knockoutRounds.flatMap((round) => round.matches).filter((match) => match.date <= today),
+    ...tournament.groupMatches.filter(
+      (match) => match.date <= today && (match.score === undefined || match.liveStatus !== undefined),
+    ),
+    ...tournament.knockoutRounds
+      .flatMap((round) => round.matches)
+      .filter((match) => match.date <= today && (match.score === undefined || match.liveStatus !== undefined)),
   ]
   return [...new Set(eligible.map((match) => match.date.replaceAll('-', '')))].sort()
 }
@@ -151,7 +155,7 @@ export async function runUpdateLiveStatus({
   const updated: string[] = []
   const audit: LiveStatusAuditEntry[] = []
 
-  for (const day of daysToPoll(today)) {
+  for (const day of liveStatusDaysToPoll(t, today)) {
     let events
     try {
       events = await fetchDay(day)
@@ -182,7 +186,7 @@ export async function runUpdateLiveStatus({
     const summary = summarizeLiveStatusAudit(audit)
     for (const entry of audit) {
       const id = entry.matchId ?? 'none'
-      console.log(`live-status audit ${entry.day} ${id}: ${entry.code}${entry.note ? ` (${entry.note})` : ''}`)
+      console.log(`live-status audit ${entry.day} ${id}: ${entry.code}`)
     }
     if (liveStatusAuditFile && summary) writeFileSync(liveStatusAuditFile, `${summary}\n`)
   }
