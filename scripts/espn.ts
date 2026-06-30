@@ -2,7 +2,7 @@
  * Shared helpers for ESPN's public World Cup scoreboard API — used by the
  * one-off backfill (scripts/backfill-espn.ts) and the daily results updater.
  */
-import type { Goal, Tournament } from '../src/data/types'
+import type { Goal, MatchLiveStatus, Tournament } from '../src/data/types'
 
 const BASE = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard'
 
@@ -39,7 +39,7 @@ export interface EspnEvent {
       winner?: boolean
       team: { id: string; displayName: string }
     }[]
-    status: { type: { completed: boolean; detail: string } }
+    status: { type: { completed: boolean; detail: string; shortDetail?: string; state?: string } }
     details?: EspnGoalDetail[]
   }[]
 }
@@ -65,9 +65,36 @@ export interface ParsedEvent {
   kickoff: string
   completed: boolean
   afterExtraTime: boolean
+  liveStatusMode: 'set' | 'clear' | 'ignore'
+  liveStatus?: MatchLiveStatus
   score?: { home: number; away: number }
   penalties?: { home: number; away: number }
   goals?: Goal[]
+}
+
+function parseLiveStatus({
+  completed,
+  detail,
+  shortDetail,
+  description,
+  name,
+  state,
+}: {
+  completed: boolean
+  detail: string
+  shortDetail?: string
+  description?: string
+  name?: string
+  state?: string
+}): { mode: ParsedEvent['liveStatusMode']; status?: MatchLiveStatus } {
+  const text = [detail, shortDetail, description, name].filter(Boolean).join(' ')
+
+  if (state === 'in') return { mode: 'set', status: { kind: 'live' } }
+  if (/delay|suspend|postpone/i.test(text)) return { mode: 'set', status: { kind: 'delayed' } }
+  if (completed || state === 'post') return { mode: 'clear' }
+  if (name === 'STATUS_SCHEDULED' || shortDetail === 'Scheduled' || description === 'Scheduled' || detail === 'TBD')
+    return { mode: 'clear' }
+  return { mode: 'ignore' }
 }
 
 /**
@@ -91,7 +118,18 @@ export function parseEvent(t: Tournament, ev: EspnEvent): ParsedEvent | null {
     kickoff: ev.date.replace('+00:00', 'Z'),
     completed,
     afterExtraTime: /AET|pen/i.test(comp.status.type.detail),
+    liveStatusMode: 'ignore',
   }
+  const liveStatus = parseLiveStatus({
+    completed,
+    detail: comp.status.type.detail,
+    shortDetail: comp.status.type.shortDetail,
+    description: (comp.status.type as { description?: string }).description,
+    name: (comp.status.type as { name?: string }).name,
+    state: comp.status.type.state,
+  })
+  out.liveStatusMode = liveStatus.mode
+  if (liveStatus.status) out.liveStatus = liveStatus.status
   if (!completed) return out
 
   const score = { home: Number(home.score ?? 0), away: Number(away.score ?? 0) }

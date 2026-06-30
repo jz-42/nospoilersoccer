@@ -302,6 +302,24 @@ assert(
   'future unrevealed match without odds does not show the odds bar',
 )
 
+const delayed2026: GroupMatch = {
+  ...upcoming2026,
+  liveStatus: { kind: 'delayed' },
+}
+const delayed2026Markup = renderMatch(delayed2026)
+assert(
+  delayed2026Markup.includes('Delayed'),
+  'delayed match modal shows delayed status',
+)
+assert(
+  !delayed2026Markup.includes('0–0'),
+  'delayed match modal does not show a score',
+)
+assert(
+  !delayed2026Markup.includes('This match is currently delayed.'),
+  'delayed match modal does not repeat delayed supporting copy',
+)
+
 const pastKickoffSnapshot2026: GroupMatch = {
   ...upcoming2026,
   kickoff: '2000-06-01T18:00:00Z',

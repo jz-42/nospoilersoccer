@@ -58,6 +58,8 @@ export interface Score {
   away: number
 }
 
+export type MatchLiveStatus = { kind: 'live' } | { kind: 'delayed' }
+
 /**
  * Pre-match win probabilities (0..1), snapshotted at curation time from a
  * prediction market — never fetched live, so a resolved market can't leak a
@@ -93,6 +95,7 @@ export interface GroupMatch {
   kickoff?: string
   home: TeamId
   away: TeamId
+  liveStatus?: MatchLiveStatus
   /** Absent while the match hasn't been played yet (live tournaments). */
   score?: Score
   goals?: Goal[]
@@ -125,6 +128,7 @@ export interface KnockoutMatch {
   kickoff?: string
   home: SlotRef
   away: SlotRef
+  liveStatus?: MatchLiveStatus
   /**
    * The teams that actually filled the slots. Derivable from refs + results,
    * but stored explicitly: best-third resolution isn't derivable from scores
