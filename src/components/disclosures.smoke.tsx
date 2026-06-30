@@ -366,6 +366,28 @@ assert(
   'upcoming knockout calendar link uses a two-and-a-half-hour local-time event window',
 )
 
+const pastKickoffKnockout: KnockoutMatch = {
+  ...upcomingKnockout,
+  kickoff: '2000-07-01T20:00:00Z',
+  odds: { home: 0.46, draw: 0.27, away: 0.27, url: 'https://polymarket.com/event/test-ko-snapshot' },
+}
+const pastKickoffKnockoutMarkup = renderToStaticMarkup(
+  <MatchModal
+    t={wc2026}
+    target={{ kind: 'knockout', match: pastKickoffKnockout, roundName: upcomingKnockoutRound.name }}
+    progress={{ ...emptyProgress, revealed: new Set([pastKickoffKnockout.id]) }}
+    onClose={noop}
+  />,
+)
+assert(
+  pastKickoffKnockoutMarkup.includes('Pre-match odds'),
+  'past-kickoff known knockout still shows snapshotted pre-match odds',
+)
+assert(
+  !pastKickoffKnockoutMarkup.includes('Polymarket'),
+  'past-kickoff known knockout hides the Polymarket source link',
+)
+
 const wc2022 = tournaments.wc2022
 const played2022 = wc2022.groupMatches.find((match) => Boolean(match.score && match.videos?.length))
 if (!played2022) throw new Error('Fixture error: expected a played 2022 match with highlights')

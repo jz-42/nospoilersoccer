@@ -17,10 +17,10 @@ export function OddsBar({
   homeCode: string
   awayCode: string
   /**
-   * Show the clickable Polymarket source link. Hidden once the real match has
-   * finished: by then the market has resolved, so the link would leak the
-   * result to anyone who clicks it before watching. The snapshot numbers stay
-   * (they're spoiler-free) — only the deep-link goes.
+   * Show the clickable Polymarket source link. Hidden from kickoff onward so a
+   * live/resolved market cannot leak the result to anyone who clicks it before
+   * watching. The snapshot numbers stay (they're spoiler-free) — only the
+   * deep-link goes.
    */
   showLink?: boolean
 }) {

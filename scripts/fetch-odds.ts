@@ -16,10 +16,11 @@ import { readFileSync, writeFileSync } from 'fs'
 import { tournaments } from '../src/data'
 import { resolveSlot } from '../src/logic/spoilers'
 import type { GroupMatch, KnockoutMatch, TeamId, Tournament } from '../src/data/types'
+import { fetchGammaEvents } from './polymarket'
 
 const FILE = 'src/data/wc2026.ts'
 const t = tournaments.wc2026
-const ENDPOINT = 'https://gamma-api.polymarket.com/events?tag_slug=fifa-world-cup&limit=500'
+const ENDPOINT = 'https://gamma-api.polymarket.com/events?tag_slug=fifa-world-cup'
 
 interface Market {
   question: string
@@ -75,9 +76,7 @@ const round = (n: number) => Number(n.toFixed(3))
 
 async function fetchEvents(): Promise<GammaEvent[]> {
   // Open markets only — pre-match prices we can safely snapshot.
-  const res = await fetch(`${ENDPOINT}&closed=false`)
-  if (!res.ok) throw new Error(`gamma ${res.status}`)
-  return (await res.json()) as GammaEvent[]
+  return fetchGammaEvents<GammaEvent>(`${ENDPOINT}&closed=false`)
 }
 
 interface Odds {
