@@ -55,6 +55,14 @@ export function validateTournament(t: Tournament): string[] {
     ) {
       err(`match ${m.id}: invalid UTC kickoff ${m.kickoff}`)
     }
+    const liveStatus = m.liveStatus
+    if (
+      liveStatus !== undefined &&
+      liveStatus.kind !== 'live' &&
+      liveStatus.kind !== 'delayed'
+    ) {
+      err(`match ${m.id}: invalid liveStatus ${(liveStatus as { kind: string }).kind}`)
+    }
     const entertainmentRating = m.entertainmentRating
     if ((m.entertainmentSummary ?? null) !== null && entertainmentRating === undefined) {
       err(`match ${m.id}: entertainmentSummary exists without entertainmentRating`)
