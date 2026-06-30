@@ -89,6 +89,57 @@ function daysToPoll(today: string) {
   return [...new Set(eligible.map((match) => match.date.replaceAll('-', '')))].sort()
 }
 
+function statusTypeNote(event: Awaited<ReturnType<typeof fetchDay>>[number]): string {
+  const statusType = event.competitions?.[0]?.status?.type
+  return `${statusType?.state ?? 'unknown'}:${statusType?.detail ?? 'unknown'}`
+}
+
+export function mapLiveStatusEventsForDay(
+  tournament: typeof t,
+  day: string,
+  events: Awaited<ReturnType<typeof fetchDay>>,
+): { events: ParsedLiveStatusEvent[]; audit: LiveStatusAuditEntry[] } {
+  const mapped: ParsedLiveStatusEvent[] = []
+  const audit: LiveStatusAuditEntry[] = []
+
+  for (const event of events) {
+    const parsed = parseEvent(tournament, event)
+    if (!parsed) {
+      audit.push({
+        code: 'live_status_parse_failed',
+        day,
+        note: statusTypeNote(event),
+      })
+      continue
+    }
+    const matchId = resolveLiveStatusMatchId(tournament, parsed)
+    if (!matchId) {
+      audit.push({
+        code: 'live_status_unmapped_match',
+        day,
+        note: `${parsed.homeTeam}-${parsed.awayTeam}@${parsed.kickoff}`,
+      })
+      continue
+    }
+    if (parsed.liveStatusMode === 'ignore') {
+      audit.push({
+        code: 'live_status_unmapped_match',
+        day,
+        matchId,
+        note: `unrecognized_status:${statusTypeNote(event)}`,
+      })
+      continue
+    }
+    if (parsed.liveStatusMode === 'clear') {
+      mapped.push({ day, matchId, action: 'clear' })
+      continue
+    }
+    mapped.push({ day, matchId, action: 'set', liveStatus: parsed.liveStatus! })
+  }
+
+  return { events: mapped, audit }
+}
+
 export async function runUpdateLiveStatus({
   today = new Date().toISOString().slice(0, 10),
   liveStatusAuditFile = process.env.LIVE_STATUS_AUDIT_FILE,
@@ -110,39 +161,11 @@ export async function runUpdateLiveStatus({
       continue
     }
 
-    const mapped: ParsedLiveStatusEvent[] = []
-    for (const event of events) {
-      const parsed = parseEvent(t, event)
-      if (!parsed) continue
-      const matchId = resolveLiveStatusMatchId(t, parsed)
-      if (!matchId) {
-        audit.push({
-          code: 'live_status_unmapped_match',
-          day,
-          note: `${parsed.homeTeam}-${parsed.awayTeam}@${parsed.kickoff}`,
-        })
-        continue
-      }
-      if (parsed.liveStatusMode === 'ignore') {
-        const statusType = event.competitions?.[0]?.status?.type
-        audit.push({
-          code: 'live_status_unmapped_match',
-          day,
-          matchId,
-          note: `unrecognized_status:${statusType?.state ?? 'unknown'}:${statusType?.detail ?? 'unknown'}`,
-        })
-        continue
-      }
-      if (parsed.liveStatusMode === 'clear') {
-        mapped.push({ day, matchId, action: 'clear' })
-        continue
-      }
-      mapped.push({ day, matchId, action: 'set', liveStatus: parsed.liveStatus! })
-    }
-
-    const applied = applyParsedStatuses({ sourceText, events: mapped })
+    const mappedDay = mapLiveStatusEventsForDay(t, day, events)
+    const applied = applyParsedStatuses({ sourceText, events: mappedDay.events })
     sourceText = applied.sourceText
     updated.push(...applied.updatedIds)
+    audit.push(...mappedDay.audit)
     audit.push(...applied.audit)
     await new Promise((resolve) => setTimeout(resolve, 200))
   }

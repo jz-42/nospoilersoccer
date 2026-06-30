@@ -4,6 +4,7 @@ export interface LiveStatusAuditEntry {
   code:
     | 'live_status_apply_failed'
     | 'live_status_unmapped_match'
+    | 'live_status_parse_failed'
     | 'live_status_fetch_failed'
   day: string
   matchId?: string

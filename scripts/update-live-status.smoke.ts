@@ -1,6 +1,6 @@
 import type { MatchLiveStatus, Tournament } from '../src/data/types'
 import { parseEvent, type EspnEvent } from './espn'
-import { resolveLiveStatusMatchId } from './update-live-status'
+import { mapLiveStatusEventsForDay, resolveLiveStatusMatchId } from './update-live-status'
 import {
   applyParsedStatuses,
   summarizeLiveStatusAudit,
@@ -136,6 +136,33 @@ const unknownEvent = {
 
 const parsedUnknown = parseEvent(tournament, unknownEvent)
 assert(parsedUnknown?.liveStatusMode === 'ignore', 'unknown feed state leaves live status unchanged')
+
+const aliasFailureEvent = {
+  date: '2026-06-30T17:00Z',
+  competitions: [
+    {
+      competitors: [
+        { homeAway: 'home', team: { id: '3', displayName: 'Brasil' } },
+        { homeAway: 'away', team: { id: '4', displayName: 'Japan' } },
+      ],
+      status: {
+        type: {
+          completed: false,
+          detail: 'Delayed',
+          shortDetail: 'Delayed',
+          state: 'pre',
+        },
+      },
+    },
+  ],
+} as EspnEvent
+
+const mappedDay = mapLiveStatusEventsForDay(tournament, '20260630', [aliasFailureEvent])
+assert(
+  mappedDay.audit.some((entry) => entry.code === 'live_status_parse_failed'),
+  'parse failures become spoiler-free audit entries',
+)
+assert(mappedDay.events.length === 0, 'parse failures do not produce mapped live-status updates')
 
 const sourceText = `
 export const tournament = {
