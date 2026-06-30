@@ -77,9 +77,7 @@ export function PreviewCard({
 
   const sub =
     liveStatus
-      ? liveStatus.kind === 'live'
-        ? 'Live now'
-        : 'Currently delayed'
+      ? null
       : state === 'watch'
       ? 'Highlights ready'
       : state === 'ft'
@@ -159,10 +157,12 @@ export function PreviewCard({
         <span className="preview-teams">
           {homeLabel} <span className="preview-vs-text">v</span> {awayLabel}
         </span>
-        <span className="preview-sub">
-          {showDate ? `${formatDate(entry.date)} · ` : ''}
-          {sub}
-        </span>
+        {sub && (
+          <span className="preview-sub">
+            {showDate ? `${formatDate(entry.date)} · ` : ''}
+            {sub}
+          </span>
+        )}
       </div>
     </button>
   )

@@ -12,26 +12,73 @@ import {
 const FILE = 'src/data/wc2026.ts'
 const t = tournaments.wc2026
 
-function matchLookupKey(kickoff: string | undefined, home: string | undefined, away: string | undefined): string | null {
-  if (!kickoff || !home || !away) return null
-  return `${kickoff}|${home}|${away}`
+interface LiveStatusMatchCandidate {
+  id: string
+  date: string
+  kickoff?: string
+  homeTeam: string
+  awayTeam: string
+  played: boolean
 }
 
-function buildMatchLookup() {
-  const lookup = new Map<string, string>()
+function buildLiveStatusCandidates(tournament = t): LiveStatusMatchCandidate[] {
+  const candidates: LiveStatusMatchCandidate[] = []
 
-  for (const match of t.groupMatches) {
-    const key = matchLookupKey(match.kickoff, match.home, match.away)
-    if (key) lookup.set(key, match.id)
+  for (const match of tournament.groupMatches) {
+    candidates.push({
+      id: match.id,
+      date: match.date,
+      kickoff: match.kickoff,
+      homeTeam: match.home,
+      awayTeam: match.away,
+      played: match.score !== undefined,
+    })
   }
-  for (const round of t.knockoutRounds) {
+  for (const round of tournament.knockoutRounds) {
     for (const match of round.matches) {
-      const key = matchLookupKey(match.kickoff, match.homeTeam, match.awayTeam)
-      if (key) lookup.set(key, match.id)
+      if (!match.homeTeam || !match.awayTeam) continue
+      candidates.push({
+        id: match.id,
+        date: match.date,
+        kickoff: match.kickoff,
+        homeTeam: match.homeTeam,
+        awayTeam: match.awayTeam,
+        played: match.score !== undefined,
+      })
     }
   }
 
-  return lookup
+  return candidates
+}
+
+function matchInstant(candidate: LiveStatusMatchCandidate): number {
+  return candidate.kickoff
+    ? new Date(candidate.kickoff).getTime()
+    : new Date(`${candidate.date}T12:00:00Z`).getTime()
+}
+
+export function resolveLiveStatusMatchId(
+  tournament: typeof t,
+  parsed: { homeTeam: string; awayTeam: string; kickoff: string },
+): string | null {
+  const candidates = buildLiveStatusCandidates(tournament).filter(
+    (candidate) => candidate.homeTeam === parsed.homeTeam && candidate.awayTeam === parsed.awayTeam,
+  )
+  if (candidates.length === 0) return null
+  if (candidates.length === 1) return candidates[0].id
+
+  const unplayed = candidates.filter((candidate) => !candidate.played)
+  if (unplayed.length === 1) return unplayed[0].id
+
+  const ranked = (unplayed.length > 0 ? unplayed : candidates)
+    .map((candidate) => ({
+      candidate,
+      distance: Math.abs(matchInstant(candidate) - new Date(parsed.kickoff).getTime()),
+    }))
+    .sort((a, b) => a.distance - b.distance)
+  if (ranked.length === 1) return ranked[0].candidate.id
+  if (ranked[0].distance !== ranked[1].distance) return ranked[0].candidate.id
+  return null
 }
 
 function daysToPoll(today: string) {
@@ -52,7 +99,6 @@ export async function runUpdateLiveStatus({
   let sourceText = readFileSync(FILE, 'utf8')
   const updated: string[] = []
   const audit: LiveStatusAuditEntry[] = []
-  const lookup = buildMatchLookup()
 
   for (const day of daysToPoll(today)) {
     let events
@@ -68,8 +114,7 @@ export async function runUpdateLiveStatus({
     for (const event of events) {
       const parsed = parseEvent(t, event)
       if (!parsed) continue
-      const key = matchLookupKey(parsed.kickoff, parsed.homeTeam, parsed.awayTeam)
-      const matchId = key ? lookup.get(key) : undefined
+      const matchId = resolveLiveStatusMatchId(t, parsed)
       if (!matchId) {
         audit.push({
           code: 'live_status_unmapped_match',
@@ -78,7 +123,21 @@ export async function runUpdateLiveStatus({
         })
         continue
       }
-      mapped.push({ day, matchId, liveStatus: parsed.liveStatus })
+      if (parsed.liveStatusMode === 'ignore') {
+        const statusType = event.competitions?.[0]?.status?.type
+        audit.push({
+          code: 'live_status_unmapped_match',
+          day,
+          matchId,
+          note: `unrecognized_status:${statusType?.state ?? 'unknown'}:${statusType?.detail ?? 'unknown'}`,
+        })
+        continue
+      }
+      if (parsed.liveStatusMode === 'clear') {
+        mapped.push({ day, matchId, action: 'clear' })
+        continue
+      }
+      mapped.push({ day, matchId, action: 'set', liveStatus: parsed.liveStatus! })
     }
 
     const applied = applyParsedStatuses({ sourceText, events: mapped })

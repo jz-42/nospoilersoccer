@@ -432,13 +432,7 @@ export function MatchModal({
             ) : (
               <p className="modal-hint">This matchup hasn't been decided yet.</p>
             )
-          ) : liveStatus ? (
-            <p className="modal-hint">
-              {liveStatus.kind === 'live'
-                ? 'This match is live right now. Result stays hidden until it is over.'
-                : 'This match is currently delayed. Result stays hidden until it is over.'}
-            </p>
-          ) : !played ? (
+          ) : liveStatus ? null : !played ? (
             <>
               <p className="modal-hint">This match hasn't been played yet.</p>
             </>

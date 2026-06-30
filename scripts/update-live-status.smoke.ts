@@ -1,5 +1,6 @@
 import type { MatchLiveStatus, Tournament } from '../src/data/types'
 import { parseEvent, type EspnEvent } from './espn'
+import { resolveLiveStatusMatchId } from './update-live-status'
 import {
   applyParsedStatuses,
   summarizeLiveStatusAudit,
@@ -64,7 +65,10 @@ const liveEvent = {
 } as EspnEvent
 
 const parsedLive = parseEvent(tournament, liveEvent)
-assert(parsedLive?.liveStatus?.kind === 'live', 'ESPN in-progress state maps to live')
+assert(
+  parsedLive?.liveStatusMode === 'set' && parsedLive.liveStatus?.kind === 'live',
+  'ESPN in-progress state maps to live',
+)
 
 const delayedEvent = {
   date: '2026-06-30T17:00Z',
@@ -82,7 +86,56 @@ const delayedEvent = {
 } as EspnEvent
 
 const parsedDelayed = parseEvent(tournament, delayedEvent)
-assert(parsedDelayed?.liveStatus?.kind === 'delayed', 'delayed feed detail maps to delayed')
+assert(
+  parsedDelayed?.liveStatusMode === 'set' && parsedDelayed.liveStatus?.kind === 'delayed',
+  'delayed feed detail maps to delayed',
+)
+
+const scheduledEvent = {
+  date: '2026-06-30T17:00Z',
+  competitions: [
+    {
+      competitors: [
+        { homeAway: 'home', team: { id: '3', displayName: 'Brazil' } },
+        { homeAway: 'away', team: { id: '4', displayName: 'Japan' } },
+      ],
+      status: {
+        type: {
+          completed: false,
+          detail: 'Tue, June 30th at 1:00 PM EDT',
+          shortDetail: 'Scheduled',
+          state: 'pre',
+        },
+      },
+    },
+  ],
+} as EspnEvent
+
+const parsedScheduled = parseEvent(tournament, scheduledEvent)
+assert(parsedScheduled?.liveStatusMode === 'clear', 'scheduled feed state clears stale live status')
+
+const unknownEvent = {
+  date: '2026-06-30T17:00Z',
+  competitions: [
+    {
+      competitors: [
+        { homeAway: 'home', team: { id: '3', displayName: 'Brazil' } },
+        { homeAway: 'away', team: { id: '4', displayName: 'Japan' } },
+      ],
+      status: {
+        type: {
+          completed: false,
+          detail: 'Awaiting Match Status',
+          shortDetail: 'Status',
+          state: 'mystery',
+        },
+      },
+    },
+  ],
+} as EspnEvent
+
+const parsedUnknown = parseEvent(tournament, unknownEvent)
+assert(parsedUnknown?.liveStatusMode === 'ignore', 'unknown feed state leaves live status unchanged')
 
 const sourceText = `
 export const tournament = {
@@ -96,8 +149,8 @@ export const tournament = {
 const applied = applyParsedStatuses({
   sourceText,
   events: [
-    { day: '20260630', matchId: 'missing', liveStatus: { kind: 'live' } as MatchLiveStatus },
-    { day: '20260630', matchId: 'gm2', liveStatus: { kind: 'delayed' } as MatchLiveStatus },
+    { day: '20260630', matchId: 'missing', action: 'set', liveStatus: { kind: 'live' } as MatchLiveStatus },
+    { day: '20260630', matchId: 'gm2', action: 'set', liveStatus: { kind: 'delayed' } as MatchLiveStatus },
   ] satisfies ParsedLiveStatusEvent[],
 })
 
@@ -116,11 +169,21 @@ assert(summary.includes('live_status_apply_failed'), 'audit summary includes spo
 
 const cleared = applyParsedStatuses({
   sourceText: applied.sourceText,
-  events: [{ day: '20260630', matchId: 'gm2', liveStatus: undefined }],
+  events: [{ day: '20260630', matchId: 'gm2', action: 'clear' }],
 })
 assert(
   !cleared.sourceText.includes(`liveStatus: { kind: 'delayed' }`),
-  'non-live source events clear stale live status',
+  'clear actions remove stale live status',
+)
+
+const shiftedKickoffMatchId = resolveLiveStatusMatchId(tournament, {
+  homeTeam: 'BRA',
+  awayTeam: 'JPN',
+  kickoff: '2026-07-01T02:10Z',
+})
+assert(
+  shiftedKickoffMatchId === 'gm2',
+  'shifted kickoff still resolves to the same match when teams uniquely identify it',
 )
 
 console.log('ALL LIVE STATUS TESTS PASS')

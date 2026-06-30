@@ -95,7 +95,8 @@ const previewMarkup = renderToStaticMarkup(
   }),
 )
 assert(previewMarkup.includes('Live'), 'live preview card shows Live badge')
-assert(!previewMarkup.includes('Highlights ready'), 'live preview card does not reuse watch copy')
+assert(!previewMarkup.includes('Not played yet'), 'live preview card does not keep upcoming supporting copy')
+assert(!previewMarkup.includes('Live now'), 'live preview card does not add live supporting copy')
 
 const liveBracketTournament = structuredClone(wc2026)
 const liveBracketMatch = liveBracketTournament.knockoutRounds

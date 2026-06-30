@@ -13,6 +13,7 @@ export interface LiveStatusAuditEntry {
 export interface ParsedLiveStatusEvent {
   day: string
   matchId: string
+  action: 'set' | 'clear'
   liveStatus?: MatchLiveStatus
 }
 
@@ -123,7 +124,7 @@ function existingLiveStatusKind(objectText: string): MatchLiveStatus['kind'] | n
 function applyLiveStatusToMatch(
   sourceText: string,
   matchId: string,
-  liveStatus?: MatchLiveStatus,
+  event: ParsedLiveStatusEvent,
 ): { sourceText: string; changed: boolean } {
   const idIdx = sourceText.indexOf(`id: '${matchId}',`)
   if (idIdx === -1) throw new Error(`live_status_match_not_found:${matchId}`)
@@ -133,12 +134,13 @@ function applyLiveStatusToMatch(
   if (!span) throw new Error(`live_status_match_close_not_found:${matchId}`)
 
   const currentKind = existingLiveStatusKind(span.text)
-  if (currentKind === (liveStatus?.kind ?? null)) {
+  const nextKind = event.action === 'set' ? event.liveStatus!.kind : null
+  if (currentKind === nextKind) {
     return { sourceText, changed: false }
   }
 
   const existing = splitTopLevelProperties(span.text).filter((prop) => propertyName(prop) !== 'liveStatus')
-  const updated = liveStatus ? insertLiveStatusProperty(existing, liveStatus) : existing
+  const updated = event.action === 'set' ? insertLiveStatusProperty(existing, event.liveStatus!) : existing
   const lineStart = sourceText.lastIndexOf('\n', start) + 1
   const outerIndent = sourceText.slice(lineStart, start)
   const replacement = renderObject(updated, !span.text.includes('\n'), outerIndent)
@@ -162,7 +164,7 @@ export function applyParsedStatuses({
 
   for (const event of events) {
     try {
-      const applied = applyLiveStatusToMatch(nextSource, event.matchId, event.liveStatus)
+      const applied = applyLiveStatusToMatch(nextSource, event.matchId, event)
       nextSource = applied.sourceText
       if (applied.changed) updatedIds.push(event.matchId)
     } catch (error) {
