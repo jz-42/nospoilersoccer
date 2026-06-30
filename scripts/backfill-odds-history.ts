@@ -14,10 +14,11 @@ import { readFileSync, writeFileSync } from 'fs'
 import { tournaments } from '../src/data'
 import { resolveSlot } from '../src/logic/spoilers'
 import type { GroupMatch, KnockoutMatch, TeamId, Tournament } from '../src/data/types'
+import { fetchGammaEvents } from './polymarket'
 
 const FILE = 'src/data/wc2026.ts'
 const t = tournaments.wc2026
-const GAMMA = 'https://gamma-api.polymarket.com/events?tag_slug=fifa-world-cup&closed=true&limit=500'
+const GAMMA = 'https://gamma-api.polymarket.com/events?tag_slug=fifa-world-cup&closed=true'
 const CLOB = 'https://clob.polymarket.com/prices-history'
 
 interface Market {
@@ -306,7 +307,7 @@ export async function recoverHistoricalOddsSource(
 }
 
 export async function main() {
-  const events = (await (await fetch(GAMMA)).json()) as GammaEvent[]
+  const events = await fetchGammaEvents<GammaEvent>(GAMMA)
   const sourceText = readFileSync(FILE, 'utf8')
   const fixtures = eligibleHistoricalOddsFixtures(t)
   const recovered = await recoverHistoricalOddsSource(
