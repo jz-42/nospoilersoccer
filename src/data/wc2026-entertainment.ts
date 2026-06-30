@@ -394,6 +394,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m77": {
+    entertainmentSummary: "Fairly lively and polished rather than cagey, with enough rhythm to sound more engaging than routine. It does not seem to have been especially tense for long stretches, but the overall feel appears brisk and watchable.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m78": {
     entertainmentSummary: "Tense and fairly lively, with enough edge and uncertainty to seem more engaging than a routine watch. It sounds like it was not relentlessly open, but the atmosphere and stakes gave it a strong sense of drama.",
     entertainmentRating: 4,
