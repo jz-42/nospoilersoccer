@@ -7,8 +7,8 @@ app's spoiler rules.
 
 This design covers:
 
-- source-driven `LIVE`
-- source-driven `DELAYED`
+- source-driven `Live`
+- source-driven `Delayed`
 - spoiler-safe UI treatment
 - GitHub Action isolation and failure behavior
 
@@ -21,8 +21,8 @@ finished (`FT`), and upcoming kickoff time. Those states remain the same.
 
 Live match state is a separate overlay derived from the upstream sports feed:
 
-- show `LIVE` only when the source explicitly marks the event in progress
-- show `DELAYED` only when the source explicitly marks the event delayed or
+- show `Live` only when the source explicitly marks the event in progress
+- show `Delayed` only when the source explicitly marks the event delayed or
   otherwise paused after expected start
 - do not infer live state from elapsed time since kickoff
 - do not show any score before the user reveals the result after the match is
@@ -33,12 +33,12 @@ live-status data unchanged rather than guessing.
 
 ## UI Intent
 
-`LIVE` and `DELAYED` are status badges, not score surrogates.
+`Live` and `Delayed` are status badges, not score surrogates.
 
 The intended rendering is:
 
-- `LIVE` in all caps with a blinking green dot directly beside the text
-- `DELAYED` in all caps with a caution-colored indicator directly beside the
+- `Live` in title case with a blinking green dot directly beside the text
+- `Delayed` in title case with a caution-colored indicator directly beside the
   text
 - badge shown on match thumbnails and in the match modal
 - existing `FT` or kickoff badges suppressed while a live-status badge is

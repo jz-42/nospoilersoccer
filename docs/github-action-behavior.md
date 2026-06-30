@@ -20,8 +20,8 @@ data files.
 ## Source-of-Truth Rules
 
 - Match status must be source-driven, not inferred from kickoff time.
-- `LIVE` means the upstream feed explicitly says the match is in progress.
-- `DELAYED` means the upstream feed explicitly says the match is delayed,
+- `Live` means the upstream feed explicitly says the match is in progress.
+- `Delayed` means the upstream feed explicitly says the match is delayed,
   suspended, postponed, or otherwise not actively being played after it was
   expected to start.
 - If the feed does not clearly indicate an in-progress or delay state, the
@@ -31,16 +31,16 @@ data files.
 
 - Status updates must never reveal the score.
 - Before a user reveals a result, the UI may show only spoiler-safe state such
-  as `LIVE` or `DELAYED`.
-- While a match is `LIVE` or `DELAYED`, that status should override the normal
+  as `Live` or `Delayed`.
+- While a match is `Live` or `Delayed`, that status should override the normal
   unrevealed badge treatment for that surface.
 - Existing reveal-result rules remain unchanged.
 
 ## UI Contract For Live Status
 
-- `LIVE` renders as an all-caps label with a blinking green dot directly beside
-  the text.
-- `DELAYED` renders as an all-caps label with a non-green caution indicator
+- `Live` renders as a title-case label with a blinking green dot directly
+  beside the text.
+- `Delayed` renders as a title-case label with a non-green caution indicator
   directly beside the text.
 - The live-status badge appears on match thumbnails and in the match modal.
 - No score is shown anywhere until the match is over and the user reveals the
