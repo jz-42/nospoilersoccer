@@ -2493,84 +2493,89 @@
   }
 }
 
-/* Pre-match odds as one labeled probability bar (home | draw | away),
-   neutral slate with the likeliest outcome lifted. */
+/* Pre-match odds as one quiet probability bar (home | draw | away). No card
+   chrome — sits inline so the team block stays the visual hero; only the
+   favourite segment + key are lifted. */
 .oddsbar {
-  margin: -6px 0 18px;
-  padding: 9px 11px 8px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: rgba(154, 173, 203, 0.03);
+  margin: -2px 2px 18px;
 }
 
 .oddsbar-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .oddsbar-label {
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   color: var(--muted);
+  opacity: 0.75;
 }
 
 .oddsbar-src {
   font-size: 10px;
   color: var(--muted);
   text-decoration: none;
-  transition: color 0.15s;
+  opacity: 0.6;
+  transition: opacity 0.15s, color 0.15s;
 }
 
 .oddsbar-src:hover {
   color: var(--text-h);
+  opacity: 1;
 }
 
 .oddsbar-track {
   display: flex;
-  gap: 3px;
-  height: 7px;
+  gap: 2px;
+  height: 4px;
 }
 
 .oddsbar-seg {
-  border-radius: 3px;
-  background: rgba(154, 173, 203, 0.5);
+  border-radius: 2px;
+  background: rgba(154, 173, 203, 0.22);
   min-width: 3px;
   transition: background 0.15s;
 }
 
 .oddsbar-draw {
-  background: rgba(154, 173, 203, 0.2);
+  background: rgba(154, 173, 203, 0.14);
 }
 
 /* The likeliest outcome — the one quietly bright segment. */
 .oddsbar-seg.is-fav {
-  background: var(--text-h);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .oddsbar-keys {
   display: flex;
   justify-content: space-between;
-  margin-top: 7px;
-  font-size: 10.5px;
+  margin-top: 6px;
+  font-size: 10px;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
+  opacity: 0.85;
 }
 
 .oddsbar-key b {
-  font-weight: 700;
-  color: var(--text);
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .oddsbar-key-mid {
   text-align: center;
 }
 
-.oddsbar-key.is-fav,
+.oddsbar-key.is-fav {
+  color: var(--text);
+}
+
 .oddsbar-key.is-fav b {
+  font-weight: 700;
   color: var(--text-h);
 }
 
@@ -3416,8 +3421,7 @@
   }
 
   .oddsbar {
-    padding: 5px 9px;
-    margin: -4px 0 14px;
+    margin: -2px 2px 14px;
   }
 
   .oddsbar-label {
@@ -3433,11 +3437,11 @@
   }
 
   .oddsbar-track {
-    height: 5px;
+    height: 3px;
   }
 
   .oddsbar-keys {
-    font-size: 10px;
+    font-size: 9.5px;
     margin-top: 5px;
   }
 
