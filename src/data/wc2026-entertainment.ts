@@ -409,4 +409,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m80": {
+    entertainmentSummary: "More tense than fluent, with a nervy edge and enough buzz to feel clearly above routine. The quality sounds a bit uneven, but the atmosphere and uncertainty seem to have kept it engaging.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
