@@ -302,6 +302,24 @@ assert(
   'future unrevealed match without odds does not show the odds bar',
 )
 
+const delayed2026: GroupMatch = {
+  ...upcoming2026,
+  liveStatus: { kind: 'delayed' },
+}
+const delayed2026Markup = renderMatch(delayed2026)
+assert(
+  delayed2026Markup.includes('Delayed'),
+  'delayed match modal shows delayed status',
+)
+assert(
+  !delayed2026Markup.includes('0–0'),
+  'delayed match modal does not show a score',
+)
+assert(
+  !delayed2026Markup.includes('This match is currently delayed.'),
+  'delayed match modal does not repeat delayed supporting copy',
+)
+
 const pastKickoffSnapshot2026: GroupMatch = {
   ...upcoming2026,
   kickoff: '2000-06-01T18:00:00Z',
@@ -364,6 +382,28 @@ assert(
 assert(
   upcomingKnockoutMarkup.includes(upcomingKnockoutWindowQuery),
   'upcoming knockout calendar link uses a two-and-a-half-hour local-time event window',
+)
+
+const pastKickoffKnockout: KnockoutMatch = {
+  ...upcomingKnockout,
+  kickoff: '2000-07-01T20:00:00Z',
+  odds: { home: 0.46, draw: 0.27, away: 0.27, url: 'https://polymarket.com/event/test-ko-snapshot' },
+}
+const pastKickoffKnockoutMarkup = renderToStaticMarkup(
+  <MatchModal
+    t={wc2026}
+    target={{ kind: 'knockout', match: pastKickoffKnockout, roundName: upcomingKnockoutRound.name }}
+    progress={{ ...emptyProgress, revealed: new Set([pastKickoffKnockout.id]) }}
+    onClose={noop}
+  />,
+)
+assert(
+  pastKickoffKnockoutMarkup.includes('Pre-match odds'),
+  'past-kickoff known knockout still shows snapshotted pre-match odds',
+)
+assert(
+  !pastKickoffKnockoutMarkup.includes('Polymarket'),
+  'past-kickoff known knockout hides the Polymarket source link',
 )
 
 const wc2022 = tournaments.wc2022

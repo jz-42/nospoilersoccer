@@ -62,6 +62,20 @@ assert(
   'validator rejects fractional entertainment ratings',
 )
 
+const validLiveStatus = cloneTournament(wc2026)
+validLiveStatus.groupMatches[0].liveStatus = { kind: 'live' }
+assert(
+  validateTournament(validLiveStatus).length === 0,
+  'valid liveStatus passes tournament validation',
+)
+
+const invalidLiveStatus = cloneTournament(wc2026)
+invalidLiveStatus.groupMatches[0].liveStatus = { kind: 'stalled' as 'live' }
+assert(
+  validateTournament(invalidLiveStatus).some((error) => error.includes('invalid liveStatus')),
+  'validator rejects invalid liveStatus values',
+)
+
 const knockoutEdge = wc2026.knockoutRounds.flatMap((round) => round.matches).find((match) => match.id === 'm94')
 if (!knockoutEdge?.kickoff) throw new Error('Fixture error: expected knockout edge match m94 with kickoff data')
 assert(

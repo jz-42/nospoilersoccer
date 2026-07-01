@@ -8,8 +8,9 @@ import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
 import { FlowLayer } from './FlowLayer'
 import type { FeedLink } from './FlowLayer'
+import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
-import { matchState } from './status'
+import { matchLiveStatus, matchState } from './status'
 import { formatMatchDate } from './format'
 import { KickoffTime } from './KickoffTime'
 
@@ -176,7 +177,9 @@ function KnockoutCard({
   feedKeys?: { home: string; away: string }
   activeTone?: ReadonlyMap<string, HiTone>
 }) {
-  const state = matchState(t, { kind: 'knockout', match: m, roundName }, progress)
+  const target = { kind: 'knockout', match: m, roundName } as const
+  const state = matchState(t, target, progress)
+  const liveStatus = matchLiveStatus(target, progress)
   const pinned = progress.pins.has(m.id)
   const homeR = resolveSlot(t, m, 'home', progress.marks, progress.revealed)
   const awayR = resolveSlot(t, m, 'away', progress.marks, progress.revealed)
@@ -201,10 +204,12 @@ function KnockoutCard({
   const homeTone = feedKeys ? activeTone?.get(feedKeys.home) : undefined
   const awayTone = feedKeys ? activeTone?.get(feedKeys.away) : undefined
 
+  // Watch reads "finished, result hidden" on the right (same as FT) — the
+  // crest play button is what marks it as the one to go watch.
   const status =
-    // Watch reads "finished, result hidden" on the right (same as FT) — the
-    // crest play button is what marks it as the one to go watch.
-    state === 'watch' || state === 'ft' ? (
+    liveStatus ? (
+      <LiveStatusBadge status={liveStatus} className="ko-pill" />
+    ) : state === 'watch' || state === 'ft' ? (
       <span className="ko-pill pill-ft">FT</span>
     ) : state === 'seen' ? (
       <span className="ko-pill pill-seen">✓</span>

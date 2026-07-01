@@ -384,9 +384,29 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m75": {
+    entertainmentSummary: "Tense and emotionally charged, it seemed to carry a strong big-match atmosphere rather than feeling routine. The reaction suggests an engaging watch overall, even if the entertainment may have come as much from the occasion and uncertainty as from constant flow.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m76": {
     entertainmentSummary: "It sounds lively and tense, with a high-stakes feel that made it seem well above routine. The reaction suggests sustained uncertainty and an engaging atmosphere rather than a flat or cagey contest.",
     entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m77": {
+    entertainmentSummary: "Fairly lively and polished rather than cagey, with enough rhythm to sound more engaging than routine. It does not seem to have been especially tense for long stretches, but the overall feel appears brisk and watchable.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m78": {
+    entertainmentSummary: "Tense and fairly lively, with enough edge and uncertainty to seem more engaging than a routine watch. It sounds like it was not relentlessly open, but the atmosphere and stakes gave it a strong sense of drama.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m79": {
+    entertainmentSummary: "It sounds moderately engaging rather than chaotic, with a fairly lively atmosphere but a pace that may have felt uneven at times. The reaction suggests some tension and occasion, without it seeming like a nonstop classic.",
+    entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
 }

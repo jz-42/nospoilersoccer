@@ -40,6 +40,8 @@ jobs:
           ENTERTAINMENT_AUDIT_FILE: /tmp/entertainment-audit.md
           ENTERTAINMENT_BACKUP_FILE: /tmp/wc2026-entertainment.ts.before
           RESULTS_BACKUP_FILE: /tmp/wc2026-before-results.ts
+          LIVE_STATUS_AUDIT_FILE: /tmp/live-status-audit.md
+          LIVE_STATUS_BACKUP_FILE: /tmp/wc2026-before-live-status.ts
           ODDS_BACKUP_FILE: /tmp/wc2026-before-odds.ts
           BACKFILL_BACKUP_FILE: /tmp/wc2026-before-odds-backfill.ts
           VIDEOS_BACKUP_DIR: /tmp/wc2026-videos-backup
@@ -73,6 +75,25 @@ jobs:
             else
               echo "::warning::results step errored; discarding results changes for this cycle"
               cp "$RESULTS_BACKUP_FILE" src/data/wc2026.ts
+            fi
+
+            rm -f "$LIVE_STATUS_AUDIT_FILE"
+            cp src/data/wc2026.ts "$LIVE_STATUS_BACKUP_FILE"
+            if npx tsx scripts/update-live-status.ts; then
+              if [ -f "$LIVE_STATUS_AUDIT_FILE" ]; then
+                {
+                  echo "### Live status audit — cycle $cycle"
+                  cat "$LIVE_STATUS_AUDIT_FILE"
+                  echo
+                } >> "$GITHUB_STEP_SUMMARY"
+              fi
+              if ! (npm run validate:data && npx tsx scripts/update-live-status.smoke.ts && npx tsc -b); then
+                echo "::warning::live-status validation failed; discarding live-status changes for this cycle"
+                cp "$LIVE_STATUS_BACKUP_FILE" src/data/wc2026.ts
+              fi
+            else
+              echo "::warning::live-status step errored; discarding live-status changes for this cycle"
+              cp "$LIVE_STATUS_BACKUP_FILE" src/data/wc2026.ts
             fi
 
             cp src/data/wc2026.ts "$ODDS_BACKUP_FILE"
