@@ -91,18 +91,28 @@ export function formatDuration(s?: number): string | null {
 }
 
 /**
+ * Extended runtimes are hidden because the longer cut can reveal that a match
+ * went beyond regulation. Quick-cut runtimes remain safe to show.
+ */
+export function formatHighlightDuration(s?: number, kind?: HighlightVideo['kind']): string | null {
+  if (kind === 'extended') return null
+  return formatDuration(s)
+}
+
+/**
  * Glanceable runtime badge for a match card: rounded minutes, quick cut first
- * then extended (short→long), e.g. "8m · 20m". Falls back to a single value
- * when only one cut exists; null when there are no videos.
+ * then a neutral extended label, e.g. "8m · Extended". Falls back to the
+ * prior single-value behavior when no extended cut exists; null when there are
+ * no videos.
  */
 export function formatRuntimeBadge(videos?: HighlightVideo[]): string | null {
   if (!videos || videos.length === 0) return null
   const quick = videos.find((v) => v.kind === 'normal')?.durationSeconds
-  const extended = videos.find((v) => v.kind === 'extended')?.durationSeconds
-  const mins = [quick, extended]
-    .filter((s): s is number => typeof s === 'number' && s > 0)
-    .map((s) => `${Math.round(s / 60)}m`)
-  if (mins.length > 0) return mins.join(' · ')
+  const hasExtended = videos.some((v) => v.kind === 'extended')
+  const parts: string[] = []
+  if (typeof quick === 'number' && quick > 0) parts.push(`${Math.round(quick / 60)}m`)
+  if (hasExtended) parts.push('Extended')
+  if (parts.length > 0) return parts.join(' · ')
   const any = videos[0]?.durationSeconds
   return any ? `${Math.round(any / 60)}m` : null
 }

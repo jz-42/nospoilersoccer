@@ -2960,7 +2960,7 @@
 
 .kind-chip {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
   font: inherit;
   font-size: 12px;
