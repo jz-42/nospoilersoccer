@@ -414,4 +414,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m82": {
+    entertainmentSummary: "It sounds very lively and tense, with a chaotic edge that made it feel far more dramatic than routine. The reaction suggests a high-energy watch with plenty of uncertainty and emotion.",
+    entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
