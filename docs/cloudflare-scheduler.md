@@ -4,6 +4,9 @@
 
 Cloudflare is the scheduler. GitHub Actions remains the executor.
 
+Cloudflare also serves the runtime hot-state feed that the static site polls
+for live badges and fresh results.
+
 The Worker wakes up every 5 minutes and triggers `.github/workflows/update-results.yml` on `main` whenever no previous run is still active.
 
 This exists because GitHub `schedule` is not reliable enough to provide continuous coverage during the live tournament. The GitHub workflow itself decides whether anything changed and commits only validated updates.
@@ -144,6 +147,14 @@ This does not dispatch. It only reports:
 - number of active windows
 - active window details
 - parsed match count
+
+Hot-state endpoint:
+
+- `GET /api/hot-state/wc2026`
+
+This proxies the generated `public/api/hot-state/wc2026.json` snapshot from
+`main`, adds permissive CORS headers, and short-cache headers so the Render
+site can poll it directly without waiting for a full redeploy.
 
 Admin test endpoint:
 
