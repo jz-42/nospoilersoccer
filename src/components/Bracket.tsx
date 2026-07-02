@@ -260,10 +260,11 @@ function KnockoutCard({
             aria-hidden="true"
             {...(feedKeys ? { 'data-feed-tgt': feedKeys.home } : {})}
           >
-            {homeFlag ?? <i className="ko-tbd" />}
+            <span className="ko-watch-emoji">{homeFlag ?? <i className="ko-tbd" />}</span>
+            {homeR && <span className="ko-watch-code">{homeR}</span>}
           </span>
           <span className="ko-play" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
               <path d="M8 5.5v13l11-6.5z" />
             </svg>
           </span>
@@ -272,7 +273,8 @@ function KnockoutCard({
             aria-hidden="true"
             {...(feedKeys ? { 'data-feed-tgt': feedKeys.away } : {})}
           >
-            {awayFlag ?? <i className="ko-tbd" />}
+            <span className="ko-watch-emoji">{awayFlag ?? <i className="ko-tbd" />}</span>
+            {awayR && <span className="ko-watch-code">{awayR}</span>}
           </span>
         </div>
       ) : (
