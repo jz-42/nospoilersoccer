@@ -585,29 +585,37 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
-/* pitch markings (center line + circle) plus the per-team flag tint: home
-   bleeds in from the left, away from the right, muted enough to keep the dark
-   "screen" reading. Sits above the media's dark base, below the flags. The
-   color vars are set per-card in PreviewCard; a locked slot leaves its side
-   transparent so the thumbnail stays neutral. */
+/* pitch center circle plus the per-team flag tint: one full-width home→away
+   wash interpolated in OKLab — perceptual blending is what lets the two hues
+   melt into each other in the middle without averaging into sRGB mud (the
+   olive that Belgium–Senegal used to get), and a full-surface wash is what
+   keeps the color confident on the larger day-grid card sizes instead of
+   reading as faint corner glows. A shallow secondary-tone cap at each top
+   corner carries the second flag color. Sits above the media's dark base,
+   below the flags. The color vars are set per-card in PreviewCard; a locked
+   slot leaves its side transparent so its half fades to neutral. */
 .preview-media::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
     radial-gradient(circle at 50% 132%, transparent 34%, rgba(255, 255, 255, 0.05) 34.5%, transparent 35.7%),
-    linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)) 50% 0 / 1px 100% no-repeat,
     radial-gradient(
-      130% 135% at 0% 8%,
-      color-mix(in srgb, var(--home-1, transparent) 34%, transparent) 0%,
-      color-mix(in srgb, var(--home-2, transparent) 21%, transparent) 40%,
-      transparent 78%
+      36% 44% at 4% -8%,
+      color-mix(in srgb, var(--home-2, transparent) 42%, transparent) 0%,
+      transparent 100%
     ),
     radial-gradient(
-      130% 135% at 100% 8%,
-      color-mix(in srgb, var(--away-1, transparent) 34%, transparent) 0%,
-      color-mix(in srgb, var(--away-2, transparent) 21%, transparent) 40%,
-      transparent 78%
+      36% 44% at 96% -8%,
+      color-mix(in srgb, var(--away-2, transparent) 42%, transparent) 0%,
+      transparent 100%
+    ),
+    linear-gradient(
+      90deg in oklab,
+      color-mix(in srgb, var(--home-1, transparent) 36%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 28%, transparent) 36%,
+      color-mix(in srgb, var(--away-1, transparent) 28%, transparent) 64%,
+      color-mix(in srgb, var(--away-1, transparent) 36%, transparent) 100%
     );
 }
 
@@ -2469,37 +2477,46 @@
   position: relative;
   width: min(584px, 100%);
   /*
-   * Apple-Sports-style flag tint. Two soft radials bleed each team's colors in
-   * from the top corners (home left, away right) and meet in the middle, over a
-   * veil that fades the color out before it reaches the cards below so text and
-   * surfaces stay legible. The home and away color vars are set per-matchup in
-   * MatchModal; when a side is unknown they default to transparent and that half
-   * stays neutral, so a locked knockout sheet reads as the plain dark panel.
+   * Apple-Sports-style flag tint: one full-width home→away wash interpolated
+   * in OKLab. Perceptual interpolation is the trick that lets the two teams'
+   * colors melt into each other in the middle — the Apple look — without
+   * averaging into sRGB mud (overlapping translucent layers gave USA–Bosnia
+   * an amber wash neither flag owns; a dark buffer between the sides fixed
+   * the mud but read as a dead black trough). The secondary tone is a
+   * shallow cap at each top corner, and a bottom scrim grounds the content
+   * area. The home and away color vars are set per-matchup in MatchModal;
+   * when a side is unknown they default to transparent and that half fades
+   * to neutral, so a locked knockout sheet reads as the plain dark panel.
    */
   background-color: var(--panel);
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, transparent 0%, transparent 30%, rgba(8, 11, 16, 0.42) 100%),
     radial-gradient(
-      155% 135% at 100% -12%,
-      color-mix(in srgb, var(--away-1, transparent) 42%, transparent) 0%,
-      color-mix(in srgb, var(--away-2, transparent) 27%, transparent) 42%,
-      transparent 84%
+      52% 30% at 96% -5%,
+      color-mix(in srgb, var(--away-2, transparent) 48%, transparent) 0%,
+      transparent 100%
     ),
     radial-gradient(
-      155% 135% at 0% -12%,
-      color-mix(in srgb, var(--home-1, transparent) 42%, transparent) 0%,
-      color-mix(in srgb, var(--home-2, transparent) 27%, transparent) 42%,
-      transparent 84%
+      52% 30% at 4% -5%,
+      color-mix(in srgb, var(--home-2, transparent) 48%, transparent) 0%,
+      transparent 100%
     ),
     linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--panel) 14%, transparent) 0%,
-      color-mix(in srgb, var(--panel) 44%, transparent) 52%,
-      color-mix(in srgb, var(--panel) 66%, transparent) 100%
+      90deg in oklab,
+      color-mix(in srgb, var(--home-1, transparent) 40%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 32%, transparent) 34%,
+      color-mix(in srgb, var(--away-1, transparent) 32%, transparent) 66%,
+      color-mix(in srgb, var(--away-1, transparent) 40%, transparent) 100%
     );
-  background-size: 160px 160px, cover, cover, cover;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat;
-  background-blend-mode: soft-light, normal, normal, normal;
+  background-size:
+    160px 160px,
+    cover,
+    cover,
+    cover,
+    cover;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: soft-light, normal, normal, normal, normal;
   border: 1px solid var(--border-strong);
   border-radius: 18px;
   padding: 24px 28px 14px;
@@ -2782,13 +2799,15 @@
   margin-bottom: 6px;
 }
 
+/* Brighter than --muted with a whisper of shadow: these sit directly on the
+   flag tint, not on a dark panel. */
 .oddsbar-label {
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: var(--muted);
-  opacity: 0.75;
+  color: rgba(226, 233, 242, 0.62);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .oddsbar-src {
@@ -2812,18 +2831,18 @@
 
 .oddsbar-seg {
   border-radius: 2px;
-  background: rgba(154, 173, 203, 0.22);
+  background: rgba(255, 255, 255, 0.26);
   min-width: 3px;
   transition: background 0.15s;
 }
 
 .oddsbar-draw {
-  background: rgba(154, 173, 203, 0.14);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 /* The likeliest outcome — the one quietly bright segment. */
 .oddsbar-seg.is-fav {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .oddsbar-keys {
@@ -2832,13 +2851,13 @@
   margin-top: 6px;
   font-size: 10px;
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
-  opacity: 0.85;
+  color: rgba(226, 233, 242, 0.62);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .oddsbar-key b {
   font-weight: 500;
-  color: var(--muted);
+  color: rgba(226, 233, 242, 0.62);
 }
 
 .oddsbar-key-mid {
@@ -2846,7 +2865,7 @@
 }
 
 .oddsbar-key.is-fav {
-  color: var(--text);
+  color: rgba(240, 245, 251, 0.92);
 }
 
 .oddsbar-key.is-fav b {
@@ -2929,10 +2948,12 @@
 
 .modal-disclosure {
   width: 100%;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(154, 173, 203, 0.16);
   border-radius: 12px;
-  background: rgba(154, 173, 203, 0.035);
+  background: rgba(255, 255, 255, 0.045);
   overflow: hidden;
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
 }
 
 .modal-disclosure-bar {
@@ -3064,11 +3085,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--bg-raised);
-  border: 1px dashed var(--border-strong);
+  background: rgba(13, 18, 26, 0.42);
+  border: 1px dashed rgba(154, 173, 203, 0.3);
   border-radius: 12px;
-  color: var(--muted);
+  color: rgba(196, 206, 220, 0.75);
   font-size: 13px;
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
 }
 
 .modal-video-icon {
@@ -3107,18 +3130,18 @@
   color: var(--text-h);
   background:
     radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.12), transparent 62%),
-    linear-gradient(168deg, #161c24, #0b0f14);
+    linear-gradient(168deg, rgba(22, 28, 36, 0.6), rgba(11, 15, 20, 0.5));
   overflow: hidden;
   transition: border-color 0.15s;
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
 }
 
 .player-poster::before {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 50% 135%, transparent 34%, rgba(255, 255, 255, 0.05) 34.5%, transparent 36%),
-    linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)) 50% 0 / 1px 100% no-repeat;
+  background: radial-gradient(circle at 50% 135%, transparent 34%, rgba(255, 255, 255, 0.05) 34.5%, transparent 36%);
 }
 
 .player-poster:hover {

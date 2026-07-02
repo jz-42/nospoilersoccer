@@ -27,10 +27,32 @@ for (const [id, palette] of Object.entries(teamColors)) {
 
 // matchTint only sets the variables for sides whose team is known, so an
 // undecided knockout slot stays neutral until it's revealed.
-const both = matchTint('GER', 'PAR')
+const both = matchTint('PAR', 'FRA')
 assert(
-  both['--home-1'] === teamColors.GER[0] && both['--away-1'] === teamColors.PAR[0],
-  'a known matchup sets both home and away color vars',
+  both['--home-1'] === teamColors.PAR[0] && both['--away-1'] === teamColors.FRA[0],
+  'a distinct matchup keeps both primaries as field colors',
+)
+
+// Collision rule: when both primaries read as the same color, one side drops
+// to its secondary (its cap shows the primary instead) so the matchup always
+// renders as two colors — the Apple Sports alternate-kit behavior.
+const espAut = matchTint('ESP', 'AUT')
+assert(
+  espAut['--home-1'] === teamColors.ESP[1] && espAut['--home-2'] === teamColors.ESP[0],
+  'Spain–Austria (red vs red) moves Spain to gold, cap flips to red',
+)
+assert(espAut['--away-1'] === teamColors.AUT[0], 'Austria keeps its red field')
+
+const usaBih = matchTint('USA', 'BIH')
+assert(
+  usaBih['--home-1'] !== usaBih['--away-1'],
+  'USA–Bosnia (blue vs blue) resolves to two distinct fields',
+)
+
+const qatSui = matchTint('QAT', 'SUI')
+assert(
+  qatSui['--home-1'] === teamColors.QAT[0] && qatSui['--away-1'] === teamColors.SUI[0],
+  'Qatar–Switzerland (dark maroon vs bright red) is distinct enough to keep both primaries',
 )
 
 const homeOnly = matchTint('BRA', null)
