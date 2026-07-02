@@ -203,7 +203,7 @@ export const wc2026: Tournament = {
         { id: 'm85', date: '2026-07-02', kickoff: '2026-07-03T03:00Z', home: { type: 'group-rank', group: 'B', rank: 1 }, away: { type: 'best-third', groups: ['E', 'F', 'G', 'I', 'J'] }, homeTeam: 'SUI', awayTeam: 'ALG' , odds: { home: 0.486, draw: 0.299, away: 0.216, url: 'https://polymarket.com/event/fifwc-che-alg-2026-07-02' } },
         { id: 'm86', date: '2026-07-03', kickoff: '2026-07-03T22:00Z', home: { type: 'group-rank', group: 'J', rank: 1 }, away: { type: 'group-rank', group: 'H', rank: 2 }, homeTeam: 'ARG', awayTeam: 'CPV' , odds: { home: 0.855, draw: 0.115, away: 0.04, url: 'https://polymarket.com/event/fifwc-arg-cvi-2026-07-03' } },
         { id: 'm87', date: '2026-07-03', kickoff: '2026-07-04T01:30Z', home: { type: 'group-rank', group: 'K', rank: 1 }, away: { type: 'best-third', groups: ['D', 'E', 'I', 'J', 'L'] }, homeTeam: 'COL', awayTeam: 'GHA' , odds: { home: 0.675, draw: 0.225, away: 0.105, url: 'https://polymarket.com/event/fifwc-col-gha-2026-07-03' } },
-        { id: 'm88', date: '2026-07-03', kickoff: '2026-07-03T18:00Z', home: { type: 'group-rank', group: 'D', rank: 2 }, away: { type: 'group-rank', group: 'G', rank: 2 }, homeTeam: 'AUS', awayTeam: 'EGY' , odds: { home: 0.285, draw: 0.335, away: 0.385, url: 'https://polymarket.com/event/fifwc-aus-egy-2026-07-03' } },
+        { id: 'm88', date: '2026-07-03', kickoff: '2026-07-03T18:00Z', home: { type: 'group-rank', group: 'D', rank: 2 }, away: { type: 'group-rank', group: 'G', rank: 2 }, homeTeam: 'AUS', awayTeam: 'EGY' , odds: { home: 0.275, draw: 0.335, away: 0.385, url: 'https://polymarket.com/event/fifwc-aus-egy-2026-07-03' } },
       ],
     },
     {
