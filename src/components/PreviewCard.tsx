@@ -5,6 +5,8 @@
  * a solid green FT badge + play button means "watch this now", a quiet
  * kickoff time means "not played yet", a big score means "you've seen it".
  */
+import type { CSSProperties } from 'react'
+import { matchTint } from '../data/team-colors'
 import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
 import { resolveSlot, slotLabel } from '../logic/spoilers'
@@ -102,10 +104,16 @@ export function PreviewCard({
     ((homeId !== null && progress.favorites.includes(homeId)) ||
       (awayId !== null && progress.favorites.includes(awayId)))
 
+  // Same flag tint as the match modal, dialed down for the thumbnail. The vars
+  // land on the .preview-media art via CSS; unknown (locked) slots set nothing
+  // and the card stays neutral.
+  const tintStyle = matchTint(homeId, awayId) as CSSProperties
+
   return (
     <button
       type="button"
       className={`preview-card state-${state} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
+      style={tintStyle}
       onClick={() => onOpen(target)}
     >
       <div className="preview-media">
