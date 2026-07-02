@@ -2004,7 +2004,9 @@
       "awayTeam": "SEN"
     },
     "m83": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
