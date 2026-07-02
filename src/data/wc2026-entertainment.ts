@@ -424,4 +424,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m84": {
+    entertainmentSummary: "It seemed fairly polished and lively in patches, but not especially tense or chaotic. The mood sounds more smooth and professional than wildly dramatic.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
