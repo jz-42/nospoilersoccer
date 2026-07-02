@@ -1453,13 +1453,13 @@
 /* Deep (9-column) bracket keeps the same flag size — every knockout card is the
    same size — just a tighter gap so the wider flags don't crowd the column. */
 .bracket-deep .ko-watch {
-  gap: 9px;
+  gap: 7px;
   padding: 2px 0 15px;
 }
 
 .bracket-deep .ko-play {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
 }
 
 .bracket-deep .ko-tbd {
@@ -2004,13 +2004,42 @@
   justify-content: center;
   gap: 16px;
   padding: 3px 0 19px;
-  font-size: 34px;
+  font-size: 30px;
   line-height: 1;
 }
 
 .ko-watch-flag {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.ko-watch-emoji {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+}
+/* Code sits under the flag but is absolutely positioned so it doesn't push
+   the flag up — the flag stays vertically centred with the play button. */
+.ko-watch-code {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%, 4px);
+  /* Match team-name reading size in .ko-row (inherits .ko-card font-size). The
+     all-caps codes look chunky with weight/spacing, so keep both minimal. */
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-dim);
+}
+.ko-watch-flag.feed-active .ko-watch-code {
+  color: var(--accent);
+}
+.ko-watch-flag.feed-active.feed-yellow .ko-watch-code {
+  color: var(--gold);
+}
+.ko-watch-flag.feed-active.feed-red .ko-watch-code {
+  color: var(--danger);
 }
 
 /* Detailed-mode feed highlight: when a group standings row is hovered/pinned,
@@ -2047,8 +2076,8 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 31px;
-  height: 31px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.16);
   border: 1.5px solid rgba(255, 255, 255, 0.7);
