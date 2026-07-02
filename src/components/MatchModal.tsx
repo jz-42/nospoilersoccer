@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import type { ReactNode, TouchEvent as ReactTouchEvent } from 'react'
+import type { CSSProperties, ReactNode, TouchEvent as ReactTouchEvent } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
 import { buildGoogleCalendarUrl } from '../calendar/google'
+import { matchTint } from '../data/team-colors'
 import type { GroupMatch, KnockoutMatch, Tournament } from '../data/types'
 import {
   canForceReveal,
@@ -302,6 +303,15 @@ export function MatchModal({
   ) : null
   const hasHighlights = Boolean(m.videos?.length)
 
+  // Soft, Apple-Sports-style flag tint behind the sheet, blending the home
+  // team's colors (left) into the away team's (right). The variables only
+  // appear once a side's team is known, so a locked knockout slot stays dark.
+  const modalStyle: CSSProperties = {
+    transform: dragOffset ? `translateY(${dragOffset}px)` : undefined,
+    transition: dragging ? 'none' : undefined,
+    ...matchTint(homeTeam, awayTeam),
+  }
+
   return (
     <div
       className="modal-backdrop"
@@ -322,10 +332,7 @@ export function MatchModal({
         onTouchMove={onModalTouchMove}
         onTouchEnd={onModalTouchEnd}
         onTouchCancel={onModalTouchEnd}
-        style={{
-          transform: dragOffset ? `translateY(${dragOffset}px)` : undefined,
-          transition: dragging ? 'none' : undefined,
-        }}
+        style={modalStyle}
       >
         <span className="modal-drag-handle" aria-hidden="true" />
         <button
