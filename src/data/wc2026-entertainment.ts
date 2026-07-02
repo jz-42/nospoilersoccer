@@ -394,9 +394,34 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m77": {
+    entertainmentSummary: "Fairly lively and polished rather than cagey, with enough rhythm to sound more engaging than routine. It does not seem to have been especially tense for long stretches, but the overall feel appears brisk and watchable.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m78": {
     entertainmentSummary: "Tense and fairly lively, with enough edge and uncertainty to seem more engaging than a routine watch. It sounds like it was not relentlessly open, but the atmosphere and stakes gave it a strong sense of drama.",
     entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m79": {
+    entertainmentSummary: "It sounds moderately engaging rather than chaotic, with a fairly lively atmosphere but a pace that may have felt uneven at times. The reaction suggests some tension and occasion, without it seeming like a nonstop classic.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m80": {
+    entertainmentSummary: "More tense than fluent, with a nervy edge and enough buzz to feel clearly above routine. The quality sounds a bit uneven, but the atmosphere and uncertainty seem to have kept it engaging.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m81": {
+    entertainmentSummary: "It sounds fairly tense and eventful rather than smooth or routine, with enough edge in the reaction to suggest a lively watch. The mood seems a bit scrappier than free-flowing, but still more engaging than flat.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m82": {
+    entertainmentSummary: "It sounds very lively and tense, with a chaotic edge that made it feel far more dramatic than routine. The reaction suggests a high-energy watch with plenty of uncertainty and emotion.",
+    entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
 }

@@ -253,11 +253,6 @@
   white-space: nowrap;
 }
 
-.pill-watch {
-  background: #f4f7f6;
-  color: #0b1016;
-}
-
 .pill-ft {
   color: var(--text-h);
   font-weight: 750;
@@ -778,11 +773,17 @@
   backdrop-filter: blur(7px);
   color: #fff;
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  transition: transform 0.15s;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease,
+    border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
+/* Hover feedback only — the resting button is unchanged. A springy pop plus a
+   brighter glass/ring so the press target feels alive when you mouse over. */
 .preview-card:hover .preview-play {
-  transform: translate(-50%, -50%) scale(1.1);
+  transform: translate(-50%, -50%) scale(1.14);
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 /* Saved-match marker — small amber star in the media area's bottom-left.
@@ -1103,13 +1104,19 @@
   overflow: hidden;
 }
 
-/* Brighter "screen is live" thumb on the one watchable row — mirrors the
-   preview card's media treatment so watch reads the same in both views. */
+/* Same soft off-white "screen is live" wash as the preview card and the
+   knockout watch thumb, so watch reads the same in every view. */
 .tile.state-watch .tile-thumb {
   background:
-    radial-gradient(ellipse 130% 100% at 50% -20%, rgba(255, 255, 255, 0.13), transparent 60%),
-    linear-gradient(168deg, #1b2530, #0e161d);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    radial-gradient(ellipse 140% 125% at 50% -18%, rgba(255, 255, 255, 0.07), transparent 80%),
+    linear-gradient(168deg, #141a21, #0b0f14);
+  transition: background 0.18s ease;
+}
+
+.tile.state-watch:hover .tile-thumb {
+  background:
+    radial-gradient(ellipse 140% 125% at 50% -18%, rgba(255, 255, 255, 0.11), transparent 82%),
+    linear-gradient(168deg, #171e26, #0c1117);
 }
 
 .tile-thumb-flag {
@@ -1443,6 +1450,23 @@
   font-size: 10.5px;
 }
 
+/* Deep (9-column) bracket keeps the same flag size — every knockout card is the
+   same size — just a tighter gap so the wider flags don't crowd the column. */
+.bracket-deep .ko-watch {
+  gap: 9px;
+  padding: 2px 0 15px;
+}
+
+.bracket-deep .ko-play {
+  width: 28px;
+  height: 28px;
+}
+
+.bracket-deep .ko-tbd {
+  width: 17px;
+  height: 17px;
+}
+
 .bracket-deep .b-round-name {
   font-size: 10px;
   letter-spacing: 0.05em;
@@ -1490,6 +1514,7 @@
   position: absolute;
   right: calc(-1 * var(--bgap));
   top: 50%;
+  transform: translateY(-50%);
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
@@ -1501,6 +1526,7 @@
   position: absolute;
   left: calc(-1 * var(--bgap));
   top: 50%;
+  transform: translateY(-50%);
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
@@ -1512,6 +1538,7 @@
   position: absolute;
   left: calc(-1 * var(--bgap));
   top: 50%;
+  transform: translateY(-50%);
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
@@ -1543,6 +1570,7 @@
   position: absolute;
   left: calc(-1 * var(--bgap));
   top: 50%;
+  transform: translateY(-50%);
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
@@ -1554,6 +1582,7 @@
   position: absolute;
   right: calc(-1 * var(--bgap));
   top: 50%;
+  transform: translateY(-50%);
   width: var(--bgap);
   height: 2px;
   background: var(--border-strong);
@@ -1579,13 +1608,19 @@
   top: 50%;
 }
 
-/* the green flow */
-.b-slot.flow-out::after,
-.b-slot.flow-in::before,
-.b-center .b-slot.flow-in-left::before,
+/* the green flow — each selector is qualified to match the specificity of the
+   base connector rule it overrides (those carry a .side-left/.side-right/
+   .b-center prefix), otherwise the grey base wins and the leg never lights up. */
+.side-left .b-slot.flow-out::after,
+.side-right .b-slot.flow-out::after,
 .b-center .b-slot.flow-in-right::after,
-.b-pair.flow-top::before,
-.b-pair.flow-bottom::after {
+.side-left .b-slot.flow-in::before,
+.side-right .b-slot.flow-in::before,
+.b-center .b-slot.flow-in-left::before,
+.side-left .b-pair.flow-top::before,
+.side-right .b-pair.flow-top::before,
+.side-left .b-pair.flow-bottom::after,
+.side-right .b-pair.flow-bottom::after {
   background: var(--accent-deep);
 }
 
@@ -1833,7 +1868,9 @@
 .ko-card {
   display: block;
   width: 100%;
-  border: 1px solid var(--border);
+  /* A hair more defined than --border so cards don't fade into the dark, still
+     short of --border-strong so it stays quiet. */
+  border: 1px solid rgba(154, 173, 203, 0.19);
   border-radius: 10px;
   background: var(--panel);
   color: var(--text);
@@ -1851,12 +1888,20 @@
   transform: translateY(-1px);
 }
 
+/* The one watchable card gets a subtle live-brighten behind the crest — just
+   enough presence to read as the call-to-action, not a halo. */
 .ko-card.state-watch {
   border-color: var(--border-strong);
+  background:
+    radial-gradient(ellipse 135% 135% at 50% -20%, rgba(255, 255, 255, 0.06), transparent 82%),
+    var(--panel);
 }
 
 .ko-card.state-watch:hover {
   border-color: rgba(255, 255, 255, 0.28);
+  background:
+    radial-gradient(ellipse 135% 135% at 50% -20%, rgba(255, 255, 255, 0.1), transparent 84%),
+    var(--panel-hover);
 }
 
 .ko-card.state-ft {
@@ -1947,6 +1992,85 @@
 .ko-pill.pill-upcoming {
   background: transparent;
   padding: 2px 0;
+}
+
+/* Watch state only: the card body becomes a compact "screen is live" thumb —
+   the two flags spread left-to-right with the play button between them, names
+   dropped. Mirrors the group tile / today card so watch reads the same in
+   every view. */
+.ko-watch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 3px 0 19px;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.ko-watch-flag {
+  position: relative;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+}
+
+/* Detailed-mode feed highlight: when a group standings row is hovered/pinned,
+   the destination flag glows with the tone's colour — parity with .ko-row. */
+.ko-watch-flag.feed-active::after {
+  content: '';
+  position: absolute;
+  inset: -6px -8px;
+  border-radius: 999px;
+  background: radial-gradient(ellipse 55% 55% at 50% 50%, color-mix(in srgb, var(--accent) 32%, transparent), transparent 78%);
+  z-index: -1;
+  pointer-events: none;
+}
+.ko-watch-flag.feed-active.feed-yellow::after {
+  background: radial-gradient(ellipse 55% 55% at 50% 50%, color-mix(in srgb, var(--gold) 32%, transparent), transparent 78%);
+}
+.ko-watch-flag.feed-active.feed-red::after {
+  background: radial-gradient(ellipse 55% 55% at 50% 50%, color-mix(in srgb, var(--danger) 32%, transparent), transparent 78%);
+}
+
+/* Undecided slot — a quiet placeholder dot in place of a flag. */
+.ko-tbd {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--border-strong);
+}
+
+/* The same frosted white glass play button as the group tile — the watch
+   affordance, sitting between the two flags. */
+.ko-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 31px;
+  height: 31px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  color: #fff;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+/* The arrow's optical centre sits a touch low/left in the glyph box — nudge it
+   so it reads centred in the circle. (No hover transform: the button must not
+   shift when the card is hovered.) */
+.ko-play svg {
+  position: relative;
+  top: -0.5px;
+  left: 0.5px;
+}
+
+.ko-card:hover .ko-play {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.85);
 }
 
 .ko-pill.live-status-badge {
@@ -2960,7 +3084,7 @@
 
 .kind-chip {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
   font: inherit;
   font-size: 12px;

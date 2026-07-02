@@ -1835,11 +1835,28 @@
       "awayTeam": "JPN"
     },
     "m77": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "45'"
+        },
+        {
+          "team": "FRA",
+          "player": "Bradley Barcola",
+          "minute": "53'"
+        },
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "74'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "FRA",
@@ -1875,8 +1892,22 @@
     },
     "m79": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "MEX",
+          "player": "Julián Quiñones",
+          "minute": "22'"
+        },
+        {
+          "team": "MEX",
+          "player": "Raúl Jiménez",
+          "minute": "31'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "MEX",
@@ -1884,8 +1915,27 @@
     },
     "m80": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "COD",
+          "player": "Brian Cipenga",
+          "minute": "7'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "75'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "86'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "ENG",
@@ -1893,8 +1943,22 @@
     },
     "m81": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "USA",
+          "player": "Folarin Balogun",
+          "minute": "45'"
+        },
+        {
+          "team": "USA",
+          "player": "Malik Tillman",
+          "minute": "82'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "USA",
@@ -1902,10 +1966,40 @@
     },
     "m82": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "SEN",
+          "player": "Habib Diarra",
+          "minute": "25'"
+        },
+        {
+          "team": "SEN",
+          "player": "Ismaïla Sarr",
+          "minute": "51'"
+        },
+        {
+          "team": "BEL",
+          "player": "Romelu Lukaku",
+          "minute": "86'"
+        },
+        {
+          "team": "BEL",
+          "player": "Youri Tielemans",
+          "minute": "89'"
+        },
+        {
+          "team": "BEL",
+          "player": "Youri Tielemans",
+          "minute": "120'+5'",
+          "penalty": true
+        }
+      ],
       "penalties": null,
-      "afterExtraTime": null,
+      "afterExtraTime": true,
       "homeTeam": "BEL",
       "awayTeam": "SEN"
     },
