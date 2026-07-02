@@ -1,0 +1,2205 @@
+{
+  "tournamentId": "wc2026",
+  "matches": {
+    "A1": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "MEX",
+          "player": "Julián Quiñones",
+          "minute": "9'"
+        },
+        {
+          "team": "MEX",
+          "player": "Raúl Jiménez",
+          "minute": "67'"
+        }
+      ]
+    },
+    "A2": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "CZE",
+          "player": "Ladislav Krejcí",
+          "minute": "59'"
+        },
+        {
+          "team": "KOR",
+          "player": "Hwang In-Beom",
+          "minute": "67'"
+        },
+        {
+          "team": "KOR",
+          "player": "Oh Hyeon-Gyu",
+          "minute": "80'"
+        }
+      ]
+    },
+    "A3": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "CZE",
+          "player": "Michal Sadílek",
+          "minute": "6'"
+        },
+        {
+          "team": "RSA",
+          "player": "Teboho Mokoena",
+          "minute": "83'",
+          "penalty": true
+        }
+      ]
+    },
+    "A4": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "MEX",
+          "player": "Luis Romo",
+          "minute": "50'"
+        }
+      ]
+    },
+    "A5": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "MEX",
+          "player": "Mateo Chávez",
+          "minute": "55'"
+        },
+        {
+          "team": "MEX",
+          "player": "Julián Quiñones",
+          "minute": "61'"
+        },
+        {
+          "team": "MEX",
+          "player": "Álvaro Fidalgo",
+          "minute": "90'+4'"
+        }
+      ]
+    },
+    "A6": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "RSA",
+          "player": "Thapelo Maseko",
+          "minute": "63'"
+        }
+      ]
+    },
+    "B1": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "BIH",
+          "player": "Jovo Lukic",
+          "minute": "21'"
+        },
+        {
+          "team": "CAN",
+          "player": "Cyle Larin",
+          "minute": "78'"
+        }
+      ]
+    },
+    "B2": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SUI",
+          "player": "Breel Embolo",
+          "minute": "17'",
+          "penalty": true
+        },
+        {
+          "team": "QAT",
+          "player": "Boualem Khoukhi",
+          "minute": "90'+4'"
+        }
+      ]
+    },
+    "B3": {
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SUI",
+          "player": "Johan Manzambi",
+          "minute": "74'"
+        },
+        {
+          "team": "SUI",
+          "player": "Rubén Vargas",
+          "minute": "84'"
+        },
+        {
+          "team": "SUI",
+          "player": "Johan Manzambi",
+          "minute": "90'"
+        },
+        {
+          "team": "BIH",
+          "player": "Ermin Mahmic",
+          "minute": "90'+3'"
+        },
+        {
+          "team": "SUI",
+          "player": "Granit Xhaka",
+          "minute": "90'+7'",
+          "penalty": true
+        }
+      ]
+    },
+    "B4": {
+      "liveStatus": null,
+      "score": {
+        "home": 6,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "CAN",
+          "player": "Cyle Larin",
+          "minute": "16'"
+        },
+        {
+          "team": "CAN",
+          "player": "Jonathan David",
+          "minute": "29'"
+        },
+        {
+          "team": "CAN",
+          "player": "Jonathan David",
+          "minute": "45'+3'"
+        },
+        {
+          "team": "CAN",
+          "player": "Nathan Saliba",
+          "minute": "64'"
+        },
+        {
+          "team": "CAN",
+          "player": "Mohamed Manai",
+          "minute": "75'",
+          "ownGoal": true
+        },
+        {
+          "team": "CAN",
+          "player": "Jonathan David",
+          "minute": "90'+2'"
+        }
+      ]
+    },
+    "B5": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SUI",
+          "player": "Rubén Vargas",
+          "minute": "46'"
+        },
+        {
+          "team": "SUI",
+          "player": "Johan Manzambi",
+          "minute": "57'"
+        },
+        {
+          "team": "CAN",
+          "player": "Promise David",
+          "minute": "76'"
+        }
+      ]
+    },
+    "B6": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "BIH",
+          "player": "Kerim Alajbegovic",
+          "minute": "29'"
+        },
+        {
+          "team": "BIH",
+          "player": "Mahmoud Abunada",
+          "minute": "34'",
+          "ownGoal": true
+        },
+        {
+          "team": "QAT",
+          "player": "Hassan Al-Haydos",
+          "minute": "42'"
+        },
+        {
+          "team": "BIH",
+          "player": "Ermin Mahmic",
+          "minute": "80'"
+        }
+      ]
+    },
+    "C1": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "MAR",
+          "player": "Ismael Saibari",
+          "minute": "21'"
+        },
+        {
+          "team": "BRA",
+          "player": "Vinícius Júnior",
+          "minute": "32'"
+        }
+      ]
+    },
+    "C2": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SCO",
+          "player": "John McGinn",
+          "minute": "28'"
+        }
+      ]
+    },
+    "C3": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "MAR",
+          "player": "Ismael Saibari",
+          "minute": "2'"
+        }
+      ]
+    },
+    "C4": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "BRA",
+          "player": "Matheus Cunha",
+          "minute": "23'"
+        },
+        {
+          "team": "BRA",
+          "player": "Matheus Cunha",
+          "minute": "36'"
+        },
+        {
+          "team": "BRA",
+          "player": "Vinícius Júnior",
+          "minute": "45'+3'"
+        }
+      ]
+    },
+    "C5": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "BRA",
+          "player": "Vinícius Júnior",
+          "minute": "7'"
+        },
+        {
+          "team": "BRA",
+          "player": "Vinícius Júnior",
+          "minute": "45'+3'"
+        },
+        {
+          "team": "BRA",
+          "player": "Matheus Cunha",
+          "minute": "60'"
+        }
+      ]
+    },
+    "C6": {
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "HAI",
+          "player": "Yassine Bounou",
+          "minute": "10'",
+          "ownGoal": true
+        },
+        {
+          "team": "MAR",
+          "player": "Achraf Hakimi",
+          "minute": "39'"
+        },
+        {
+          "team": "HAI",
+          "player": "Wilson Isidor",
+          "minute": "43'"
+        },
+        {
+          "team": "MAR",
+          "player": "Ismael Saibari",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "MAR",
+          "player": "Soufiane Rahimi",
+          "minute": "78'"
+        },
+        {
+          "team": "MAR",
+          "player": "Gessime Yassine",
+          "minute": "89'"
+        }
+      ]
+    },
+    "D1": {
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "USA",
+          "player": "Damián Bobadilla",
+          "minute": "7'",
+          "ownGoal": true
+        },
+        {
+          "team": "USA",
+          "player": "Folarin Balogun",
+          "minute": "31'"
+        },
+        {
+          "team": "USA",
+          "player": "Folarin Balogun",
+          "minute": "45'+5'"
+        },
+        {
+          "team": "PAR",
+          "player": "Maurício",
+          "minute": "73'"
+        },
+        {
+          "team": "USA",
+          "player": "Giovanni Reyna",
+          "minute": "90'+8'"
+        }
+      ]
+    },
+    "D2": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "AUS",
+          "player": "Nestory Irankunda",
+          "minute": "27'"
+        },
+        {
+          "team": "AUS",
+          "player": "Connor Metcalfe",
+          "minute": "75'"
+        }
+      ]
+    },
+    "D3": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "USA",
+          "player": "Cameron Burgess",
+          "minute": "11'",
+          "ownGoal": true
+        },
+        {
+          "team": "USA",
+          "player": "Alex Freeman",
+          "minute": "43'"
+        }
+      ]
+    },
+    "D4": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "PAR",
+          "player": "Matías Galarza",
+          "minute": "2'"
+        }
+      ]
+    },
+    "D5": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "USA",
+          "player": "Auston Trusty",
+          "minute": "3'"
+        },
+        {
+          "team": "TUR",
+          "player": "Arda Güler",
+          "minute": "10'"
+        },
+        {
+          "team": "TUR",
+          "player": "Baris Alper Yilmaz",
+          "minute": "31'"
+        },
+        {
+          "team": "USA",
+          "player": "Sebastian Berhalter",
+          "minute": "49'"
+        },
+        {
+          "team": "TUR",
+          "player": "Kaan Ayhan",
+          "minute": "90'+8'"
+        }
+      ]
+    },
+    "D6": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "E1": {
+      "liveStatus": null,
+      "score": {
+        "home": 7,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "GER",
+          "player": "Felix Nmecha",
+          "minute": "6'"
+        },
+        {
+          "team": "CUW",
+          "player": "Livano Comenencia",
+          "minute": "21'"
+        },
+        {
+          "team": "GER",
+          "player": "Nico Schlotterbeck",
+          "minute": "38'"
+        },
+        {
+          "team": "GER",
+          "player": "Kai Havertz",
+          "minute": "45'+5'",
+          "penalty": true
+        },
+        {
+          "team": "GER",
+          "player": "Jamal Musiala",
+          "minute": "47'"
+        },
+        {
+          "team": "GER",
+          "player": "Nathaniel Brown",
+          "minute": "68'"
+        },
+        {
+          "team": "GER",
+          "player": "Deniz Undav",
+          "minute": "78'"
+        },
+        {
+          "team": "GER",
+          "player": "Kai Havertz",
+          "minute": "88'"
+        }
+      ]
+    },
+    "E2": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "CIV",
+          "player": "Amad Diallo",
+          "minute": "90'"
+        }
+      ]
+    },
+    "E3": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "CIV",
+          "player": "Franck Kessié",
+          "minute": "30'"
+        },
+        {
+          "team": "GER",
+          "player": "Deniz Undav",
+          "minute": "68'"
+        },
+        {
+          "team": "GER",
+          "player": "Deniz Undav",
+          "minute": "90'+4'"
+        }
+      ]
+    },
+    "E4": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "E5": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "GER",
+          "player": "Leroy Sané",
+          "minute": "2'"
+        },
+        {
+          "team": "ECU",
+          "player": "Nilson Angulo",
+          "minute": "9'"
+        },
+        {
+          "team": "ECU",
+          "player": "Gonzalo Plata",
+          "minute": "77'"
+        }
+      ]
+    },
+    "E6": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "CIV",
+          "player": "Nicolas Pépé",
+          "minute": "7'"
+        },
+        {
+          "team": "CIV",
+          "player": "Nicolas Pépé",
+          "minute": "64'"
+        }
+      ]
+    },
+    "F1": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "NED",
+          "player": "Virgil van Dijk",
+          "minute": "51'"
+        },
+        {
+          "team": "JPN",
+          "player": "Keito Nakamura",
+          "minute": "57'"
+        },
+        {
+          "team": "NED",
+          "player": "Crysencio Summerville",
+          "minute": "64'"
+        },
+        {
+          "team": "JPN",
+          "player": "Daichi Kamada",
+          "minute": "88'"
+        }
+      ]
+    },
+    "F2": {
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SWE",
+          "player": "Yasin Ayari",
+          "minute": "7'"
+        },
+        {
+          "team": "SWE",
+          "player": "Alexander Isak",
+          "minute": "30'"
+        },
+        {
+          "team": "TUN",
+          "player": "Omar Rekik",
+          "minute": "43'"
+        },
+        {
+          "team": "SWE",
+          "player": "Viktor Gyökeres",
+          "minute": "59'"
+        },
+        {
+          "team": "SWE",
+          "player": "Mattias Svanberg",
+          "minute": "84'"
+        },
+        {
+          "team": "SWE",
+          "player": "Yasin Ayari",
+          "minute": "90'+6'"
+        }
+      ]
+    },
+    "F3": {
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "NED",
+          "player": "Brian Brobbey",
+          "minute": "5'"
+        },
+        {
+          "team": "NED",
+          "player": "Brian Brobbey",
+          "minute": "17'"
+        },
+        {
+          "team": "NED",
+          "player": "Cody Gakpo",
+          "minute": "47'"
+        },
+        {
+          "team": "NED",
+          "player": "Cody Gakpo",
+          "minute": "54'"
+        },
+        {
+          "team": "SWE",
+          "player": "Anthony Elanga",
+          "minute": "59'"
+        },
+        {
+          "team": "NED",
+          "player": "Crysencio Summerville",
+          "minute": "89'"
+        }
+      ]
+    },
+    "F4": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "JPN",
+          "player": "Daichi Kamada",
+          "minute": "4'"
+        },
+        {
+          "team": "JPN",
+          "player": "Ayase Ueda",
+          "minute": "31'"
+        },
+        {
+          "team": "JPN",
+          "player": "Junya Ito",
+          "minute": "69'"
+        },
+        {
+          "team": "JPN",
+          "player": "Ayase Ueda",
+          "minute": "83'"
+        }
+      ]
+    },
+    "F5": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "JPN",
+          "player": "Daizen Maeda",
+          "minute": "56'"
+        },
+        {
+          "team": "SWE",
+          "player": "Anthony Elanga",
+          "minute": "62'"
+        }
+      ]
+    },
+    "F6": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "NED",
+          "player": "Ellyes Skhiri",
+          "minute": "3'",
+          "ownGoal": true
+        },
+        {
+          "team": "NED",
+          "player": "Brian Brobbey",
+          "minute": "7'"
+        },
+        {
+          "team": "TUN",
+          "player": "Hazem Mastouri",
+          "minute": "54'"
+        },
+        {
+          "team": "NED",
+          "player": "Jan Paul van Hecke",
+          "minute": "62'"
+        }
+      ]
+    },
+    "G1": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "EGY",
+          "player": "Emam Ashour",
+          "minute": "19'"
+        },
+        {
+          "team": "BEL",
+          "player": "Mohamed Hany",
+          "minute": "66'",
+          "ownGoal": true
+        }
+      ]
+    },
+    "G2": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "NZL",
+          "player": "Elijah Just",
+          "minute": "7'"
+        },
+        {
+          "team": "IRN",
+          "player": "Ramin Rezaeian",
+          "minute": "32'"
+        },
+        {
+          "team": "NZL",
+          "player": "Elijah Just",
+          "minute": "54'"
+        },
+        {
+          "team": "IRN",
+          "player": "Mohammad Mohebbi",
+          "minute": "64'"
+        }
+      ]
+    },
+    "G3": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "G4": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "NZL",
+          "player": "Finn Surman",
+          "minute": "15'"
+        },
+        {
+          "team": "EGY",
+          "player": "Mostafa Zico",
+          "minute": "58'"
+        },
+        {
+          "team": "EGY",
+          "player": "Mohamed Salah",
+          "minute": "67'"
+        },
+        {
+          "team": "EGY",
+          "player": "Trézéguet",
+          "minute": "82'"
+        }
+      ]
+    },
+    "G5": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "EGY",
+          "player": "Mahmoud Saber",
+          "minute": "5'"
+        },
+        {
+          "team": "IRN",
+          "player": "Ramin Rezaeian",
+          "minute": "14'"
+        }
+      ]
+    },
+    "G6": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 5
+      },
+      "goals": [
+        {
+          "team": "BEL",
+          "player": "Leandro Trossard",
+          "minute": "28'"
+        },
+        {
+          "team": "BEL",
+          "player": "Leandro Trossard",
+          "minute": "50'"
+        },
+        {
+          "team": "BEL",
+          "player": "Kevin De Bruyne",
+          "minute": "66'"
+        },
+        {
+          "team": "NZL",
+          "player": "Elijah Just",
+          "minute": "84'"
+        },
+        {
+          "team": "BEL",
+          "player": "Romelu Lukaku",
+          "minute": "86'"
+        },
+        {
+          "team": "BEL",
+          "player": "Alexis Saelemaekers",
+          "minute": "90'+4'"
+        }
+      ]
+    },
+    "H1": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "H2": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "KSA",
+          "player": "Abdulelah Al-Amri",
+          "minute": "41'"
+        },
+        {
+          "team": "URU",
+          "player": "Maxi Araújo",
+          "minute": "80'"
+        }
+      ]
+    },
+    "H3": {
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Lamine Yamal",
+          "minute": "10'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Oyarzabal",
+          "minute": "21'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Oyarzabal",
+          "minute": "24'"
+        },
+        {
+          "team": "ESP",
+          "player": "Hassan Al-Tambakti",
+          "minute": "49'",
+          "ownGoal": true
+        }
+      ]
+    },
+    "H4": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "CPV",
+          "player": "Kevin Pina",
+          "minute": "21'"
+        },
+        {
+          "team": "URU",
+          "player": "Maxi Araújo",
+          "minute": "44'"
+        },
+        {
+          "team": "URU",
+          "player": "Agustín Cano",
+          "minute": "45'+6'"
+        },
+        {
+          "team": "CPV",
+          "player": "Hélio Varela",
+          "minute": "61'"
+        }
+      ]
+    },
+    "H5": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "H6": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Álex Baena",
+          "minute": "42'"
+        }
+      ]
+    },
+    "I1": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "66'"
+        },
+        {
+          "team": "FRA",
+          "player": "Bradley Barcola",
+          "minute": "82'"
+        },
+        {
+          "team": "SEN",
+          "player": "Ibrahim Mbaye",
+          "minute": "90'+5'"
+        },
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "90'+6'"
+        }
+      ]
+    },
+    "I2": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "29'"
+        },
+        {
+          "team": "IRQ",
+          "player": "Aymen Hussein",
+          "minute": "39'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "43'"
+        },
+        {
+          "team": "NOR",
+          "player": "Leo Østigard",
+          "minute": "76'"
+        },
+        {
+          "team": "NOR",
+          "player": "Aymen Hussein",
+          "minute": "90'+6'",
+          "ownGoal": true
+        }
+      ]
+    },
+    "I3": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "14'"
+        },
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "54'"
+        },
+        {
+          "team": "FRA",
+          "player": "Ousmane Dembélé",
+          "minute": "66'"
+        }
+      ]
+    },
+    "I4": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Marcus Holmgren Pedersen",
+          "minute": "43'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "48'"
+        },
+        {
+          "team": "SEN",
+          "player": "Ismaïla Sarr",
+          "minute": "53'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "58'"
+        },
+        {
+          "team": "SEN",
+          "player": "Ismaïla Sarr",
+          "minute": "90'+3'"
+        }
+      ]
+    },
+    "I5": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Ousmane Dembélé",
+          "minute": "7'"
+        },
+        {
+          "team": "FRA",
+          "player": "Ousmane Dembélé",
+          "minute": "20'"
+        },
+        {
+          "team": "NOR",
+          "player": "Thelo Aasgaard",
+          "minute": "21'"
+        },
+        {
+          "team": "FRA",
+          "player": "Ousmane Dembélé",
+          "minute": "32'"
+        },
+        {
+          "team": "FRA",
+          "player": "Désiré Doué",
+          "minute": "90'+4'"
+        }
+      ]
+    },
+    "I6": {
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "SEN",
+          "player": "Habib Diarra",
+          "minute": "4'"
+        },
+        {
+          "team": "SEN",
+          "player": "Ismaïla Sarr",
+          "minute": "56'"
+        },
+        {
+          "team": "SEN",
+          "player": "Pape Gueye",
+          "minute": "59'"
+        },
+        {
+          "team": "SEN",
+          "player": "Pape Gueye",
+          "minute": "71'"
+        },
+        {
+          "team": "SEN",
+          "player": "Iliman Ndiaye",
+          "minute": "82'"
+        }
+      ]
+    },
+    "J1": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "17'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "60'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "76'"
+        }
+      ]
+    },
+    "J2": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "AUT",
+          "player": "Romano Schmid",
+          "minute": "21'"
+        },
+        {
+          "team": "JOR",
+          "player": "Ali Olwan",
+          "minute": "50'"
+        },
+        {
+          "team": "AUT",
+          "player": "Yazan Al-Arab",
+          "minute": "76'",
+          "ownGoal": true
+        },
+        {
+          "team": "AUT",
+          "player": "Marko Arnautovic",
+          "minute": "90'+12'",
+          "penalty": true
+        }
+      ]
+    },
+    "J3": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "38'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "90'+5'"
+        }
+      ]
+    },
+    "J4": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "JOR",
+          "player": "Nizar Al-Rashdan",
+          "minute": "36'"
+        },
+        {
+          "team": "ALG",
+          "player": "Nadhir Benbouali",
+          "minute": "69'"
+        },
+        {
+          "team": "ALG",
+          "player": "Amine Gouiri",
+          "minute": "82'"
+        }
+      ]
+    },
+    "J5": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "AUT",
+          "player": "Marko Arnautovic",
+          "minute": "28'"
+        },
+        {
+          "team": "ALG",
+          "player": "Rafik Belghali",
+          "minute": "45'"
+        },
+        {
+          "team": "AUT",
+          "player": "Marcel Sabitzer",
+          "minute": "55'"
+        },
+        {
+          "team": "ALG",
+          "player": "Riyad Mahrez",
+          "minute": "60'"
+        },
+        {
+          "team": "ALG",
+          "player": "Riyad Mahrez",
+          "minute": "90'+3'"
+        },
+        {
+          "team": "AUT",
+          "player": "Sasa Kalajdzic",
+          "minute": "90'+6'"
+        }
+      ]
+    },
+    "J6": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "ARG",
+          "player": "Giovani Lo Celso",
+          "minute": "19'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lautaro Martínez",
+          "minute": "31'",
+          "penalty": true
+        },
+        {
+          "team": "JOR",
+          "player": "Mousa Al-Tamari",
+          "minute": "55'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "80'"
+        }
+      ]
+    },
+    "K1": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "POR",
+          "player": "João Neves",
+          "minute": "6'"
+        },
+        {
+          "team": "COD",
+          "player": "Yoane Wissa",
+          "minute": "45'+5'"
+        }
+      ]
+    },
+    "K2": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "COL",
+          "player": "Daniel Muñoz",
+          "minute": "40'"
+        },
+        {
+          "team": "UZB",
+          "player": "Abbosbek Fayzullaev",
+          "minute": "60'"
+        },
+        {
+          "team": "COL",
+          "player": "Luis Díaz",
+          "minute": "65'"
+        },
+        {
+          "team": "COL",
+          "player": "Jáminton Campaz",
+          "minute": "90'+9'"
+        }
+      ]
+    },
+    "K3": {
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "POR",
+          "player": "Cristiano Ronaldo",
+          "minute": "6'"
+        },
+        {
+          "team": "POR",
+          "player": "Nuno Mendes",
+          "minute": "17'"
+        },
+        {
+          "team": "POR",
+          "player": "Cristiano Ronaldo",
+          "minute": "39'"
+        },
+        {
+          "team": "POR",
+          "player": "Abduvohid Nematov",
+          "minute": "60'",
+          "ownGoal": true
+        },
+        {
+          "team": "POR",
+          "player": "Rafael Leão",
+          "minute": "87'"
+        }
+      ]
+    },
+    "K4": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "COL",
+          "player": "Daniel Muñoz",
+          "minute": "76'"
+        }
+      ]
+    },
+    "K5": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "K6": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "UZB",
+          "player": "Eldor Shomurodov",
+          "minute": "10'"
+        },
+        {
+          "team": "COD",
+          "player": "Yoane Wissa",
+          "minute": "68'",
+          "penalty": true
+        },
+        {
+          "team": "COD",
+          "player": "Fiston Mayele",
+          "minute": "78'"
+        },
+        {
+          "team": "COD",
+          "player": "Yoane Wissa",
+          "minute": "90'+1'"
+        }
+      ]
+    },
+    "L1": {
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "12'",
+          "penalty": true
+        },
+        {
+          "team": "CRO",
+          "player": "Martin Baturina",
+          "minute": "36'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "42'"
+        },
+        {
+          "team": "CRO",
+          "player": "Petar Musa",
+          "minute": "45'+5'"
+        },
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "47'"
+        },
+        {
+          "team": "ENG",
+          "player": "Marcus Rashford",
+          "minute": "85'"
+        }
+      ]
+    },
+    "L2": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "GHA",
+          "player": "Caleb Yirenkyi",
+          "minute": "90'+5'"
+        }
+      ]
+    },
+    "L3": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "L4": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "CRO",
+          "player": "Ante Budimir",
+          "minute": "54'"
+        }
+      ]
+    },
+    "L5": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "62'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "67'"
+        }
+      ]
+    },
+    "L6": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "CRO",
+          "player": "Petar Sucic",
+          "minute": "31'"
+        },
+        {
+          "team": "GHA",
+          "player": "Derrick Luckassen",
+          "minute": "73'"
+        },
+        {
+          "team": "CRO",
+          "player": "Nikola Vlasic",
+          "minute": "83'"
+        }
+      ]
+    },
+    "m73": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "CAN",
+          "player": "Stephen Eustáquio",
+          "minute": "90'+2'"
+        }
+      ],
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "RSA",
+      "awayTeam": "CAN"
+    },
+    "m74": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "PAR",
+          "player": "Julio Enciso",
+          "minute": "42'"
+        },
+        {
+          "team": "GER",
+          "player": "Kai Havertz",
+          "minute": "54'"
+        }
+      ],
+      "penalties": {
+        "home": 3,
+        "away": 4
+      },
+      "afterExtraTime": true,
+      "homeTeam": "GER",
+      "awayTeam": "PAR"
+    },
+    "m75": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "NED",
+          "player": "Cody Gakpo",
+          "minute": "72'"
+        },
+        {
+          "team": "MAR",
+          "player": "Issa Diop",
+          "minute": "90'+1'"
+        }
+      ],
+      "penalties": {
+        "home": 2,
+        "away": 3
+      },
+      "afterExtraTime": true,
+      "homeTeam": "NED",
+      "awayTeam": "MAR"
+    },
+    "m76": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "JPN",
+          "player": "Kaishu Sano",
+          "minute": "29'"
+        },
+        {
+          "team": "BRA",
+          "player": "Casemiro",
+          "minute": "56'"
+        },
+        {
+          "team": "BRA",
+          "player": "Gabriel Martinelli",
+          "minute": "90'+5'"
+        }
+      ],
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "BRA",
+      "awayTeam": "JPN"
+    },
+    "m77": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "45'"
+        },
+        {
+          "team": "FRA",
+          "player": "Bradley Barcola",
+          "minute": "53'"
+        },
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "74'"
+        }
+      ],
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "FRA",
+      "awayTeam": "SWE"
+    },
+    "m78": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Antonio Nusa",
+          "minute": "39'"
+        },
+        {
+          "team": "CIV",
+          "player": "Amad Diallo",
+          "minute": "74'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "86'"
+        }
+      ],
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "CIV",
+      "awayTeam": "NOR"
+    },
+    "m79": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "MEX",
+          "player": "Julián Quiñones",
+          "minute": "22'"
+        },
+        {
+          "team": "MEX",
+          "player": "Raúl Jiménez",
+          "minute": "31'"
+        }
+      ],
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "MEX",
+      "awayTeam": "ECU"
+    },
+    "m80": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "COD",
+          "player": "Brian Cipenga",
+          "minute": "7'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "75'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "86'"
+        }
+      ],
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "ENG",
+      "awayTeam": "COD"
+    },
+    "m81": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "USA",
+          "player": "Folarin Balogun",
+          "minute": "45'"
+        },
+        {
+          "team": "USA",
+          "player": "Malik Tillman",
+          "minute": "82'"
+        }
+      ],
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "USA",
+      "awayTeam": "BIH"
+    },
+    "m82": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "SEN",
+          "player": "Habib Diarra",
+          "minute": "25'"
+        },
+        {
+          "team": "SEN",
+          "player": "Ismaïla Sarr",
+          "minute": "51'"
+        },
+        {
+          "team": "BEL",
+          "player": "Romelu Lukaku",
+          "minute": "86'"
+        },
+        {
+          "team": "BEL",
+          "player": "Youri Tielemans",
+          "minute": "89'"
+        },
+        {
+          "team": "BEL",
+          "player": "Youri Tielemans",
+          "minute": "120'+5'",
+          "penalty": true
+        }
+      ],
+      "penalties": null,
+      "afterExtraTime": true,
+      "homeTeam": "BEL",
+      "awayTeam": "SEN"
+    },
+    "m83": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "POR",
+      "awayTeam": "CRO"
+    },
+    "m84": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "ESP",
+      "awayTeam": "AUT"
+    },
+    "m85": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "SUI",
+      "awayTeam": "ALG"
+    },
+    "m86": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "ARG",
+      "awayTeam": "CPV"
+    },
+    "m87": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "COL",
+      "awayTeam": "GHA"
+    },
+    "m88": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": "AUS",
+      "awayTeam": "EGY"
+    },
+    "m89": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m90": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m91": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m92": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m93": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m94": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m95": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m96": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m97": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m98": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m99": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m100": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m101": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m102": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m103": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    },
+    "m104": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null,
+      "penalties": null,
+      "afterExtraTime": null,
+      "homeTeam": null,
+      "awayTeam": null
+    }
+  }
+}

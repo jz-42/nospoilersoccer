@@ -10,6 +10,12 @@ import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
 import { Rail } from './components/Rail'
 import { defaultTournamentId, tournaments } from './data'
+import {
+  applyHotStatePollFailure,
+  applyTournamentHotState,
+  parseTournamentHotState,
+  type FetchedTournamentHotState,
+} from './data/hot-state'
 import { catchUpMatchIds, isLive, totalMatches } from './logic/spoilers'
 import { useProgress } from './state/progress'
 
@@ -17,6 +23,13 @@ type Tab = 'day' | 'groups' | 'bracket'
 
 const TOURNAMENT_KEY = 'nss-tournament'
 const ONBOARDED_KEY = 'nss-onboarded'
+const HOT_STATE_URL =
+  import.meta.env.VITE_HOT_STATE_URL ??
+  (import.meta.env.PROD
+    ? 'https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/api/hot-state/wc2026'
+    : '')
+const HOT_STATE_POLL_MS = 5 * 60 * 1000
+const HOT_STATE_STALE_MS = 15 * 60 * 1000
 
 function App() {
   const [tournamentId, setTournamentId] = useState<string>(() => {
@@ -27,7 +40,54 @@ function App() {
       return defaultTournamentId
     }
   })
-  const t = tournaments[tournamentId]
+  const baseTournament = tournaments[tournamentId]
+  const [hotState, setHotState] = useState<FetchedTournamentHotState | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    if (tournamentId !== 'wc2026' || !HOT_STATE_URL) {
+      setHotState(null)
+      return
+    }
+
+    const loadHotState = async () => {
+      try {
+        const response = await fetch(HOT_STATE_URL, {
+          headers: { Accept: 'application/json' },
+        })
+        if (!response.ok) {
+          setHotState((current) => applyHotStatePollFailure(current, Date.now(), HOT_STATE_STALE_MS))
+          return
+        }
+        const parsed = parseTournamentHotState(await response.json())
+        if (!parsed) {
+          setHotState((current) => applyHotStatePollFailure(current, Date.now(), HOT_STATE_STALE_MS))
+          return
+        }
+        if (cancelled) return
+        setHotState({
+          ...parsed,
+          fetchedAt: Date.now(),
+        })
+      } catch {
+        setHotState((current) => applyHotStatePollFailure(current, Date.now(), HOT_STATE_STALE_MS))
+      }
+    }
+
+    setHotState(null)
+    void loadHotState()
+    const pollId = window.setInterval(() => {
+      void loadHotState()
+    }, HOT_STATE_POLL_MS)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(pollId)
+    }
+  }, [tournamentId])
+  const t = useMemo(
+    () => applyTournamentHotState(baseTournament, hotState),
+    [baseTournament, hotState],
+  )
   const progress = useProgress(t)
   const [tab, setTab] = useState<Tab>('day')
   // A finished tournament has no "today" — there the day tab is hidden and the
