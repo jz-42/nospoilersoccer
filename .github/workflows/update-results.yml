@@ -138,13 +138,13 @@ jobs:
             fi
 
             core_ok=false
-            if npm run check:update; then
+            if npm run build:hot-state && npm run check:update; then
               core_ok=true
             fi
 
             core_ready_for_entertainment=false
             if [ "$core_ok" = true ]; then
-              git add src/data/wc2026.ts src/data/wc2026-videos.ts scripts/curate-skip.json scripts/curate-ai-rejections.json
+              git add src/data/wc2026.ts src/data/wc2026-videos.ts public/api/hot-state/wc2026.json scripts/curate-skip.json scripts/curate-ai-rejections.json
               if git diff --cached --quiet; then
                 echo "no core changes this cycle"
                 core_ready_for_entertainment=true

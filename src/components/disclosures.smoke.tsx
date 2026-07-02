@@ -5,6 +5,7 @@ import type { GroupMatch, KnockoutMatch } from '../data/types'
 import type { Progress } from '../state/progress'
 import { DisclosureContent, Onboarding } from './Dialogs'
 import { MatchModal } from './MatchModal'
+import { PreviewCard } from './PreviewCard'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -123,6 +124,13 @@ const played2026: GroupMatch = {
   goals: [],
   videos: [{ youtubeId: 'fixture-video', kind: 'normal', durationSeconds: 300 }],
 }
+const played2026WithExtended: GroupMatch = {
+  ...played2026,
+  videos: [
+    { youtubeId: 'fixture-video', kind: 'normal', durationSeconds: 300 },
+    { youtubeId: 'fixture-extended-video', kind: 'extended', durationSeconds: 960 },
+  ],
+}
 const experimentWithEntertainment: GroupMatch = {
   ...played2026,
   entertainmentSummary: 'Lively and open-feeling, with enough rhythm to sound more engaging than routine.',
@@ -139,10 +147,39 @@ const renderMatch = (match: GroupMatch, progress: Progress = emptyProgress) =>
       onClose={noop}
     />,
   )
+const renderPreviewCard = (match: GroupMatch, progress: Progress = emptyProgress) =>
+  renderToStaticMarkup(
+    <PreviewCard
+      t={wc2026}
+      entry={{ date: match.date, target: { kind: 'group', match } }}
+      progress={progress}
+      onOpen={noop}
+    />,
+  )
 
 assert(
   !renderMatch(played2026).includes('Videos from the FOX Sports YouTube channel may only be available in the U.S.'),
   'FOX warning is not shown by default for a 2026 highlight',
+)
+const previewWithExtended = renderPreviewCard(played2026WithExtended)
+assert(
+  previewWithExtended.includes('5m · Extended'),
+  'preview card masks the extended duration with a neutral Extended label',
+)
+assert(
+  !previewWithExtended.includes('5m · 16m'),
+  'preview card does not expose the extended minute count',
+)
+const modalWithExtended = renderMatch(played2026WithExtended)
+assert(
+  modalWithExtended.includes('class="poster-label">Extended Highlights</span>'),
+  'modal poster label hides the extended runtime',
+)
+assert(
+  modalWithExtended.includes(
+    'class="poster-label">Quick Highlights<span class="poster-time"> · 5:00</span></span>',
+  ),
+  'modal poster label keeps the quick-highlight runtime',
 )
 assert(
   !renderMatch(played2026).includes('Add to Google Calendar'),
@@ -233,6 +270,10 @@ assert(
 assert(
   /\.player-poster\s*\{[\s\S]*?min-height:\s*150px;/.test(appCss),
   'highlight poster height is reduced to 150px',
+)
+assert(
+  /\.kind-chip\s*\{[\s\S]*?align-items:\s*center;/.test(appCss),
+  'highlight toggle chips center labels after extended runtimes are hidden',
 )
 const revealedExperiment = renderMatch(experimentWithEntertainment, {
   ...emptyProgress,

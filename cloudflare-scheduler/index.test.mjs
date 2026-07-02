@@ -219,3 +219,27 @@ test('runScheduler can fail cron execution after logging GitHub errors', async (
   assert.equal(messages[0].action, 'error')
   assert.equal(messages[0].github.status, 500)
 })
+
+test('worker serves hot-state JSON with CORS headers', async () => {
+  const { handleHotStateRequest } = await import('./index.mjs')
+  const response = await handleHotStateRequest(
+    {
+      HOT_STATE_URL: 'https://example.com/wc2026.json',
+    },
+    async () =>
+      new Response(JSON.stringify({ tournamentId: 'wc2026', matches: { m77: { liveStatus: { kind: 'live' } } } }), {
+        status: 200,
+        headers: {
+          'content-type': 'application/json',
+          'last-modified': 'Tue, 30 Jun 2026 21:02:16 GMT',
+        },
+      }),
+  )
+
+  assert.equal(response.status, 200)
+  assert.equal(response.headers.get('access-control-allow-origin'), '*')
+  const payload = await response.json()
+  assert.equal(payload.tournamentId, 'wc2026')
+  assert.equal(typeof payload.matches, 'object')
+  assert.equal(payload.sourceLastModified, 'Tue, 30 Jun 2026 21:02:16 GMT')
+})

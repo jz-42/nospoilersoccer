@@ -188,17 +188,28 @@ function KnockoutCard({
     ((homeR !== null && progress.favorites.includes(homeR)) ||
       (awayR !== null && progress.favorites.includes(awayR)))
 
+  // Flags move to a shared left crest; on a watchable match the play button
+  // drops onto it (the watch affordance, no label), mirroring the group tile.
+  const homeFlag = homeR !== null ? t.teams[homeR].flag : null
+  const awayFlag = awayR !== null ? t.teams[awayR].flag : null
+  const homeName = homeR !== null ? t.teams[homeR].name : null
+  const awayName = awayR !== null ? t.teams[awayR].name : null
+  const showPlay = state === 'watch'
+  // Screen readers need the matchup — the visual .ko-watch drops team names, so
+  // hoist them onto the button as an accessible label.
+  const watchAriaLabel =
+    showPlay && homeName && awayName ? `Watch ${homeName} vs ${awayName}` : undefined
+  // Detailed-mode feed highlight tones for each slot; parity with SlotRow so the
+  // destination flag lights up when a feeder standings row is hovered/pinned.
+  const homeTone = feedKeys ? activeTone?.get(feedKeys.home) : undefined
+  const awayTone = feedKeys ? activeTone?.get(feedKeys.away) : undefined
+
+  // Watch reads "finished, result hidden" on the right (same as FT) — the
+  // crest play button is what marks it as the one to go watch.
   const status =
     liveStatus ? (
       <LiveStatusBadge status={liveStatus} className="ko-pill" />
-    ) : state === 'watch' ? (
-      <span className="ko-pill pill-watch">
-        <svg viewBox="0 0 24 24" width="8" height="8" fill="currentColor" aria-hidden="true">
-          <path d="M8 5.5v13l11-6.5z" />
-        </svg>
-        Watch
-      </span>
-    ) : state === 'ft' ? (
+    ) : state === 'watch' || state === 'ft' ? (
       <span className="ko-pill pill-ft">FT</span>
     ) : state === 'seen' ? (
       <span className="ko-pill pill-seen">✓</span>
@@ -220,6 +231,7 @@ function KnockoutCard({
       className={`ko-card state-${state} ${champion ? 'ko-champ' : ''} ${
         pinned ? 'is-pinned' : fav ? 'is-fav' : ''
       }`}
+      aria-label={watchAriaLabel}
       onClick={(e) => {
         // Keep any pinned paths when opening a match (the board's clear-on-click
         // only fires for clicks that reach the background).
@@ -238,22 +250,53 @@ function KnockoutCard({
         </span>
         {status}
       </div>
-      <SlotRow
-        t={t}
-        m={m}
-        side="home"
-        progress={progress}
-        feedKey={feedKeys?.home}
-        tone={feedKeys ? activeTone?.get(feedKeys.home) : undefined}
-      />
-      <SlotRow
-        t={t}
-        m={m}
-        side="away"
-        progress={progress}
-        feedKey={feedKeys?.away}
-        tone={feedKeys ? activeTone?.get(feedKeys.away) : undefined}
-      />
+      {showPlay ? (
+        // Watch state only: a compact "screen is live" thumb — the two flags
+        // left-to-right with the play button between them, names dropped. The
+        // one match you're meant to go watch.
+        <div className="ko-watch">
+          <span
+            className={`ko-watch-flag ${homeTone ? `feed-active feed-${homeTone}` : ''}`}
+            aria-hidden="true"
+            {...(feedKeys ? { 'data-feed-tgt': feedKeys.home } : {})}
+          >
+            <span className="ko-watch-emoji">{homeFlag ?? <i className="ko-tbd" />}</span>
+            {homeR && <span className="ko-watch-code">{homeR}</span>}
+          </span>
+          <span className="ko-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M8 5.5v13l11-6.5z" />
+            </svg>
+          </span>
+          <span
+            className={`ko-watch-flag ${awayTone ? `feed-active feed-${awayTone}` : ''}`}
+            aria-hidden="true"
+            {...(feedKeys ? { 'data-feed-tgt': feedKeys.away } : {})}
+          >
+            <span className="ko-watch-emoji">{awayFlag ?? <i className="ko-tbd" />}</span>
+            {awayR && <span className="ko-watch-code">{awayR}</span>}
+          </span>
+        </div>
+      ) : (
+        <>
+          <SlotRow
+            t={t}
+            m={m}
+            side="home"
+            progress={progress}
+            feedKey={feedKeys?.home}
+            tone={feedKeys ? activeTone?.get(feedKeys.home) : undefined}
+          />
+          <SlotRow
+            t={t}
+            m={m}
+            side="away"
+            progress={progress}
+            feedKey={feedKeys?.away}
+            tone={feedKeys ? activeTone?.get(feedKeys.away) : undefined}
+          />
+        </>
+      )}
     </button>
   )
 }
@@ -450,9 +493,13 @@ function Column({
   if (matches.length === 1) groups.push(matches)
   else for (let i = 0; i < matches.length; i += 2) groups.push(matches.slice(i, i + 2))
 
+  // A box's incoming leg greens as soon as *any* feeder has flowed, so the
+  // green line reaches the downstream card instead of stopping a gap short of
+  // it while the other side of the matchup is still undecided. (The card itself
+  // keeps showing a placeholder for the slot that isn't settled yet.)
   const inFlow = (m: KnockoutMatch) => {
     const f = feeders.get(m.id) ?? []
-    return f.length > 0 && f.every((x) => progress.marks[x.id] !== undefined)
+    return f.some((x) => progress.marks[x.id] !== undefined)
   }
 
   return (

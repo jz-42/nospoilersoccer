@@ -11,6 +11,9 @@ The drama is still intact when you come back.
 
 - **No accounts, no backend.** The site is fully static. All tournament data
   (groups, bracket, scores, highlight video links) ships as JSON with the site.
+- **Hot match state comes from Cloudflare.** During the live 2026 tournament,
+  the app also polls a small runtime JSON feed for live badges and fresh
+  results, so those updates do not wait for a full Render redeploy.
 - **Your progress stays in your browser.** Watched/skipped games, followed teams,
   and settings live in `localStorage` — deploys never reset them.
 - **Spoiler-proof by design.** Scores, standings, and bracket progression are
@@ -121,6 +124,10 @@ Deployed as a [Render Static Site](https://render.com/docs/static-sites).
 
 - Build command: `npm install && npm run build`
 - Publish directory: `dist`
+- Runtime hot-state endpoint:
+  - production default: `https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/api/hot-state/wc2026`
+  - optional override: `VITE_HOT_STATE_URL`
+  - local dev defaults to no hot-state polling unless `VITE_HOT_STATE_URL` is set
 - Optional Umami analytics:
   - `VITE_UMAMI_WEBSITE_ID` — Umami website id; uses Umami Cloud by default
   - `VITE_UMAMI_SCRIPT_URL` — optional self-hosted/proxied script URL override
