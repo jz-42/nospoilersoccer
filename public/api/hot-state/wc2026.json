@@ -2013,11 +2013,28 @@
       "awayTeam": "CRO"
     },
     "m84": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Mikel Oyarzabal",
+          "minute": "36'"
+        },
+        {
+          "team": "ESP",
+          "player": "Pedro Porro",
+          "minute": "66'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Oyarzabal",
+          "minute": "89'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "ESP",
