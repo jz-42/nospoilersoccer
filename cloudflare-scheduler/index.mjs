@@ -1,5 +1,7 @@
 const DEFAULT_SCHEDULE_URL =
   'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/wc2026.ts'
+const DEFAULT_HOT_STATE_URL =
+  'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/hot-state/wc2026.json'
 
 const GROUP_START_OFFSET_MINUTES = 90
 const GROUP_END_OFFSET_MINUTES = 8 * 60
@@ -275,11 +277,23 @@ function createEnvGitHubClient(env) {
   })
 }
 
-function json(data, status = 200) {
+function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data, null, 2), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      ...extraHeaders,
+    },
   })
+}
+
+function corsHeaders(extraHeaders = {}) {
+  return {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, OPTIONS',
+    'access-control-allow-headers': 'content-type',
+    ...extraHeaders,
+  }
 }
 
 async function handleDiagnosticRequest(env) {
@@ -312,14 +326,48 @@ async function handleAdminTest(url, env) {
   return json({ ok: true, mode: 'admin_test', result })
 }
 
+export async function handleHotStateRequest(env, fetchImpl = fetch) {
+  const sourcePath = env.HOT_STATE_URL || DEFAULT_HOT_STATE_URL
+  const response = await fetchImpl(sourcePath, {
+    headers: { Accept: 'application/json' },
+    cf: { cacheEverything: true, cacheTtl: 60 },
+  })
+
+  if (!response.ok) {
+    return json(
+      { ok: false, error: 'hot_state_fetch_failed', status: response.status },
+      502,
+      corsHeaders({ 'cache-control': 'no-store' }),
+    )
+  }
+
+  const payload = await response.json()
+  return json(
+    {
+      ...payload,
+      generatedAt: new Date().toISOString(),
+      sourceLastModified: response.headers.get('last-modified'),
+      sourcePath,
+    },
+    200,
+    corsHeaders({ 'cache-control': 'public, max-age=60' }),
+  )
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url)
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers: corsHeaders() })
+    }
     if (url.pathname === '/' || url.pathname === '') {
       return handleDiagnosticRequest(env)
     }
     if (url.pathname === '/admin/test-dispatch') {
       return handleAdminTest(url, env)
+    }
+    if (url.pathname === '/api/hot-state/wc2026') {
+      return handleHotStateRequest(env)
     }
     return json({ ok: false, error: 'not_found' }, 404)
   },

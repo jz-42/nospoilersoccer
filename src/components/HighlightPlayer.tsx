@@ -26,7 +26,7 @@ import {
   isFoxHighlight,
   isYouTubeHighlight,
 } from '../data/videos'
-import { formatDuration } from './format'
+import { formatHighlightDuration } from './format'
 
 interface YTPlayer {
   getCurrentTime(): number
@@ -230,19 +230,20 @@ export function HighlightPlayer({
 
   const kindToggle = videos.length > 1 && (
     <div className="kind-toggle" role="tablist">
-      {videos.map((v) => (
-        <button
-          key={highlightKey(v)}
-          type="button"
-          className={`kind-chip ${highlightKey(selected) === highlightKey(v) ? 'active' : ''}`}
-          onClick={() => play(v)}
-        >
-          {KIND_LABEL[v.kind]}
-          {formatDuration(v.durationSeconds) && (
-            <span className="kind-chip-time">{formatDuration(v.durationSeconds)}</span>
-          )}
-        </button>
-      ))}
+      {videos.map((v) => {
+        const dur = formatHighlightDuration(v.durationSeconds, v.kind)
+        return (
+          <button
+            key={highlightKey(v)}
+            type="button"
+            className={`kind-chip ${highlightKey(selected) === highlightKey(v) ? 'active' : ''}`}
+            onClick={() => play(v)}
+          >
+            {KIND_LABEL[v.kind]}
+            {dur && <span className="kind-chip-time">{dur}</span>}
+          </button>
+        )
+      })}
     </div>
   )
 
@@ -255,7 +256,7 @@ export function HighlightPlayer({
       <div className="player-block">
         <div className="poster-list">
           {posters.map((v) => {
-            const dur = formatDuration(v.durationSeconds)
+            const dur = formatHighlightDuration(v.durationSeconds, v.kind)
             return (
               <button
                 key={highlightKey(v)}
