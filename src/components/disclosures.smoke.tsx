@@ -195,7 +195,7 @@ assert(
 )
 const preRevealExperiment = renderMatch(experimentWithEntertainment)
 assert(
-  preRevealExperiment.includes('AI Watchability Rating'),
+  preRevealExperiment.includes('Worth Watching?'),
   'pre-reveal experiment match includes the entertainment disclosure label',
 )
 assert(
@@ -280,7 +280,7 @@ const revealedExperiment = renderMatch(experimentWithEntertainment, {
   marks: { [experimentWithEntertainment.id]: 'watched' },
 })
 assert(
-  !revealedExperiment.includes('AI Watchability Rating'),
+  !revealedExperiment.includes('Worth Watching?'),
   'revealed experiment match hides the entertainment disclosure block',
 )
 assert(

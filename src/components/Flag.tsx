@@ -1,12 +1,14 @@
 /**
- * Circular flag badge — the Apple Sports look. Every matchup composes from
- * uniform discs instead of platform emoji (which vary in shape and size per
- * team and per OS).
+ * Rounded-rectangle flag badge — the professional football-product look
+ * (FotMob/Sofascore/FIFA). Rectangles keep real flag proportions and detail
+ * that circle-cropping mangled (Spain's crest in a porthole), and the shape
+ * contrast means a circular play button between two flags can never read as
+ * a row of three tokens.
  *
- * Assets are vendored circle-flags SVGs (https://github.com/HatScripts/circle-flags,
- * MIT) in src/assets/flags, one per TeamId, ~4KB each. The badge is sized in
- * `em` so it inherits whatever font-size the surrounding flag class already
- * sets — the same knob that sized the emoji.
+ * Assets are vendored flag-icons 4x3 SVGs (https://github.com/lipis/flag-icons,
+ * MIT) in src/assets/flags, one per TeamId. The badge is sized in `em` (height
+ * 1em, width 4:3) so it inherits whatever font-size the surrounding flag class
+ * already sets — the same knob that sized the emoji.
  */
 import type { Team } from '../data/types'
 

@@ -131,6 +131,12 @@ export function PreviewCard({
             <span className="preview-score">
               {m.score.home}–{m.score.away}
             </span>
+          ) : !liveStatus && state === 'watch' ? (
+            <span className="preview-play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+                <path d="M8.3 5.5v13l11-6.5z" />
+              </svg>
+            </span>
           ) : (
             <span className="preview-vs">vs</span>
           )}
@@ -140,14 +146,6 @@ export function PreviewCard({
             <span className="preview-flag preview-flag-tbd">?</span>
           )}
         </div>
-        {!liveStatus && state === 'watch' && (
-          <span className="preview-play" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-              <path d="M8.3 5.5v13l11-6.5z" />
-            </svg>
-            Watch
-          </span>
-        )}
         {!liveStatus && state === 'watch' && runtimeBadge && (
           <span className="preview-duration">{runtimeBadge}</span>
         )}

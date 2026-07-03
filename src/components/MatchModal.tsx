@@ -135,7 +135,7 @@ function EntertainmentDisclosureRow({
 }) {
   return (
     <DisclosureRow
-      label="AI Watchability Rating"
+      label="Worth Watching?"
       accessoryOpen={
         <span className="entertainment-stars" aria-label={`${rating} out of 5 stars`}>
           {Array.from({ length: 5 }, (_, i) => (
