@@ -13,6 +13,7 @@ import {
   slotLabel,
 } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
+import { Flag } from './Flag'
 import { HighlightPlayer } from './HighlightPlayer'
 import { LiveStatusBadge } from './live-status'
 import { OddsBar } from './OddsBar'
@@ -71,7 +72,7 @@ function TeamSide({
   const team = t.teams[teamId]
   return (
     <div className="modal-team">
-      <span className="modal-flag">{team.flag}</span>
+      <Flag team={team} className="modal-flag" />
       <span className="modal-team-name">{team.name}</span>
     </div>
   )
@@ -134,7 +135,7 @@ function EntertainmentDisclosureRow({
 }) {
   return (
     <DisclosureRow
-      label="AI Watchability Rating"
+      label="Worth Watching?"
       accessoryOpen={
         <span className="entertainment-stars" aria-label={`${rating} out of 5 stars`}>
           {Array.from({ length: 5 }, (_, i) => (

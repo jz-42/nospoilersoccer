@@ -2,6 +2,7 @@ import type { Group, Tournament } from '../data/types'
 import { groupStandings } from '../data/standings'
 import { groupComplete } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
+import { Flag } from './Flag'
 import type { ModalTarget } from './MatchModal'
 import { MatchTile } from './MatchTile'
 import { formatDate } from './format'
@@ -30,7 +31,7 @@ function Standings({ t, group, progress }: { t: Tournament; group: Group; progre
             <tr key={row.team} className={advances ? 'advances' : ''}>
               <td className="pos">{i + 1}</td>
               <td className="name">
-                <span className="flag">{team.flag}</span> {team.name}
+                <Flag team={team} className="flag" /> {team.name}
               </td>
               <td>{row.played}</td>
               <td>{row.goalsFor - row.goalsAgainst > 0 ? '+' : ''}{row.goalsFor - row.goalsAgainst}</td>

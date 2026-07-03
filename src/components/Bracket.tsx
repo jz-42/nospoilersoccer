@@ -6,6 +6,7 @@ import type { StandingRow } from '../data/standings'
 import { bestThirdSlotGroups, groupComplete, resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
+import { Flag } from './Flag'
 import { FlowLayer } from './FlowLayer'
 import type { FeedLink } from './FlowLayer'
 import { LiveStatusBadge } from './live-status'
@@ -146,7 +147,7 @@ function SlotRow({
   return (
     <div className={`ko-row ${won ? 'winner' : ''} ${activeCls}`} {...rowProps}>
       <span className="ko-team">
-        <span className="flag">{team.flag}</span> {team.name}
+        <Flag team={team} className="flag" /> {team.name}
       </span>
       {mark && score && (
         <span className="ko-score">
@@ -190,8 +191,6 @@ function KnockoutCard({
 
   // Flags move to a shared left crest; on a watchable match the play button
   // drops onto it (the watch affordance, no label), mirroring the group tile.
-  const homeFlag = homeR !== null ? t.teams[homeR].flag : null
-  const awayFlag = awayR !== null ? t.teams[awayR].flag : null
   const homeName = homeR !== null ? t.teams[homeR].name : null
   const awayName = awayR !== null ? t.teams[awayR].name : null
   const showPlay = state === 'watch'
@@ -260,7 +259,7 @@ function KnockoutCard({
             aria-hidden="true"
             {...(feedKeys ? { 'data-feed-tgt': feedKeys.home } : {})}
           >
-            <span className="ko-watch-emoji">{homeFlag ?? <i className="ko-tbd" />}</span>
+            <span className="ko-watch-emoji">{homeR !== null ? <Flag team={t.teams[homeR]} /> : <i className="ko-tbd" />}</span>
             {homeR && <span className="ko-watch-code">{homeR}</span>}
           </span>
           <span className="ko-play" aria-hidden="true">
@@ -273,7 +272,7 @@ function KnockoutCard({
             aria-hidden="true"
             {...(feedKeys ? { 'data-feed-tgt': feedKeys.away } : {})}
           >
-            <span className="ko-watch-emoji">{awayFlag ?? <i className="ko-tbd" />}</span>
+            <span className="ko-watch-emoji">{awayR !== null ? <Flag team={t.teams[awayR]} /> : <i className="ko-tbd" />}</span>
             {awayR && <span className="ko-watch-code">{awayR}</span>}
           </span>
         </div>
@@ -362,7 +361,7 @@ function FeedStandings({
               >
                 <td className="pos">{rank}</td>
                 <td className="name">
-                  <span className="flag">{team.flag}</span> {team.name}
+                  <Flag team={team} className="flag" /> {team.name}
                 </td>
                 <td className="pts">{row.points}</td>
               </tr>
@@ -447,7 +446,7 @@ function BestThirdTable({
       >
         <td className="pos grp">{r.group}</td>
         <td className="name">
-          <span className="flag">{team.flag}</span> {team.name}
+          <Flag team={team} className="flag" /> {team.name}
         </td>
         <td className="pts">{r.row.points}</td>
       </tr>,

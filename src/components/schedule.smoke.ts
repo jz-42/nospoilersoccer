@@ -82,7 +82,7 @@ const tileMarkup = renderToStaticMarkup(
     onOpen: noop,
   }),
 )
-assert(tileMarkup.includes('Live'), 'live match tile shows Live badge')
+assert(tileMarkup.includes('LIVE'), 'live match tile shows LIVE badge')
 assert(tileMarkup.includes('live-status-dot'), 'live match tile renders status dot')
 assert(!tileMarkup.includes('FT'), 'live match tile suppresses FT badge')
 
@@ -94,7 +94,7 @@ const previewMarkup = renderToStaticMarkup(
     onOpen: noop,
   }),
 )
-assert(previewMarkup.includes('Live'), 'live preview card shows Live badge')
+assert(previewMarkup.includes('LIVE'), 'live preview card shows LIVE badge')
 assert(!previewMarkup.includes('Not played yet'), 'live preview card does not keep upcoming supporting copy')
 assert(!previewMarkup.includes('Live now'), 'live preview card does not add live supporting copy')
 
@@ -114,6 +114,6 @@ const bracketMarkup = renderToStaticMarkup(
     onOpen: noop,
   }),
 )
-assert(bracketMarkup.includes('Live'), 'live bracket card shows Live badge')
+assert(bracketMarkup.includes('LIVE'), 'live bracket card shows LIVE badge')
 
 console.log('ALL LOCAL GROUPING TESTS PASS')
