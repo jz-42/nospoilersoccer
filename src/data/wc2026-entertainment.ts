@@ -424,6 +424,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m83": {
+    entertainmentSummary: "Fairly lively and tense, with a strong sense of uncertainty and a lot of emotional noise around it. It seems to have felt more dramatic than polished, and more engaging than a routine watch.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m84": {
     entertainmentSummary: "It seemed fairly polished and lively in patches, but not especially tense or chaotic. The mood sounds more smooth and professional than wildly dramatic.",
     entertainmentRating: 3,
