@@ -2004,11 +2004,29 @@
       "awayTeam": "SEN"
     },
     "m83": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "CRO",
+          "player": "Ivan Perisic",
+          "minute": "53'"
+        },
+        {
+          "team": "POR",
+          "player": "Cristiano Ronaldo",
+          "minute": "68'",
+          "penalty": true
+        },
+        {
+          "team": "POR",
+          "player": "Gonçalo Ramos",
+          "minute": "90'+4'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "POR",
