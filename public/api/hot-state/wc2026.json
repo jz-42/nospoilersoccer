@@ -2005,8 +2005,28 @@
     },
     "m83": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "CRO",
+          "player": "Ivan Perisic",
+          "minute": "53'"
+        },
+        {
+          "team": "POR",
+          "player": "Cristiano Ronaldo",
+          "minute": "68'",
+          "penalty": true
+        },
+        {
+          "team": "POR",
+          "player": "Gonçalo Ramos",
+          "minute": "90'+4'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "POR",
@@ -2014,8 +2034,27 @@
     },
     "m84": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Mikel Oyarzabal",
+          "minute": "36'"
+        },
+        {
+          "team": "ESP",
+          "player": "Pedro Porro",
+          "minute": "66'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Oyarzabal",
+          "minute": "89'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "ESP",
@@ -2023,8 +2062,22 @@
     },
     "m85": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "SUI",
+          "player": "Breel Embolo",
+          "minute": "10'"
+        },
+        {
+          "team": "SUI",
+          "player": "Dan Ndoye",
+          "minute": "46'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "SUI",
@@ -2050,10 +2103,28 @@
     },
     "m88": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
-      "penalties": null,
-      "afterExtraTime": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "EGY",
+          "player": "Emam Ashour",
+          "minute": "13'"
+        },
+        {
+          "team": "AUS",
+          "player": "Mohamed Hany",
+          "minute": "55'",
+          "ownGoal": true
+        }
+      ],
+      "penalties": {
+        "home": 2,
+        "away": 4
+      },
+      "afterExtraTime": true,
       "homeTeam": "AUS",
       "awayTeam": "EGY"
     },

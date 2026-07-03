@@ -275,6 +275,24 @@ assert(
   /\.kind-chip\s*\{[\s\S]*?align-items:\s*center;/.test(appCss),
   'highlight toggle chips center labels after extended runtimes are hidden',
 )
+assert(
+  /\.preview-flag-tbd\s*\{[\s\S]*?width:\s*calc\(46px \* 4 \/ 3\);[\s\S]*?height:\s*46px;[\s\S]*?border-radius:\s*4px;[\s\S]*?border:\s*2px dashed rgba\(154, 173, 203, 0\.24\);/.test(
+    appCss,
+  ),
+  'preview unknown-team placeholder uses the faint dashed flag-frame treatment',
+)
+assert(
+  /\.ko-tbd\s*\{[\s\S]*?width:\s*calc\(26px \* 4 \/ 3\);[\s\S]*?height:\s*26px;[\s\S]*?border-radius:\s*3px;[\s\S]*?border:\s*1\.5px dashed rgba\(154, 173, 203, 0\.24\);/.test(
+    appCss,
+  ),
+  'knockout unknown-team placeholder uses the faint dashed flag-frame treatment',
+)
+assert(
+  /\.modal-flag-unknown\s*\{[\s\S]*?width:\s*calc\(56px \* 4 \/ 3\);[\s\S]*?height:\s*56px;[\s\S]*?border-radius:\s*5px;[\s\S]*?border:\s*2px dashed rgba\(154, 173, 203, 0\.24\);/.test(
+    appCss,
+  ),
+  'modal unknown-team placeholder uses the faint dashed flag-frame treatment',
+)
 const revealedExperiment = renderMatch(experimentWithEntertainment, {
   ...emptyProgress,
   marks: { [experimentWithEntertainment.id]: 'watched' },

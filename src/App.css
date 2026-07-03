@@ -256,7 +256,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 0.14em;
+  border-radius: 0.05em;
   background: var(--panel);
 }
 
@@ -264,7 +264,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 0.14em;
+  border-radius: 0.05em;
   pointer-events: none;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.14),
@@ -696,18 +696,16 @@
   line-height: 1;
 }
 
-/* Undecided slot — same 4:3 geometry as a flag badge so the layout doesn't
-   shift when the team reveals. */
+/* Undecided slot — same empty dashed outline language as the emoji-era
+   placeholder, fitted to the current rectangular flag frame. */
 .preview-flag-tbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: calc(46px * 4 / 3);
   height: 46px;
-  border-radius: 6px;
-  border: 1px solid rgba(154, 173, 203, 0.28);
-  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 72%);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border: 2px dashed rgba(154, 173, 203, 0.24);
   color: var(--muted);
   font-size: 17px;
   font-weight: 600;
@@ -2214,14 +2212,14 @@
   background: radial-gradient(ellipse 55% 55% at 50% 50%, color-mix(in srgb, var(--danger) 32%, transparent), transparent 78%);
 }
 
-/* Undecided slot — a quiet placeholder chip with flag-badge geometry. */
+/* Undecided slot — the same faint dashed outline, scaled to the compact
+   bracket-watch flag slot. */
 .ko-tbd {
   display: inline-flex;
   width: calc(26px * 4 / 3);
   height: 26px;
-  border-radius: 4px;
-  border: 1px solid rgba(154, 173, 203, 0.28);
-  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 72%);
+  border-radius: 3px;
+  border: 1.5px dashed rgba(154, 173, 203, 0.24);
 }
 
 /* The same frosted white glass play button as the group tile — the watch
@@ -2839,10 +2837,8 @@
   justify-content: center;
   width: calc(56px * 4 / 3);
   height: 56px;
-  border-radius: 8px;
-  border: 1px solid rgba(154, 173, 203, 0.28);
-  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 72%);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+  border: 2px dashed rgba(154, 173, 203, 0.24);
   color: var(--muted);
   font-size: 20px;
 }
@@ -3308,29 +3304,24 @@
 
 .player-poster:hover .poster-play {
   transform: scale(1.07);
-  filter: brightness(1.08);
-  box-shadow: 0 6px 18px rgba(160, 42, 35, 0.35), 0 2px 8px rgba(0, 0, 0, 0.35);
+  filter: brightness(1.06);
+  box-shadow: 0 8px 24px rgba(190, 40, 34, 0.34), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-/* Red play = "actual video", but turned down: smaller and a deeper brick red
-   so it identifies without grabbing the whole modal's attention. */
+/* The classic YouTube-red play button — restored, just a touch dimmer so it
+   identifies the video without grabbing the whole modal's attention. */
 .poster-play {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 37px;
-  border-radius: 11px;
-  background: linear-gradient(180deg, #c4443c, #a02e27);
+  width: 62px;
+  height: 44px;
+  border-radius: 13px;
+  background: linear-gradient(180deg, #d5453d, #b32721);
   border: none;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(160, 42, 35, 0.28), 0 2px 6px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 6px 18px rgba(190, 40, 34, 0.26), 0 2px 8px rgba(0, 0, 0, 0.4);
   transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
-}
-
-.poster-play svg {
-  width: 16px;
-  height: 16px;
 }
 
 .poster-label {
