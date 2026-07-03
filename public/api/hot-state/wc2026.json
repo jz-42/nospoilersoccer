@@ -2102,7 +2102,9 @@
       "awayTeam": "GHA"
     },
     "m88": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
