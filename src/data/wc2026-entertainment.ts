@@ -424,4 +424,24 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m83": {
+    entertainmentSummary: "Fairly lively and tense, with a strong sense of uncertainty and a lot of emotional noise around it. It seems to have felt more dramatic than polished, and more engaging than a routine watch.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m84": {
+    entertainmentSummary: "It seemed fairly polished and lively in patches, but not especially tense or chaotic. The mood sounds more smooth and professional than wildly dramatic.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m85": {
+    entertainmentSummary: "More steady than thrilling, with a fairly routine feel for much of the match. It sounds as if the occasion added some tension and atmosphere, but the overall watch was only moderately engaging.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m88": {
+    entertainmentSummary: "It seems to have felt tense and emotionally charged, with the entertainment coming more from sustained uncertainty than from a breezy, free-flowing rhythm. The mood sounds lively enough that even if it was not constantly sparkling, it stayed engaging for viewers.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
