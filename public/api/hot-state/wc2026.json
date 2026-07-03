@@ -2061,11 +2061,23 @@
       "awayTeam": "AUT"
     },
     "m85": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "SUI",
+          "player": "Breel Embolo",
+          "minute": "10'"
+        },
+        {
+          "team": "SUI",
+          "player": "Dan Ndoye",
+          "minute": "46'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "SUI",
