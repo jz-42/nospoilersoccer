@@ -434,4 +434,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m85": {
+    entertainmentSummary: "More steady than thrilling, with a fairly routine feel for much of the match. It sounds as if the occasion added some tension and atmosphere, but the overall watch was only moderately engaging.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
