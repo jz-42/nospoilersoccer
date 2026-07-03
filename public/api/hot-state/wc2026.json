@@ -2102,13 +2102,29 @@
       "awayTeam": "GHA"
     },
     "m88": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
-      "penalties": null,
-      "afterExtraTime": null,
+      "goals": [
+        {
+          "team": "EGY",
+          "player": "Emam Ashour",
+          "minute": "13'"
+        },
+        {
+          "team": "AUS",
+          "player": "Mohamed Hany",
+          "minute": "55'",
+          "ownGoal": true
+        }
+      ],
+      "penalties": {
+        "home": 2,
+        "away": 4
+      },
+      "afterExtraTime": true,
       "homeTeam": "AUS",
       "awayTeam": "EGY"
     },
