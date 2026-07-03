@@ -11,6 +11,7 @@ import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
 import { resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
+import { Flag } from './Flag'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
@@ -42,16 +43,12 @@ export function PreviewCard({
 
   let homeLabel: string
   let awayLabel: string
-  let homeFlag: string | null
-  let awayFlag: string | null
   let context: string
 
   if (target.kind === 'group') {
     const gm = m as GroupMatch
     homeLabel = t.teams[gm.home].name
     awayLabel = t.teams[gm.away].name
-    homeFlag = t.teams[gm.home].flag
-    awayFlag = t.teams[gm.away].flag
     context = `Group ${gm.group}`
   } else {
     const km = m as KnockoutMatch
@@ -59,8 +56,6 @@ export function PreviewCard({
     const away = resolveSlot(t, km, 'away', progress.marks, progress.revealed)
     homeLabel = home ? t.teams[home].name : slotLabel(t, km.home)
     awayLabel = away ? t.teams[away].name : slotLabel(t, km.away)
-    homeFlag = home ? t.teams[home].flag : null
-    awayFlag = away ? t.teams[away].flag : null
     context = target.roundName
   }
 
@@ -127,8 +122,8 @@ export function PreviewCard({
           </span>
         )}
         <div className="preview-matchup">
-          {homeFlag ? (
-            <span className="preview-flag">{homeFlag}</span>
+          {homeId !== null ? (
+            <Flag team={t.teams[homeId]} className="preview-flag" />
           ) : (
             <span className="preview-flag preview-flag-tbd">?</span>
           )}
@@ -139,17 +134,18 @@ export function PreviewCard({
           ) : (
             <span className="preview-vs">vs</span>
           )}
-          {awayFlag ? (
-            <span className="preview-flag">{awayFlag}</span>
+          {awayId !== null ? (
+            <Flag team={t.teams[awayId]} className="preview-flag" />
           ) : (
             <span className="preview-flag preview-flag-tbd">?</span>
           )}
         </div>
         {!liveStatus && state === 'watch' && (
           <span className="preview-play" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
               <path d="M8.3 5.5v13l11-6.5z" />
             </svg>
+            Watch
           </span>
         )}
         {!liveStatus && state === 'watch' && runtimeBadge && (

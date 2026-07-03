@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
+import { Flag } from './Flag'
 
 /** Heart in the header → panel for favorite teams: pick, order, auto-highlight. */
 export function FavoritesPanel({ t, progress }: { t: Tournament; progress: Progress }) {
@@ -49,7 +50,7 @@ export function FavoritesPanel({ t, progress }: { t: Tournament; progress: Progr
               <ul className="fav-list">
                 {favorites.map((team, i) => (
                   <li key={team.id} className="fav-item">
-                    <span className="flag">{team.flag}</span>
+                    <Flag team={team} className="flag" />
                     <span className="fav-name">{team.name}</span>
                     <span className="fav-actions">
                       <button
@@ -105,7 +106,7 @@ export function FavoritesPanel({ t, progress }: { t: Tournament; progress: Progr
                 onClick={() => progress.toggleFavorite(team.id)}
               >
                 <span className="fav-add-heart">♡</span>
-                <span className="flag">{team.flag}</span> {team.name}
+                <Flag team={team} className="flag" /> {team.name}
               </button>
             ))}
           </div>

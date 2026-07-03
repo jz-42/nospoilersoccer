@@ -174,10 +174,23 @@ export function matchTint(
   if (h) {
     vars['--home-1'] = h[0]
     vars['--home-2'] = h[1]
+    vars['--home-glow'] = glowColor(h[0])
   }
   if (a) {
     vars['--away-1'] = a[0]
     vars['--away-2'] = a[1]
+    vars['--away-glow'] = glowColor(a[0])
   }
   return vars
+}
+
+/**
+ * Whitened version of a field color for the "stage light" radial that sits
+ * behind that team's flag disc. Emitted here rather than as a nested
+ * color-mix in the CSS because the CSS fallback for an unknown side must be
+ * fully transparent — mixing white into a transparent fallback would leave a
+ * ghost glow on locked knockout cards.
+ */
+function glowColor(hex: string): string {
+  return `color-mix(in srgb, ${hex} 78%, #fff 22%)`
 }

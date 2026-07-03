@@ -236,6 +236,42 @@
   font-size: 1.05em;
 }
 
+/* Circular flag badge (see Flag.tsx). Sized in em so each context's existing
+   flag class keeps controlling scale, exactly as it did for the emoji. The
+   shading stays a whisper — a hairline ring and the faintest curvature — so
+   at card/modal sizes the disc reads as a crafted flat badge (the Apple
+   look), not a glossy pin; anything stronger tips into sticker-gloss. */
+.flag-badge {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
+  line-height: 1;
+  filter: drop-shadow(0 0.03em 0.07em rgba(0, 0, 0, 0.28));
+}
+
+.flag-badge img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--panel);
+}
+
+.flag-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.09),
+    inset 0 0.2em 0.26em -0.16em rgba(255, 255, 255, 0.14),
+    inset 0 -0.22em 0.32em -0.2em rgba(0, 0, 0, 0.22);
+}
+
 /* ============ state pills (shared vocabulary) ============ */
 
 .ko-pill {
@@ -280,6 +316,10 @@
 /* ============ matchday rail ============ */
 
 .day-rail {
+  /* A stable push-down (not content-dependent centering, which would make the
+     day nav jump between days) so sparse late-tournament days sit balanced in
+     the viewport instead of hugging the header over a void. */
+  margin-top: min(5vh, 64px);
   margin-bottom: 30px;
 }
 
@@ -549,12 +589,24 @@
   transition-duration: 0.12s;
 }
 
+/* Watched cards recede, but by quieting the tint art itself rather than
+   fading the whole card — whole-card opacity over the black canvas drags
+   every hue toward brown murk, which is what made past days read as
+   "ambient color noise". Quieter, still clean. */
 .preview-card.state-seen {
-  opacity: 0.62;
+  opacity: 0.8;
+}
+
+.preview-card.state-seen .preview-media::before {
+  opacity: 0.52;
 }
 
 .preview-card.state-seen:hover {
-  opacity: 0.9;
+  opacity: 1;
+}
+
+.preview-card.state-seen:hover .preview-media::before {
+  opacity: 0.75;
 }
 
 .preview-card.state-upcoming .preview-matchup,
@@ -585,37 +637,50 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
-/* pitch center circle plus the per-team flag tint: one full-width home→away
+/* Per-team flag tint, "lit" treatment. The base is one full-width home→away
    wash interpolated in OKLab — perceptual blending is what lets the two hues
    melt into each other in the middle without averaging into sRGB mud (the
-   olive that Belgium–Senegal used to get), and a full-surface wash is what
-   keeps the color confident on the larger day-grid card sizes instead of
-   reading as faint corner glows. A shallow secondary-tone cap at each top
-   corner carries the second flag color. Sits above the media's dark base,
-   below the flags. The color vars are set per-card in PreviewCard; a locked
-   slot leaves its side transparent so its half fades to neutral. */
+   olive that Belgium–Senegal used to get). On top of it, a whitened glow of
+   each field color sits behind that team's flag disc, so the color reads as
+   stage light on a surface, not ambient fog — this is the layer that makes a
+   card feel *lit* rather than tinted. A shallow secondary-tone cap at each
+   top corner carries the second flag color, a soft vignette along the bottom
+   grounds the caption. Sits above the media's dark base, below the flags.
+   The color vars are set per-card in PreviewCard; a locked slot leaves its
+   side transparent so its half fades to neutral. */
 .preview-media::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
     radial-gradient(circle at 50% 132%, transparent 34%, rgba(255, 255, 255, 0.05) 34.5%, transparent 35.7%),
+    linear-gradient(180deg, transparent 55%, rgba(8, 11, 16, 0.38) 100%),
+    radial-gradient(
+      42% 64% at 26% 34%,
+      color-mix(in srgb, var(--home-glow, transparent) 44%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      42% 64% at 74% 34%,
+      color-mix(in srgb, var(--away-glow, transparent) 44%, transparent) 0%,
+      transparent 100%
+    ),
     radial-gradient(
       36% 44% at 4% -8%,
-      color-mix(in srgb, var(--home-2, transparent) 42%, transparent) 0%,
+      color-mix(in srgb, var(--home-2, transparent) 52%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
       36% 44% at 96% -8%,
-      color-mix(in srgb, var(--away-2, transparent) 42%, transparent) 0%,
+      color-mix(in srgb, var(--away-2, transparent) 52%, transparent) 0%,
       transparent 100%
     ),
     linear-gradient(
       90deg in oklab,
-      color-mix(in srgb, var(--home-1, transparent) 36%, transparent) 0%,
-      color-mix(in srgb, var(--home-1, transparent) 28%, transparent) 36%,
-      color-mix(in srgb, var(--away-1, transparent) 28%, transparent) 64%,
-      color-mix(in srgb, var(--away-1, transparent) 36%, transparent) 100%
+      color-mix(in srgb, var(--home-1, transparent) 52%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 38%, transparent) 36%,
+      color-mix(in srgb, var(--away-1, transparent) 38%, transparent) 64%,
+      color-mix(in srgb, var(--away-1, transparent) 52%, transparent) 100%
     );
 }
 
@@ -627,19 +692,20 @@
 }
 
 .preview-flag {
-  font-size: 42px;
+  font-size: 46px;
   line-height: 1;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
 }
 
 .preview-flag-tbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
-  border: 1.5px dashed var(--border-strong);
+  border: 1px solid rgba(154, 173, 203, 0.28);
+  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 72%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   color: var(--muted);
   font-size: 17px;
   font-weight: 600;
@@ -779,20 +845,27 @@
   }
 }
 
+/* Watch affordance: a frosted pill at the card's bottom edge, not a third
+   circle between the two flag discs (circle-play + two circular flags read
+   as a row of tokens). */
 .preview-play {
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  bottom: 10px;
+  transform: translateX(-50%);
   z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
   color: #fff;
@@ -804,7 +877,7 @@
 /* Hover feedback only — the resting button is unchanged. A springy pop plus a
    brighter glass/ring so the press target feels alive when you mouse over. */
 .preview-card:hover .preview-play {
-  transform: translate(-50%, -50%) scale(1.14);
+  transform: translateX(-50%) scale(1.08);
   background: rgba(255, 255, 255, 0.22);
   border-color: rgba(255, 255, 255, 0.8);
   box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -846,6 +919,16 @@
   flex-direction: column;
   gap: 2px;
   padding: 10px 13px 12px;
+  /* A whisper of the matchup tint bleeds under the caption so card art and
+     meta read as one object, not a picture with a label stuck on. The vars
+     live on the card root; unknown matchups resolve to transparent. */
+  background: linear-gradient(
+    90deg in oklab,
+    color-mix(in srgb, var(--home-1, transparent) 9%, transparent) 0%,
+    color-mix(in srgb, var(--home-1, transparent) 5%, transparent) 38%,
+    color-mix(in srgb, var(--away-1, transparent) 5%, transparent) 62%,
+    color-mix(in srgb, var(--away-1, transparent) 9%, transparent) 100%
+  );
 }
 
 .preview-teams {
@@ -1144,6 +1227,7 @@
 }
 
 .tile-thumb-flag {
+  font-size: 19px;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
@@ -2090,7 +2174,8 @@
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  border: 1.5px dashed var(--border-strong);
+  border: 1px solid rgba(154, 173, 203, 0.28);
+  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 72%);
 }
 
 /* The same frosted white glass play button as the group tile — the watch
@@ -2493,30 +2578,42 @@
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"),
     linear-gradient(180deg, transparent 0%, transparent 30%, rgba(8, 11, 16, 0.42) 100%),
     radial-gradient(
+      44% 26% at 27% 12%,
+      color-mix(in srgb, var(--home-glow, transparent) 42%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      44% 26% at 73% 12%,
+      color-mix(in srgb, var(--away-glow, transparent) 42%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
       52% 30% at 96% -5%,
-      color-mix(in srgb, var(--away-2, transparent) 48%, transparent) 0%,
+      color-mix(in srgb, var(--away-2, transparent) 54%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
       52% 30% at 4% -5%,
-      color-mix(in srgb, var(--home-2, transparent) 48%, transparent) 0%,
+      color-mix(in srgb, var(--home-2, transparent) 54%, transparent) 0%,
       transparent 100%
     ),
     linear-gradient(
       90deg in oklab,
-      color-mix(in srgb, var(--home-1, transparent) 40%, transparent) 0%,
-      color-mix(in srgb, var(--home-1, transparent) 32%, transparent) 34%,
-      color-mix(in srgb, var(--away-1, transparent) 32%, transparent) 66%,
-      color-mix(in srgb, var(--away-1, transparent) 40%, transparent) 100%
+      color-mix(in srgb, var(--home-1, transparent) 52%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 40%, transparent) 34%,
+      color-mix(in srgb, var(--away-1, transparent) 40%, transparent) 66%,
+      color-mix(in srgb, var(--away-1, transparent) 52%, transparent) 100%
     );
   background-size:
     160px 160px,
     cover,
     cover,
     cover,
+    cover,
+    cover,
     cover;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-blend-mode: soft-light, normal, normal, normal, normal;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+  background-blend-mode: soft-light, normal, normal, normal, normal, normal, normal;
   border: 1px solid var(--border-strong);
   border-radius: 18px;
   padding: 24px 28px 14px;
@@ -2694,10 +2791,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  border: 1.5px dashed var(--border-strong);
+  border: 1px solid rgba(154, 173, 203, 0.28);
+  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 72%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   color: var(--muted);
   font-size: 20px;
 }
@@ -3085,10 +3184,12 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(13, 18, 26, 0.42);
-  border: 1px dashed rgba(154, 173, 203, 0.3);
+  background:
+    radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.07), transparent 62%),
+    rgba(13, 18, 26, 0.28);
+  border: 1px dashed rgba(154, 173, 203, 0.26);
   border-radius: 12px;
-  color: rgba(196, 206, 220, 0.75);
+  color: rgba(206, 216, 230, 0.8);
   font-size: 13px;
   backdrop-filter: blur(14px) saturate(1.15);
   -webkit-backdrop-filter: blur(14px) saturate(1.15);
@@ -3124,15 +3225,18 @@
   align-items: center;
   justify-content: center;
   gap: 11px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
   cursor: pointer;
   color: var(--text-h);
+  /* Glass, not slab: the posters are deliberately imageless (a real thumbnail
+     would spoil the score), so the matchup tint showing through *is* the
+     artwork. Keep the wash light and let the top sheen shape it. */
   background:
-    radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.12), transparent 62%),
-    linear-gradient(168deg, rgba(22, 28, 36, 0.6), rgba(11, 15, 20, 0.5));
+    radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.1), transparent 62%),
+    linear-gradient(168deg, rgba(22, 28, 36, 0.34), rgba(11, 15, 20, 0.26));
   overflow: hidden;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s;
   backdrop-filter: blur(14px) saturate(1.15);
   -webkit-backdrop-filter: blur(14px) saturate(1.15);
 }
@@ -3145,17 +3249,18 @@
 }
 
 .player-poster:hover {
-  border-color: var(--border-strong);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .player-poster:hover .poster-play {
-  transform: scale(1.08);
-  filter: brightness(1.08);
-  box-shadow: 0 8px 24px rgba(214, 38, 30, 0.42), 0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: scale(1.07);
+  filter: brightness(1.07);
+  box-shadow: 0 8px 24px rgba(202, 44, 38, 0.38), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* YouTube-style red play — deliberately louder than the card's frosted circle:
-   this is the "actual video", and the most inviting thing in the modal. */
+   this is the "actual video", the most inviting thing in the modal. The red is
+   dialed a touch below brand-hot so it doesn't fight the matchup tint. */
 .poster-play {
   display: inline-flex;
   align-items: center;
@@ -3163,10 +3268,10 @@
   width: 62px;
   height: 44px;
   border-radius: 13px;
-  background: linear-gradient(180deg, #ec4036, #cf211b);
+  background: linear-gradient(180deg, #e04a41, #c22a24);
   border: none;
   color: #fff;
-  box-shadow: 0 6px 18px rgba(214, 38, 30, 0.34), 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 18px rgba(202, 44, 38, 0.3), 0 2px 8px rgba(0, 0, 0, 0.4);
   transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
 

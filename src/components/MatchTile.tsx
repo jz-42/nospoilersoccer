@@ -7,6 +7,7 @@
  */
 import type { GroupMatch, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
+import { Flag } from './Flag'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
@@ -57,8 +58,8 @@ export function MatchTile({
       onClick={() => onOpen({ kind: 'group', match: m })}
     >
       <span className="tile-thumb" aria-hidden="true">
-        <span className="tile-thumb-flag">{home.flag}</span>
-        <span className="tile-thumb-flag">{away.flag}</span>
+        <Flag team={home} className="tile-thumb-flag" />
+        <Flag team={away} className="tile-thumb-flag" />
         {!liveStatus && state === 'watch' && (
           <span className="tile-play">
             <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor">
