@@ -454,6 +454,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m89": {
+    entertainmentSummary: "More tense and abrasive than fluid, with the entertainment seeming to come from the edge and uncertainty rather than sustained sparkle. Reactions suggest a hard-edged, stop-start watch that felt engaging in patches but not especially free-flowing.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m90": {
     entertainmentSummary: "Fairly lively and a bit feisty, with enough edge to seem more engaging than routine. It sounds entertaining in patches rather than relentlessly open or dramatic throughout.",
     entertainmentRating: 3,
