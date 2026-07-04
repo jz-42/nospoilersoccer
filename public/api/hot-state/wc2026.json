@@ -2123,11 +2123,18 @@
       "awayTeam": "CPV"
     },
     "m87": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "COL",
+          "player": "Jhon Arias",
+          "minute": "14'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "COL",
