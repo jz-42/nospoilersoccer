@@ -439,6 +439,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 2,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m86": {
+    entertainmentSummary: "Tense and hectic rather than polished, with an unusually high-stress feel that many seemed to find gripping. The quality sounds a bit uneven, but it did not come across as routine or flat.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m88": {
     entertainmentSummary: "It seems to have felt tense and emotionally charged, with the entertainment coming more from sustained uncertainty than from a breezy, free-flowing rhythm. The mood sounds lively enough that even if it was not constantly sparkling, it stayed engaging for viewers.",
     entertainmentRating: 4,
