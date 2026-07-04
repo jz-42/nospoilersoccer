@@ -444,6 +444,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m87": {
+    entertainmentSummary: "Fairly restrained and serious in tone, with the tension seeming to come more from the occasion than from a constantly lively spectacle. It sounds engaging in stretches but not especially wild or free-flowing overall.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m88": {
     entertainmentSummary: "It seems to have felt tense and emotionally charged, with the entertainment coming more from sustained uncertainty than from a breezy, free-flowing rhythm. The mood sounds lively enough that even if it was not constantly sparkling, it stayed engaging for viewers.",
     entertainmentRating: 4,
