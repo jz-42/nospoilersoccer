@@ -2123,7 +2123,9 @@
       "awayTeam": "CPV"
     },
     "m87": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
