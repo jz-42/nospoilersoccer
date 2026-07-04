@@ -210,7 +210,7 @@ export const wc2026: Tournament = {
       id: 'r16',
       name: 'Round of 16',
       matches: [
-        { id: 'm89', date: '2026-07-04', kickoff: '2026-07-04T21:00Z', home: { type: 'match-winner', match: 'm74' }, away: { type: 'match-winner', match: 'm77' } , odds: { home: 0.045, draw: 0.125, away: 0.835, url: 'https://polymarket.com/event/fifwc-par-fra-2026-07-04' } },
+        { id: 'm89', date: '2026-07-04', kickoff: '2026-07-04T21:00Z', home: { type: 'match-winner', match: 'm74' }, away: { type: 'match-winner', match: 'm77' } , odds: { home: 0.045, draw: 0.135, away: 0.825, url: 'https://polymarket.com/event/fifwc-par-fra-2026-07-04' } },
         { id: 'm90', date: '2026-07-04', home: { type: 'match-winner', match: 'm73' }, away: { type: 'match-winner', match: 'm75' }, odds: { home: 0.185, draw: 0.295, away: 0.525, url: 'https://polymarket.com/event/fifwc-can-mar-2026-07-04' }, kickoff: '2026-07-04T17:00Z', homeTeam: 'CAN', awayTeam: 'MAR', score: { home: 0, away: 3 }, goals: [{ team: 'MAR', player: "Azzedine Ounahi", minute: "50'" }, { team: 'MAR', player: "Azzedine Ounahi", minute: "82'" }, { team: 'MAR', player: "Soufiane Rahimi", minute: "90'+8'" }] },
         { id: 'm91', date: '2026-07-05', kickoff: '2026-07-05T20:00Z', home: { type: 'match-winner', match: 'm76' }, away: { type: 'match-winner', match: 'm78' } , odds: { home: 0.535, draw: 0.265, away: 0.205, url: 'https://polymarket.com/event/fifwc-bra-nor-2026-07-05' } },
         { id: 'm92', date: '2026-07-05', kickoff: '2026-07-06T00:00Z', home: { type: 'match-winner', match: 'm79' }, away: { type: 'match-winner', match: 'm80' } , odds: { home: 0.305, draw: 0.305, away: 0.395, url: 'https://polymarket.com/event/fifwc-mex-eng-2026-07-05' } },
