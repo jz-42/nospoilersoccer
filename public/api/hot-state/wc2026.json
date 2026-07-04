@@ -2169,12 +2169,22 @@
     },
     "m89": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "70'",
+          "penalty": true
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "PAR",
+      "awayTeam": "FRA"
     },
     "m90": {
       "liveStatus": null,
