@@ -2178,12 +2178,31 @@
     },
     "m90": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "MAR",
+          "player": "Azzedine Ounahi",
+          "minute": "50'"
+        },
+        {
+          "team": "MAR",
+          "player": "Azzedine Ounahi",
+          "minute": "82'"
+        },
+        {
+          "team": "MAR",
+          "player": "Soufiane Rahimi",
+          "minute": "90'+8'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "CAN",
+      "awayTeam": "MAR"
     },
     "m91": {
       "liveStatus": null,
