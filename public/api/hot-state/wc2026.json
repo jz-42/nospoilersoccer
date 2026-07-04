@@ -2084,13 +2084,41 @@
       "awayTeam": "ALG"
     },
     "m86": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "29'"
+        },
+        {
+          "team": "CPV",
+          "player": "Deroy Duarte",
+          "minute": "59'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lisandro Martínez",
+          "minute": "92'"
+        },
+        {
+          "team": "CPV",
+          "player": "Sidny Lopes Cabral",
+          "minute": "103'"
+        },
+        {
+          "team": "ARG",
+          "player": "Diney Borges",
+          "minute": "111'",
+          "ownGoal": true
+        }
+      ],
       "penalties": null,
-      "afterExtraTime": null,
+      "afterExtraTime": true,
       "homeTeam": "ARG",
       "awayTeam": "CPV"
     },
