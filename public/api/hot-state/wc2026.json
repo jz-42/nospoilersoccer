@@ -2216,12 +2216,32 @@
     },
     "m91": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "79'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "90'"
+        },
+        {
+          "team": "BRA",
+          "player": "Neymar",
+          "minute": "90'+10'",
+          "penalty": true
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "BRA",
+      "awayTeam": "NOR"
     },
     "m92": {
       "liveStatus": null,
