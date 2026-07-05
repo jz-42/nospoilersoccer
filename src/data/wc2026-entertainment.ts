@@ -464,4 +464,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m91": {
+    entertainmentSummary: "Tense and emotionally charged, it seems to have drawn much of its entertainment from uncertainty rather than constant free-flowing play. The reaction makes it sound more gripping than routine, with the atmosphere carrying a lot of the viewing experience.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
