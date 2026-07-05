@@ -212,7 +212,7 @@ export const wc2026: Tournament = {
       matches: [
         { id: 'm89', date: '2026-07-04', home: { type: 'match-winner', match: 'm74' }, away: { type: 'match-winner', match: 'm77' }, odds: { home: 0.045, draw: 0.135, away: 0.815, url: 'https://polymarket.com/event/fifwc-par-fra-2026-07-04' }, kickoff: '2026-07-04T21:00Z', homeTeam: 'PAR', awayTeam: 'FRA', score: { home: 0, away: 1 }, goals: [{ team: 'FRA', player: "Kylian Mbappé", minute: "70'", penalty: true }] },
         { id: 'm90', date: '2026-07-04', home: { type: 'match-winner', match: 'm73' }, away: { type: 'match-winner', match: 'm75' }, odds: { home: 0.185, draw: 0.295, away: 0.525, url: 'https://polymarket.com/event/fifwc-can-mar-2026-07-04' }, kickoff: '2026-07-04T17:00Z', homeTeam: 'CAN', awayTeam: 'MAR', score: { home: 0, away: 3 }, goals: [{ team: 'MAR', player: "Azzedine Ounahi", minute: "50'" }, { team: 'MAR', player: "Azzedine Ounahi", minute: "82'" }, { team: 'MAR', player: "Soufiane Rahimi", minute: "90'+8'" }] },
-        { id: 'm91', date: '2026-07-05', kickoff: '2026-07-05T20:00Z', home: { type: 'match-winner', match: 'm76' }, away: { type: 'match-winner', match: 'm78' } , odds: { home: 0.545, draw: 0.265, away: 0.195, url: 'https://polymarket.com/event/fifwc-bra-nor-2026-07-05' } },
+        { id: 'm91', date: '2026-07-05', kickoff: '2026-07-05T20:00Z', home: { type: 'match-winner', match: 'm76' }, away: { type: 'match-winner', match: 'm78' } , odds: { home: 0.545, draw: 0.265, away: 0.205, url: 'https://polymarket.com/event/fifwc-bra-nor-2026-07-05' } },
         { id: 'm92', date: '2026-07-05', kickoff: '2026-07-06T00:00Z', home: { type: 'match-winner', match: 'm79' }, away: { type: 'match-winner', match: 'm80' } , odds: { home: 0.295, draw: 0.305, away: 0.395, url: 'https://polymarket.com/event/fifwc-mex-eng-2026-07-05' } },
         { id: 'm93', date: '2026-07-06', kickoff: '2026-07-06T19:00Z', home: { type: 'match-winner', match: 'm83' }, away: { type: 'match-winner', match: 'm84' } , odds: { home: 0.235, draw: 0.265, away: 0.515, url: 'https://polymarket.com/event/fifwc-prt-esp-2026-07-06' } },
         { id: 'm94', date: '2026-07-06', kickoff: '2026-07-07T00:00Z', home: { type: 'match-winner', match: 'm81' }, away: { type: 'match-winner', match: 'm82' } , odds: { home: 0.345, draw: 0.285, away: 0.365, url: 'https://polymarket.com/event/fifwc-usa-bel-2026-07-06' } },
@@ -224,7 +224,7 @@ export const wc2026: Tournament = {
       id: 'qf',
       name: 'Quarter-finals',
       matches: [
-        { id: 'm97', date: '2026-07-09', kickoff: '2026-07-09T20:00Z', home: { type: 'match-winner', match: 'm89' }, away: { type: 'match-winner', match: 'm90' } , odds: { home: 0.62, draw: 0.245, away: 0.145, url: 'https://polymarket.com/event/fifwc-fra-mar-2026-07-09' } },
+        { id: 'm97', date: '2026-07-09', kickoff: '2026-07-09T20:00Z', home: { type: 'match-winner', match: 'm89' }, away: { type: 'match-winner', match: 'm90' } , odds: { home: 0.615, draw: 0.245, away: 0.145, url: 'https://polymarket.com/event/fifwc-fra-mar-2026-07-09' } },
         { id: 'm98', date: '2026-07-10', kickoff: '2026-07-10T19:00Z', home: { type: 'match-winner', match: 'm93' }, away: { type: 'match-winner', match: 'm94' } },
         { id: 'm99', date: '2026-07-11', kickoff: '2026-07-11T21:00Z', home: { type: 'match-winner', match: 'm91' }, away: { type: 'match-winner', match: 'm92' } },
         { id: 'm100', date: '2026-07-11', kickoff: '2026-07-12T01:00Z', home: { type: 'match-winner', match: 'm95' }, away: { type: 'match-winner', match: 'm96' } },
