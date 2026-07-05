@@ -224,7 +224,7 @@ export const wc2026: Tournament = {
       id: 'qf',
       name: 'Quarter-finals',
       matches: [
-        { id: 'm97', date: '2026-07-09', kickoff: '2026-07-09T20:00Z', home: { type: 'match-winner', match: 'm89' }, away: { type: 'match-winner', match: 'm90' } , odds: { home: 0.62, draw: 0.24, away: 0.145, url: 'https://polymarket.com/event/fifwc-fra-mar-2026-07-09' } },
+        { id: 'm97', date: '2026-07-09', kickoff: '2026-07-09T20:00Z', home: { type: 'match-winner', match: 'm89' }, away: { type: 'match-winner', match: 'm90' } , odds: { home: 0.62, draw: 0.245, away: 0.145, url: 'https://polymarket.com/event/fifwc-fra-mar-2026-07-09' } },
         { id: 'm98', date: '2026-07-10', kickoff: '2026-07-10T19:00Z', home: { type: 'match-winner', match: 'm93' }, away: { type: 'match-winner', match: 'm94' } },
         { id: 'm99', date: '2026-07-11', kickoff: '2026-07-11T21:00Z', home: { type: 'match-winner', match: 'm91' }, away: { type: 'match-winner', match: 'm92' } },
         { id: 'm100', date: '2026-07-11', kickoff: '2026-07-12T01:00Z', home: { type: 'match-winner', match: 'm95' }, away: { type: 'match-winner', match: 'm96' } },
