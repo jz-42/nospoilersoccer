@@ -28,6 +28,25 @@ try {
   // Node (tsx smoke tests): no bundler, no assets — emoji fallback.
 }
 
+// Warm every flag into the browser cache as soon as the bundle loads:
+// otherwise the first paint of a day (or a swipe to a new one) shows dark
+// placeholder boxes for a beat while each SVG fetches. 54 tiny files, one
+// idle pass, cached for the session. Guarded so the Node smoke tests
+// (no window, empty flagUrls) skip it.
+if (typeof window !== 'undefined') {
+  const warm = () => {
+    for (const url of Object.values(flagUrls)) {
+      const img = new Image()
+      img.src = url
+    }
+  }
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(warm, { timeout: 1500 })
+  } else {
+    setTimeout(warm, 200)
+  }
+}
+
 export function Flag({ team, className }: { team: Team; className?: string }) {
   const url = flagUrls[`../assets/flags/${team.id}.svg`]
   const cls = className ? `flag-badge ${className}` : 'flag-badge'
@@ -36,7 +55,7 @@ export function Flag({ team, className }: { team: Team; className?: string }) {
   // span carries the curvature shading (an img can't host ::after).
   return (
     <span className={cls}>
-      {url ? <img src={url} alt="" draggable={false} /> : team.flag}
+      {url ? <img src={url} alt="" draggable={false} decoding="sync" /> : team.flag}
     </span>
   )
 }

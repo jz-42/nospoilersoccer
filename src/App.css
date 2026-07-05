@@ -257,7 +257,10 @@
   width: 100%;
   height: 100%;
   border-radius: 0.05em;
-  background: var(--panel);
+  /* Loading placeholder: a whisper of frost, not a black slab — if a flag
+     ever paints late (see the cache warm-up in Flag.tsx) it reads as an
+     empty glass chip, not a jarring dark hole. */
+  background: rgba(154, 173, 203, 0.09);
 }
 
 .flag-badge::after {
@@ -809,8 +812,12 @@
   -webkit-backdrop-filter: blur(10px) saturate(1.3);
 }
 
+/* Green glass, not neutral glass — live is our accent's moment, and the
+   green tint is what makes the pill read as native to the site. */
 .live-status-live {
-  border-color: rgba(47, 208, 111, 0.28);
+  border-color: rgba(47, 208, 111, 0.34);
+  background: linear-gradient(180deg, rgba(47, 208, 111, 0.16), rgba(47, 208, 111, 0.07));
+  color: #eafff3;
 }
 
 .live-status-delayed {
@@ -827,38 +834,47 @@
 /* the worm's track */
 .live-status-live .live-status-dot {
   position: relative;
-  width: 15px;
-  height: 5px;
+  width: 16px;
+  height: 7px;
   border-radius: 999px;
-  background: rgba(47, 208, 111, 0.16);
+  background: rgba(47, 208, 111, 0.14);
   overflow: hidden;
 }
 
+/* The worm is a dot at each end of the track and squeezes thin while it
+   crosses — swelling at the ends, narrowing in the middle — rather than a
+   bar shunting back and forth. */
 .live-status-live .live-status-dot::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
   left: 0;
-  width: 5px;
+  top: 0;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: #2fd06f;
   box-shadow: 0 0 8px rgba(47, 208, 111, 0.8);
-  animation: live-worm 1.3s ease-in-out infinite alternate;
+  animation: live-worm 1.15s ease-in-out infinite alternate;
 }
 
 @keyframes live-worm {
   0% {
     left: 0;
-    width: 5px;
+    top: 0;
+    width: 7px;
+    height: 7px;
   }
-  45% {
-    left: 0;
-    width: 12px;
+  50% {
+    left: 3.5px;
+    top: 2px;
+    width: 9px;
+    height: 3px;
   }
   100% {
-    left: 10px;
-    width: 5px;
+    left: 9px;
+    top: 0;
+    width: 7px;
+    height: 7px;
   }
 }
 
@@ -870,8 +886,7 @@
 @media (prefers-reduced-motion: reduce) {
   .live-status-live .live-status-dot::before {
     animation: none;
-    width: 12px;
-    left: 1.5px;
+    left: 4.5px;
   }
 }
 
