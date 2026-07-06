@@ -2245,12 +2245,43 @@
     },
     "m92": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "36'"
+        },
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "38'"
+        },
+        {
+          "team": "MEX",
+          "player": "Julián Quiñones",
+          "minute": "42'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "60'",
+          "penalty": true
+        },
+        {
+          "team": "MEX",
+          "player": "Raúl Jiménez",
+          "minute": "69'",
+          "penalty": true
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "MEX",
+      "awayTeam": "ENG"
     },
     "m93": {
       "liveStatus": null,
