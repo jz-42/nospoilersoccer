@@ -469,4 +469,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m92": {
+    entertainmentSummary: "Widely described as a highly charged, lively match with a raucous atmosphere and sustained tension. It sounds more like a dramatic, open-feeling spectacle than a routine or cagey watch.",
+    entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
