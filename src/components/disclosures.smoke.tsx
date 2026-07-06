@@ -15,6 +15,7 @@ function assert(condition: boolean, message: string) {
 const noop = () => {}
 const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
+const flagSource = readFileSync(new URL('./Flag.tsx', import.meta.url), 'utf8')
 
 function googleCalendarDateTime(instant: string | Date, timeZone = localTimeZone) {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -312,6 +313,35 @@ assert(
     appCss,
   ),
   'modal unknown-team placeholder uses the faint dashed flag-frame treatment',
+)
+assert(
+  flagSource.includes("query: '?url&no-inline'"),
+  'flag assets stay external instead of being bundled as raw SVG text in the startup JS',
+)
+assert(
+  !flagSource.includes("query: '?raw'") &&
+    !flagSource.includes('dangerouslySetInnerHTML'),
+  'flag rendering avoids raw inline SVGs',
+)
+assert(
+  !flagSource.includes("link.rel = 'preload'") &&
+    flagSource.includes("link.rel = 'prefetch'") &&
+    flagSource.includes("link.as = 'image'"),
+  'offscreen flag image assets are prefetched at low priority instead of preloaded',
+)
+assert(
+  flagSource.includes('setTimeout') && flagSource.includes('requestIdleCallback'),
+  'offscreen flag prefetching is scheduled after startup',
+)
+assert(
+  flagSource.includes('supportsFlagPrefetch') && flagSource.includes('new Image()'),
+  'offscreen flag warm-up falls back for browsers without link prefetch',
+)
+assert(
+  /\.flag-badge img\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;/.test(
+    appCss,
+  ),
+  'external flag SVG images keep the existing flag badge fit',
 )
 const revealedExperiment = renderMatch(experimentWithEntertainment, {
   ...emptyProgress,
