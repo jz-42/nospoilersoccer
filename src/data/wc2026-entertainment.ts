@@ -474,4 +474,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m93": {
+    entertainmentSummary: "Cagey and tense rather than free-flowing, with many reactions suggesting it felt fairly flat for long stretches. The occasion seemed to add some edge, but the overall viewing experience sounds closer to a grind than a lively spectacle.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
