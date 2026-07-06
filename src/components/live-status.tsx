@@ -7,7 +7,7 @@ export function LiveStatusBadge({
   status: MatchLiveStatus
   className?: string
 }) {
-  const label = status.kind === 'live' ? 'Live' : 'Delayed'
+  const label = status.kind === 'live' ? 'LIVE' : 'Delayed'
   return (
     <span className={`live-status-badge live-status-${status.kind} ${className}`.trim()}>
       <span className="live-status-dot" aria-hidden="true" />

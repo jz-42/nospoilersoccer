@@ -1,29 +1,34 @@
 import type { TeamId } from './types'
 
 /**
- * Per-team flag color palettes, used to tint the match modal background with a
- * soft two-team gradient (home color on the left, away on the right).
+ * Per-team identity palettes, used to tint match surfaces with a two-team
+ * color field (home on the left, away on the right).
  *
- * Each entry is `[primary, secondary]`: two representative flag tones. They are
- * stored at full strength and intentionally a little muted — the CSS that
- * consumes them washes them over the dark panel at low alpha, so the result
- * reads as a tasteful tint, never a flag. Order matters: `primary` is the
- * edge-hugging field that carries a team's whole side (it decays to the dark
- * base before the midline, so the two teams' hues never mix into mud), and
- * `secondary` is the shallow accent cap at that side's top corner.
+ * Each entry is `[lead, accent, deep?]`. `lead` is the field color that
+ * carries the team's whole side; `accent` is the small asymmetric cap at that
+ * side's top corner (never a band — accents are seasoning, so two "stripey"
+ * countries can't produce plaid); `deep` is an optional third tone the side
+ * falls into toward the bottom of the surface. When `deep` is omitted the CSS
+ * derives it by darkening the lead — override it only where a *different hue*
+ * at depth is part of the identity (USA red falling into navy, Germany's red
+ * into flag-black), which is what makes a side read as a country rather than
+ * a color. White is never stored: light lives in the glow layer, not paint.
  *
  * Keep this exhaustive for every team across all tournaments — the smoke test
  * fails the build if a roster team is missing. A missing team simply renders a
  * neutral (untinted) modal, so the failure mode is graceful, not broken.
  */
-export const teamColors: Record<TeamId, readonly [string, string]> = {
+export const teamColors: Record<
+  TeamId,
+  readonly [string, string] | readonly [string, string, string]
+> = {
   ALG: ['#2a8f5e', '#1f6f49'],
   ARG: ['#7cb8e6', '#4f93cc'],
   AUS: ['#3a5da8', '#d8b54a'],
   AUT: ['#d6435a', '#c0c6d2'],
   BEL: ['#e0b53e', '#c43a3a'],
   BIH: ['#3f6fb5', '#e6c352'],
-  BRA: ['#e6c84a', '#2f9e63'],
+  BRA: ['#e6c84a', '#2f9e63', '#1e6f47'],
   CAN: ['#e0544e', '#c0c6d2'],
   CIV: ['#e08a3c', '#2a9e6a'],
   CMR: ['#2a9e5e', '#d9b441'],
@@ -40,7 +45,7 @@ export const teamColors: Record<TeamId, readonly [string, string]> = {
   ENG: ['#e0544e', '#c0c6d2'],
   ESP: ['#d6454f', '#e6c44a'],
   FRA: ['#3a5fb0', '#d6454f'],
-  GER: ['#d6454f', '#e0b53e'],
+  GER: ['#d6454f', '#e0b53e', '#23262c'],
   GHA: ['#2a9e5e', '#d6454f'],
   HAI: ['#3a5fb0', '#d6454f'],
   IRN: ['#2a9e5e', '#d6454f'],
@@ -51,7 +56,7 @@ export const teamColors: Record<TeamId, readonly [string, string]> = {
   KSA: ['#2a9e5e', '#1f7a48'],
   MAR: ['#c43a3f', '#2a8f57'],
   MEX: ['#2a9e5e', '#d6454f'],
-  NED: ['#e0843c', '#3a5fb0'],
+  NED: ['#e0843c', '#3a5fb0', '#243c74'],
   NOR: ['#d6454f', '#3a5fb0'],
   NZL: ['#3a5fb0', '#d6454f'],
   PAN: ['#d6454f', '#3a5fb0'],
@@ -68,7 +73,9 @@ export const teamColors: Record<TeamId, readonly [string, string]> = {
   TUN: ['#d6454f', '#c0c6d2'],
   TUR: ['#d6454f', '#c0c6d2'],
   URU: ['#5a9fd6', '#e6c44a'],
-  USA: ['#3a5fb0', '#d6454f'],
+  // Red-led with navy at depth (plus the white of the glow layer): the
+  // red-white-blue read, not "generic blue team".
+  USA: ['#c9504c', '#3a5fb0', '#2c4a8c'],
   UZB: ['#3a8fd0', '#2a9e5e'],
   WAL: ['#d6454f', '#2a8f57'],
 }
@@ -126,6 +133,8 @@ function resolveFields(
   h: readonly [string, string],
   a: readonly [string, string],
 ): { home: readonly [string, string]; away: readonly [string, string] } {
+  // (deep tones are handled by the caller — the collision rule only ever
+  // trades between lead and accent)
   if (deltaE(h[0], a[0]) >= COLLISION_DELTA_E) return { home: h, away: a }
   const orderings = [0, 1] as const
   let best = { home: h, away: a }
@@ -164,20 +173,52 @@ export function matchTint(
   away: TeamId | null,
 ): Record<string, string> {
   const vars: Record<string, string> = {}
-  let h = home ? teamColors[home] : undefined
-  let a = away ? teamColors[away] : undefined
+  const hPal = home ? teamColors[home] : undefined
+  const aPal = away ? teamColors[away] : undefined
+  let h: readonly [string, string] | undefined = hPal && [hPal[0], hPal[1]]
+  let a: readonly [string, string] | undefined = aPal && [aPal[0], aPal[1]]
   if (h && a) {
     const resolved = resolveFields(h, a)
     h = resolved.home
     a = resolved.away
   }
-  if (h) {
+  if (h && hPal) {
     vars['--home-1'] = h[0]
     vars['--home-2'] = h[1]
+    vars['--home-glow'] = glowColor(h[0])
+    vars['--home-deep'] = deepTone(hPal, h[0])
   }
-  if (a) {
+  if (a && aPal) {
     vars['--away-1'] = a[0]
     vars['--away-2'] = a[1]
+    vars['--away-glow'] = glowColor(a[0])
+    vars['--away-deep'] = deepTone(aPal, a[0])
   }
   return vars
+}
+
+/**
+ * The tone a side falls into toward the bottom of the surface. A curated deep
+ * only applies while the team still leads with its curated lead — if the
+ * collision rule moved it to its alternate, the curated deep was tuned for
+ * the wrong hue, so we derive a darkened version of the resolved field
+ * instead (Spain-gone-gold deepens into dark gold, not into dark red).
+ */
+function deepTone(
+  palette: readonly [string, string] | readonly [string, string, string],
+  resolvedField: string,
+): string {
+  if (palette.length === 3 && resolvedField === palette[0]) return palette[2]
+  return `color-mix(in oklab, ${resolvedField} 62%, #05080d)`
+}
+
+/**
+ * Whitened version of a field color for the "stage light" radial that sits
+ * behind that team's flag disc. Emitted here rather than as a nested
+ * color-mix in the CSS because the CSS fallback for an unknown side must be
+ * fully transparent — mixing white into a transparent fallback would leave a
+ * ghost glow on locked knockout cards.
+ */
+function glowColor(hex: string): string {
+  return `color-mix(in srgb, ${hex} 78%, #fff 22%)`
 }

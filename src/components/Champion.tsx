@@ -1,4 +1,5 @@
 import type { Team, Tournament } from '../data/types'
+import { Flag } from './Flag'
 
 /** Generic World Cup style trophy. */
 function Trophy({ size = 44 }: { size?: number }) {
@@ -85,7 +86,9 @@ export function ChampionMoment({ t, team }: { t: Tournament; team: Team }) {
   return (
     <div className="champion">
       <div className="champion-art">{isMessiMoment ? <Lift /> : <Trophy />}</div>
-      <div className="champion-flag">{team.flag}</div>
+      <div className="champion-flag">
+        <Flag team={team} />
+      </div>
       <div className="champion-name">{team.name}</div>
       <div className="champion-label">World Champions</div>
     </div>

@@ -236,6 +236,45 @@
   font-size: 1.05em;
 }
 
+/* Rounded-rect flag badge (see Flag.tsx). Height is 1em, width 4:3, so each
+   context's existing flag class keeps controlling scale via font-size. The
+   shading stays a whisper — hairline ring, faint top sheen — enough to seat
+   the flag on any tint without tipping into gloss. Radius/shadows are in em
+   so the treatment scales with the badge. */
+.flag-badge {
+  position: relative;
+  display: inline-block;
+  width: calc(4em / 3);
+  height: 1em;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
+  line-height: 1;
+  filter: drop-shadow(0 0.03em 0.07em rgba(0, 0, 0, 0.3));
+}
+
+.flag-badge img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.05em;
+  /* Loading placeholder: a whisper of frost, not a black slab — if a flag
+     ever paints late (see the cache warm-up in Flag.tsx) it reads as an
+     empty glass chip, not a jarring dark hole. */
+  background: rgba(154, 173, 203, 0.09);
+}
+
+.flag-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 0.05em;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 0.16em 0.22em -0.14em rgba(255, 255, 255, 0.16),
+    inset 0 -0.14em 0.22em -0.16em rgba(0, 0, 0, 0.2);
+}
+
 /* ============ state pills (shared vocabulary) ============ */
 
 .ko-pill {
@@ -280,6 +319,10 @@
 /* ============ matchday rail ============ */
 
 .day-rail {
+  /* A stable push-down (not content-dependent centering, which would make the
+     day nav jump between days) so sparse late-tournament days sit balanced in
+     the viewport instead of hugging the header over a void. */
+  margin-top: min(5vh, 64px);
   margin-bottom: 30px;
 }
 
@@ -513,7 +556,7 @@
 }
 
 .day-grid .preview-flag-tbd {
-  width: var(--day-flag-size);
+  width: calc(var(--day-flag-size) * 4 / 3);
   height: var(--day-flag-size);
   font-size: calc(var(--day-flag-size) * 0.4);
 }
@@ -561,12 +604,24 @@
   transition-duration: 0.12s;
 }
 
+/* Watched cards recede, but by quieting the tint art itself rather than
+   fading the whole card — whole-card opacity over the black canvas drags
+   every hue toward brown murk, which is what made past days read as
+   "ambient color noise". Quieter, still clean. */
 .preview-card.state-seen {
-  opacity: 0.62;
+  opacity: 0.8;
+}
+
+.preview-card.state-seen .preview-media::before {
+  opacity: 0.52;
 }
 
 .preview-card.state-seen:hover {
-  opacity: 0.9;
+  opacity: 1;
+}
+
+.preview-card.state-seen:hover .preview-media::before {
+  opacity: 0.75;
 }
 
 .preview-card.state-upcoming .preview-matchup,
@@ -597,37 +652,61 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
-/* pitch center circle plus the per-team flag tint: one full-width home→away
-   wash interpolated in OKLab — perceptual blending is what lets the two hues
-   melt into each other in the middle without averaging into sRGB mud (the
-   olive that Belgium–Senegal used to get), and a full-surface wash is what
-   keeps the color confident on the larger day-grid card sizes instead of
-   reading as faint corner glows. A shallow secondary-tone cap at each top
-   corner carries the second flag color. Sits above the media's dark base,
-   below the flags. The color vars are set per-card in PreviewCard; a locked
-   slot leaves its side transparent so its half fades to neutral. */
+/* Per-team identity tint, "lit volume" treatment. The base is one full-width
+   home→away wash interpolated in OKLab — perceptual blending is what lets the
+   two hues melt into each other in the middle without averaging into sRGB mud
+   (the olive that Belgium–Senegal used to get). On top of it: a whitened glow
+   of each field color behind that team's flag (stage light, not ambient fog),
+   a shallow accent cap at each top corner carrying the second identity color,
+   and a *deep pool* at each bottom corner — the side falls from luminous at
+   flag height into its deep tone below, so the surface reads as lit volume
+   instead of tinted paper (USA: red at the flag falling into navy; Germany:
+   red into flag-black). A soft vignette grounds the caption. The color vars
+   are set per-card in PreviewCard; a locked slot leaves its side transparent
+   so its half fades to neutral. */
 .preview-media::before {
   content: '';
   position: absolute;
   inset: 0;
   background:
     radial-gradient(circle at 50% 132%, transparent 34%, rgba(255, 255, 255, 0.05) 34.5%, transparent 35.7%),
+    linear-gradient(180deg, transparent 55%, rgba(8, 11, 16, 0.38) 100%),
+    radial-gradient(
+      42% 64% at 26% 34%,
+      color-mix(in srgb, var(--home-glow, transparent) 44%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      42% 64% at 74% 34%,
+      color-mix(in srgb, var(--away-glow, transparent) 44%, transparent) 0%,
+      transparent 100%
+    ),
     radial-gradient(
       36% 44% at 4% -8%,
-      color-mix(in srgb, var(--home-2, transparent) 42%, transparent) 0%,
+      color-mix(in srgb, var(--home-2, transparent) 52%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
       36% 44% at 96% -8%,
-      color-mix(in srgb, var(--away-2, transparent) 42%, transparent) 0%,
+      color-mix(in srgb, var(--away-2, transparent) 52%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      74% 82% at 10% 118%,
+      color-mix(in srgb, var(--home-deep, transparent) 58%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      74% 82% at 90% 118%,
+      color-mix(in srgb, var(--away-deep, transparent) 58%, transparent) 0%,
       transparent 100%
     ),
     linear-gradient(
       90deg in oklab,
-      color-mix(in srgb, var(--home-1, transparent) 36%, transparent) 0%,
-      color-mix(in srgb, var(--home-1, transparent) 28%, transparent) 36%,
-      color-mix(in srgb, var(--away-1, transparent) 28%, transparent) 64%,
-      color-mix(in srgb, var(--away-1, transparent) 36%, transparent) 100%
+      color-mix(in srgb, var(--home-1, transparent) 52%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 38%, transparent) 36%,
+      color-mix(in srgb, var(--away-1, transparent) 38%, transparent) 64%,
+      color-mix(in srgb, var(--away-1, transparent) 52%, transparent) 100%
     );
 }
 
@@ -639,19 +718,20 @@
 }
 
 .preview-flag {
-  font-size: 42px;
+  font-size: 46px;
   line-height: 1;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
 }
 
+/* Undecided slot — same empty dashed outline language as the emoji-era
+   placeholder, fitted to the current rectangular flag frame. */
 .preview-flag-tbd {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 1.5px dashed var(--border-strong);
+  width: calc(46px * 4 / 3);
+  height: 46px;
+  border-radius: 4px;
+  border: 2px dashed rgba(154, 173, 203, 0.24);
   color: var(--muted);
   font-size: 17px;
   font-weight: 600;
@@ -663,10 +743,6 @@
   color: var(--muted);
   min-width: 18px;
   text-align: center;
-}
-
-.preview-card.state-watch .preview-vs {
-  visibility: hidden;
 }
 
 .preview-score {
@@ -741,20 +817,30 @@
   backdrop-filter: blur(6px);
 }
 
+/* LIVE badge — a broadcast mark, not a terminal status LED. Frosted glass
+   pill (same material family as the FT chip) with the green "worm": a tiny
+   rounded bar that stretches and slides in its track, saying "in motion
+   right now" the way a blinking dot never could. */
 .live-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   color: var(--text-h);
   font-weight: 800;
-  background: rgba(20, 27, 34, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 8px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px) saturate(1.2);
+  letter-spacing: 0.07em;
+  background: rgba(28, 36, 45, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 8px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px) saturate(1.3);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
 }
 
+/* Green glass, not neutral glass — live is our accent's moment, and the
+   green tint is what makes the pill read as native to the site. */
 .live-status-live {
-  border-color: rgba(47, 208, 111, 0.24);
+  border-color: rgba(47, 208, 111, 0.34);
+  background: linear-gradient(180deg, rgba(47, 208, 111, 0.16), rgba(47, 208, 111, 0.07));
+  color: #eafff3;
 }
 
 .live-status-delayed {
@@ -768,10 +854,51 @@
   flex-shrink: 0;
 }
 
+/* the worm's track */
 .live-status-live .live-status-dot {
+  position: relative;
+  width: 16px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(47, 208, 111, 0.14);
+  overflow: hidden;
+}
+
+/* The worm is a dot at each end of the track and squeezes thin while it
+   crosses — swelling at the ends, narrowing in the middle — rather than a
+   bar shunting back and forth. */
+.live-status-live .live-status-dot::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
   background: #2fd06f;
-  box-shadow: 0 0 10px rgba(47, 208, 111, 0.75);
-  animation: live-status-pulse 1.1s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(47, 208, 111, 0.8);
+  animation: live-worm 1.15s ease-in-out infinite alternate;
+}
+
+@keyframes live-worm {
+  0% {
+    left: 0;
+    top: 0;
+    width: 7px;
+    height: 7px;
+  }
+  50% {
+    left: 3.5px;
+    top: 2px;
+    width: 9px;
+    height: 3px;
+  }
+  100% {
+    left: 9px;
+    top: 0;
+    width: 7px;
+    height: 7px;
+  }
 }
 
 .live-status-delayed .live-status-dot {
@@ -779,47 +906,61 @@
   box-shadow: 0 0 8px rgba(240, 164, 58, 0.45);
 }
 
-@keyframes live-status-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.45;
-    transform: scale(0.8);
+@media (prefers-reduced-motion: reduce) {
+  .live-status-live .live-status-dot::before {
+    animation: none;
+    left: 4.5px;
   }
 }
 
+/* Watch affordance: a glass circle in the center slot between the two flags —
+   the Today tab is the watch surface, so this is the most important button in
+   the app. Real glass physics: backdrop blur pulls the matchup colors through
+   it, a specular top edge and lower inner shade give it curvature, and the
+   halo is tinted by the card's own team colors (not generic black) so an
+   England–Congo button glows faintly red–blue at its rim. The rectangular
+   flags beside it mean it can't read as a row of three tokens. */
 .preview-play {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  -webkit-backdrop-filter: blur(7px);
-  backdrop-filter: blur(7px);
+  background: rgba(255, 255, 255, 0.17);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(8px) saturate(1.35);
+  backdrop-filter: blur(8px) saturate(1.35);
   color: #fff;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -9px 14px -11px rgba(0, 0, 0, 0.45),
+    0 3px 14px rgba(0, 0, 0, 0.35),
+    0 0 26px color-mix(in srgb, var(--home-1, transparent) 30%, transparent),
+    0 0 26px color-mix(in srgb, var(--away-1, transparent) 30%, transparent);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.18s ease,
     border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* The arrow's optical centre sits slightly left of its glyph box. */
+.preview-play svg {
+  position: relative;
+  left: 1px;
 }
 
 /* Hover feedback only — the resting button is unchanged. A springy pop plus a
    brighter glass/ring so the press target feels alive when you mouse over. */
 .preview-card:hover .preview-play {
-  transform: translate(-50%, -50%) scale(1.14);
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: scale(1.09);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -9px 14px -11px rgba(0, 0, 0, 0.4),
+    0 4px 18px rgba(0, 0, 0, 0.4),
+    0 0 32px color-mix(in srgb, var(--home-1, transparent) 40%, transparent),
+    0 0 32px color-mix(in srgb, var(--away-1, transparent) 40%, transparent);
 }
 
 /* Saved-match marker — small amber star in the media area's bottom-left.
@@ -837,20 +978,27 @@
   pointer-events: none;
 }
 
-/* YouTube-style runtime stamp — the highlight length, in the thumbnail. */
+/* Runtime stamp — same corner as YouTube's, but in our frosted-chip material
+   instead of an opaque black box, so it sits on the card art like the other
+   glass badges rather than punching a hole in it. */
 .preview-duration {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  right: 9px;
+  bottom: 9px;
   z-index: 2;
   font-size: 10.5px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 5px;
-  padding: 1.5px 5px;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  background: rgba(20, 27, 34, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 2.5px 8px;
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
 }
 
 .preview-meta {
@@ -858,6 +1006,16 @@
   flex-direction: column;
   gap: 2px;
   padding: 10px 13px 12px;
+  /* A whisper of the matchup tint bleeds under the caption so card art and
+     meta read as one object, not a picture with a label stuck on. The vars
+     live on the card root; unknown matchups resolve to transparent. */
+  background: linear-gradient(
+    90deg in oklab,
+    color-mix(in srgb, var(--home-1, transparent) 9%, transparent) 0%,
+    color-mix(in srgb, var(--home-1, transparent) 5%, transparent) 38%,
+    color-mix(in srgb, var(--away-1, transparent) 5%, transparent) 62%,
+    color-mix(in srgb, var(--away-1, transparent) 9%, transparent) 100%
+  );
 }
 
 .preview-teams {
@@ -1126,9 +1284,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 96px;
+  width: 100px;
   height: 46px;
-  padding: 0 13px;
+  padding: 0 11px;
   flex-shrink: 0;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -1156,6 +1314,7 @@
 }
 
 .tile-thumb-flag {
+  font-size: 17px;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
@@ -1499,7 +1658,7 @@
 }
 
 .bracket-deep .ko-tbd {
-  width: 17px;
+  width: calc(17px * 4 / 3);
   height: 17px;
 }
 
@@ -2038,9 +2197,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 14px;
   padding: 3px 0 19px;
-  font-size: 30px;
+  /* 4:3 badges are a third wider than the old square emoji — size down so
+     two flags + the play circle still fit a deep-bracket card. */
+  font-size: 26px;
   line-height: 1;
 }
 
@@ -2096,13 +2257,14 @@
   background: radial-gradient(ellipse 55% 55% at 50% 50%, color-mix(in srgb, var(--danger) 32%, transparent), transparent 78%);
 }
 
-/* Undecided slot — a quiet placeholder dot in place of a flag. */
+/* Undecided slot — the same faint dashed outline, scaled to the compact
+   bracket-watch flag slot. */
 .ko-tbd {
   display: inline-flex;
-  width: 26px;
+  width: calc(26px * 4 / 3);
   height: 26px;
-  border-radius: 50%;
-  border: 1.5px dashed var(--border-strong);
+  border-radius: 3px;
+  border: 1.5px dashed rgba(154, 173, 203, 0.24);
 }
 
 /* The same frosted white glass play button as the group tile — the watch
@@ -2505,30 +2667,56 @@
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"),
     linear-gradient(180deg, transparent 0%, transparent 30%, rgba(8, 11, 16, 0.42) 100%),
     radial-gradient(
+      44% 26% at 27% 12%,
+      color-mix(in srgb, var(--home-glow, transparent) 42%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      44% 26% at 73% 12%,
+      color-mix(in srgb, var(--away-glow, transparent) 42%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
       52% 30% at 96% -5%,
-      color-mix(in srgb, var(--away-2, transparent) 48%, transparent) 0%,
+      color-mix(in srgb, var(--away-2, transparent) 54%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
       52% 30% at 4% -5%,
-      color-mix(in srgb, var(--home-2, transparent) 48%, transparent) 0%,
+      color-mix(in srgb, var(--home-2, transparent) 54%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      56% 52% at 5% 106%,
+      color-mix(in srgb, var(--home-deep, transparent) 60%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      56% 52% at 95% 106%,
+      color-mix(in srgb, var(--away-deep, transparent) 60%, transparent) 0%,
       transparent 100%
     ),
     linear-gradient(
       90deg in oklab,
-      color-mix(in srgb, var(--home-1, transparent) 40%, transparent) 0%,
-      color-mix(in srgb, var(--home-1, transparent) 32%, transparent) 34%,
-      color-mix(in srgb, var(--away-1, transparent) 32%, transparent) 66%,
-      color-mix(in srgb, var(--away-1, transparent) 40%, transparent) 100%
+      color-mix(in srgb, var(--home-1, transparent) 52%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 40%, transparent) 34%,
+      color-mix(in srgb, var(--away-1, transparent) 40%, transparent) 66%,
+      color-mix(in srgb, var(--away-1, transparent) 52%, transparent) 100%
     );
   background-size:
     160px 160px,
     cover,
     cover,
     cover,
+    cover,
+    cover,
+    cover,
+    cover,
     cover;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-blend-mode: soft-light, normal, normal, normal, normal;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+    no-repeat, no-repeat;
+  background-blend-mode: soft-light, normal, normal, normal, normal, normal, normal, normal,
+    normal;
   border: 1px solid var(--border-strong);
   border-radius: 18px;
   padding: 24px 28px 14px;
@@ -2706,10 +2894,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  border: 1.5px dashed var(--border-strong);
+  width: calc(56px * 4 / 3);
+  height: 56px;
+  border-radius: 5px;
+  border: 2px dashed rgba(154, 173, 203, 0.24);
   color: var(--muted);
   font-size: 20px;
 }
@@ -2958,14 +3146,17 @@
   align-self: center;
 }
 
+/* Same light-glass family as the posters, at roughly half the presence — a
+   quiet second shelf, visibly interactive rather than disabled-looking. */
 .modal-disclosure {
   width: 100%;
-  border: 1px solid rgba(154, 173, 203, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
+  background: linear-gradient(168deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.04));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
   overflow: hidden;
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
 }
 
 .modal-disclosure-bar {
@@ -2988,6 +3179,8 @@
   font-size: 12px;
   font-weight: 650;
   letter-spacing: 0.02em;
+  color: var(--text-h);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .modal-disclosure-hint {
@@ -3007,11 +3200,11 @@
 .modal-disclosure-trigger {
   flex-shrink: 0;
   font-size: 11px;
-  color: var(--muted);
-  padding: 6px 10px;
-  border: 1px solid rgba(154, 173, 203, 0.22);
+  color: rgba(230, 237, 245, 0.82);
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.09);
   cursor: pointer;
   transition:
     background 120ms ease,
@@ -3097,13 +3290,15 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(13, 18, 26, 0.42);
-  border: 1px dashed rgba(154, 173, 203, 0.3);
+  background:
+    radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.09), transparent 62%),
+    linear-gradient(168deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+  border: 1px dashed rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-  color: rgba(196, 206, 220, 0.75);
+  color: rgba(216, 225, 237, 0.85);
   font-size: 13px;
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
 }
 
 .modal-video-icon {
@@ -3136,17 +3331,23 @@
   align-items: center;
   justify-content: center;
   gap: 11px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   cursor: pointer;
   color: var(--text-h);
+  /* Light glass, brighter than the sheet: in a lit environment the thing you
+     are invited to touch should be the brightest object, not a shadow. The
+     posters are deliberately imageless (a real thumbnail would spoil the
+     score), so the matchup tint glowing through raised glass *is* the
+     artwork. */
   background:
     radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.12), transparent 62%),
-    linear-gradient(168deg, rgba(22, 28, 36, 0.6), rgba(11, 15, 20, 0.5));
+    linear-gradient(168deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 6px 20px rgba(0, 0, 0, 0.22);
   overflow: hidden;
-  transition: border-color 0.15s;
-  backdrop-filter: blur(14px) saturate(1.15);
-  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  transition: border-color 0.15s, background-color 0.15s;
+  backdrop-filter: blur(14px) saturate(1.25);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
 }
 
 .player-poster::before {
@@ -3157,17 +3358,17 @@
 }
 
 .player-poster:hover {
-  border-color: var(--border-strong);
+  border-color: rgba(255, 255, 255, 0.32);
 }
 
 .player-poster:hover .poster-play {
-  transform: scale(1.08);
-  filter: brightness(1.08);
-  box-shadow: 0 8px 24px rgba(214, 38, 30, 0.42), 0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: scale(1.07);
+  filter: brightness(1.06);
+  box-shadow: 0 8px 24px rgba(190, 40, 34, 0.34), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-/* YouTube-style red play — deliberately louder than the card's frosted circle:
-   this is the "actual video", and the most inviting thing in the modal. */
+/* The classic YouTube-red play button — restored, just a touch dimmer so it
+   identifies the video without grabbing the whole modal's attention. */
 .poster-play {
   display: inline-flex;
   align-items: center;
@@ -3175,10 +3376,10 @@
   width: 62px;
   height: 44px;
   border-radius: 13px;
-  background: linear-gradient(180deg, #ec4036, #cf211b);
+  background: linear-gradient(180deg, #d5453d, #b32721);
   border: none;
   color: #fff;
-  box-shadow: 0 6px 18px rgba(214, 38, 30, 0.34), 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 18px rgba(190, 40, 34, 0.26), 0 2px 8px rgba(0, 0, 0, 0.4);
   transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
 
@@ -3189,7 +3390,7 @@
 
 .poster-time {
   font-size: 13.5px;
-  color: var(--muted);
+  color: rgba(226, 233, 242, 0.68);
   font-weight: 450;
 }
 
@@ -3338,6 +3539,19 @@
 }
 
 /* ============ dialogs & onboarding ============ */
+
+/* Dialogs and onboarding ride the new material language: translucent frosted
+   panels over the dimmed page instead of opaque old-pass slabs. (The tint
+   vars are unset here, so the modal's gradient stack resolves transparent —
+   only the glass shows.) */
+.modal.dialog,
+.modal.onboarding {
+  background-color: rgba(24, 31, 40, 0.68);
+  backdrop-filter: blur(26px) saturate(1.35);
+  -webkit-backdrop-filter: blur(26px) saturate(1.35);
+  border-color: rgba(255, 255, 255, 0.13);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), var(--shadow-lg);
+}
 
 .dialog {
   width: min(420px, 100%);
@@ -3570,7 +3784,7 @@
   }
 
   .preview-flag-tbd {
-    width: 56px;
+    width: calc(56px * 4 / 3);
     height: 56px;
   }
 
