@@ -2285,12 +2285,21 @@
     },
     "m93": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Mikel Merino",
+          "minute": "90'+1'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "POR",
+      "awayTeam": "ESP"
     },
     "m94": {
       "liveStatus": null,
