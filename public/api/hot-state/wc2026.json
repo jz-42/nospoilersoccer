@@ -2085,17 +2085,56 @@
     },
     "m86": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "29'"
+        },
+        {
+          "team": "CPV",
+          "player": "Deroy Duarte",
+          "minute": "59'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lisandro Martínez",
+          "minute": "92'"
+        },
+        {
+          "team": "CPV",
+          "player": "Sidny Lopes Cabral",
+          "minute": "103'"
+        },
+        {
+          "team": "ARG",
+          "player": "Diney Borges",
+          "minute": "111'",
+          "ownGoal": true
+        }
+      ],
       "penalties": null,
-      "afterExtraTime": null,
+      "afterExtraTime": true,
       "homeTeam": "ARG",
       "awayTeam": "CPV"
     },
     "m87": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "COL",
+          "player": "Jhon Arias",
+          "minute": "14'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
       "homeTeam": "COL",
@@ -2130,30 +2169,79 @@
     },
     "m89": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "70'",
+          "penalty": true
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "PAR",
+      "awayTeam": "FRA"
     },
     "m90": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "MAR",
+          "player": "Azzedine Ounahi",
+          "minute": "50'"
+        },
+        {
+          "team": "MAR",
+          "player": "Azzedine Ounahi",
+          "minute": "82'"
+        },
+        {
+          "team": "MAR",
+          "player": "Soufiane Rahimi",
+          "minute": "90'+8'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "CAN",
+      "awayTeam": "MAR"
     },
     "m91": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "79'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "90'"
+        },
+        {
+          "team": "BRA",
+          "player": "Neymar",
+          "minute": "90'+10'",
+          "penalty": true
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "BRA",
+      "awayTeam": "NOR"
     },
     "m92": {
       "liveStatus": null,

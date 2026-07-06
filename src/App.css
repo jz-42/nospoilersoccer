@@ -640,17 +640,18 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
 }
 
-/* Per-team flag tint, "lit" treatment. The base is one full-width home→away
-   wash interpolated in OKLab — perceptual blending is what lets the two hues
-   melt into each other in the middle without averaging into sRGB mud (the
-   olive that Belgium–Senegal used to get). On top of it, a whitened glow of
-   each field color sits behind that team's flag disc, so the color reads as
-   stage light on a surface, not ambient fog — this is the layer that makes a
-   card feel *lit* rather than tinted. A shallow secondary-tone cap at each
-   top corner carries the second flag color, a soft vignette along the bottom
-   grounds the caption. Sits above the media's dark base, below the flags.
-   The color vars are set per-card in PreviewCard; a locked slot leaves its
-   side transparent so its half fades to neutral. */
+/* Per-team identity tint, "lit volume" treatment. The base is one full-width
+   home→away wash interpolated in OKLab — perceptual blending is what lets the
+   two hues melt into each other in the middle without averaging into sRGB mud
+   (the olive that Belgium–Senegal used to get). On top of it: a whitened glow
+   of each field color behind that team's flag (stage light, not ambient fog),
+   a shallow accent cap at each top corner carrying the second identity color,
+   and a *deep pool* at each bottom corner — the side falls from luminous at
+   flag height into its deep tone below, so the surface reads as lit volume
+   instead of tinted paper (USA: red at the flag falling into navy; Germany:
+   red into flag-black). A soft vignette grounds the caption. The color vars
+   are set per-card in PreviewCard; a locked slot leaves its side transparent
+   so its half fades to neutral. */
 .preview-media::before {
   content: '';
   position: absolute;
@@ -676,6 +677,16 @@
     radial-gradient(
       36% 44% at 96% -8%,
       color-mix(in srgb, var(--away-2, transparent) 52%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      74% 82% at 10% 118%,
+      color-mix(in srgb, var(--home-deep, transparent) 58%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      74% 82% at 90% 118%,
+      color-mix(in srgb, var(--away-deep, transparent) 58%, transparent) 0%,
       transparent 100%
     ),
     linear-gradient(
@@ -955,20 +966,27 @@
   pointer-events: none;
 }
 
-/* YouTube-style runtime stamp — the highlight length, in the thumbnail. */
+/* Runtime stamp — same corner as YouTube's, but in our frosted-chip material
+   instead of an opaque black box, so it sits on the card art like the other
+   glass badges rather than punching a hole in it. */
 .preview-duration {
   position: absolute;
-  right: 8px;
-  bottom: 8px;
+  right: 9px;
+  bottom: 9px;
   z-index: 2;
   font-size: 10.5px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 5px;
-  padding: 1.5px 5px;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  background: rgba(20, 27, 34, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 2.5px 8px;
+  backdrop-filter: blur(8px) saturate(1.2);
+  -webkit-backdrop-filter: blur(8px) saturate(1.2);
 }
 
 .preview-meta {
@@ -2656,6 +2674,16 @@
       color-mix(in srgb, var(--home-2, transparent) 54%, transparent) 0%,
       transparent 100%
     ),
+    radial-gradient(
+      56% 52% at 5% 106%,
+      color-mix(in srgb, var(--home-deep, transparent) 60%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      56% 52% at 95% 106%,
+      color-mix(in srgb, var(--away-deep, transparent) 60%, transparent) 0%,
+      transparent 100%
+    ),
     linear-gradient(
       90deg in oklab,
       color-mix(in srgb, var(--home-1, transparent) 52%, transparent) 0%,
@@ -2670,9 +2698,13 @@
     cover,
     cover,
     cover,
+    cover,
+    cover,
     cover;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-  background-blend-mode: soft-light, normal, normal, normal, normal, normal, normal;
+  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+    no-repeat, no-repeat;
+  background-blend-mode: soft-light, normal, normal, normal, normal, normal, normal, normal,
+    normal;
   border: 1px solid var(--border-strong);
   border-radius: 18px;
   padding: 24px 28px 14px;
