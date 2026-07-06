@@ -439,8 +439,33 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 2,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m86": {
+    entertainmentSummary: "Tense and hectic rather than polished, with an unusually high-stress feel that many seemed to find gripping. The quality sounds a bit uneven, but it did not come across as routine or flat.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m87": {
+    entertainmentSummary: "Fairly restrained and serious in tone, with the tension seeming to come more from the occasion than from a constantly lively spectacle. It sounds engaging in stretches but not especially wild or free-flowing overall.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m88": {
     entertainmentSummary: "It seems to have felt tense and emotionally charged, with the entertainment coming more from sustained uncertainty than from a breezy, free-flowing rhythm. The mood sounds lively enough that even if it was not constantly sparkling, it stayed engaging for viewers.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m89": {
+    entertainmentSummary: "More tense and abrasive than fluid, with the entertainment seeming to come from the edge and uncertainty rather than sustained sparkle. Reactions suggest a hard-edged, stop-start watch that felt engaging in patches but not especially free-flowing.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m90": {
+    entertainmentSummary: "Fairly lively and a bit feisty, with enough edge to seem more engaging than routine. It sounds entertaining in patches rather than relentlessly open or dramatic throughout.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
+  "m91": {
+    entertainmentSummary: "Tense and emotionally charged, it seems to have drawn much of its entertainment from uncertainty rather than constant free-flowing play. The reaction makes it sound more gripping than routine, with the atmosphere carrying a lot of the viewing experience.",
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
