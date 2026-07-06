@@ -283,6 +283,18 @@
   margin-bottom: 30px;
 }
 
+.day-rail.is-swipe-transitioning .preview-card {
+  transition: none;
+}
+
+.day-rail.is-swipe-transitioning .day-item-label {
+  transition: none;
+}
+
+.day-rail.is-swipe-transitioning .day-item {
+  transition: none;
+}
+
 /* Reserved row above the carousel — keeps the "jump" pill from shifting the
    layout when it appears, and clear of the chevrons. */
 .day-toolbar {
@@ -3530,6 +3542,10 @@
     margin-left: 0;
   }
 
+  .day-rail {
+    min-height: calc(100dvh - 120px);
+  }
+
   .day-grid {
     gap: 10px;
   }
@@ -3618,10 +3634,10 @@
   }
 
   .modal-close {
-    top: 14px;
-    right: 14px;
-    width: 40px;
-    height: 40px;
+    top: 12px;
+    right: 12px;
+    width: 54px;
+    height: 54px;
     padding: 0;
     background: rgba(120, 120, 128, 0.32);
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -3640,8 +3656,8 @@
   }
 
   .modal-close-icon {
-    width: 16px;
-    height: 16px;
+    width: 22px;
+    height: 22px;
   }
 
   .modal-close:hover,

@@ -239,6 +239,26 @@ assert(
   'desktop modal close icon scales with the larger close control',
 )
 assert(
+  /@media \(max-width: 760px\)\s*\{[\s\S]*?\.modal-close\s*\{[\s\S]*?width:\s*54px;[\s\S]*?height:\s*54px;/.test(
+    appCss,
+  ),
+  'mobile modal close control stays larger while backing off from the oversized tap target',
+)
+assert(
+  /@media \(max-width: 760px\)\s*\{[\s\S]*?\.modal-close-icon\s*\{[\s\S]*?width:\s*22px;[\s\S]*?height:\s*22px;/.test(
+    appCss,
+  ),
+  'mobile modal close icon scales with the slightly reduced tap target',
+)
+assert(
+  /\.day-rail\.is-swipe-transitioning\s+\.preview-card\s*\{[\s\S]*?transition:\s*none;/.test(appCss),
+  'mobile swipe transition disables preview-card motion during day changes',
+)
+assert(
+  /\.day-rail\.is-swipe-transitioning\s+\.day-item-label\s*\{[\s\S]*?transition:\s*none;/.test(appCss),
+  'mobile swipe transition disables day-label animation during day changes',
+)
+assert(
   /\.modal-close-compact\s*\{[\s\S]*?width:\s*44px;[\s\S]*?height:\s*44px;/.test(appCss),
   'no-highlight modals use a slightly smaller desktop close control',
 )
