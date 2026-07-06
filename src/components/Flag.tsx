@@ -21,29 +21,59 @@ let flagUrls: Record<string, string> = {}
 try {
   flagUrls = import.meta.glob('../assets/flags/*.svg', {
     eager: true,
-    query: '?url',
+    query: '?url&no-inline',
     import: 'default',
   }) as Record<string, string>
 } catch {
   // Node (tsx smoke tests): no bundler, no assets — emoji fallback.
 }
 
-// Warm every flag into the browser cache as soon as the bundle loads:
-// otherwise the first paint of a day (or a swipe to a new one) shows dark
-// placeholder boxes for a beat while each SVG fetches. 54 tiny files, one
-// idle pass, cached for the session. Guarded so the Node smoke tests
-// (no window, empty flagUrls) skip it.
-if (typeof window !== 'undefined') {
-  const warm = () => {
-    for (const url of Object.values(flagUrls)) {
-      const img = new Image()
-      img.src = url
+const warmedFlagHrefs = new Set<string>()
+const warmFlagImages: HTMLImageElement[] = []
+
+function supportsFlagPrefetch() {
+  if (typeof document === 'undefined') return false
+  const link = document.createElement('link')
+  return typeof link.relList?.supports === 'function' && link.relList.supports('prefetch')
+}
+
+function warmFlagUrls(urls: string[]) {
+  if (typeof document === 'undefined') return
+  const usePrefetch = supportsFlagPrefetch()
+  const existing = new Set(
+    Array.from(document.querySelectorAll<HTMLLinkElement>('link[data-flag-prefetch]')).map(
+      (link) => link.href,
+    ),
+  )
+  for (const url of urls) {
+    const href = new URL(url, document.baseURI).href
+    if (warmedFlagHrefs.has(href) || existing.has(href)) continue
+
+    if (usePrefetch) {
+      const link = document.createElement('link')
+      link.rel = 'prefetch'
+      link.as = 'image'
+      link.href = url
+      link.setAttribute('fetchpriority', 'low')
+      link.setAttribute('data-flag-prefetch', '')
+      document.head.appendChild(link)
+      existing.add(href)
+    } else if (typeof Image !== 'undefined') {
+      const image = new Image()
+      image.decoding = 'async'
+      image.src = url
+      warmFlagImages.push(image)
     }
+    warmedFlagHrefs.add(href)
   }
+}
+
+if (typeof window !== 'undefined') {
+  const warm = () => warmFlagUrls(Object.values(flagUrls))
   if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(warm, { timeout: 1500 })
+    window.requestIdleCallback(warm, { timeout: 2500 })
   } else {
-    setTimeout(warm, 200)
+    setTimeout(warm, 1200)
   }
 }
 
@@ -55,7 +85,11 @@ export function Flag({ team, className }: { team: Team; className?: string }) {
   // span carries the curvature shading (an img can't host ::after).
   return (
     <span className={cls}>
-      {url ? <img src={url} alt="" draggable={false} decoding="sync" /> : team.flag}
+      {url ? (
+        <img src={url} alt="" draggable={false} decoding="sync" loading="eager" />
+      ) : (
+        team.flag
+      )}
     </span>
   )
 }
