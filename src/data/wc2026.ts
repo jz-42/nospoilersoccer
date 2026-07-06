@@ -217,7 +217,7 @@ export const wc2026: Tournament = {
         { id: 'm93', date: '2026-07-06', home: { type: 'match-winner', match: 'm83' }, away: { type: 'match-winner', match: 'm84' }, odds: { home: 0.235, draw: 0.275, away: 0.495, url: 'https://polymarket.com/event/fifwc-prt-esp-2026-07-06' }, kickoff: '2026-07-06T19:00Z', homeTeam: 'POR', awayTeam: 'ESP', score: { home: 0, away: 1 }, goals: [{ team: 'ESP', player: "Mikel Merino", minute: "90'+1'" }] },
         { id: 'm94', date: '2026-07-06', kickoff: '2026-07-07T00:00Z', home: { type: 'match-winner', match: 'm81' }, away: { type: 'match-winner', match: 'm82' } , odds: { home: 0.365, draw: 0.285, away: 0.345, url: 'https://polymarket.com/event/fifwc-usa-bel-2026-07-06' } },
         { id: 'm95', date: '2026-07-07', kickoff: '2026-07-07T16:00Z', home: { type: 'match-winner', match: 'm86' }, away: { type: 'match-winner', match: 'm88' } , odds: { home: 0.715, draw: 0.205, away: 0.085, url: 'https://polymarket.com/event/fifwc-arg-egy-2026-07-07' } },
-        { id: 'm96', date: '2026-07-07', kickoff: '2026-07-07T20:00Z', home: { type: 'match-winner', match: 'm85' }, away: { type: 'match-winner', match: 'm87' } , odds: { home: 0.265, draw: 0.315, away: 0.425, url: 'https://polymarket.com/event/fifwc-che-col-2026-07-07' } },
+        { id: 'm96', date: '2026-07-07', kickoff: '2026-07-07T20:00Z', home: { type: 'match-winner', match: 'm85' }, away: { type: 'match-winner', match: 'm87' } , odds: { home: 0.265, draw: 0.315, away: 0.415, url: 'https://polymarket.com/event/fifwc-che-col-2026-07-07' } },
       ],
     },
     {
