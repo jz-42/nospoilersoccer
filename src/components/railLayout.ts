@@ -8,6 +8,22 @@ export interface CarouselVisualState {
   scale: number
 }
 
+export function getCommittedDaySwipe({
+  deltaX,
+  deltaY,
+}: {
+  deltaX: number
+  deltaY: number
+}): -1 | 0 | 1 {
+  const horizontal = Math.abs(deltaX)
+  const vertical = Math.abs(deltaY)
+
+  if (horizontal < 56) return 0
+  if (horizontal < vertical * 1.35) return 0
+
+  return deltaX < 0 ? 1 : -1
+}
+
 export function getDayCardMetrics(cardWidth: number): DayCardMetrics {
   if (cardWidth >= 440) return { flagSize: 84, flagGap: 30 }
   if (cardWidth >= 390) return { flagSize: 74, flagGap: 26 }

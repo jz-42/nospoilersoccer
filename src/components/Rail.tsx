@@ -12,7 +12,12 @@
  * tournament order.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { CSSProperties, PointerEvent as ReactPointerEvent, WheelEvent as ReactWheelEvent } from 'react'
+import type {
+  CSSProperties,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+  WheelEvent as ReactWheelEvent,
+} from 'react'
 import type { Tournament } from '../data/types'
 import { isPlayed, knockoutReady } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
@@ -25,6 +30,7 @@ import { addLocalDays, localDateKey, relativeDayLabel } from '../time/local'
 import {
   findNearestItemIndex,
   getCarouselVisualState,
+  getCommittedDaySwipe,
   getDayCardMetrics,
 } from './railLayout'
 
@@ -121,10 +127,15 @@ function DaySwitcher({
   const rafRef = useRef<number | null>(null)
   const momentumRef = useRef<number | null>(null)
   const wheelSnapRef = useRef<number | null>(null)
+  const scrollSettleTimeoutRef = useRef<number | null>(null)
+  const swipeTransitionTimeoutRef = useRef<number | null>(null)
   const suppressScrollSync = useRef(false)
   const suppressClickUntilRef = useRef(0)
+  const touchSwipeRef = useRef<{ startX: number; startY: number } | null>(null)
+  const swipeTargetIndexRef = useRef<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isFreeScrolling, setIsFreeScrolling] = useState(false)
+  const [isSwipeTransitioning, setIsSwipeTransitioning] = useState(false)
 
   const setItemRef = (i: number) => (el: HTMLButtonElement | null) => {
     itemRefs.current[i] = el
@@ -148,6 +159,9 @@ function DaySwitcher({
     }
 
     const bestIndex = findNearestItemIndex(centers, viewportCenter)
+    if (swipeTargetIndexRef.current === bestIndex) {
+      swipeTargetIndexRef.current = null
+    }
     if (!suppressScrollSync.current) {
       setActive((prev) => (prev === bestIndex ? prev : bestIndex))
     }
@@ -166,6 +180,29 @@ function DaySwitcher({
     }
   }
 
+  const clearScrollSettleSync = () => {
+    if (scrollSettleTimeoutRef.current !== null) {
+      window.clearTimeout(scrollSettleTimeoutRef.current)
+      scrollSettleTimeoutRef.current = null
+    }
+  }
+
+  const scheduleScrollSettleSync = () => {
+    clearScrollSettleSync()
+    scrollSettleTimeoutRef.current = window.setTimeout(() => {
+      scrollSettleTimeoutRef.current = null
+      updateFade()
+    }, 420)
+  }
+
+  const clearSwipeTransition = () => {
+    if (swipeTransitionTimeoutRef.current !== null) {
+      window.clearTimeout(swipeTransitionTimeoutRef.current)
+      swipeTransitionTimeoutRef.current = null
+    }
+    setIsSwipeTransitioning(false)
+  }
+
   const cancelMomentum = () => {
     if (momentumRef.current !== null) {
       cancelAnimationFrame(momentumRef.current)
@@ -180,6 +217,26 @@ function DaySwitcher({
     if (!w || !el) return
     const target = el.offsetLeft - (w.clientWidth - el.clientWidth) / 2
     w.scrollTo({ left: target, behavior: smooth ? 'smooth' : 'auto' })
+    if (smooth) scheduleScrollSettleSync()
+  }
+
+  const getSwipeSourceIndex = () => swipeTargetIndexRef.current ?? idx
+
+  const swipeToIndex = (i: number) => {
+    const clamped = Math.min(Math.max(i, 0), dates.length - 1)
+    const swipeSourceIndex = getSwipeSourceIndex()
+    if (clamped === swipeSourceIndex) return false
+
+    swipeTargetIndexRef.current = clamped
+    scrollToIndex(clamped, true)
+    clearSwipeTransition()
+    setIsSwipeTransitioning(true)
+    swipeTransitionTimeoutRef.current = window.setTimeout(() => {
+      swipeTransitionTimeoutRef.current = null
+      setIsSwipeTransitioning(false)
+      updateFade()
+    }, 260)
+    return true
   }
 
   const snapToNearest = () => {
@@ -317,6 +374,8 @@ function DaySwitcher({
       ro.disconnect()
       cancelMomentum()
       clearWheelSnap()
+      clearScrollSettleSync()
+      clearSwipeTransition()
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -348,8 +407,99 @@ function DaySwitcher({
           knockoutReady(t, e.target.match, progress.marks, progress.revealed)),
     )
 
+  const isMobileViewport = () =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches
+
+  const canSwipeToDirection = (direction: -1 | 1, sourceIndex = getSwipeSourceIndex()) => {
+    const next = sourceIndex + direction
+    return next >= 0 && next < dates.length
+  }
+
+  const clearSectionSwipe = () => {
+    touchSwipeRef.current = null
+  }
+
+  const isBelowAppHeader = (clientY: number) => {
+    const header = document.querySelector('.app-header')
+    return !header || clientY >= header.getBoundingClientRect().bottom
+  }
+
+  const shouldIgnoreDocumentSwipeTarget = (target: EventTarget | null) => {
+    const el = target instanceof HTMLElement ? target : null
+    return Boolean(
+      el?.closest(
+        '.app-header, .day-carousel-window, .day-arrow, .day-jump-btn, .modal-backdrop, .dialog, .app-footer',
+      ),
+    )
+  }
+
+  const onDocumentTouchStart = (e: TouchEvent) => {
+    if (!isMobileViewport() || e.touches.length !== 1) return
+    const touch = e.touches[0]
+    if (!isBelowAppHeader(touch.clientY)) return
+    if (shouldIgnoreDocumentSwipeTarget(e.target)) return
+    touchSwipeRef.current = { startX: touch.clientX, startY: touch.clientY }
+  }
+
+  const onDocumentTouchMove = (e: TouchEvent) => {
+    const swipe = touchSwipeRef.current
+    if (!isMobileViewport() || !swipe) return
+    const touch = e.touches[0]
+    if (!touch) return
+    const deltaX = touch.clientX - swipe.startX
+    const deltaY = touch.clientY - swipe.startY
+    const direction = getCommittedDaySwipe({ deltaX, deltaY })
+    if (direction !== 0 && e.cancelable) {
+      e.preventDefault()
+    }
+  }
+
+  const onDocumentTouchEnd = (e: TouchEvent) => {
+    if (!isMobileViewport()) return
+    const swipe = touchSwipeRef.current
+    touchSwipeRef.current = null
+    const touch = e.changedTouches[0]
+    if (!swipe || !touch) return
+
+    const direction = getCommittedDaySwipe({
+      deltaX: touch.clientX - swipe.startX,
+      deltaY: touch.clientY - swipe.startY,
+    })
+
+    const swipeSourceIndex = getSwipeSourceIndex()
+    if (direction === 0) return
+    if (!canSwipeToDirection(direction, swipeSourceIndex)) return
+    if (!swipeToIndex(swipeSourceIndex + direction)) return
+
+    suppressClickUntilRef.current = performance.now() + 320
+  }
+
+  useEffect(() => {
+    document.addEventListener('touchstart', onDocumentTouchStart, { passive: true })
+    document.addEventListener('touchmove', onDocumentTouchMove, { passive: false })
+    document.addEventListener('touchend', onDocumentTouchEnd, { passive: true })
+    document.addEventListener('touchcancel', clearSectionSwipe, { passive: true })
+    return () => {
+      document.removeEventListener('touchstart', onDocumentTouchStart)
+      document.removeEventListener('touchmove', onDocumentTouchMove)
+      document.removeEventListener('touchend', onDocumentTouchEnd)
+      document.removeEventListener('touchcancel', clearSectionSwipe)
+    }
+  })
+
+  const onSectionClickCapture = (e: ReactMouseEvent<HTMLElement>) => {
+    if (performance.now() < suppressClickUntilRef.current) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+  }
+
   return (
-    <section className="day-rail" aria-label="Matchday">
+    <section
+      className={`day-rail ${isSwipeTransitioning ? 'is-swipe-transitioning' : ''}`.trim()}
+      aria-label="Matchday"
+      onClickCapture={onSectionClickCapture}
+    >
       <div className="day-toolbar">
         {idx !== todayIndex && (
           <button type="button" className="day-jump-btn" onClick={() => scrollToIndex(todayIndex, true)}>
