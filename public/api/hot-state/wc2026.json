@@ -2378,15 +2378,19 @@
       "awayTeam": "EGY"
     },
     "m96": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
-      "penalties": null,
-      "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "goals": [],
+      "penalties": {
+        "home": 4,
+        "away": 3
+      },
+      "afterExtraTime": true,
+      "homeTeam": "SUI",
+      "awayTeam": "COL"
     },
     "m97": {
       "liveStatus": null,
