@@ -1,6 +1,14 @@
 import { readFileSync, writeFileSync } from 'fs'
 import { tournaments } from '../src/data'
-import type { GroupMatch, KnockoutMatch } from '../src/data/types'
+import { groupStandings, type StandingRow } from '../src/data/standings'
+import {
+  matchLoser,
+  matchWinner,
+  type GroupId,
+  type GroupMatch,
+  type KnockoutMatch,
+  type SlotRef,
+} from '../src/data/types'
 import { fetchDay, parseEvent } from './espn'
 import {
   applyParsedStatuses,
@@ -21,6 +29,72 @@ interface LiveStatusMatchCandidate {
   played: boolean
 }
 
+function findKnockoutMatch(tournament: typeof t, id: string): KnockoutMatch | null {
+  for (const round of tournament.knockoutRounds) {
+    const match = round.matches.find((candidate) => candidate.id === id)
+    if (match) return match
+  }
+  return null
+}
+
+function groupIsSettled(tournament: typeof t, group: string): boolean {
+  return tournament.groupMatches.every((match) => match.group !== group || match.score !== undefined)
+}
+
+function thirdRowsTied(a: StandingRow, b: StandingRow): boolean {
+  const goalDifference = (row: StandingRow) => row.goalsFor - row.goalsAgainst
+  return a.points === b.points && goalDifference(a) === goalDifference(b) && a.goalsFor === b.goalsFor
+}
+
+function bestThirdSlotTeam(tournament: typeof t, match: KnockoutMatch, side: 'home' | 'away'): string | null {
+  const count = tournament.bestThirdCount
+  const allocation = tournament.bestThirdAllocation
+  if (!count || !allocation || !tournament.groups.every((group) => groupIsSettled(tournament, group.id))) return null
+
+  const thirds = tournament.groups
+    .map((group) => ({ group: group.id, row: groupStandings(tournament, group.id)[2] }))
+    .filter((entry): entry is { group: GroupId; row: NonNullable<typeof entry.row> } => entry.row !== undefined)
+    .sort((a, b) => {
+      const goalDifference = (row: typeof a.row) => row.goalsFor - row.goalsAgainst
+      return (
+        b.row.points - a.row.points ||
+        goalDifference(b.row) - goalDifference(a.row) ||
+        b.row.goalsFor - a.row.goalsFor
+      )
+    })
+  if (thirds.length < count) return null
+  if (thirds.length > count && thirdRowsTied(thirds[count - 1].row, thirds[count].row)) return null
+
+  const allocationRow = allocation[thirds.slice(0, count).map((entry) => entry.group).sort().join('')]
+  if (!allocationRow) return null
+
+  const otherSlot = side === 'home' ? match.away : match.home
+  if (otherSlot.type !== 'group-rank') return null
+
+  const assignedGroup = allocationRow[otherSlot.group]
+  if (!assignedGroup) return null
+  return groupStandings(tournament, assignedGroup)[2]?.team ?? null
+}
+
+function resolveCandidateSlotTeam(tournament: typeof t, match: KnockoutMatch, side: 'home' | 'away'): string | null {
+  const slot = side === 'home' ? match.home : match.away
+  switch (slot.type) {
+    case 'group-rank':
+      if (!groupIsSettled(tournament, slot.group)) return null
+      return groupStandings(tournament, slot.group)[slot.rank - 1]?.team ?? null
+    case 'match-winner': {
+      const match = findKnockoutMatch(tournament, slot.match)
+      return match ? matchWinner(match) : null
+    }
+    case 'match-loser': {
+      const match = findKnockoutMatch(tournament, slot.match)
+      return match ? matchLoser(match) : null
+    }
+    case 'best-third':
+      return bestThirdSlotTeam(tournament, match, side)
+  }
+}
+
 function buildLiveStatusCandidates(tournament = t): LiveStatusMatchCandidate[] {
   const candidates: LiveStatusMatchCandidate[] = []
 
@@ -36,13 +110,15 @@ function buildLiveStatusCandidates(tournament = t): LiveStatusMatchCandidate[] {
   }
   for (const round of tournament.knockoutRounds) {
     for (const match of round.matches) {
-      if (!match.homeTeam || !match.awayTeam) continue
+      const homeTeam = match.homeTeam ?? resolveCandidateSlotTeam(tournament, match, 'home')
+      const awayTeam = match.awayTeam ?? resolveCandidateSlotTeam(tournament, match, 'away')
+      if (!homeTeam || !awayTeam) continue
       candidates.push({
         id: match.id,
         date: match.date,
         kickoff: match.kickoff,
-        homeTeam: match.homeTeam,
-        awayTeam: match.awayTeam,
+        homeTeam,
+        awayTeam,
         played: match.score !== undefined,
       })
     }
