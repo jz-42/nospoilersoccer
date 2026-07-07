@@ -311,6 +311,11 @@ function writeReport(
     appendFileSync(summary, lines.join('\n') + '\n')
   }
   for (const e of errors) console.log(`::warning::curator: ${e}`)
+  if (aiRejectionsThisRun.length) {
+    console.log(
+      `::warning::curator: ${aiRejectionsThisRun.length} AI rejection(s) this cycle — see step summary and ${AI_REJECTIONS_FILE}`,
+    )
+  }
   if (errors.length) {
     console.log(`::error::Highlight curator hit ${errors.length} error(s) this run — see the run summary.`)
     if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, 'has_errors=true\n')

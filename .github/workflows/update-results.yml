@@ -10,6 +10,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   update:
@@ -35,7 +36,9 @@ jobs:
           # Accept any of the names this secret has been stored under.
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.OPENAI_REVIEW_KEY || secrets.GPT_VIDEO_REVIEW_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
           CURATOR_ERROR_FLAG: /tmp/curator-error
+          AI_REJECTION_ALERT_MENTION: jz-42
           RESULTS_AUDIT_FILE: /tmp/results-audit.md
           ENTERTAINMENT_AUDIT_FILE: /tmp/entertainment-audit.md
           ENTERTAINMENT_BACKUP_FILE: /tmp/wc2026-entertainment.ts.before
@@ -123,7 +126,7 @@ jobs:
             cp src/data/wc2026-videos.ts "$VIDEOS_BACKUP_DIR/wc2026-videos.ts"
             cp scripts/curate-skip.json "$VIDEOS_BACKUP_DIR/curate-skip.json"
             cp scripts/curate-ai-rejections.json "$VIDEOS_BACKUP_DIR/curate-ai-rejections.json"
-            if npx tsx scripts/curate-videos.ts; then
+            if CURATOR_CYCLE="$cycle" npx tsx scripts/curate-videos.ts; then
               if ! (npm run validate:data && npx tsx src/data/videos.smoke.ts && npx tsc -b); then
                 echo "::warning::video validation failed; discarding video changes for this cycle"
                 cp "$VIDEOS_BACKUP_DIR/wc2026-videos.ts" src/data/wc2026-videos.ts
@@ -161,6 +164,11 @@ jobs:
             else
               echo "::error::validation failed — not committing this cycle"
               touch "$CURATOR_ERROR_FLAG"
+            fi
+
+            if [ "$core_ready_for_entertainment" = true ]; then
+              CURATOR_CYCLE="$cycle" npx tsx scripts/notify-ai-rejections.ts scripts/curate-ai-rejections.json \
+                || echo "::warning::failed to post AI rejection alert issue comment"
             fi
 
             # Optional entertainment AI path: never let this block core updates.
