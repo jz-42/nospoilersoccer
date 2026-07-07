@@ -489,4 +489,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m96": {
+    entertainmentSummary: "Cagey and tense more than free-flowing, with a fairly attritional feel rather than sustained rhythm. It sounds like the intrigue came mostly from the uncertainty, not from a particularly lively or open spectacle.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
