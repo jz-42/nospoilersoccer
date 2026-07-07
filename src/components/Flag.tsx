@@ -28,53 +28,32 @@ try {
   // Node (tsx smoke tests): no bundler, no assets — emoji fallback.
 }
 
-const warmedFlagHrefs = new Set<string>()
-const warmFlagImages: HTMLImageElement[] = []
+const preloadedFlagHrefs = new Set<string>()
 
-function supportsFlagPrefetch() {
-  if (typeof document === 'undefined') return false
-  const link = document.createElement('link')
-  return typeof link.relList?.supports === 'function' && link.relList.supports('prefetch')
-}
-
-function warmFlagUrls(urls: string[]) {
+function preloadFlagUrls(urls: string[]) {
   if (typeof document === 'undefined') return
-  const usePrefetch = supportsFlagPrefetch()
   const existing = new Set(
-    Array.from(document.querySelectorAll<HTMLLinkElement>('link[data-flag-prefetch]')).map(
+    Array.from(document.querySelectorAll<HTMLLinkElement>('link[data-flag-preload]')).map(
       (link) => link.href,
     ),
   )
   for (const url of urls) {
     const href = new URL(url, document.baseURI).href
-    if (warmedFlagHrefs.has(href) || existing.has(href)) continue
+    if (preloadedFlagHrefs.has(href) || existing.has(href)) continue
 
-    if (usePrefetch) {
-      const link = document.createElement('link')
-      link.rel = 'prefetch'
-      link.as = 'image'
-      link.href = url
-      link.setAttribute('fetchpriority', 'low')
-      link.setAttribute('data-flag-prefetch', '')
-      document.head.appendChild(link)
-      existing.add(href)
-    } else if (typeof Image !== 'undefined') {
-      const image = new Image()
-      image.decoding = 'async'
-      image.src = url
-      warmFlagImages.push(image)
-    }
-    warmedFlagHrefs.add(href)
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.as = 'image'
+    link.href = url
+    link.setAttribute('data-flag-preload', '')
+    document.head.appendChild(link)
+    existing.add(href)
+    preloadedFlagHrefs.add(href)
   }
 }
 
 if (typeof window !== 'undefined') {
-  const warm = () => warmFlagUrls(Object.values(flagUrls))
-  if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(warm, { timeout: 2500 })
-  } else {
-    setTimeout(warm, 1200)
-  }
+  preloadFlagUrls(Object.values(flagUrls))
 }
 
 export function Flag({ team, className }: { team: Team; className?: string }) {

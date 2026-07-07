@@ -258,7 +258,7 @@
   height: 100%;
   border-radius: 0.05em;
   /* Loading placeholder: a whisper of frost, not a black slab — if a flag
-     ever paints late (see the background prefetch in Flag.tsx) it reads as an
+     ever paints late (see the flag preloads in Flag.tsx) it reads as an
      empty glass chip, not a jarring dark hole. */
   background: rgba(154, 173, 203, 0.09);
 }
