@@ -479,4 +479,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 2,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m94": {
+    entertainmentSummary: "It sounds fairly routine and subdued for long stretches, with most of the intensity seeming to come from the occasion and crowd energy rather than a consistently gripping watch.",
+    entertainmentRating: 2,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
