@@ -484,4 +484,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 2,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m95": {
+    entertainmentSummary: "Very lively and emotionally charged, seeming dramatic and open rather than routine. It sounds like the tension stayed high and the match sparked a lot of reaction beyond the usual flow of play.",
+    entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
