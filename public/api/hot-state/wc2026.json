@@ -2302,15 +2302,42 @@
       "awayTeam": "ESP"
     },
     "m94": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 4
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "BEL",
+          "player": "Charles De Ketelaere",
+          "minute": "9'"
+        },
+        {
+          "team": "USA",
+          "player": "Malik Tillman",
+          "minute": "31'"
+        },
+        {
+          "team": "BEL",
+          "player": "Charles De Ketelaere",
+          "minute": "33'"
+        },
+        {
+          "team": "BEL",
+          "player": "Hans Vanaken",
+          "minute": "57'"
+        },
+        {
+          "team": "BEL",
+          "player": "Romelu Lukaku",
+          "minute": "90'+3'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "USA",
+      "awayTeam": "BEL"
     },
     "m95": {
       "liveStatus": null,
