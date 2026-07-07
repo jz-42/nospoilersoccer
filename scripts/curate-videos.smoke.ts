@@ -1,5 +1,6 @@
 import type { Tournament } from '../src/data/types'
 import * as curateVideos from './curate-videos'
+import { sanitizeTitleForSpoilerCheck } from './spoiler-check'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -110,6 +111,17 @@ assert(
     ) => 'normal' | 'extended'
   )('normal', 524) === 'normal',
   'sub-10-minute plain Highlights uploads stay quick cuts',
+)
+
+assert(
+  sanitizeTitleForSpoilerCheck('United States vs Belgium Highlights 🌎🏆 2026 FIFA World Cup™ | Round of 16') ===
+    'United States vs Belgium Highlights 🌎🏆 2026 FIFA World Cup™',
+  'trusted full-match titles strip knockout-stage suffixes before the AI spoiler check',
+)
+assert(
+  sanitizeTitleForSpoilerCheck('Lionel Messi & Argentina ADVANCE to Quarterfinals vs Egypt') ===
+    'Lionel Messi & Argentina ADVANCE to Quarterfinals vs Egypt',
+  'non-highlight titles keep their original text for the AI spoiler check',
 )
 
 console.log('ALL PASS')
