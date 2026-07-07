@@ -324,18 +324,14 @@ assert(
   'flag rendering avoids raw inline SVGs',
 )
 assert(
-  !flagSource.includes("link.rel = 'preload'") &&
-    flagSource.includes("link.rel = 'prefetch'") &&
-    flagSource.includes("link.as = 'image'"),
-  'offscreen flag image assets are prefetched at low priority instead of preloaded',
+  flagSource.includes("link.rel = 'preload'") &&
+    flagSource.includes("link.as = 'image'") &&
+    !flagSource.includes("link.rel = 'prefetch'"),
+  'offscreen flag image assets are preloaded before day changes can reveal them',
 )
 assert(
-  flagSource.includes('setTimeout') && flagSource.includes('requestIdleCallback'),
-  'offscreen flag prefetching is scheduled after startup',
-)
-assert(
-  flagSource.includes('supportsFlagPrefetch') && flagSource.includes('new Image()'),
-  'offscreen flag warm-up falls back for browsers without link prefetch',
+  !flagSource.includes('setTimeout') && !flagSource.includes('requestIdleCallback'),
+  'flag preloading starts immediately instead of waiting for idle time',
 )
 assert(
   /\.flag-badge img\s*\{[\s\S]*?display:\s*block;[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;/.test(
