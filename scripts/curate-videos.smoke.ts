@@ -7,9 +7,11 @@ function assert(condition: boolean, message: string) {
 }
 
 const findFixtureForCandidate = (curateVideos as Record<string, unknown>).findFixtureForCandidate
+const inferYouTubeHighlightKind = (curateVideos as Record<string, unknown>).inferYouTubeHighlightKind
 const shouldRetrySkippedId = (curateVideos as Record<string, unknown>).shouldRetrySkippedId
 
 assert(typeof findFixtureForCandidate === 'function', 'curate-videos exports fixture lookup for regression tests')
+assert(typeof inferYouTubeHighlightKind === 'function', 'curate-videos exports YouTube kind inference for regression tests')
 assert(typeof shouldRetrySkippedId === 'function', 'curate-videos exports retryable-skip helper for regression tests')
 
 const tournament: Tournament = {
@@ -89,6 +91,25 @@ assert(
 assert(
   !(shouldRetrySkippedId as (reason: string) => boolean)('already have a normal cut'),
   'stable skip reasons remain permanent',
+)
+
+assert(
+  (
+    inferYouTubeHighlightKind as (
+      kindHint: 'normal' | 'extended',
+      durationSeconds: number,
+    ) => 'normal' | 'extended'
+  )('normal', 666) === 'extended',
+  '11-minute plain Highlights uploads are treated as extended cuts',
+)
+assert(
+  (
+    inferYouTubeHighlightKind as (
+      kindHint: 'normal' | 'extended',
+      durationSeconds: number,
+    ) => 'normal' | 'extended'
+  )('normal', 524) === 'normal',
+  'sub-10-minute plain Highlights uploads stay quick cuts',
 )
 
 console.log('ALL PASS')

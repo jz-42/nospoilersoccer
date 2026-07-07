@@ -43,8 +43,8 @@ const SKIP_FILE = 'scripts/curate-skip.json'
  * exists purely for the maintainer's "did the model false-positive?" loop.
  */
 const AI_REJECTIONS_FILE = 'scripts/curate-ai-rejections.json'
-/** Plain "Highlights" cuts at/over this length are really extended (the openers). */
-const EXTENDED_MIN_SECONDS = 720
+/** Plain "Highlights" cuts at/over this length are treated as extended. */
+const EXTENDED_MIN_SECONDS = 600
 const FOX_QUICK_MIN_SECONDS = 120
 const FOX_QUICK_MAX_SECONDS = 600
 /** Obvious result-leaking patterns; the title format already excludes these. */
@@ -141,6 +141,13 @@ function allMatchesFor(tournament: Tournament): AnyMatch[] {
 
 export function shouldRetrySkippedId(reason: string): boolean {
   return reason === 'no matching played fixture'
+}
+
+export function inferYouTubeHighlightKind(
+  kindHint: 'normal' | 'extended',
+  durationSeconds: number,
+): HighlightVideo['kind'] {
+  return kindHint === 'extended' || durationSeconds >= EXTENDED_MIN_SECONDS ? 'extended' : 'normal'
 }
 
 type FixtureResult =
@@ -482,8 +489,7 @@ async function runCurate() {
       continue // transient; don't skip-list
     }
 
-    const kind: HighlightVideo['kind'] =
-      parsed.kindHint === 'extended' || meta.durationSeconds >= EXTENDED_MIN_SECONDS ? 'extended' : 'normal'
+    const kind = inferYouTubeHighlightKind(parsed.kindHint, meta.durationSeconds)
 
     // Deterministic guards (fail closed).
     if (meta.channelId !== FOX_CHANNEL_ID) {
