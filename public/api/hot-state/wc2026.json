@@ -2340,15 +2340,42 @@
       "awayTeam": "BEL"
     },
     "m95": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "EGY",
+          "player": "Yasser Ibrahim",
+          "minute": "15'"
+        },
+        {
+          "team": "EGY",
+          "player": "Mostafa Zico",
+          "minute": "67'"
+        },
+        {
+          "team": "ARG",
+          "player": "Cristian Romero",
+          "minute": "79'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lionel Messi",
+          "minute": "83'"
+        },
+        {
+          "team": "ARG",
+          "player": "Enzo Fernández",
+          "minute": "90'+2'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "ARG",
+      "awayTeam": "EGY"
     },
     "m96": {
       "liveStatus": null,

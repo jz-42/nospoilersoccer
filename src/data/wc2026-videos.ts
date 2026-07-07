@@ -97,4 +97,5 @@ export const wc2026Videos: Record<string, HighlightVideo[]> = {
   'm92': [{ source: 'fox', foxId: 'fmc-9vzfk8qj03kjk16e', kind: 'normal', durationSeconds: 242 }, { youtubeId: 'n7cA4k6TJbs', kind: 'extended', durationSeconds: 1093 }],
   'm93': [{ source: 'fox', foxId: 'fmc-ejq8n7whzt4ykx9t', kind: 'normal', durationSeconds: 296 }, { youtubeId: 'xINJD9fo6BM', kind: 'extended', durationSeconds: 666 }],
   'm94': [{ source: 'fox', foxId: 'fmc-wgwbrpws71xwe9qy', kind: 'normal', durationSeconds: 268 }, { youtubeId: 'QL3kCTgeVKA', kind: 'extended', durationSeconds: 929 }],
+  'm95': [{ source: 'fox', foxId: 'fmc-s1itb91c4k8kj4zc', kind: 'normal', durationSeconds: 300 }],
 }
