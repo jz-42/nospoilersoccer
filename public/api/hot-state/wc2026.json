@@ -2378,7 +2378,9 @@
       "awayTeam": "EGY"
     },
     "m96": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
