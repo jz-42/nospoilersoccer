@@ -2340,7 +2340,9 @@
       "awayTeam": "BEL"
     },
     "m95": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
