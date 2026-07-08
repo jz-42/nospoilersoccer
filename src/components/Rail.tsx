@@ -528,6 +528,7 @@ function DaySwitcher({
           onPointerCancel={finishPointer}
         >
           <div className="day-track">
+            <span className="day-track-spacer" aria-hidden="true" />
             {dates.map((d, i) => (
               <button
                 key={d}
@@ -547,6 +548,7 @@ function DaySwitcher({
                 <span className="day-item-date">{subFor(d)}</span>
               </button>
             ))}
+            <span className="day-track-spacer" aria-hidden="true" />
           </div>
         </div>
         <button
