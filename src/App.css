@@ -408,13 +408,18 @@
 
 .day-track {
   --day-item-w: 190px;
+  --day-window-w: min(calc(100vw - 108px), 604px);
   position: relative;
   height: 100%;
   width: max-content;
   min-width: 100%;
   display: flex;
   align-items: center;
-  padding-inline: max(0px, calc(50% - (var(--day-item-w) / 2)));
+}
+
+.day-track-spacer {
+  flex: 0 0 max(0px, calc((var(--day-window-w) - var(--day-item-w)) / 2));
+  height: 1px;
 }
 
 .day-item {

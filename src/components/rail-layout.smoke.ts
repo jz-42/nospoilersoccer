@@ -87,6 +87,17 @@ assert(
   'smooth carousel navigation schedules a final active-day sync after browser scroll settling',
 )
 assert(
+  railSource.includes('<span className="day-track-spacer" aria-hidden="true" />') &&
+    /\.day-track\s*\{[\s\S]*?--day-window-w:\s*min\(calc\(100vw - 108px\), 604px\);[\s\S]*?\}/.test(appCss) &&
+    /\.day-track-spacer\s*\{[\s\S]*?flex:\s*0 0 max\(0px, calc\(\(var\(--day-window-w\) - var\(--day-item-w\)\) \/ 2\)\);/.test(
+      appCss,
+    ) &&
+    !/\.day-track\s*\{[\s\S]*?padding-inline:\s*max\(0px, calc\(50% - \(var\(--day-item-w\) \/ 2\)\)\);/.test(
+      appCss,
+    ),
+  'day carousel uses real edge spacer items so the first and final days can center like every other day',
+)
+assert(
   /const onDocumentTouchMove = \(e: TouchEvent\) => \{[\s\S]*?const direction = getCommittedDaySwipe\(\{ deltaX, deltaY \}\)[\s\S]*?if \(direction !== 0 && e\.cancelable\)[\s\S]*?e\.preventDefault\(\)/.test(
     railSource,
   ),
