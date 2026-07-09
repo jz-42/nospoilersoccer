@@ -2393,7 +2393,9 @@
       "awayTeam": "COL"
     },
     "m97": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
