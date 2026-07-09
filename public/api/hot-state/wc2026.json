@@ -2393,15 +2393,27 @@
       "awayTeam": "COL"
     },
     "m97": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "60'"
+        },
+        {
+          "team": "FRA",
+          "player": "Ousmane Dembélé",
+          "minute": "66'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "FRA",
+      "awayTeam": "MAR"
     },
     "m98": {
       "liveStatus": null,
