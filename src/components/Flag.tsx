@@ -29,6 +29,7 @@ try {
 }
 
 const preloadedFlagHrefs = new Set<string>()
+const warmedFlagImages = new Map<string, HTMLImageElement>()
 
 function preloadFlagUrls(urls: string[]) {
   if (typeof document === 'undefined') return
@@ -52,8 +53,44 @@ function preloadFlagUrls(urls: string[]) {
   }
 }
 
+function warmFlagUrls(urls: string[]) {
+  if (typeof document === 'undefined' || typeof Image === 'undefined') return
+
+  for (const url of urls) {
+    const href = new URL(url, document.baseURI).href
+    let image = warmedFlagImages.get(href)
+
+    if (!image) {
+      image = new Image()
+      image.decoding = 'sync'
+      image.loading = 'eager'
+      image.src = url
+      warmedFlagImages.set(href, image)
+    } else if (image.src !== href) {
+      image.src = url
+    }
+
+    void image.decode?.().catch(() => {
+      // Ignore decode races; the warm cache is best-effort and the visible img
+      // still has the emoji fallback if a vendored asset is missing.
+    })
+  }
+}
+
 if (typeof window !== 'undefined') {
-  preloadFlagUrls(Object.values(flagUrls))
+  const urls = Object.values(flagUrls)
+  const onVisibilityChange = () => {
+    if (!document.hidden) warmFlagUrls(urls)
+  }
+
+  preloadFlagUrls(urls)
+  warmFlagUrls(urls)
+  document.addEventListener('visibilitychange', onVisibilityChange)
+
+  import.meta.hot?.dispose(() => {
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+    warmedFlagImages.clear()
+  })
 }
 
 export function Flag({ team, className }: { team: Team; className?: string }) {
