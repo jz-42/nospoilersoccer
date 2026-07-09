@@ -494,4 +494,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m97": {
+    entertainmentSummary: "More tense and stop-start than free-flowing, with a big-match edge that seems to have kept it engaging even if it was not relentlessly open. It sounds like the atmosphere and uncertainty mattered more than a constant stream of action.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
