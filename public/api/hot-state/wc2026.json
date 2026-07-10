@@ -2416,7 +2416,9 @@
       "awayTeam": "MAR"
     },
     "m98": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
