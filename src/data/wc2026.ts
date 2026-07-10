@@ -226,7 +226,7 @@ export const wc2026: Tournament = {
       matches: [
         { id: 'm97', date: '2026-07-09', home: { type: 'match-winner', match: 'm89' }, away: { type: 'match-winner', match: 'm90' }, odds: { home: 0.616, draw: 0.244, away: 0.141, url: 'https://polymarket.com/event/fifwc-fra-mar-2026-07-09' }, kickoff: '2026-07-09T20:00Z', homeTeam: 'FRA', awayTeam: 'MAR', score: { home: 2, away: 0 }, goals: [{ team: 'FRA', player: "Kylian Mbappé", minute: "60'" }, { team: 'FRA', player: "Ousmane Dembélé", minute: "66'" }] },
         { id: 'm98', date: '2026-07-10', kickoff: '2026-07-10T19:00Z', home: { type: 'match-winner', match: 'm93' }, away: { type: 'match-winner', match: 'm94' } , odds: { home: 0.609, draw: 0.241, away: 0.161, url: 'https://polymarket.com/event/fifwc-esp-bel-2026-07-10' } },
-        { id: 'm99', date: '2026-07-11', kickoff: '2026-07-11T21:00Z', home: { type: 'match-winner', match: 'm91' }, away: { type: 'match-winner', match: 'm92' } , odds: { home: 0.231, draw: 0.261, away: 0.521, url: 'https://polymarket.com/event/fifwc-nor-eng-2026-07-11' } },
+        { id: 'm99', date: '2026-07-11', kickoff: '2026-07-11T21:00Z', home: { type: 'match-winner', match: 'm91' }, away: { type: 'match-winner', match: 'm92' } , odds: { home: 0.231, draw: 0.261, away: 0.519, url: 'https://polymarket.com/event/fifwc-nor-eng-2026-07-11' } },
         { id: 'm100', date: '2026-07-11', kickoff: '2026-07-12T01:00Z', home: { type: 'match-winner', match: 'm95' }, away: { type: 'match-winner', match: 'm96' } , odds: { home: 0.574, draw: 0.269, away: 0.161, url: 'https://polymarket.com/event/fifwc-arg-che-2026-07-11' } },
       ],
     },
