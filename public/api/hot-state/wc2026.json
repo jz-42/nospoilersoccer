@@ -2416,15 +2416,32 @@
       "awayTeam": "MAR"
     },
     "m98": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Fabián Ruiz",
+          "minute": "30'"
+        },
+        {
+          "team": "BEL",
+          "player": "Charles De Ketelaere",
+          "minute": "41'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Merino",
+          "minute": "88'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "ESP",
+      "awayTeam": "BEL"
     },
     "m99": {
       "liveStatus": null,
