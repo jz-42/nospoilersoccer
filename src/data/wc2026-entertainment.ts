@@ -499,4 +499,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 3,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m98": {
+    entertainmentSummary: "Fairly tense and competitive rather than free-flowing, with the occasion seeming to keep it engaging even when it was not constantly lively. It sounds more like a gripping, edge-of-the-seat watch than a chaotic spectacle.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
