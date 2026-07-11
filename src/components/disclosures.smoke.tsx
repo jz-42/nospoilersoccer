@@ -330,6 +330,18 @@ assert(
   'offscreen flag image assets are preloaded before day changes can reveal them',
 )
 assert(
+  flagSource.includes('new Image()') &&
+    flagSource.includes('image.decode?.()') &&
+    flagSource.includes("document.addEventListener('visibilitychange'"),
+  'flag warm cache keeps decoded images alive and refreshes them when the tab becomes visible again',
+)
+assert(
+  flagSource.includes('import.meta.hot?.dispose') &&
+    flagSource.includes("document.removeEventListener('visibilitychange'") &&
+    flagSource.includes('warmedFlagImages.clear()'),
+  'flag warm cache cleans up its HMR visibility listener and retained images during local hot reloads',
+)
+assert(
   !flagSource.includes('setTimeout') && !flagSource.includes('requestIdleCallback'),
   'flag preloading starts immediately instead of waiting for idle time',
 )

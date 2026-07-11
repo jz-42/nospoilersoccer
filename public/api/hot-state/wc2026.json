@@ -2394,21 +2394,54 @@
     },
     "m97": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "60'"
+        },
+        {
+          "team": "FRA",
+          "player": "Ousmane Dembélé",
+          "minute": "66'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "FRA",
+      "awayTeam": "MAR"
     },
     "m98": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Fabián Ruiz",
+          "minute": "30'"
+        },
+        {
+          "team": "BEL",
+          "player": "Charles De Ketelaere",
+          "minute": "41'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Merino",
+          "minute": "88'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "ESP",
+      "awayTeam": "BEL"
     },
     "m99": {
       "liveStatus": null,
