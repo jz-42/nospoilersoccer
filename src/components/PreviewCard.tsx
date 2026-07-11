@@ -133,7 +133,7 @@ export function PreviewCard({
             </span>
           ) : !liveStatus && state === 'watch' ? (
             <span className="preview-play" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                 <path d="M8.3 5.5v13l11-6.5z" />
               </svg>
             </span>

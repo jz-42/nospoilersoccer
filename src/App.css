@@ -3370,11 +3370,9 @@
 .player-poster:hover .poster-play {
   transform: scale(1.07);
   filter: brightness(1.06);
-  box-shadow: 0 8px 24px rgba(190, 40, 34, 0.34), 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(190, 40, 34, 0.30), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
-/* The classic YouTube-red play button — restored, just a touch dimmer so it
-   identifies the video without grabbing the whole modal's attention. */
 .poster-play {
   display: inline-flex;
   align-items: center;
@@ -3382,10 +3380,10 @@
   width: 62px;
   height: 44px;
   border-radius: 13px;
-  background: linear-gradient(180deg, #d5453d, #b32721);
+  background: linear-gradient(180deg, #c9443d, #a62924);
   border: none;
   color: #fff;
-  box-shadow: 0 6px 18px rgba(190, 40, 34, 0.26), 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 18px rgba(190, 40, 34, 0.20), 0 2px 8px rgba(0, 0, 0, 0.35);
   transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
 }
 
