@@ -504,4 +504,9 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 4,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m99": {
+    entertainmentSummary: "Tense and emotionally charged rather than smooth or carefree, with the occasion seeming to give it plenty of bite. It sounds engaging overall, even if the mood was more nervy than consistently free-flowing.",
+    entertainmentRating: 4,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
 }
