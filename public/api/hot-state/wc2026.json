@@ -2444,15 +2444,32 @@
       "awayTeam": "BEL"
     },
     "m99": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Andreas Schjelderup",
+          "minute": "36'"
+        },
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "45'+2'"
+        },
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "93'"
+        }
+      ],
       "penalties": null,
-      "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "afterExtraTime": true,
+      "homeTeam": "NOR",
+      "awayTeam": "ENG"
     },
     "m100": {
       "liveStatus": null,
