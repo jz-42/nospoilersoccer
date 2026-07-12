@@ -2472,7 +2472,9 @@
       "awayTeam": "ENG"
     },
     "m100": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
