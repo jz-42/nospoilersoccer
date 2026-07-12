@@ -2472,15 +2472,37 @@
       "awayTeam": "ENG"
     },
     "m100": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ARG",
+          "player": "Alexis Mac Allister",
+          "minute": "10'"
+        },
+        {
+          "team": "SUI",
+          "player": "Dan Ndoye",
+          "minute": "67'"
+        },
+        {
+          "team": "ARG",
+          "player": "Julián Álvarez",
+          "minute": "112'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lautaro Martínez",
+          "minute": "120'+1'"
+        }
+      ],
       "penalties": null,
-      "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "afterExtraTime": true,
+      "homeTeam": "ARG",
+      "awayTeam": "SUI"
     },
     "m101": {
       "liveStatus": null,
