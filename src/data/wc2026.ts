@@ -234,8 +234,8 @@ export const wc2026: Tournament = {
       id: 'sf',
       name: 'Semi-finals',
       matches: [
-        { id: 'm101', date: '2026-07-14', kickoff: '2026-07-14T19:00Z', home: { type: 'match-winner', match: 'm97' }, away: { type: 'match-winner', match: 'm98' } , odds: { home: 0.415, draw: 0.295, away: 0.285, url: 'https://polymarket.com/event/fifwc-fra-esp-2026-07-14' } },
-        { id: 'm102', date: '2026-07-15', kickoff: '2026-07-15T19:00Z', home: { type: 'match-winner', match: 'm99' }, away: { type: 'match-winner', match: 'm100' } , odds: { home: 0.365, draw: 0.325, away: 0.305, url: 'https://polymarket.com/event/fifwc-eng-arg-2026-07-15' } },
+        { id: 'm101', date: '2026-07-14', kickoff: '2026-07-14T19:00Z', home: { type: 'match-winner', match: 'm97' }, away: { type: 'match-winner', match: 'm98' } , odds: { home: 0.411, draw: 0.299, away: 0.289, url: 'https://polymarket.com/event/fifwc-fra-esp-2026-07-14' } },
+        { id: 'm102', date: '2026-07-15', kickoff: '2026-07-15T19:00Z', home: { type: 'match-winner', match: 'm99' }, away: { type: 'match-winner', match: 'm100' } , odds: { home: 0.359, draw: 0.328, away: 0.309, url: 'https://polymarket.com/event/fifwc-eng-arg-2026-07-15' } },
       ],
     },
     {
