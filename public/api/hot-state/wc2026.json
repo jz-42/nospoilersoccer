@@ -2505,15 +2505,28 @@
       "awayTeam": "SUI"
     },
     "m101": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Mikel Oyarzabal",
+          "minute": "22'",
+          "penalty": true
+        },
+        {
+          "team": "ESP",
+          "player": "Pedro Porro",
+          "minute": "58'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "FRA",
+      "awayTeam": "ESP"
     },
     "m102": {
       "liveStatus": null,
