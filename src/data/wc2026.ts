@@ -235,7 +235,7 @@ export const wc2026: Tournament = {
       name: 'Semi-finals',
       matches: [
         { id: 'm101', date: '2026-07-14', home: { type: 'match-winner', match: 'm97' }, away: { type: 'match-winner', match: 'm98' }, odds: { home: 0.364, draw: 0.329, away: 0.301, url: 'https://polymarket.com/event/fifwc-fra-esp-2026-07-14' }, kickoff: '2026-07-14T19:00Z', homeTeam: 'FRA', awayTeam: 'ESP', score: { home: 0, away: 2 }, goals: [{ team: 'ESP', player: "Mikel Oyarzabal", minute: "22'", penalty: true }, { team: 'ESP', player: "Pedro Porro", minute: "58'" }] },
-        { id: 'm102', date: '2026-07-15', kickoff: '2026-07-15T19:00Z', home: { type: 'match-winner', match: 'm99' }, away: { type: 'match-winner', match: 'm100' } , odds: { home: 0.349, draw: 0.329, away: 0.319, url: 'https://polymarket.com/event/fifwc-eng-arg-2026-07-15' } },
+        { id: 'm102', date: '2026-07-15', kickoff: '2026-07-15T19:00Z', home: { type: 'match-winner', match: 'm99' }, away: { type: 'match-winner', match: 'm100' } , odds: { home: 0.349, draw: 0.329, away: 0.321, url: 'https://polymarket.com/event/fifwc-eng-arg-2026-07-15' } },
       ],
     },
     {
