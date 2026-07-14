@@ -2505,7 +2505,9 @@
       "awayTeam": "SUI"
     },
     "m101": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "penalties": null,
