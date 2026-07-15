@@ -2529,15 +2529,32 @@
       "awayTeam": "ESP"
     },
     "m102": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Anthony Gordon",
+          "minute": "55'"
+        },
+        {
+          "team": "ARG",
+          "player": "Enzo Fernández",
+          "minute": "85'"
+        },
+        {
+          "team": "ARG",
+          "player": "Lautaro Martínez",
+          "minute": "90'+2'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "ENG",
+      "awayTeam": "ARG"
     },
     "m103": {
       "liveStatus": null,
