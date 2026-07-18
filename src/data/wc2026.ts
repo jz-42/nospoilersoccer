@@ -242,14 +242,14 @@ export const wc2026: Tournament = {
       id: 'third-place',
       name: 'Third-place play-off',
       matches: [
-        { id: 'm103', date: '2026-07-18', kickoff: '2026-07-18T21:00Z', home: { type: 'match-loser', match: 'm101' }, away: { type: 'match-loser', match: 'm102' } , odds: { home: 0.515, draw: 0.235, away: 0.245, url: 'https://polymarket.com/event/fifwc-fra-eng-2026-07-18' } },
+        { id: 'm103', date: '2026-07-18', kickoff: '2026-07-18T21:00Z', home: { type: 'match-loser', match: 'm101' }, away: { type: 'match-loser', match: 'm102' } , odds: { home: 0.525, draw: 0.235, away: 0.245, url: 'https://polymarket.com/event/fifwc-fra-eng-2026-07-18' } },
       ],
     },
     {
       id: 'final',
       name: 'Final',
       matches: [
-        { id: 'm104', date: '2026-07-19', kickoff: '2026-07-19T19:00Z', home: { type: 'match-winner', match: 'm101' }, away: { type: 'match-winner', match: 'm102' } , odds: { home: 0.421, draw: 0.316, away: 0.265, url: 'https://polymarket.com/event/fifwc-esp-arg-2026-07-19' } },
+        { id: 'm104', date: '2026-07-19', kickoff: '2026-07-19T19:00Z', home: { type: 'match-winner', match: 'm101' }, away: { type: 'match-winner', match: 'm102' } , odds: { home: 0.421, draw: 0.315, away: 0.265, url: 'https://polymarket.com/event/fifwc-esp-arg-2026-07-19' } },
       ],
     },
   ],
