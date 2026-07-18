@@ -1,1 +1,12 @@
-{}
+{
+  "L1SLA0ixeWo": {
+    "id": "L1SLA0ixeWo",
+    "matchId": "m103",
+    "match": "m103 France v England",
+    "source": "youtube",
+    "title": "France vs England Highlights 🌎🏆 2026 FIFA World Cup™ | Bronze Final",
+    "reason": "possible spoiler in title",
+    "verdict": "The title clearly matches France vs England full-match highlights, but “Bronze Final” reveals they are in the third-place match.",
+    "at": "2026-07-18T23:38:03.488Z"
+  }
+}
