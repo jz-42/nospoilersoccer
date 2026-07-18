@@ -242,7 +242,7 @@ export const wc2026: Tournament = {
       id: 'third-place',
       name: 'Third-place play-off',
       matches: [
-        { id: 'm103', date: '2026-07-18', kickoff: '2026-07-18T21:00Z', home: { type: 'match-loser', match: 'm101' }, away: { type: 'match-loser', match: 'm102' } , odds: { home: 0.565, draw: 0.225, away: 0.215, url: 'https://polymarket.com/event/fifwc-fra-eng-2026-07-18' } },
+        { id: 'm103', date: '2026-07-18', kickoff: '2026-07-18T21:00Z', home: { type: 'match-loser', match: 'm101' }, away: { type: 'match-loser', match: 'm102' }, liveStatus: { kind: 'live' }, odds: { home: 0.565, draw: 0.225, away: 0.215, url: 'https://polymarket.com/event/fifwc-fra-eng-2026-07-18' } },
       ],
     },
     {
