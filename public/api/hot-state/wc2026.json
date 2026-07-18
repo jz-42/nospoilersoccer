@@ -2557,15 +2557,68 @@
       "awayTeam": "ARG"
     },
     "m103": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 6
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Declan Rice",
+          "minute": "3'"
+        },
+        {
+          "team": "ENG",
+          "player": "Ezri Konsa",
+          "minute": "18'"
+        },
+        {
+          "team": "ENG",
+          "player": "Bukayo Saka",
+          "minute": "37'"
+        },
+        {
+          "team": "ENG",
+          "player": "Bukayo Saka",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "48'"
+        },
+        {
+          "team": "FRA",
+          "player": "Bradley Barcola",
+          "minute": "54'"
+        },
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "66'"
+        },
+        {
+          "team": "ENG",
+          "player": "Bukayo Saka",
+          "minute": "87'",
+          "penalty": true
+        },
+        {
+          "team": "FRA",
+          "player": "Ousmane Dembélé",
+          "minute": "90'+6'"
+        },
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "90'+8'"
+        }
+      ],
       "penalties": null,
       "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "homeTeam": "FRA",
+      "awayTeam": "ENG"
     },
     "m104": {
       "liveStatus": null,

@@ -242,7 +242,7 @@ export const wc2026: Tournament = {
       id: 'third-place',
       name: 'Third-place play-off',
       matches: [
-        { id: 'm103', date: '2026-07-18', kickoff: '2026-07-18T21:00Z', home: { type: 'match-loser', match: 'm101' }, away: { type: 'match-loser', match: 'm102' }, liveStatus: { kind: 'live' }, odds: { home: 0.565, draw: 0.225, away: 0.215, url: 'https://polymarket.com/event/fifwc-fra-eng-2026-07-18' } },
+        { id: 'm103', date: '2026-07-18', home: { type: 'match-loser', match: 'm101' }, away: { type: 'match-loser', match: 'm102' }, odds: { home: 0.565, draw: 0.225, away: 0.215, url: 'https://polymarket.com/event/fifwc-fra-eng-2026-07-18' }, kickoff: '2026-07-18T21:00Z', homeTeam: 'FRA', awayTeam: 'ENG', score: { home: 4, away: 6 }, goals: [{ team: 'ENG', player: "Declan Rice", minute: "3'" }, { team: 'ENG', player: "Ezri Konsa", minute: "18'" }, { team: 'ENG', player: "Bukayo Saka", minute: "37'" }, { team: 'ENG', player: "Bukayo Saka", minute: "45'+1'" }, { team: 'FRA', player: "Kylian Mbappé", minute: "48'" }, { team: 'FRA', player: "Bradley Barcola", minute: "54'" }, { team: 'FRA', player: "Kylian Mbappé", minute: "66'" }, { team: 'ENG', player: "Bukayo Saka", minute: "87'", penalty: true }, { team: 'FRA', player: "Ousmane Dembélé", minute: "90'+6'" }, { team: 'ENG', player: "Jude Bellingham", minute: "90'+8'" }] },
       ],
     },
     {
