@@ -389,6 +389,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m103": {
+    entertainmentSummary: "Very open and chaotic, with a breathless feel that sounded far from routine. Reactions suggest a high-drama watch rather than a cagey or measured one.",
+    entertainmentRating: 5,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m73": {
     entertainmentSummary: "It sounds tense and fairly cagey for long stretches, with the engagement coming more from uncertainty than from a free-flowing rhythm. The atmosphere seems to have added some edge, though the overall feel was probably more restrained than lively.",
     entertainmentRating: 3,
