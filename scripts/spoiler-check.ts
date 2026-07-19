@@ -42,7 +42,7 @@ const MODEL = process.env.OPENAI_MODEL ?? 'gpt-5.4'
 const EFFORT = process.env.OPENAI_REASONING_EFFORT ?? 'medium'
 const BASE_URL = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'
 const TRUSTED_HIGHLIGHT_STAGE_SUFFIX_RE =
-  /^((?:.+?)\s+vs\.?\s+(?:.+?)\s+(?:Extended\s+)?Highlights\b.*World Cup(?:™)?)(?:\s+\|\s+(?:Round of 32|Round of 16|Quarter(?:-| )finals?|Semi(?:-| )finals?|Third(?:-| )place(?: play-?off)?|Final))\s*$/i
+  /^((?:.+?)\s+vs\.?\s+(?:.+?)\s+(?:Extended\s+)?Highlights\b.*World Cup(?:™)?)(?:\s+\|\s+(?:Round of 32|Round of 16|Quarter(?:-| )finals?|Semi(?:-| )finals?|Third(?:-| )place(?: (?:play-?off|final|match))?|Bronze(?: Medal)? (?:Final|Match)|Final))\s*$/i
 
 export function sanitizeTitleForSpoilerCheck(title: string): string {
   const match = title.match(TRUSTED_HIGHLIGHT_STAGE_SUFFIX_RE)
@@ -59,7 +59,7 @@ Set "spoiler": true if the TITLE reveals, even partially, ANY of:
 - who advanced or was eliminated
 - a specific goal, scorer, or game-deciding moment
 A plain "<A> vs <B> Highlights" title is NOT a spoiler.
-For trusted full-match highlight titles, trailing stage labels like "Round of 16", "Quarterfinal", "Semifinal", or "Final" are acceptable context and are NOT spoilers by themselves.
+For trusted full-match highlight titles, progression needed to reach the visible fixture and its stakes are acceptable context. Trailing stage labels like "Round of 16", "Quarterfinal", "Semifinal", "Final", "Third-place play-off", or "Bronze Final" are NOT spoilers by themselves, even though they imply the teams reached that fixture.
 
 Set "teamsMatch": true ONLY if the TITLE clearly identifies the full-match highlights for exactly these two teams (not a goal clip, interview, reaction, preview, or a different match).
 

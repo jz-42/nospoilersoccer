@@ -119,6 +119,11 @@ assert(
   'trusted full-match titles strip knockout-stage suffixes before the AI spoiler check',
 )
 assert(
+  sanitizeTitleForSpoilerCheck('France vs England Highlights 🌎🏆 2026 FIFA World Cup™ | Bronze Final') ===
+    'France vs England Highlights 🌎🏆 2026 FIFA World Cup™',
+  'trusted full-match titles strip third-place progression context before the AI spoiler check',
+)
+assert(
   sanitizeTitleForSpoilerCheck('Lionel Messi & Argentina ADVANCE to Quarterfinals vs Egypt') ===
     'Lionel Messi & Argentina ADVANCE to Quarterfinals vs Egypt',
   'non-highlight titles keep their original text for the AI spoiler check',
