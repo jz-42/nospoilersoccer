@@ -2621,15 +2621,22 @@
       "awayTeam": "ENG"
     },
     "m104": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Ferran Torres",
+          "minute": "106'"
+        }
+      ],
       "penalties": null,
-      "afterExtraTime": null,
-      "homeTeam": null,
-      "awayTeam": null
+      "afterExtraTime": true,
+      "homeTeam": "ESP",
+      "awayTeam": "ARG"
     }
   }
 }
