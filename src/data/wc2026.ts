@@ -249,7 +249,7 @@ export const wc2026: Tournament = {
       id: 'final',
       name: 'Final',
       matches: [
-        { id: 'm104', date: '2026-07-19', kickoff: '2026-07-19T19:00Z', home: { type: 'match-winner', match: 'm101' }, away: { type: 'match-winner', match: 'm102' } , odds: { home: 0.424, draw: 0.324, away: 0.259, url: 'https://polymarket.com/event/fifwc-esp-arg-2026-07-19' } },
+        { id: 'm104', date: '2026-07-19', kickoff: '2026-07-19T19:00Z', home: { type: 'match-winner', match: 'm101' }, away: { type: 'match-winner', match: 'm102' }, liveStatus: { kind: 'live' }, odds: { home: 0.424, draw: 0.324, away: 0.259, url: 'https://polymarket.com/event/fifwc-esp-arg-2026-07-19' } },
       ],
     },
   ],
