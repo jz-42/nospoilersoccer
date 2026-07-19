@@ -79,7 +79,7 @@ export const wc2026Videos: Record<string, HighlightVideo[]> = {
   'm101': [{ source: 'fox', foxId: 'fmc-8w022p3du09hlxu3', kind: 'normal', durationSeconds: 258 }, { youtubeId: '3JAZZr3jWD0', kind: 'extended', durationSeconds: 1074 }],
   'm102': [{ source: 'fox', foxId: 'fmc-lhcmu9gnbb24m8ts', kind: 'normal', durationSeconds: 296 }, { youtubeId: 'y-4saPWrPt0', kind: 'extended', durationSeconds: 860 }],
   'm103': [{ source: 'fox', foxId: 'fmc-u1pgeamul3899l70', kind: 'normal', durationSeconds: 297 }, { youtubeId: 'L1SLA0ixeWo', kind: 'extended', durationSeconds: 1507 }],
-  'm104': [{ source: 'fox', foxId: 'fmc-67e7kyzw2b6ebtqg', kind: 'normal', durationSeconds: 250 }],
+  'm104': [{ source: 'fox', foxId: 'fmc-67e7kyzw2b6ebtqg', kind: 'normal', durationSeconds: 250 }, { youtubeId: 'x-cpRHf4xd4', kind: 'extended', durationSeconds: 1335 }],
   'm73': [{ youtubeId: 'VoCkhiVWDdY', kind: 'extended', durationSeconds: 817 }, { source: 'fox', foxId: 'fmc-pymg07rpco9jx4dv', kind: 'normal', durationSeconds: 294 }],
   'm74': [{ source: 'fox', foxId: 'fmc-0r37ac5kizsxwbhg', kind: 'normal', durationSeconds: 261 }, { youtubeId: '-gtI96YhJek', kind: 'extended', durationSeconds: 1457 }],
   'm75': [{ source: 'fox', foxId: 'fmc-6bwz7t84u8xfmc1t', kind: 'normal', durationSeconds: 288 }, { youtubeId: 'DkZtwwbN1YI', kind: 'extended', durationSeconds: 1179 }],
