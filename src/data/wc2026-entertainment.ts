@@ -394,6 +394,11 @@ export const wc2026Entertainment: Record<string, EntertainmentEntry> = {
     entertainmentRating: 5,
     promptVersion: "entertainment-v2-agnostic-2026-06-27",
   },
+  "m104": {
+    entertainmentSummary: "It seems to have felt tense and weighty more than breezy, with the occasion giving it a charged edge. The entertainment sounded as if it came more from atmosphere and uncertainty than from a consistently lively rhythm.",
+    entertainmentRating: 3,
+    promptVersion: "entertainment-v2-agnostic-2026-06-27",
+  },
   "m73": {
     entertainmentSummary: "It sounds tense and fairly cagey for long stretches, with the engagement coming more from uncertainty than from a free-flowing rhythm. The atmosphere seems to have added some edge, though the overall feel was probably more restrained than lively.",
     entertainmentRating: 3,
