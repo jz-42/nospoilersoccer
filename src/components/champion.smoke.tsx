@@ -39,12 +39,24 @@ assert(
   'standard trophy is bundled through the Vite asset pipeline',
 )
 assert(
-  /\.b-champ\s*\{[\s\S]*?top:\s*34px;/.test(appCss),
+  /\.b-champ\s*\{[^}]*?top:\s*8px;/.test(appCss),
+  'special champion artwork keeps its original position',
+)
+assert(
+  /\.b-champ:has\(\.champion-trophy\)\s*\{[^}]*?top:\s*34px;/.test(appCss),
   'collapsed detail control leaves space above the champion',
 )
 assert(
-  /\.ko-detail\.is-open\s*\+\s*\.b-champ\s*\{[\s\S]*?top:\s*112px;/.test(appCss),
+  /\.ko-detail\.is-open\s*\+\s*\.b-champ:has\(\.champion-trophy\)\s*\{[^}]*?top:\s*112px;/.test(
+    appCss,
+  ),
   'expanded detail key moves the champion farther down',
+)
+assert(
+  /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.b-champ\s*\{[\s\S]*?transition:\s*none;[\s\S]*?animation:\s*none;/.test(
+    appCss,
+  ),
+  'champion movement respects reduced-motion preferences',
 )
 
 console.log('champion smoke tests passed')
