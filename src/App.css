@@ -2376,11 +2376,11 @@
 }
 
 .b-champ:has(.champion-trophy) {
-  top: 76px;
+  top: 96px;
 }
 
 .ko-detail.is-open + .b-champ:has(.champion-trophy) {
-  top: 154px;
+  top: 174px;
 }
 
 @keyframes champ-in {
