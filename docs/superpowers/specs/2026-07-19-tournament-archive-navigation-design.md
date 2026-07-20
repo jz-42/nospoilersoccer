@@ -34,4 +34,3 @@ Regression tests cover:
 - historical tournaments use archive behavior;
 - visitor-local kickoff dates determine the boundary;
 - switching tournaments resets to the phase-appropriate initial view.
-

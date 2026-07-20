@@ -233,4 +233,3 @@ Expected: all data, logic, component, analytics, and TypeScript checks pass.
 Run: `npm run build`
 
 Expected: Vite produces `dist/` successfully.
-
