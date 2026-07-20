@@ -1,37 +1,7 @@
 import type { Team, Tournament } from '../data/types'
 import { Flag } from './Flag'
 
-/** Generic World Cup style trophy. */
-function Trophy({ size = 44 }: { size?: number }) {
-  return (
-    <svg width={size} height={size * 1.3} viewBox="0 0 60 78" aria-hidden="true">
-      <defs>
-        <linearGradient id="nss-gold" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#f0d489" />
-          <stop offset="1" stopColor="#c79a3d" />
-        </linearGradient>
-      </defs>
-      {/* globe */}
-      <circle cx="30" cy="16" r="11" fill="url(#nss-gold)" />
-      <path d="M 21 12 a 11 11 0 0 1 18 0" fill="none" stroke="#a87f2e" strokeWidth="1.2" opacity="0.6" />
-      <path d="M 20 18 a 11 11 0 0 0 20 0" fill="none" stroke="#a87f2e" strokeWidth="1.2" opacity="0.6" />
-      {/* arms wrapping up to the globe */}
-      <path
-        d="M 18 46 C 12 38 13 28 20 23 C 23 21 25 24 23 27 C 19 32 20 38 24 43 Z"
-        fill="url(#nss-gold)"
-      />
-      <path
-        d="M 42 46 C 48 38 47 28 40 23 C 37 21 35 24 37 27 C 41 32 40 38 36 43 Z"
-        fill="url(#nss-gold)"
-      />
-      {/* body */}
-      <path d="M 22 44 C 24 36 36 36 38 44 L 36 58 L 24 58 Z" fill="url(#nss-gold)" />
-      {/* base */}
-      <rect x="20" y="58" width="20" height="6" rx="2" fill="url(#nss-gold)" />
-      <rect x="16" y="64" width="28" height="8" rx="3" fill="#9c7427" />
-    </svg>
-  )
-}
+const trophyUrl = new URL('../assets/world-cup-trophy.png', import.meta.url).href
 
 /**
  * The 2022 moment — a stylized silhouette in his honor: the number 10,
@@ -85,7 +55,18 @@ export function ChampionMoment({ t, team }: { t: Tournament; team: Team }) {
   const isMessiMoment = t.id === 'wc2022' && team.id === 'ARG'
   return (
     <div className="champion">
-      <div className="champion-art">{isMessiMoment ? <Lift /> : <Trophy />}</div>
+      <div className="champion-art">
+        {isMessiMoment ? (
+          <Lift />
+        ) : (
+          <img
+            className="champion-trophy"
+            src={trophyUrl}
+            alt=""
+            aria-hidden="true"
+          />
+        )}
+      </div>
       <div className="champion-flag">
         <Flag team={team} />
       </div>
