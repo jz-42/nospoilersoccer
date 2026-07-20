@@ -1,15 +1,14 @@
 /**
  * The matchday strip above the groups.
  *
- * Live tournaments get a centered day carousel: every matchday of the
+ * Current tournaments get a centered day carousel: every matchday of the
  * tournament laid out in a row, the selected day big in the middle and the
  * neighbours faded on either side. Picking a neighbour (or a chevron) slides
  * the whole strip so that day glides to centre. It defaults to today, and a
  * "Jump to today" pill appears once you wander off. A green dot on a day
  * means it has unwatched results in.
  *
- * Finished tournaments get "Continue": the next unwatched games in
- * tournament order.
+ * Archived tournaments open on their final matchday and remain browsable.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type {
@@ -20,6 +19,7 @@ import type {
 } from 'react'
 import type { Tournament } from '../data/types'
 import { isPlayed, knockoutReady } from '../logic/spoilers'
+import { dayRailInitialDate, isTournamentArchived } from '../navigation'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
 import { PreviewCard } from './PreviewCard'
@@ -115,12 +115,14 @@ function DaySwitcher({
   const entries = allEntries(t)
   const now = new Date()
   const today = localDateKey(now)
-  // Every matchday, plus today itself so the carousel always has a "Today"
-  // anchor even when today is a rest day.
-  const dates = [...new Set([...entries.map((e) => e.date), today])].sort()
-  const todayIndex = dates.indexOf(today)
+  // Current tournaments include today as an anchor, even on rest days.
+  // Archives use the final matchday and do not grow empty post-event dates.
+  const anchorDate = dayRailInitialDate(t, now)
+  const dates = [...new Set([...entries.map((e) => e.date), anchorDate])].sort()
+  const anchorIndex = dates.indexOf(anchorDate)
+  const anchorLabel = isTournamentArchived(t, now) ? 'Final day' : 'Today'
 
-  const [active, setActive] = useState(todayIndex)
+  const [active, setActive] = useState(anchorIndex)
   const idx = Math.min(Math.max(active, 0), dates.length - 1)
   const windowRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
@@ -355,10 +357,10 @@ function DaySwitcher({
 
   useLayoutEffect(() => {
     suppressScrollSync.current = true
-    scrollToIndex(todayIndex, false)
+    scrollToIndex(anchorIndex, false)
     updateFade()
     suppressScrollSync.current = false
-  }, [todayIndex, dates.length])
+  }, [anchorIndex, dates.length])
 
   useEffect(() => {
     const w = windowRef.current
@@ -501,9 +503,9 @@ function DaySwitcher({
       onClickCapture={onSectionClickCapture}
     >
       <div className="day-toolbar">
-        {idx !== todayIndex && (
-          <button type="button" className="day-jump-btn" onClick={() => scrollToIndex(todayIndex, true)}>
-            Today
+        {idx !== anchorIndex && (
+          <button type="button" className="day-jump-btn" onClick={() => scrollToIndex(anchorIndex, true)}>
+            {anchorLabel}
           </button>
         )}
       </div>
@@ -576,9 +578,8 @@ function DaySwitcher({
 }
 
 /**
- * The day rail only appears for a live tournament (App hides the "Today" tab
- * once everything's played — a finished tournament is browsed through the group
- * and knockout views, where the videos live in context).
+ * The day rail stays available after the tournament and opens archived editions
+ * on their final matchday.
  */
 export function Rail({
   t,

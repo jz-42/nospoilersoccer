@@ -16,10 +16,9 @@ import {
   parseTournamentHotState,
   type FetchedTournamentHotState,
 } from './data/hot-state'
-import { catchUpMatchIds, isLive, totalMatches } from './logic/spoilers'
+import { catchUpMatchIds, totalMatches } from './logic/spoilers'
+import { dayTabLabel, defaultTournamentView, type View } from './navigation'
 import { useProgress } from './state/progress'
-
-type Tab = 'day' | 'groups' | 'bracket'
 
 const TOURNAMENT_KEY = 'nss-tournament'
 const ONBOARDED_KEY = 'nss-onboarded'
@@ -89,11 +88,8 @@ function App() {
     [baseTournament, hotState],
   )
   const progress = useProgress(t)
-  const [tab, setTab] = useState<Tab>('day')
-  // A finished tournament has no "today" — there the day tab is hidden and the
-  // group stage / knockout views (with their embedded videos) are the way in.
-  const live = isLive(t)
-  const view: Tab = live || tab !== 'day' ? tab : 'groups'
+  const [tab, setTab] = useState<View>(() => defaultTournamentView(baseTournament))
+  const view = tab
   useEffect(() => {
     analytics.viewChanged({ view })
   }, [view])
@@ -110,6 +106,7 @@ function App() {
 
   const selectTournament = (id: string) => {
     setTournamentId(id)
+    setTab(defaultTournamentView(tournaments[id]))
     setModal(null)
     try {
       localStorage.setItem(TOURNAMENT_KEY, id)
@@ -155,15 +152,13 @@ function App() {
         </div>
 
         <nav className="seg" aria-label="View">
-          {live && (
-            <button
-              type="button"
-              className={`seg-btn ${view === 'day' ? 'active' : ''}`}
-              onClick={() => setTab('day')}
-            >
-              Today
-            </button>
-          )}
+          <button
+            type="button"
+            className={`seg-btn ${view === 'day' ? 'active' : ''}`}
+            onClick={() => setTab('day')}
+          >
+            {dayTabLabel(t)}
+          </button>
           <button
             type="button"
             className={`seg-btn ${view === 'groups' ? 'active' : ''}`}
