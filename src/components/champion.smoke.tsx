@@ -43,11 +43,11 @@ assert(
   'special champion artwork keeps its original position',
 )
 assert(
-  /\.b-champ:has\(\.champion-trophy\)\s*\{[^}]*?top:\s*34px;/.test(appCss),
+  /\.b-champ:has\(\.champion-trophy\)\s*\{[^}]*?top:\s*96px;/.test(appCss),
   'collapsed detail control leaves space above the champion',
 )
 assert(
-  /\.ko-detail\.is-open\s*\+\s*\.b-champ:has\(\.champion-trophy\)\s*\{[^}]*?top:\s*112px;/.test(
+  /\.ko-detail\.is-open\s*\+\s*\.b-champ:has\(\.champion-trophy\)\s*\{[^}]*?top:\s*174px;/.test(
     appCss,
   ),
   'expanded detail key moves the champion farther down',
