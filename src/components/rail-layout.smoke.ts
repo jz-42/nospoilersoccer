@@ -114,7 +114,7 @@ assert(
 assert(
   railSource.includes('onClick={() => scrollToIndex(idx - 1, true)}') &&
     railSource.includes('onClick={() => scrollToIndex(idx + 1, true)}') &&
-    railSource.includes('onClick={() => scrollToIndex(todayIndex, true)}'),
+    railSource.includes('onClick={() => scrollToIndex(anchorIndex, true)}'),
   'existing carousel buttons keep using the original smooth scroll path',
 )
 assert(
