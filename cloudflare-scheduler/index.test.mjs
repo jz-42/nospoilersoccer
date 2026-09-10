@@ -1,10 +1,13 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 
-import {
+import worker, {
+  HOT_STATE_SEASON_IDS,
   buildWindowReport,
   chooseAction,
   createGitHubClient,
+  handleHotStateRequest,
+  hotStateSourceUrl,
   parseMatchKickoffs,
   runScheduler,
 } from './index.mjs'
@@ -242,4 +245,74 @@ test('worker serves hot-state JSON with CORS headers', async () => {
   assert.equal(payload.tournamentId, 'wc2026')
   assert.equal(typeof payload.matches, 'object')
   assert.equal(payload.sourceLastModified, 'Tue, 30 Jun 2026 21:02:16 GMT')
+})
+
+test('hotStateSourceUrl keeps wc2026 on its existing override, clubs on the base path', () => {
+  // The live site polls wc2026; its resolved source must not move.
+  assert.equal(
+    hotStateSourceUrl({}, 'wc2026'),
+    'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/hot-state/wc2026.json',
+  )
+  assert.equal(hotStateSourceUrl({ HOT_STATE_URL: 'https://example.com/x.json' }, 'wc2026'), 'https://example.com/x.json')
+
+  // The single-season override must not leak onto club seasons.
+  assert.equal(
+    hotStateSourceUrl({ HOT_STATE_URL: 'https://example.com/x.json' }, 'eng1-2026'),
+    'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/hot-state/eng1-2026.json',
+  )
+  assert.equal(
+    hotStateSourceUrl({}, 'ucl-2026'),
+    'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/hot-state/ucl-2026.json',
+  )
+})
+
+test('worker serves every club season and 404s unknown ones', async () => {
+  const requested = []
+  const fetchImpl = async (url) => {
+    requested.push(url)
+    return new Response(JSON.stringify({ tournamentId: 'stub', matches: {} }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
+  }
+
+  for (const seasonId of HOT_STATE_SEASON_IDS) {
+    const response = await handleHotStateRequest({}, fetchImpl, seasonId)
+    assert.equal(response.status, 200, seasonId)
+    const payload = await response.json()
+    assert.match(payload.sourcePath, new RegExp(`/${seasonId}\\.json$`))
+  }
+
+  assert.deepEqual(HOT_STATE_SEASON_IDS, ['wc2026', 'eng1-2026', 'esp1-2026', 'ucl-2026'])
+  assert.equal(requested.length, 4)
+})
+
+test('hot-state route accepts the four seasons and rejects anything else', async () => {
+  const env = { HOT_STATE_BASE_URL: 'https://example.com/hot-state' }
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ tournamentId: 'stub' }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
+
+  try {
+    for (const seasonId of HOT_STATE_SEASON_IDS) {
+      const response = await worker.fetch(new Request(`https://w.dev/api/hot-state/${seasonId}`), env)
+      assert.equal(response.status, 200, seasonId)
+      assert.equal(response.headers.get('access-control-allow-origin'), '*')
+    }
+
+    // Unknown seasons and traversal attempts must not reach raw.githubusercontent.
+    for (const bad of ['wc2022', 'ger1-2026', 'eng1-2026.json', '../secrets']) {
+      const response = await worker.fetch(new Request(`https://w.dev/api/hot-state/${bad}`), env)
+      assert.equal(response.status, 404, bad)
+    }
+
+    const unknown = await worker.fetch(new Request('https://w.dev/api/hot-state/wc2022'), env)
+    assert.equal(unknown.headers.get('access-control-allow-origin'), '*')
+    assert.equal((await unknown.json()).error, 'unknown_season')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
 })

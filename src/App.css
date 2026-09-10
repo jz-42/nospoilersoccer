@@ -66,6 +66,22 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/*
+ * Competition first, season second — two rows, not one long list, because the
+ * competition is the choice people actually make and the season is a
+ * refinement of it. The season row is absent entirely for a competition with
+ * only one, so the header doesn't reserve space for a control that can't do
+ * anything. Both collapse to the mini scale so the picker sits *under* the
+ * view tabs in the visual hierarchy: this is where you are, not what you do.
+ */
+.season-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: 6px;
+}
+
 .seg-mini {
   border-radius: 9px;
   padding: 2px;
@@ -1089,6 +1105,30 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 20px;
+}
+
+/*
+ * A single league table: one centred column, wide enough for W/D/L and a
+ * twenty-team list without becoming a page-width spreadsheet. Capped rather
+ * than fluid because a table read left-to-right across 1400px is worse than
+ * one you can take in at a glance.
+ */
+.group-grid-single {
+  grid-template-columns: minmax(0, 620px);
+  justify-content: center;
+}
+
+.group-grid-single .standings {
+  font-size: 13px;
+  margin-bottom: 0;
+}
+
+.group-grid-single .standings td {
+  padding: 7px 8px;
+}
+
+.group-grid-single .standings .name {
+  width: auto;
 }
 
 .group-card {
@@ -2828,6 +2868,62 @@
   margin-bottom: 20px;
 }
 
+/*
+ * Leg pager for a two-legged tie. Sits between the round caption and the teams
+ * because that is what it is — a narrowing of "Semi-final" to "which night" —
+ * and it reads as a quiet segmented control rather than a second navigation.
+ * The locked leg keeps its space and its label; only its contents are withheld.
+ */
+.modal-legs {
+  display: flex;
+  align-self: center;
+  gap: 2px;
+  padding: 3px;
+  margin: -8px 0 18px;
+  background: color-mix(in srgb, var(--bg-raised) 70%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.modal-leg-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 4px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.modal-leg-tab:hover:not(:disabled) {
+  color: var(--text-h);
+}
+
+.modal-leg-tab.active {
+  background: var(--panel-hover);
+  color: var(--text-h);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.modal-leg-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.modal-leg-lock {
+  width: 9px;
+  height: 10.5px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+
 .modal-context-strong {
   font-size: 12.5px;
   font-weight: 700;
@@ -3492,10 +3588,93 @@
   height: calc(100% + 16px);
 }
 
+/* Covers the strip where YouTube paints the video title and channel on hover,
+   on pause and whenever its controls are up. There is no player var that
+   suppresses it, and the iframe is cross-origin, so an opaque bar of our own is
+   the only way to keep a spoiler-laden title off screen. The title barely
+   shrinks with the player, so the height has a floor for phone-width players
+   and a ceiling so the bar does not eat a fullscreen frame. */
+.player-titlebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: clamp(46px, 14%, 90px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 6px 0 12px;
+  background: #05070b;
+  pointer-events: none;
+}
+
+/* The channel name sits just under the title; fade it out rather than paying
+   for a bar tall enough to cover it on short phone-width players. */
+.player-titlebar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 22px;
+  background: linear-gradient(#05070b, rgba(5, 7, 11, 0));
+}
+
+.player-titlebar-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-m);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-expand {
+  pointer-events: auto;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-m);
+  cursor: pointer;
+}
+
+.player-expand:hover {
+  background: var(--panel-hover);
+  color: var(--text-h);
+}
+
+/* Fallback blow-up for browsers without element fullscreen (iOS Safari). The
+   modal backdrop's backdrop-filter makes it the containing block for fixed
+   children, so fill that box rather than asserting viewport units. */
+.player-wrap.is-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+.player-wrap:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
 .player-overlay {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;

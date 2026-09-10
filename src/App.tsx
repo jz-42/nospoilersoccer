@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
 import './App.css'
 import { analytics } from './analytics'
 import { Bracket } from './components/Bracket'
@@ -9,7 +10,9 @@ import { Logo } from './components/Logo'
 import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
 import { Rail } from './components/Rail'
-import { defaultTournamentId, tournaments } from './data'
+import { competitions, defaultSeasonId, findSeason } from './data'
+import type { Competition, Season } from './data'
+import type { Tournament } from './data/types'
 import {
   applyHotStatePollFailure,
   applyTournamentHotState,
@@ -17,40 +20,169 @@ import {
   type FetchedTournamentHotState,
 } from './data/hot-state'
 import { catchUpMatchIds, totalMatches } from './logic/spoilers'
-import { dayTabLabel, defaultTournamentView, type View } from './navigation'
+import {
+  availableViews,
+  dayTabLabel,
+  defaultTournamentView,
+  tableTabLabel,
+  type View,
+} from './navigation'
 import { useProgress } from './state/progress'
 
 const TOURNAMENT_KEY = 'nss-tournament'
 const ONBOARDED_KEY = 'nss-onboarded'
-const HOT_STATE_URL =
-  import.meta.env.VITE_HOT_STATE_URL ??
+const HOT_STATE_BASE_URL =
+  import.meta.env.VITE_HOT_STATE_BASE_URL ??
   (import.meta.env.PROD
-    ? 'https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/api/hot-state/wc2026'
+    ? 'https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/api/hot-state'
     : '')
 const HOT_STATE_POLL_MS = 5 * 60 * 1000
 const HOT_STATE_STALE_MS = 15 * 60 * 1000
 
+/**
+ * Hot state is per season. `VITE_HOT_STATE_URL` stays honoured for wc2026 so an
+ * existing deploy override keeps pointing exactly where it did before; every
+ * other season derives its path from the base. This mirrors the same override
+ * rule in the Worker.
+ */
+function hotStateUrl(seasonId: string): string {
+  if (seasonId === 'wc2026' && import.meta.env.VITE_HOT_STATE_URL) {
+    return import.meta.env.VITE_HOT_STATE_URL
+  }
+  return HOT_STATE_BASE_URL ? `${HOT_STATE_BASE_URL}/${seasonId}` : ''
+}
+
+/**
+ * Season picker. Competition first, then season within it — most people choose
+ * once and never come back, so the competition list is the primary control and
+ * the season row only appears when that competition actually has more than one.
+ */
+function SeasonPicker({
+  seasonId,
+  onSelect,
+}: {
+  seasonId: string
+  onSelect: (id: string) => void
+}) {
+  const current = findSeason(seasonId)
+  const competition: Competition | undefined = current?.competition
+  return (
+    <div className="season-picker">
+      <nav className="seg seg-mini" aria-label="Competition">
+        {competitions.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            className={`seg-btn ${competition?.id === c.id ? 'active' : ''}`}
+            onClick={() => onSelect(c.seasons[0].id)}
+          >
+            {c.shortName}
+          </button>
+        ))}
+      </nav>
+      {competition && competition.seasons.length > 1 && (
+        <nav className="seg seg-mini" aria-label="Season">
+          {competition.seasons.map((s: Season) => (
+            <button
+              key={s.id}
+              type="button"
+              className={`seg-btn ${seasonId === s.id ? 'active' : ''}`}
+              onClick={() => onSelect(s.id)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </nav>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Owns which season is selected and resolving it to a tournament. Club seasons
+ * are lazy chunks, so this is the one place that can be without a tournament;
+ * everything below it is guaranteed a loaded one, which keeps every
+ * tournament-dependent hook unconditional.
+ */
 function App() {
-  const [tournamentId, setTournamentId] = useState<string>(() => {
+  const [seasonId, setSeasonId] = useState<string>(() => {
     try {
       const saved = localStorage.getItem(TOURNAMENT_KEY)
-      return saved && tournaments[saved] ? saved : defaultTournamentId
+      return saved && findSeason(saved) ? saved : defaultSeasonId
     } catch {
-      return defaultTournamentId
+      return defaultSeasonId
     }
   })
-  const baseTournament = tournaments[tournamentId]
+  const season = (findSeason(seasonId) ?? findSeason(defaultSeasonId))?.season
+  // Tagged with the season it belongs to, so a slow chunk that resolves after
+  // the user has already moved on is ignored rather than rendered.
+  const [lazy, setLazy] = useState<{ id: string; tournament: Tournament } | null>(null)
+  const tournament = season?.tournament ?? (lazy?.id === season?.id ? lazy?.tournament ?? null : null)
+
+  useEffect(() => {
+    if (!season?.load) return
+    let cancelled = false
+    void season.load().then((loaded) => {
+      if (!cancelled) setLazy({ id: season.id, tournament: loaded })
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [season])
+
+  const selectSeason = (id: string) => {
+    setSeasonId(id)
+    try {
+      localStorage.setItem(TOURNAMENT_KEY, id)
+    } catch {
+      // Private browsing: selection just won't persist.
+    }
+  }
+
+  const picker = <SeasonPicker seasonId={seasonId} onSelect={selectSeason} />
+
+  if (!tournament) {
+    return (
+      <div className="app">
+        <header className="app-header">
+          <div className="app-brand">
+            <Logo size={26} />
+            <span className="app-name">No Spoiler Soccer</span>
+            {picker}
+          </div>
+        </header>
+        <main className="app-main" />
+      </div>
+    )
+  }
+
+  // Keyed by season so switching competitions remounts rather than carrying
+  // one competition's open modal or scroll position into another.
+  return (
+    <TournamentApp key={seasonId} seasonId={seasonId} baseTournament={tournament} picker={picker} />
+  )
+}
+
+function TournamentApp({
+  seasonId,
+  baseTournament,
+  picker,
+}: {
+  seasonId: string
+  baseTournament: Tournament
+  picker: ReactNode
+}) {
   const [hotState, setHotState] = useState<FetchedTournamentHotState | null>(null)
+  // No reset on season change: `seasonId` is also this component's key, so a
+  // different season remounts with a fresh null rather than clearing in place.
   useEffect(() => {
     let cancelled = false
-    if (tournamentId !== 'wc2026' || !HOT_STATE_URL) {
-      setHotState(null)
-      return
-    }
+    const url = hotStateUrl(seasonId)
+    if (!url) return
 
     const loadHotState = async () => {
       try {
-        const response = await fetch(HOT_STATE_URL, {
+        const response = await fetch(url, {
           headers: { Accept: 'application/json' },
         })
         if (!response.ok) {
@@ -72,7 +204,6 @@ function App() {
       }
     }
 
-    setHotState(null)
     void loadHotState()
     const pollId = window.setInterval(() => {
       void loadHotState()
@@ -82,7 +213,7 @@ function App() {
       cancelled = true
       window.clearInterval(pollId)
     }
-  }, [tournamentId])
+  }, [seasonId])
   const t = useMemo(
     () => applyTournamentHotState(baseTournament, hotState),
     [baseTournament, hotState],
@@ -103,17 +234,6 @@ function App() {
       return false
     }
   })
-
-  const selectTournament = (id: string) => {
-    setTournamentId(id)
-    setTab(defaultTournamentView(tournaments[id]))
-    setModal(null)
-    try {
-      localStorage.setItem(TOURNAMENT_KEY, id)
-    } catch {
-      // Private browsing: selection just won't persist.
-    }
-  }
 
   const dismissOnboarding = () => {
     setShowOnboarding(false)
@@ -137,42 +257,20 @@ function App() {
         <div className="app-brand">
           <Logo size={26} />
           <span className="app-name">No Spoiler Soccer</span>
-          <nav className="seg seg-mini" aria-label="Tournament">
-            {Object.values(tournaments).map((tt) => (
-              <button
-                key={tt.id}
-                type="button"
-                className={`seg-btn ${tournamentId === tt.id ? 'active' : ''}`}
-                onClick={() => selectTournament(tt.id)}
-              >
-                {tt.year}
-              </button>
-            ))}
-          </nav>
+          {picker}
         </div>
 
         <nav className="seg" aria-label="View">
-          <button
-            type="button"
-            className={`seg-btn ${view === 'day' ? 'active' : ''}`}
-            onClick={() => setTab('day')}
-          >
-            {dayTabLabel(t)}
-          </button>
-          <button
-            type="button"
-            className={`seg-btn ${view === 'groups' ? 'active' : ''}`}
-            onClick={() => setTab('groups')}
-          >
-            Group stage
-          </button>
-          <button
-            type="button"
-            className={`seg-btn ${view === 'bracket' ? 'active' : ''}`}
-            onClick={() => setTab('bracket')}
-          >
-            Knockouts
-          </button>
+          {availableViews(t).map((v) => (
+            <button
+              key={v}
+              type="button"
+              className={`seg-btn ${view === v ? 'active' : ''}`}
+              onClick={() => setTab(v)}
+            >
+              {v === 'day' ? dayTabLabel(t) : v === 'groups' ? tableTabLabel(t) : 'Knockouts'}
+            </button>
+          ))}
         </nav>
 
         <div className="app-progress" title="Matches you've revealed">

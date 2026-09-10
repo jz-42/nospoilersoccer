@@ -1,10 +1,11 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode, TouchEvent as ReactTouchEvent } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
 import { buildGoogleCalendarUrl } from '../calendar/google'
 import { matchTint } from '../data/team-colors'
 import type { GroupMatch, KnockoutMatch, Tournament } from '../data/types'
+import { tieOf } from '../data/types'
 import {
   canForceReveal,
   isPlayed,
@@ -160,7 +161,7 @@ function EntertainmentDisclosureRow({
 
 export function MatchModal({
   t,
-  target,
+  target: openedTarget,
   progress,
   onClose,
 }: {
@@ -169,6 +170,22 @@ export function MatchModal({
   progress: Progress
   onClose: () => void
 }) {
+  // A two-legged tie opens as one modal with two slides. Which leg you came in
+  // on is where you land; from there the pager moves between them, and leg 2
+  // stays sealed until leg 1 is marked. Everything below reads `target`, so
+  // paging is just a matter of which leg that name points at.
+  const openedTie = openedTarget.kind === 'knockout' ? tieOf(t, openedTarget.match) : null
+  const [leg, setLeg] = useState<1 | 2>(
+    openedTarget.kind === 'knockout' ? (openedTarget.match.tie?.leg ?? 1) : 1,
+  )
+  const target: ModalTarget = useMemo(() => {
+    if (!openedTie || openedTarget.kind !== 'knockout') return openedTarget
+    const wanted = openedTie.legs[leg - 1]
+    const found = t.knockoutRounds
+      .flatMap((r) => r.matches)
+      .find((x) => x.id === wanted)
+    return found ? { kind: 'knockout', match: found, roundName: openedTarget.roundName } : openedTarget
+  }, [t, openedTarget, openedTie, leg])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -304,6 +321,40 @@ export function MatchModal({
   ) : null
   const hasHighlights = Boolean(m.videos?.length)
 
+  /**
+   * The leg pager. Leg 2 is disabled — not hidden — until leg 1 is marked, so
+   * you can see that a second leg exists without learning anything about it.
+   * Hiding it would be a different kind of spoiler: the tie would look like a
+   * one-off match, and finishing leg 1 would make a slide appear from nowhere.
+   */
+  const legPager = openedTie && (
+    <div className="modal-legs" role="tablist" aria-label="Legs of this tie">
+      {([1, 2] as const).map((n) => {
+        const unlocked = n === 1 || progress.marks[openedTie.legs[0]] !== undefined
+        return (
+          <button
+            key={n}
+            type="button"
+            role="tab"
+            aria-selected={leg === n}
+            className={`modal-leg-tab ${leg === n ? 'active' : ''}`}
+            disabled={!unlocked}
+            title={unlocked ? undefined : 'Watch the first leg to open this'}
+            onClick={() => setLeg(n)}
+          >
+            Leg {n}
+            {!unlocked && (
+              <svg className="modal-leg-lock" viewBox="0 0 12 14" aria-hidden="true">
+                <path d="M3 6V4a3 3 0 0 1 6 0v2" fill="none" />
+                <rect x="1.5" y="6" width="9" height="7" rx="1.5" />
+              </svg>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   // Soft, Apple-Sports-style flag tint behind the sheet, blending the home
   // team's colors (left) into the away team's (right). The variables only
   // appear once a side's team is known, so a locked knockout slot stays dark.
@@ -388,6 +439,8 @@ export function MatchModal({
             )}
           </div>
         </div>
+
+        {legPager}
 
         <div className="modal-teams">
           <TeamSide t={t} teamId={homeTeam} placeholder={homePlaceholder} />

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { tournaments } from '../data'
+import { wc2022 } from '../data/wc2022'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
 import type { Progress } from '../state/progress'
 import { DisclosureContent, Onboarding } from './Dialogs'
@@ -16,6 +17,7 @@ const noop = () => {}
 const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
 const flagSource = readFileSync(new URL('./Flag.tsx', import.meta.url), 'utf8')
+const playerSource = readFileSync(new URL('./HighlightPlayer.tsx', import.meta.url), 'utf8')
 
 function googleCalendarDateTime(instant: string | Date, timeZone = localTimeZone) {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -296,6 +298,22 @@ assert(
   /\.kind-chip\s*\{[\s\S]*?align-items:\s*center;/.test(appCss),
   'highlight toggle chips center labels after extended runtimes are hidden',
 )
+
+// YouTube paints the video title over the top of the frame on hover and on
+// pause, and a title is exactly the kind of thing that spoils a result.
+assert(
+  /\.player-titlebar\s*\{[\s\S]*?top:\s*0;[\s\S]*?background:\s*#05070b;/.test(appCss),
+  'an opaque bar covers the strip where YouTube draws the video title',
+)
+assert(
+  /playerVars:\s*\{[^}]*\bfs:\s*0\b/.test(playerSource)
+    && playerSource.includes("removeAttribute('allowfullscreen')"),
+  'the player cannot go fullscreen on its own, which would escape that bar',
+)
+assert(
+  playerSource.includes("setAttribute('allow', 'autoplay; encrypted-media')"),
+  'the YouTube frame is not granted picture-in-picture, a surface we cannot cover',
+)
 assert(
   /\.preview-flag-tbd\s*\{[\s\S]*?width:\s*calc\(46px \* 4 \/ 3\);[\s\S]*?height:\s*46px;[\s\S]*?border-radius:\s*4px;[\s\S]*?border:\s*2px dashed rgba\(154, 173, 203, 0\.24\);/.test(
     appCss,
@@ -523,7 +541,6 @@ assert(
   'past-kickoff known knockout hides the Polymarket source link',
 )
 
-const wc2022 = tournaments.wc2022
 const played2022 = wc2022.groupMatches.find((match) => Boolean(match.score && match.videos?.length))
 if (!played2022) throw new Error('Fixture error: expected a played 2022 match with highlights')
 const historical = renderToStaticMarkup(

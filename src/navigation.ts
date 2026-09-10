@@ -26,12 +26,38 @@ export function isTournamentArchived(
   return finalDate !== undefined && localDateKey(now, timeZone) > finalDate
 }
 
+/**
+ * Shape is derived from the data, never configured: a competition played in one
+ * table has a single group, and one without a bracket has no knockout rounds.
+ * A config flag could contradict the data; a derivation cannot.
+ */
+export function hasKnockouts(t: Tournament): boolean {
+  return t.knockoutRounds.length > 0
+}
+
+export function hasGroups(t: Tournament): boolean {
+  return t.groups.length > 1
+}
+
+/** 'Group stage' for a cup, 'Table' or 'League phase' for a single-table competition. */
+export function tableTabLabel(t: Tournament): string {
+  return t.tableLabel ?? 'Group stage'
+}
+
+/** The tabs this competition can show, in display order. */
+export function availableViews(t: Tournament): View[] {
+  return ['day', 'groups', ...(hasKnockouts(t) ? (['bracket'] as const) : [])]
+}
+
 export function defaultTournamentView(
   t: Tournament,
   now: Date = new Date(),
   timeZone?: string,
 ): View {
-  return isTournamentArchived(t, now, timeZone) ? 'bracket' : 'day'
+  if (!isTournamentArchived(t, now, timeZone)) return 'day'
+  // A finished competition opens on its result: the bracket if it has one,
+  // otherwise the final table.
+  return hasKnockouts(t) ? 'bracket' : 'groups'
 }
 
 export function dayTabLabel(

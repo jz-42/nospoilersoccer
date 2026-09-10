@@ -1,22 +1,45 @@
 /**
- * Rounded-rectangle flag badge — the professional football-product look
+ * The team mark: a club crest, or a rounded-rectangle flag badge, or a
+ * monogram, in that order.
+ *
+ * Flags are rounded rectangles — the professional football-product look
  * (FotMob/Sofascore/FIFA). Rectangles keep real flag proportions and detail
  * that circle-cropping mangled (Spain's crest in a porthole), and the shape
  * contrast means a circular play button between two flags can never read as
  * a row of three tokens.
  *
- * Assets are vendored flag-icons 4x3 SVGs (https://github.com/lipis/flag-icons,
- * MIT) in src/assets/flags, one per TeamId. The badge is sized in `em` (height
- * 1em, width 4:3) so it inherits whatever font-size the surrounding flag class
- * already sets — the same knob that sized the emoji.
+ * Crests are not flag-shaped, so they do not get that treatment. A crest is an
+ * irregular silhouette on transparency; a 4:3 rounded box with curvature
+ * shading would put a glass rectangle around a shield and clip its point. They
+ * render in a square box with `object-fit: contain`, no radius and no sheen —
+ * shape and rim do the work the badge chrome does for flags.
+ *
+ * Assets: flags are vendored flag-icons 4x3 SVGs
+ * (https://github.com/lipis/flag-icons, MIT) in src/assets/flags, one per
+ * national TeamId. Crests are original marks in src/assets/crests, one per club
+ * slug — real crests are trademarks and there is no permissive equivalent of
+ * flag-icons for them, so licensed art can be dropped into the same
+ * `{slug}.svg` filenames later with no code change.
+ *
+ * Both are sized in `em` (flags height 1em/width 4:3, crests 1.2em square) so
+ * they inherit whatever font-size the surrounding flag class already sets —
+ * the same knob that sized the emoji.
+ *
+ * The crest box is styled inline rather than from App.css on purpose: this
+ * file is imported by the component smoke tests, which run it under plain Node
+ * where a `.css` import would throw, and App.css belongs to another workspace.
+ * The `crest-badge` class is still on the wrapper so stylesheet rules can hang
+ * off it later.
  */
+import type { CSSProperties } from 'react'
 import type { Team } from '../data/types'
 
 // import.meta.glob is Vite-only; the component smoke tests run this file under
-// plain Node (tsx), where the call throws — there the map stays empty and
-// every team takes the emoji fallback below. (A `typeof` guard doesn't work:
-// Vite rewrites the glob call itself but leaves `typeof import.meta.glob`
-// undefined at runtime.)
+// plain Node (tsx), where the call throws — there the maps stay empty and
+// every team takes the monogram fallback below. (A `typeof` guard doesn't
+// work: Vite rewrites the glob call itself but leaves `typeof
+// import.meta.glob` undefined at runtime.) Two globs, two try/catch blocks, so
+// one missing directory can never empty the other.
 let flagUrls: Record<string, string> = {}
 try {
   flagUrls = import.meta.glob('../assets/flags/*.svg', {
@@ -25,7 +48,18 @@ try {
     import: 'default',
   }) as Record<string, string>
 } catch {
-  // Node (tsx smoke tests): no bundler, no assets — emoji fallback.
+  // Node (tsx smoke tests): no bundler, no assets — monogram fallback.
+}
+
+let crestUrls: Record<string, string> = {}
+try {
+  crestUrls = import.meta.glob('../assets/crests/*.svg', {
+    eager: true,
+    query: '?url&no-inline',
+    import: 'default',
+  }) as Record<string, string>
+} catch {
+  // Node (tsx smoke tests): no bundler, no assets — monogram fallback.
 }
 
 const preloadedFlagHrefs = new Set<string>()
@@ -72,13 +106,16 @@ function warmFlagUrls(urls: string[]) {
 
     void image.decode?.().catch(() => {
       // Ignore decode races; the warm cache is best-effort and the visible img
-      // still has the emoji fallback if a vendored asset is missing.
+      // still has the monogram fallback if a vendored asset is missing.
     })
   }
 }
 
 if (typeof window !== 'undefined') {
-  const urls = Object.values(flagUrls)
+  // Crests warm alongside flags: the whole crest set is a few tens of KB of
+  // flat SVG, and a fixture row that pops its badges in one at a time is the
+  // thing the preload exists to prevent.
+  const urls = [...Object.values(flagUrls), ...Object.values(crestUrls)]
   const onVisibilityChange = () => {
     if (!document.hidden) warmFlagUrls(urls)
   }
@@ -93,19 +130,85 @@ if (typeof window !== 'undefined') {
   })
 }
 
+/* Square, contained, unrounded — see the header. Slightly larger than the flag
+   badge's 1em height because a crest carries its own margin inside the box:
+   the shield fills about four-fifths of the art, so 1.2em puts the mark at the
+   same visual weight as a flag. The drop-shadow matches the flag badge so
+   crests and flags seat on a tint the same way. */
+const crestBoxStyle: CSSProperties = {
+  position: 'relative',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '1.2em',
+  height: '1.2em',
+  verticalAlign: '-0.125em',
+  flexShrink: 0,
+  lineHeight: 1,
+  filter: 'drop-shadow(0 0.03em 0.07em rgba(0, 0, 0, 0.3))',
+}
+
+const crestImageStyle: CSSProperties = {
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: 'contain',
+}
+
+/* Last resort: the club's own short label. Sized off the box so it tracks
+   whatever font-size the surrounding flag class set, and kept quiet enough
+   that a missing asset reads as a placeholder rather than an error. */
+const monogramStyle: CSSProperties = {
+  fontSize: '0.42em',
+  fontWeight: 700,
+  letterSpacing: '0.02em',
+  lineHeight: 1,
+  color: 'rgba(233, 237, 245, 0.82)',
+}
+
 export function Flag({ team, className }: { team: Team; className?: string }) {
-  const url = flagUrls[`../assets/flags/${team.id}.svg`]
-  const cls = className ? `flag-badge ${className}` : 'flag-badge'
-  // A team without a vendored asset falls back to its emoji, so a new roster
-  // entry degrades gracefully instead of rendering a broken image. The wrapper
-  // span carries the curvature shading (an img can't host ::after).
+  const crestUrl = crestUrls[`../assets/crests/${team.id}.svg`]
+  if (crestUrl) {
+    const cls = className ? `crest-badge ${className}` : 'crest-badge'
+    return (
+      <span className={cls} style={crestBoxStyle}>
+        <img
+          src={crestUrl}
+          alt=""
+          draggable={false}
+          decoding="sync"
+          loading="eager"
+          style={crestImageStyle}
+        />
+      </span>
+    )
+  }
+
+  const flagUrl = flagUrls[`../assets/flags/${team.id}.svg`]
+  if (flagUrl || team.flag) {
+    const cls = className ? `flag-badge ${className}` : 'flag-badge'
+    // A team without a vendored asset falls back to its emoji, so a new roster
+    // entry degrades gracefully instead of rendering a broken image. The
+    // wrapper span carries the curvature shading (an img can't host ::after).
+    return (
+      <span className={cls}>
+        {flagUrl ? (
+          <img src={flagUrl} alt="" draggable={false} decoding="sync" loading="eager" />
+        ) : (
+          team.flag
+        )}
+      </span>
+    )
+  }
+
+  // Neither art nor emoji: a club whose crest hasn't landed yet. The monogram
+  // keeps the row's rhythm; a club with no shortName renders nothing at all
+  // rather than a broken box.
+  if (!team.shortName) return null
+  const cls = className ? `crest-badge ${className}` : 'crest-badge'
   return (
-    <span className={cls}>
-      {url ? (
-        <img src={url} alt="" draggable={false} decoding="sync" loading="eager" />
-      ) : (
-        team.flag
-      )}
+    <span className={cls} style={crestBoxStyle}>
+      <span style={monogramStyle}>{team.shortName}</span>
     </span>
   )
 }

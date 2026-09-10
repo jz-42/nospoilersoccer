@@ -1,7 +1,15 @@
 const DEFAULT_SCHEDULE_URL =
   'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/wc2026.ts'
-const DEFAULT_HOT_STATE_URL =
-  'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/hot-state/wc2026.json'
+const DEFAULT_HOT_STATE_BASE_URL =
+  'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/hot-state'
+const DEFAULT_HOT_STATE_URL = `${DEFAULT_HOT_STATE_BASE_URL}/wc2026.json`
+
+// Seasons the hot-state endpoint will serve. An allowlist rather than a
+// passthrough so the Worker cannot be pointed at arbitrary raw.githubusercontent
+// paths, and so an unknown season is a clean 404 instead of a 502.
+export const HOT_STATE_SEASON_IDS = ['wc2026', 'eng1-2026', 'esp1-2026', 'ucl-2026']
+
+const HOT_STATE_PATH_PATTERN = /^\/api\/hot-state\/([A-Za-z0-9-]+)$/
 
 const GROUP_START_OFFSET_MINUTES = 90
 const GROUP_END_OFFSET_MINUTES = 8 * 60
@@ -307,6 +315,9 @@ async function handleDiagnosticRequest(env) {
     activeWindowCount: report.activeWindowCount,
     activeWindows: report.activeWindows,
     parsedMatchCount: report.parsedMatchCount,
+    // Windows are parsed from wc2026.ts only; club competitions run year-round
+    // and dispatch is no longer window-gated, so they need no window source.
+    hotStateSeasons: HOT_STATE_SEASON_IDS,
   })
 }
 
@@ -326,8 +337,21 @@ async function handleAdminTest(url, env) {
   return json({ ok: true, mode: 'admin_test', result })
 }
 
-export async function handleHotStateRequest(env, fetchImpl = fetch) {
-  const sourcePath = env.HOT_STATE_URL || DEFAULT_HOT_STATE_URL
+/**
+ * Resolve the raw source URL for a season's hot-state snapshot.
+ *
+ * `wc2026` keeps honouring the single-season `HOT_STATE_URL` override so its
+ * resolved path — and therefore the `sourcePath` echoed in the payload — stays
+ * byte-identical to what the live site polls today.
+ */
+export function hotStateSourceUrl(env, seasonId) {
+  if (seasonId === 'wc2026' && env.HOT_STATE_URL) return env.HOT_STATE_URL
+  const base = env.HOT_STATE_BASE_URL || DEFAULT_HOT_STATE_BASE_URL
+  return `${base}/${seasonId}.json`
+}
+
+export async function handleHotStateRequest(env, fetchImpl = fetch, seasonId = 'wc2026') {
+  const sourcePath = hotStateSourceUrl(env, seasonId)
   const response = await fetchImpl(sourcePath, {
     headers: { Accept: 'application/json' },
     cf: { cacheEverything: true, cacheTtl: 60 },
@@ -366,8 +390,17 @@ export default {
     if (url.pathname === '/admin/test-dispatch') {
       return handleAdminTest(url, env)
     }
-    if (url.pathname === '/api/hot-state/wc2026') {
-      return handleHotStateRequest(env)
+    const hotStateMatch = url.pathname.match(HOT_STATE_PATH_PATTERN)
+    if (hotStateMatch) {
+      const seasonId = hotStateMatch[1]
+      if (!HOT_STATE_SEASON_IDS.includes(seasonId)) {
+        return json(
+          { ok: false, error: 'unknown_season', seasonId, known: HOT_STATE_SEASON_IDS },
+          404,
+          corsHeaders({ 'cache-control': 'no-store' }),
+        )
+      }
+      return handleHotStateRequest(env, fetch, seasonId)
     }
     return json({ ok: false, error: 'not_found' }, 404)
   },

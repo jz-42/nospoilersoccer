@@ -1,3 +1,4 @@
+import { clubColors } from './club-colors'
 import type { TeamId } from './types'
 
 /**
@@ -159,6 +160,21 @@ function resolveFields(
 }
 
 /**
+ * The palette for any team the site can show, national or club. The two tables
+ * are kept apart because they're maintained against different references, but
+ * their key spaces can't collide — countries are three-letter uppercase codes,
+ * clubs are lowercase slugs — so one lookup over both is unambiguous.
+ *
+ * Undefined for an unknown team, which every caller must treat as "no tint"
+ * rather than an error: a missing palette should mute a surface, not break it.
+ */
+export function paletteFor(
+  id: TeamId,
+): readonly [string, string] | readonly [string, string, string] | undefined {
+  return teamColors[id] ?? clubColors[id]
+}
+
+/**
  * CSS custom properties that tint the match modal for a given matchup. Only the
  * sides whose team is known are set, so a not-yet-decided knockout slot leaves
  * that half of the modal neutral until it's revealed — keeping the color reveal
@@ -173,8 +189,8 @@ export function matchTint(
   away: TeamId | null,
 ): Record<string, string> {
   const vars: Record<string, string> = {}
-  const hPal = home ? teamColors[home] : undefined
-  const aPal = away ? teamColors[away] : undefined
+  const hPal = home ? paletteFor(home) : undefined
+  const aPal = away ? paletteFor(away) : undefined
   let h: readonly [string, string] | undefined = hPal && [hPal[0], hPal[1]]
   let a: readonly [string, string] | undefined = aPal && [aPal[0], aPal[1]]
   if (h && a) {
