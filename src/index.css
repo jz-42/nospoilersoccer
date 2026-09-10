@@ -39,6 +39,35 @@
 
   --sans: 'Inter Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
 
+  /*
+   * ---- Fabric ----------------------------------------------------------
+   *
+   * Two texture tokens that every identity-tinted surface (match sheet,
+   * fixture card, poster) lays over its color field. They are what stops a
+   * two-color gradient from reading as a PowerPoint fill: real broadcast
+   * graphics are *photographed cloth*, and cloth has a weave and a grain.
+   *
+   * `--weave` is a triangular lattice of soft dots on an ~8px pitch — the
+   * knit of a shirt, rendered as two offset radial-gradient tilings rather
+   * than a bitmap so it stays crisp at any DPR and costs nothing to decode.
+   * The pitch is deliberately near the limit of what the eye resolves at
+   * arm's length: you should never *see* dots, only feel that the color has
+   * a surface. `--grain` is fractal noise an order of magnitude finer, which
+   * breaks up the banding that big soft gradients get on 8-bit panels.
+   *
+   * Both are painted white and composited with `soft-light`/`overlay`, so a
+   * single token works over a pale side and a dark side of the same field —
+   * it lifts what is already light and barely touches what is dark, exactly
+   * as light on cloth does. Never paint them at full strength; the strength
+   * lives with the surface, in `--fabric-strength`.
+   */
+  --weave:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0 21%, transparent 22%) 0 0 /
+      8px 13.86px,
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.3) 0 21%, transparent 22%) 4px
+      6.93px / 8px 13.86px;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+
   font: 15px/1.5 var(--sans);
   color-scheme: dark;
   color: var(--text);

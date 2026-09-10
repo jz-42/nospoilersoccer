@@ -112,6 +112,7 @@ export function PreviewCard({
       onClick={() => onOpen(target)}
     >
       <div className="preview-media">
+        <span className="match-fabric" aria-hidden="true" />
         <span className="preview-tag">{context}</span>
         {liveStatus
           ? badge

@@ -129,7 +129,19 @@ const COLLISION_DELTA_E = 0.12
  * pick the one whose two field colors are farthest apart in OKLab, preferring
  * chromatic fields (Spain moves to gold rather than Austria to silver) and
  * penalizing swaps so identity survives when possible.
+ *
+ * A near-black field is penalized much harder than a pale one. The sheet is
+ * painted over a near-black panel, so a black side is not a colour there, it
+ * is a hole: Dortmund–Villarreal went black against yellow on lightness
+ * contrast alone, where Apple (and Villarreal's own away kit) has yellow
+ * against blue. A pale field still reads as lit cloth, so Atlético moving to
+ * its white stripes against Liverpool keeps the light penalty.
  */
+function fieldPenalty(hex: string): number {
+  if (chroma(hex) >= 0.04) return 0
+  return hexToOklab(hex).L < 0.4 ? 0.25 : 0.05
+}
+
 function resolveFields(
   h: readonly [string, string],
   a: readonly [string, string],
@@ -145,8 +157,8 @@ function resolveFields(
       const hField = h[hi]
       const aField = a[ai]
       const swaps = hi + ai
-      const achromatic = (chroma(hField) < 0.04 ? 1 : 0) + (chroma(aField) < 0.04 ? 1 : 0)
-      const score = deltaE(hField, aField) - 0.04 * swaps - 0.05 * achromatic
+      const score =
+        deltaE(hField, aField) - 0.04 * swaps - fieldPenalty(hField) - fieldPenalty(aField)
       if (score > bestScore) {
         bestScore = score
         best = {

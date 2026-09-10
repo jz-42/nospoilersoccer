@@ -355,9 +355,10 @@ export function MatchModal({
     </div>
   )
 
-  // Soft, Apple-Sports-style flag tint behind the sheet, blending the home
-  // team's colors (left) into the away team's (right). The variables only
+  // The sheet's identity field: the home team's colors on the left melting
+  // into the away team's on the right, lit from the top. The variables only
   // appear once a side's team is known, so a locked knockout slot stays dark.
+  // `.match-fabric` below turns that field into cloth — see App.css.
   const modalStyle: CSSProperties = {
     transform: dragOffset ? `translateY(${dragOffset}px)` : undefined,
     transition: dragging ? 'none' : undefined,
@@ -386,6 +387,7 @@ export function MatchModal({
         onTouchCancel={onModalTouchEnd}
         style={modalStyle}
       >
+        <span className="match-fabric" aria-hidden="true" />
         <span className="modal-drag-handle" aria-hidden="true" />
         <button
           type="button"
@@ -519,9 +521,12 @@ export function MatchModal({
                       .filter((g) => g.team === homeTeam)
                       .map((g, i) => (
                         <span key={i}>
-                          {g.player} {g.minute}
-                          {g.penalty ? ' (P)' : ''}
-                          {g.ownGoal ? ' (OG)' : ''}
+                          {g.player}{' '}
+                          <span className="goal-min">
+                            {g.minute}
+                            {g.penalty ? ' (P)' : ''}
+                            {g.ownGoal ? ' (OG)' : ''}
+                          </span>
                         </span>
                       ))}
                   </div>
@@ -531,9 +536,12 @@ export function MatchModal({
                       .filter((g) => g.team === awayTeam)
                       .map((g, i) => (
                         <span key={i}>
-                          {g.player} {g.minute}
-                          {g.penalty ? ' (P)' : ''}
-                          {g.ownGoal ? ' (OG)' : ''}
+                          {g.player}{' '}
+                          <span className="goal-min">
+                            {g.minute}
+                            {g.penalty ? ' (P)' : ''}
+                            {g.ownGoal ? ' (OG)' : ''}
+                          </span>
                         </span>
                       ))}
                   </div>
