@@ -387,7 +387,9 @@ export function MatchModal({
         onTouchCancel={onModalTouchEnd}
         style={modalStyle}
       >
-        <span className="match-fabric" aria-hidden="true" />
+        <span className="match-fabric" aria-hidden="true">
+          <span />
+        </span>
         <span className="modal-drag-handle" aria-hidden="true" />
         <button
           type="button"

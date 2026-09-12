@@ -594,32 +594,43 @@
 /* ============ the fabric layer ============ */
 
 /*
- * `<span class="match-fabric">` — the thing that turns a two-team color field
- * into a *surface*. One element, no images, reusable on any tinted host.
+ * `<span class="match-fabric"><span /></span>` — the thing that turns a
+ * two-team color field into a *surface*. No images and no color of its own,
+ * so it works over any matchup and on any tinted host.
  *
  * A flat OKLab gradient between two club colors is correct and lifeless: it
  * is a fill, and the eye reads fills as UI chrome. What broadcast graphics
- * (and Apple Sports) actually show is cloth — a shirt, a flag, a tifo — lit
- * from somewhere off-frame, and cloth gives you three things a fill never
- * does: a weave, a moiré that crawls as the cloth moves, and specular light
- * that slides across it. This layer is those three things, and nothing else.
- * It carries no color of its own, so it works over any matchup.
+ * (and Apple Sports) actually show is cloth — a shirt, a flag — lit from
+ * somewhere off-frame, and cloth gives you three things a fill never does:
+ * a knit with relief, folds that travel across it as it moves, and a key
+ * light that slides over the whole thing. This layer is those three things,
+ * and nothing else.
  *
  *   host background   the identity field (per-surface: .modal, .preview-media)
- *   .match-fabric     the knit — `--weave` at its natural pitch, plus `--grain`
- *   ::before          the sheen — three soft light lobes and a raking sweep
- *   ::after           the beat — a second knit at a *slightly* different pitch
+ *   .match-fabric     the knit — `--weave`, `--glints` and `--grain`, still
+ *   ::before          the light — two key lobes, a shadow lobe and a sweep
+ *   ::after, > span   the folds — two band sets drifting at different speeds
  *
- * The beat is the trick worth explaining. Two dot lattices whose pitches
- * differ by 0.6px interfere, and the interference pattern has a period of
- * 8 × 8.6 / 0.6 ≈ 115px — soft cells an order of magnitude larger than the
- * dots that make them. Sliding one lattice by exactly one of its own periods
- * (8.6px across, 14.9px down) returns it to itself, so the loop has no seam,
- * but on the way it walks the interference through a full cycle: the large
- * cells swim slowly across the field. That reads as cloth rippling. The
- * sheen drifts underneath on a different, mutually prime period (46s against
- * the beat's 72s and the breath's 17s), so the three cycles only realign
- * every few hours and the movement never reads as a loop.
+ * The folds are what make it read as a flag rather than a textured card.
+ * Each is a repeating band of light and shade, near-vertical like the folds
+ * of a flag hung from its pole, and each slides sideways by exactly one of
+ * its own periods per loop, so the loop has no seam. The two sets differ in
+ * wavelength, lean and speed (41s against 97s), so where they reinforce a
+ * deep fold swells and where they cancel the cloth lies flat, and with the
+ * light turning on its own 46s and 17s cycles underneath, the movement never
+ * reads as a loop.
+ *
+ * Everything moves by `transform` and `opacity` alone. The first cut slid
+ * `background-position`, which repaints the layer on every frame (~120
+ * paints a second on the phone sheet); transforms run on the compositor and
+ * paint nothing, so the cloth keeps moving at no cost to the main thread.
+ * That is why the light is an oversized sheet moved as one piece and each
+ * fold layer is wider than its host by exactly one period. (One exception,
+ * and it is Chromium's, not ours: a phone sheet whose content exactly fits
+ * is an `overflow: auto` box that is not a composited scroller, and there
+ * *any* transform animation inside it — the fabric or a lone drag handle —
+ * re-records the sheet's display list each frame. Nothing is re-rastered,
+ * and it stops the moment the sheet has anything to scroll.)
  *
  * Everything composites through one `mix-blend-mode: soft-light` on the
  * wrapper, which is why the texture is strong on a lit side and all but
@@ -631,13 +642,17 @@
  * the `z-index: -1` fabric lands above the host's own background but below
  * its content and the blend cannot leak onto the page; any background the
  * host paints with its own pseudo-element sits at `z-index: -2`. Hosts turn
- * the whole thing down with `--fabric-strength` and stop the ripple with
- * `--fabric-motion: paused`. A host that scrolls needs the fabric pinned to
- * its scrollport — see the phone sheet in the responsive section.
+ * the whole thing down with `--fabric-strength`; a host that should hold
+ * still takes the animations off its three moving layers outright (see the
+ * fixture cards) rather than pausing them, so nothing keeps a compositor
+ * layer alive for a picture that never moves. A host that scrolls needs the
+ * fabric pinned to its scrollport — see the phone sheet in the responsive
+ * section.
  *
- * Reduced motion is handled globally in index.css, which clamps every
- * animation to ~0. Each loop ends where it starts, so a clamped animation
- * lands on the resting frame: the texture survives, the movement does not.
+ * Reduced motion switches the movement off here rather than trusting the
+ * global clamp in index.css: that clamp shortens durations but leaves these
+ * loops infinite, so each frame would land on an arbitrary phase and the
+ * folds would flicker. At rest the cloth keeps its knit, light and folds.
  */
 .match-fabric {
   position: absolute;
@@ -648,113 +663,108 @@
   pointer-events: none;
   mix-blend-mode: soft-light;
   opacity: var(--fabric-strength, 0.34);
-  background: var(--weave), var(--grain) 0 0 / 160px 160px repeat;
+  background:
+    var(--glints),
+    var(--weave),
+    var(--grain) 0 0 / 160px 160px repeat;
 }
 
-/* The sheen. Two light lobes, one shadow lobe and a wide raking sweep, each
-   on its own path through the keyframes so no two ever cross the same way
-   twice. The layers are sized past the host, so a percentage position can
-   park a lobe half off-frame the way a real highlight sits — no overscan on
-   the element itself, nothing for the wrapper to have to clip. The sweep is
-   2.8× the host's width and fully off-frame at both ends of its travel, so
-   its jump back at the loop point is never on screen. */
+/* The light. Two soft key lobes on the upper left and lower right, a shadow
+   lobe between them and a raking sweep across the home side, painted once
+   onto a sheet 1.8× the host's width and 1.6× its height, which then drifts
+   and turns a few degrees as a whole. Turning moves every lobe along a
+   different arc, so one transform still reads as light shifting over cloth
+   rather than a picture sliding. `alternate` makes the loop seamless, and
+   the oversize keeps the sheet's edges off-frame at every point of it. */
 .match-fabric::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(closest-side circle, rgba(255, 255, 255, 0.34), transparent 100%),
-    radial-gradient(closest-side circle, rgba(255, 255, 255, 0.24), transparent 100%),
-    radial-gradient(closest-side circle, rgba(2, 5, 10, 0.5), transparent 100%),
-    linear-gradient(104deg, transparent 36%, rgba(255, 255, 255, 0.22) 50%, transparent 64%);
-  background-size:
-    118% 96%,
-    92% 122%,
-    108% 104%,
-    280% 100%;
-  background-repeat: no-repeat;
+  inset: -30% -40%;
+  background:
+    radial-gradient(28% 30% at 34% 36%, rgba(255, 255, 255, 0.42), transparent),
+    radial-gradient(24% 34% at 70% 62%, rgba(255, 255, 255, 0.26), transparent),
+    radial-gradient(30% 30% at 58% 30%, rgba(2, 5, 10, 0.5), transparent),
+    linear-gradient(104deg, transparent 28%, rgba(255, 255, 255, 0.2) 36%, transparent 44%);
   animation:
-    fabric-sheen 46s ease-in-out infinite,
+    fabric-light 46s ease-in-out infinite alternate,
     fabric-breath 17s ease-in-out infinite;
-  animation-play-state: var(--fabric-motion, running);
 }
 
-/* The beat: the offset knit whose interference with the base knit is the
-   ripple. Its two tilings slide by exactly one period, so 100% is 0%. */
-.match-fabric::after {
+/* The folds: a crest of light, a trough of shade, flat cloth between. Each
+   layer starts one period left of its host and travels exactly that far
+   (period ÷ sin of the band angle), so its last frame is its first. */
+.match-fabric::after,
+.match-fabric > span {
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.26) 0 21%, transparent 22%),
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.26) 0 21%, transparent 22%);
-  background-size: 8.6px 14.896px;
-  animation: fabric-beat 72s linear infinite;
-  animation-play-state: var(--fabric-motion, running);
 }
 
-@keyframes fabric-beat {
-  from {
-    background-position:
-      0 0,
-      4.3px 7.448px;
+.match-fabric::after {
+  left: -270.48px;
+  background: repeating-linear-gradient(
+    106deg,
+    transparent 0,
+    rgba(255, 255, 255, 0.42) 70px,
+    transparent 120px,
+    rgba(0, 4, 10, 0.42) 190px,
+    transparent 260px
+  );
+  animation: fabric-fold-a 41s linear infinite;
+}
+
+.match-fabric > span {
+  left: -412.26px;
+  background: repeating-linear-gradient(
+    84deg,
+    transparent 0,
+    rgba(255, 255, 255, 0.42) 120px,
+    transparent 200px,
+    rgba(0, 4, 10, 0.42) 300px,
+    transparent 410px
+  );
+  animation: fabric-fold-b 97s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .match-fabric::before,
+  .match-fabric::after,
+  .match-fabric > span {
+    animation: none;
   }
+}
+
+@keyframes fabric-fold-a {
   to {
-    background-position:
-      8.6px 14.896px,
-      12.9px 22.344px;
+    transform: translateX(270.48px);
   }
 }
 
-@keyframes fabric-sheen {
+@keyframes fabric-fold-b {
+  to {
+    transform: translateX(412.26px);
+  }
+}
+
+@keyframes fabric-light {
   0% {
-    background-position:
-      14% 20%,
-      86% 74%,
-      46% 4%,
-      0% 50%;
+    transform: translate(-5%, -3%) rotate(-5deg);
   }
-  20% {
-    background-position:
-      38% 44%,
-      58% 46%,
-      70% 24%,
-      20% 50%;
+  35% {
+    transform: translate(4%, -5%) rotate(2deg);
   }
-  40% {
-    background-position:
-      72% 24%,
-      28% 80%,
-      20% 46%,
-      40% 50%;
-  }
-  60% {
-    background-position:
-      54% 76%,
-      68% 18%,
-      80% 68%,
-      60% 50%;
-  }
-  80% {
-    background-position:
-      24% 58%,
-      16% 54%,
-      32% 84%,
-      80% 50%;
+  70% {
+    transform: translate(-2%, 5%) rotate(6deg);
   }
   100% {
-    background-position:
-      14% 20%,
-      86% 74%,
-      46% 4%,
-      100% 50%;
+    transform: translate(6%, 2%) rotate(-2deg);
   }
 }
 
 @keyframes fabric-breath {
   0%,
   100% {
-    opacity: 0.78;
+    opacity: 0.8;
   }
   50% {
     opacity: 1;
@@ -837,7 +847,12 @@
      once in a scrolling list is fidget, not atmosphere. The one card you're
      meant to click gets it back (below). */
   --fabric-strength: 0.28;
-  --fabric-motion: paused;
+}
+
+.preview-card:not(.state-watch) .match-fabric::before,
+.preview-card:not(.state-watch) .match-fabric::after,
+.preview-card:not(.state-watch) .match-fabric > span {
+  animation: none;
 }
 
 /* The one box you're meant to click. A watchable match gets a brighter
@@ -849,9 +864,9 @@
     radial-gradient(ellipse 130% 100% at 50% -20%, rgba(255, 255, 255, 0.14), transparent 60%),
     linear-gradient(168deg, #1b2530, #0e161d);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
-  /* Alive, because this is the one that's inviting you in. */
+  /* Brighter, and the only card whose cloth moves: it's the one inviting
+     you in. */
   --fabric-strength: 0.36;
-  --fabric-motion: running;
 }
 
 /* Per-team identity tint: the thumbnail cut of the sheet's field. Same
