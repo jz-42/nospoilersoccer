@@ -1054,11 +1054,24 @@
       ]
     },
     "esp1-athletic-club-elche": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "elche",
+          "player": "Facundo Buonanotte",
+          "minute": "50'",
+          "penalty": true
+        },
+        {
+          "team": "athletic-club",
+          "player": "Iñaki Williams",
+          "minute": "79'"
+        }
+      ]
     },
     "esp1-real-madrid-rayo-vallecano": {
       "liveStatus": null,
