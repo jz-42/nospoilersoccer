@@ -17,8 +17,8 @@
  * Everything here is a pure function of (tournament, marks, revealed) so the
  * UI and the persistence layer stay trivial.
  */
-import type { GroupId, KnockoutMatch, SlotRef, TeamId, Tournament } from '../data/types'
-import { matchWinner, matchLoser } from '../data/types'
+import type { GroupId, KnockoutMatch, SlotRef, TeamId, Tie, Tournament } from '../data/types'
+import { findTie, matchWinner, matchLoser, tieLoser, tieWinner } from '../data/types'
 import { groupStandings } from '../data/standings'
 import type { StandingRow } from '../data/standings'
 
@@ -55,9 +55,33 @@ export function slotUnlocked(t: Tournament, slot: SlotRef, marks: Marks): boolea
       // group stage being marked.
       return t.groups.every((g) => groupComplete(t, g.id, marks))
     case 'match-winner':
-    case 'match-loser':
+    case 'match-loser': {
+      // A two-legged feeder is settled by the tie, not by either leg, so every
+      // leg has to be marked before the slot below it can name a team.
+      const tie = findTie(t, slot.match)
+      if (tie) return tieRevealed(tie, marks)
       return marks[slot.match] !== undefined
+    }
   }
+}
+
+/** Both legs marked — the aggregate and who advanced may now be shown. */
+export function tieRevealed(tie: Tie, marks: Marks): boolean {
+  return tie.legs.every((id) => marks[id] !== undefined)
+}
+
+/**
+ * Leg 2 of a tie stays sealed until leg 1 is marked — otherwise leg 2's score
+ * would give away leg 1's, which is the whole point of watching them in order.
+ *
+ * This is deliberately absolute: force-revealing a matchup is the user opting
+ * into seeing *who is playing*, never into seeing a result they haven't earned.
+ */
+export function legUnlocked(t: Tournament, m: KnockoutMatch, marks: Marks): boolean {
+  if (m.tie?.leg !== 2) return true
+  const tie = findTie(t, m.tie.id)
+  if (!tie) return true
+  return marks[tie.legs[0]] !== undefined
 }
 
 function findKnockout(t: Tournament, id: string): KnockoutMatch | null {
@@ -235,10 +259,14 @@ function deriveSlotTeam(
     case 'best-third':
       return deriveBestThird(t, m, side, marks)
     case 'match-winner': {
+      const tie = findTie(t, slot.match)
+      if (tie) return tieWinner(tie)
       const src = findKnockout(t, slot.match)
       return src ? matchWinner(src) : null
     }
     case 'match-loser': {
+      const tie = findTie(t, slot.match)
+      if (tie) return tieLoser(tie)
       const src = findKnockout(t, slot.match)
       return src ? matchLoser(src) : null
     }
@@ -281,6 +309,10 @@ export function knockoutReady(
   revealed: Revealed = NONE,
 ): boolean {
   if (!isPlayed(m)) return false
+  // Checked before `revealed`: a jump-ahead reveals a matchup, never a result,
+  // so it can't be used to open leg 2 early. This is also what makes
+  // `withUnmarked` re-seal leg 2 when leg 1 is undone.
+  if (!legUnlocked(t, m, marks)) return false
   return (
     resolveSlot(t, m, 'home', marks, revealed) !== null &&
     resolveSlot(t, m, 'away', marks, revealed) !== null
@@ -313,12 +345,17 @@ export function slotLabel(t: Tournament, slot: SlotRef): string {
     case 'match-winner':
     case 'match-loser': {
       const role = slot.type === 'match-winner' ? 'Winner' : 'Loser'
+      const tie = findTie(t, slot.match)
       for (const round of t.knockoutRounds) {
-        const i = round.matches.findIndex((m) => m.id === slot.match)
-        if (i >= 0) {
-          const short = ROUND_SHORT[round.id] ?? round.name
-          return round.matches.length > 1 ? `${role} of ${short} ${i + 1}` : `${role} of ${short}`
-        }
+        // A two-legged round is numbered by tie ("Winner of R16 3"), not by
+        // leg — otherwise eight ties would read as sixteen matches.
+        const positions = tie
+          ? [...new Set(round.matches.flatMap((m) => (m.tie ? [m.tie.id] : [])))]
+          : round.matches.map((m) => m.id)
+        const i = positions.indexOf(slot.match)
+        if (i < 0) continue
+        const short = ROUND_SHORT[round.id] ?? round.name
+        return positions.length > 1 ? `${role} of ${short} ${i + 1}` : `${role} of ${short}`
       }
       return `${role} of ${slot.match}`
     }

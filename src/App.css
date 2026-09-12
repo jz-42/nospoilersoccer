@@ -66,6 +66,22 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/*
+ * Competition first, season second — two rows, not one long list, because the
+ * competition is the choice people actually make and the season is a
+ * refinement of it. The season row is absent entirely for a competition with
+ * only one, so the header doesn't reserve space for a control that can't do
+ * anything. Both collapse to the mini scale so the picker sits *under* the
+ * view tabs in the visual hierarchy: this is where you are, not what you do.
+ */
+.season-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-left: 6px;
+}
+
 .seg-mini {
   border-radius: 9px;
   padding: 2px;
@@ -575,6 +591,186 @@
   color: var(--muted);
 }
 
+/* ============ the fabric layer ============ */
+
+/*
+ * `<span class="match-fabric"><span /></span>` — the thing that turns a
+ * two-team color field into a *surface*. No images and no color of its own,
+ * so it works over any matchup and on any tinted host.
+ *
+ * A flat OKLab gradient between two club colors is correct and lifeless: it
+ * is a fill, and the eye reads fills as UI chrome. What broadcast graphics
+ * (and Apple Sports) actually show is cloth — a shirt, a flag — lit from
+ * somewhere off-frame, and cloth gives you three things a fill never does:
+ * a knit with relief, folds that travel across it as it moves, and a key
+ * light that slides over the whole thing. This layer is those three things,
+ * and nothing else.
+ *
+ *   host background   the identity field (per-surface: .modal, .preview-media)
+ *   .match-fabric     the knit — `--weave`, `--glints` and `--grain`, still
+ *   ::before          the light — two key lobes, a shadow lobe and a sweep
+ *   ::after, > span   the folds — two band sets drifting at different speeds
+ *
+ * The folds are what make it read as a flag rather than a textured card.
+ * Each is a repeating band of light and shade, near-vertical like the folds
+ * of a flag hung from its pole, and each slides sideways by exactly one of
+ * its own periods per loop, so the loop has no seam. The two sets differ in
+ * wavelength, lean and speed (41s against 97s), so where they reinforce a
+ * deep fold swells and where they cancel the cloth lies flat, and with the
+ * light turning on its own 46s and 17s cycles underneath, the movement never
+ * reads as a loop.
+ *
+ * Everything moves by `transform` and `opacity` alone. The first cut slid
+ * `background-position`, which repaints the layer on every frame (~120
+ * paints a second on the phone sheet); transforms run on the compositor and
+ * paint nothing, so the cloth keeps moving at no cost to the main thread.
+ * That is why the light is an oversized sheet moved as one piece and each
+ * fold layer is wider than its host by exactly one period. (One exception,
+ * and it is Chromium's, not ours: a phone sheet whose content exactly fits
+ * is an `overflow: auto` box that is not a composited scroller, and there
+ * *any* transform animation inside it — the fabric or a lone drag handle —
+ * re-records the sheet's display list each frame. Nothing is re-rastered,
+ * and it stops the moment the sheet has anything to scroll.)
+ *
+ * Everything composites through one `mix-blend-mode: soft-light` on the
+ * wrapper, which is why the texture is strong on a lit side and all but
+ * gone in the dark pool at the bottom of the sheet — light on cloth behaves
+ * exactly that way, and it means the layer never fights small text set over
+ * the dark end of the field.
+ *
+ * Host contract: `position: relative` + `isolation: isolate` on the host, so
+ * the `z-index: -1` fabric lands above the host's own background but below
+ * its content and the blend cannot leak onto the page; any background the
+ * host paints with its own pseudo-element sits at `z-index: -2`. Hosts turn
+ * the whole thing down with `--fabric-strength`; a host that should hold
+ * still takes the animations off its three moving layers outright (see the
+ * fixture cards) rather than pausing them, so nothing keeps a compositor
+ * layer alive for a picture that never moves. A host that scrolls needs the
+ * fabric pinned to its scrollport — see the phone sheet in the responsive
+ * section.
+ *
+ * Reduced motion switches the movement off here rather than trusting the
+ * global clamp in index.css: that clamp shortens durations but leaves these
+ * loops infinite, so each frame would land on an arbitrary phase and the
+ * folds would flicker. At rest the cloth keeps its knit, light and folds.
+ */
+.match-fabric {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  opacity: var(--fabric-strength, 0.34);
+  background:
+    var(--glints),
+    var(--weave),
+    var(--grain) 0 0 / 160px 160px repeat;
+}
+
+/* The light. Two soft key lobes on the upper left and lower right, a shadow
+   lobe between them and a raking sweep across the home side, painted once
+   onto a sheet 1.8× the host's width and 1.6× its height, which then drifts
+   and turns a few degrees as a whole. Turning moves every lobe along a
+   different arc, so one transform still reads as light shifting over cloth
+   rather than a picture sliding. `alternate` makes the loop seamless, and
+   the oversize keeps the sheet's edges off-frame at every point of it. */
+.match-fabric::before {
+  content: '';
+  position: absolute;
+  inset: -30% -40%;
+  background:
+    radial-gradient(28% 30% at 34% 36%, rgba(255, 255, 255, 0.42), transparent),
+    radial-gradient(24% 34% at 70% 62%, rgba(255, 255, 255, 0.26), transparent),
+    radial-gradient(30% 30% at 58% 30%, rgba(2, 5, 10, 0.5), transparent),
+    linear-gradient(104deg, transparent 28%, rgba(255, 255, 255, 0.2) 36%, transparent 44%);
+  animation:
+    fabric-light 46s ease-in-out infinite alternate,
+    fabric-breath 17s ease-in-out infinite;
+}
+
+/* The folds: a crest of light, a trough of shade, flat cloth between. Each
+   layer starts one period left of its host and travels exactly that far
+   (period ÷ sin of the band angle), so its last frame is its first. */
+.match-fabric::after,
+.match-fabric > span {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.match-fabric::after {
+  left: -270.48px;
+  background: repeating-linear-gradient(
+    106deg,
+    transparent 0,
+    rgba(255, 255, 255, 0.42) 70px,
+    transparent 120px,
+    rgba(0, 4, 10, 0.42) 190px,
+    transparent 260px
+  );
+  animation: fabric-fold-a 41s linear infinite;
+}
+
+.match-fabric > span {
+  left: -412.26px;
+  background: repeating-linear-gradient(
+    84deg,
+    transparent 0,
+    rgba(255, 255, 255, 0.42) 120px,
+    transparent 200px,
+    rgba(0, 4, 10, 0.42) 300px,
+    transparent 410px
+  );
+  animation: fabric-fold-b 97s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .match-fabric::before,
+  .match-fabric::after,
+  .match-fabric > span {
+    animation: none;
+  }
+}
+
+@keyframes fabric-fold-a {
+  to {
+    transform: translateX(270.48px);
+  }
+}
+
+@keyframes fabric-fold-b {
+  to {
+    transform: translateX(412.26px);
+  }
+}
+
+@keyframes fabric-light {
+  0% {
+    transform: translate(-5%, -3%) rotate(-5deg);
+  }
+  35% {
+    transform: translate(4%, -5%) rotate(2deg);
+  }
+  70% {
+    transform: translate(-2%, 5%) rotate(6deg);
+  }
+  100% {
+    transform: translate(6%, 2%) rotate(-2deg);
+  }
+}
+
+@keyframes fabric-breath {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* ============ preview cards ============ */
 
 .preview-card {
@@ -636,6 +832,7 @@
 
 .preview-media {
   position: relative;
+  isolation: isolate;
   aspect-ratio: 16 / 9;
   display: flex;
   align-items: center;
@@ -644,6 +841,18 @@
     radial-gradient(ellipse 130% 95% at 50% -25%, rgba(255, 255, 255, 0.045), transparent 60%),
     linear-gradient(168deg, #10181f, #090e13);
   border-bottom: 1px solid var(--border);
+  /* A thumbnail is a sixth of the sheet's area, so the same knit at the same
+     strength reads as noise rather than cloth. Turned down, and held still:
+     the ripple is the reward for opening a match, and six cards drifting at
+     once in a scrolling list is fidget, not atmosphere. The one card you're
+     meant to click gets it back (below). */
+  --fabric-strength: 0.28;
+}
+
+.preview-card:not(.state-watch) .match-fabric::before,
+.preview-card:not(.state-watch) .match-fabric::after,
+.preview-card:not(.state-watch) .match-fabric > span {
+  animation: none;
 }
 
 /* The one box you're meant to click. A watchable match gets a brighter
@@ -655,63 +864,64 @@
     radial-gradient(ellipse 130% 100% at 50% -20%, rgba(255, 255, 255, 0.14), transparent 60%),
     linear-gradient(168deg, #1b2530, #0e161d);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  /* Brighter, and the only card whose cloth moves: it's the one inviting
+     you in. */
+  --fabric-strength: 0.36;
 }
 
-/* Per-team identity tint, "lit volume" treatment. The base is one full-width
-   home→away wash interpolated in OKLab — perceptual blending is what lets the
-   two hues melt into each other in the middle without averaging into sRGB mud
-   (the olive that Belgium–Senegal used to get). On top of it: a whitened glow
-   of each field color behind that team's flag (stage light, not ambient fog),
-   a shallow accent cap at each top corner carrying the second identity color,
-   and a *deep pool* at each bottom corner — the side falls from luminous at
-   flag height into its deep tone below, so the surface reads as lit volume
-   instead of tinted paper (USA: red at the flag falling into navy; Germany:
-   red into flag-black). A soft vignette grounds the caption. The color vars
-   are set per-card in PreviewCard; a locked slot leaves its side transparent
-   so its half fades to neutral. */
+/* Per-team identity tint: the thumbnail cut of the sheet's field. Same
+   ingredients in the same order, tuned for a 16:9 box — one full-width
+   home→away wash in OKLab, a whitened glow of each field colour behind that
+   team's crest, a shallow accent cap at each top corner, and a deep pool at
+   each bottom corner so the box reads as lit volume rather than tinted
+   paper. The `.match-fabric` child lays the knit over it; this sits at
+   `z-index: -2` because the fabric owns `-1` (the fabric layer's host
+   contract). A locked slot leaves its side transparent and that half fades
+   to neutral. */
 .preview-media::before {
   content: '';
   position: absolute;
   inset: 0;
+  z-index: -2;
   background:
     radial-gradient(circle at 50% 132%, transparent 34%, rgba(255, 255, 255, 0.05) 34.5%, transparent 35.7%),
-    linear-gradient(180deg, transparent 55%, rgba(8, 11, 16, 0.38) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 22%, rgba(8, 11, 16, 0.42) 100%),
     radial-gradient(
-      42% 64% at 26% 34%,
-      color-mix(in srgb, var(--home-glow, transparent) 44%, transparent) 0%,
+      42% 62% at 26% 32%,
+      color-mix(in srgb, var(--home-1, transparent) 60%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      42% 64% at 74% 34%,
-      color-mix(in srgb, var(--away-glow, transparent) 44%, transparent) 0%,
+      42% 62% at 74% 32%,
+      color-mix(in srgb, var(--away-1, transparent) 60%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      36% 44% at 4% -8%,
-      color-mix(in srgb, var(--home-2, transparent) 52%, transparent) 0%,
+      32% 38% at 2% -10%,
+      color-mix(in srgb, var(--home-2, transparent) 40%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      36% 44% at 96% -8%,
-      color-mix(in srgb, var(--away-2, transparent) 52%, transparent) 0%,
+      32% 38% at 98% -10%,
+      color-mix(in srgb, var(--away-2, transparent) 40%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      74% 82% at 10% 118%,
-      color-mix(in srgb, var(--home-deep, transparent) 58%, transparent) 0%,
+      72% 80% at 8% 118%,
+      color-mix(in srgb, var(--home-deep, transparent) 74%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      74% 82% at 90% 118%,
-      color-mix(in srgb, var(--away-deep, transparent) 58%, transparent) 0%,
+      72% 80% at 92% 118%,
+      color-mix(in srgb, var(--away-deep, transparent) 74%, transparent) 0%,
       transparent 100%
     ),
     linear-gradient(
-      90deg in oklab,
-      color-mix(in srgb, var(--home-1, transparent) 52%, transparent) 0%,
-      color-mix(in srgb, var(--home-1, transparent) 38%, transparent) 36%,
-      color-mix(in srgb, var(--away-1, transparent) 38%, transparent) 64%,
-      color-mix(in srgb, var(--away-1, transparent) 52%, transparent) 100%
+      96deg in oklab,
+      color-mix(in srgb, var(--home-1, transparent) 90%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 74%, transparent) 34%,
+      color-mix(in srgb, var(--away-1, transparent) 74%, transparent) 64%,
+      color-mix(in srgb, var(--away-1, transparent) 90%, transparent) 100%
     );
 }
 
@@ -1089,6 +1299,30 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 20px;
+}
+
+/*
+ * A single league table: one centred column, wide enough for W/D/L and a
+ * twenty-team list without becoming a page-width spreadsheet. Capped rather
+ * than fluid because a table read left-to-right across 1400px is worse than
+ * one you can take in at a glance.
+ */
+.group-grid-single {
+  grid-template-columns: minmax(0, 620px);
+  justify-content: center;
+}
+
+.group-grid-single .standings {
+  font-size: 13px;
+  margin-bottom: 0;
+}
+
+.group-grid-single .standings td {
+  padding: 7px 8px;
+}
+
+.group-grid-single .standings .name {
+  width: auto;
 }
 
 .group-card {
@@ -2678,78 +2912,103 @@
 
 .modal {
   position: relative;
+  isolation: isolate;
   width: min(584px, 100%);
   /*
-   * Apple-Sports-style flag tint: one full-width home→away wash interpolated
-   * in OKLab. Perceptual interpolation is the trick that lets the two teams'
-   * colors melt into each other in the middle — the Apple look — without
-   * averaging into sRGB mud (overlapping translucent layers gave USA–Bosnia
-   * an amber wash neither flag owns; a dark buffer between the sides fixed
-   * the mud but read as a dead black trough). The secondary tone is a
-   * shallow cap at each top corner, and a bottom scrim grounds the content
-   * area. The home and away color vars are set per-matchup in MatchModal;
-   * when a side is unknown they default to transparent and that half fades
-   * to neutral, so a locked knockout sheet reads as the plain dark panel.
+   * The identity field: the match, painted as one lit piece of cloth.
+   *
+   * The base is a single full-width home→away wash interpolated in OKLab.
+   * Perceptual interpolation is what lets two club colours melt into each
+   * other at the seam without averaging into sRGB mud (overlapping
+   * translucent layers gave USA–Bosnia an amber wash neither side owns; a
+   * dark buffer between the sides fixed the mud but read as a dead trough).
+   *
+   * Over that wash sits a *vertical light story*, and that is what separates
+   * this from a gradient fill. The sheet is most saturated at the top, where
+   * the crests and the score are: each side's lead is laid on again behind
+   * its crest, so the light there is *more colour*, never white. (A
+   * white-mixed glow read as pastel haze; Apple's fields are never milky.)
+   * Each side's secondary colour is a shallow cap in its top corner. From
+   * there both sides fall into their deep tone and a scrim that dims but
+   * never blacks out, so the foot of a tall phone sheet is still the match's
+   * colours, in shadow.
+   *
+   * The seam leans (98°) and sits left of centre (44%). A vertical seam
+   * reads as two flags stitched together; a leaning one reads as light
+   * falling across one piece of cloth. The offset keeps the away crest
+   * clear of the blend at the top of a tall sheet, where the lean pushes
+   * the seam right.
+   *
+   * Bottom of the stack upward: the wash, each side's deep pool rising from
+   * its bottom corner, each side's accent cap, each side's lead behind its
+   * crest, and a scrim that also carries a whisper of white along the top
+   * edge. The `--home-*`/`--away-*` variables are set per matchup by
+   * `matchTint`; an undecided knockout slot leaves its side unset, the
+   * fallbacks are `transparent`, and that half stays neutral — the colour
+   * reveal moves in lockstep with the crest reveal.
+   *
+   * Texture and movement are not here. They live in `.match-fabric`, one
+   * child element, so this rule stays a description of the *colour* and the
+   * cloth is reusable on any other tinted surface.
    */
-  background-color: var(--panel);
+  /* Small type sits straight on club colour here, where the app's slate
+     greys go grey-blue and dead on a red or a yellow. Translucent white
+     takes on whatever it sits over. */
+  --text: rgba(240, 244, 250, 0.84);
+  --muted: rgba(236, 241, 248, 0.6);
+  background-color: #0a0e14;
   background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E"),
-    linear-gradient(180deg, transparent 0%, transparent 30%, rgba(8, 11, 16, 0.42) 100%),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 14%,
+      transparent 40%,
+      rgba(5, 8, 12, 0.32) 70%,
+      rgba(5, 8, 12, 0.6) 100%
+    ),
     radial-gradient(
-      44% 26% at 27% 12%,
-      color-mix(in srgb, var(--home-glow, transparent) 42%, transparent) 0%,
+      50% 26% at 26% 16%,
+      color-mix(in srgb, var(--home-1, transparent) 72%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      44% 26% at 73% 12%,
-      color-mix(in srgb, var(--away-glow, transparent) 42%, transparent) 0%,
+      50% 26% at 74% 16%,
+      color-mix(in srgb, var(--away-1, transparent) 72%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      52% 30% at 96% -5%,
-      color-mix(in srgb, var(--away-2, transparent) 54%, transparent) 0%,
+      44% 20% at 4% -6%,
+      color-mix(in srgb, var(--home-2, transparent) 36%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      52% 30% at 4% -5%,
-      color-mix(in srgb, var(--home-2, transparent) 54%, transparent) 0%,
+      44% 20% at 96% -6%,
+      color-mix(in srgb, var(--away-2, transparent) 36%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      56% 52% at 5% 106%,
-      color-mix(in srgb, var(--home-deep, transparent) 60%, transparent) 0%,
+      62% 58% at 4% 108%,
+      color-mix(in srgb, var(--home-deep, transparent) 78%, transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      56% 52% at 95% 106%,
-      color-mix(in srgb, var(--away-deep, transparent) 60%, transparent) 0%,
+      62% 58% at 96% 108%,
+      color-mix(in srgb, var(--away-deep, transparent) 78%, transparent) 0%,
       transparent 100%
     ),
     linear-gradient(
-      90deg in oklab,
-      color-mix(in srgb, var(--home-1, transparent) 52%, transparent) 0%,
-      color-mix(in srgb, var(--home-1, transparent) 40%, transparent) 34%,
-      color-mix(in srgb, var(--away-1, transparent) 40%, transparent) 66%,
-      color-mix(in srgb, var(--away-1, transparent) 52%, transparent) 100%
+      98deg in oklab,
+      color-mix(in srgb, var(--home-1, transparent) 94%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 80%, transparent) 30%,
+      color-mix(in srgb, var(--away-1, transparent) 80%, transparent) 58%,
+      color-mix(in srgb, var(--away-1, transparent) 94%, transparent) 100%
     );
-  background-size:
-    160px 160px,
-    cover,
-    cover,
-    cover,
-    cover,
-    cover,
-    cover,
-    cover,
-    cover;
-  background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
-    no-repeat, no-repeat;
-  background-blend-mode: soft-light, normal, normal, normal, normal, normal, normal, normal,
-    normal;
-  border: 1px solid var(--border-strong);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 18px;
   padding: 24px 28px 14px;
-  box-shadow: var(--shadow-lg);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
   animation: modal-in 0.22s cubic-bezier(0.2, 1, 0.4, 1);
 }
 
@@ -2828,12 +3087,71 @@
   margin-bottom: 20px;
 }
 
+/*
+ * Leg pager for a two-legged tie. Sits between the round caption and the teams
+ * because that is what it is — a narrowing of "Semi-final" to "which night" —
+ * and it reads as a quiet segmented control rather than a second navigation.
+ * The locked leg keeps its space and its label; only its contents are withheld.
+ */
+.modal-legs {
+  display: flex;
+  align-self: center;
+  gap: 2px;
+  padding: 3px;
+  margin: -8px 0 18px;
+  background: color-mix(in srgb, var(--bg-raised) 70%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.modal-leg-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 4px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.modal-leg-tab:hover:not(:disabled) {
+  color: var(--text-h);
+}
+
+.modal-leg-tab.active {
+  background: var(--panel-hover);
+  color: var(--text-h);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.modal-leg-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.modal-leg-lock {
+  width: 9px;
+  height: 10.5px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+
+/* White, not the brand green: this line sits on club colour, and green
+   vanishes on a yellow or green side (Dortmund, Sporting, Betis). */
 .modal-context-strong {
   font-size: 12.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: var(--accent);
+  color: rgba(246, 249, 252, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
 }
 
 .modal-context-date {
@@ -2993,13 +3311,20 @@
   color: var(--muted);
 }
 
+/* A frosted pill rather than green-on-green-tint: it sits on club colour, so
+   it takes that colour through the glass instead of fighting it. */
 .modal-summary {
   font-size: 14px;
   font-weight: 620;
-  color: var(--accent);
+  color: #fff;
   padding: 6px 16px;
   border-radius: 999px;
-  background: var(--accent-soft);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  backdrop-filter: blur(14px) saturate(1.4);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
   animation: summary-rise 0.5s 0.15s cubic-bezier(0.2, 1, 0.4, 1) backwards;
 }
 
@@ -3119,13 +3444,24 @@
   margin: -8px 0 18px;
 }
 
+/* Scorers the way a broadcast graphic sets them: the name in near-white, the
+   minute a step back. They sit directly on the club field, so the shadow is
+   what keeps them off a pale side (Real Madrid's platinum, Leipzig's white). */
 .goals-side {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 11.5px;
-  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgba(250, 252, 255, 0.95);
   line-height: 1.45;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.32);
+}
+
+.goal-min {
+  color: rgba(240, 244, 250, 0.64);
+  font-weight: 450;
+  font-variant-numeric: tabular-nums;
 }
 
 .goals-home {
@@ -3137,8 +3473,8 @@
 }
 
 .goals-ball {
-  font-size: 10px;
-  opacity: 0.5;
+  font-size: 11px;
+  opacity: 0.72;
   margin-top: 2px;
 }
 
@@ -3492,10 +3828,93 @@
   height: calc(100% + 16px);
 }
 
+/* Covers the strip where YouTube paints the video title and channel on hover,
+   on pause and whenever its controls are up. There is no player var that
+   suppresses it, and the iframe is cross-origin, so an opaque bar of our own is
+   the only way to keep a spoiler-laden title off screen. The title barely
+   shrinks with the player, so the height has a floor for phone-width players
+   and a ceiling so the bar does not eat a fullscreen frame. */
+.player-titlebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: clamp(46px, 14%, 90px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 6px 0 12px;
+  background: #05070b;
+  pointer-events: none;
+}
+
+/* The channel name sits just under the title; fade it out rather than paying
+   for a bar tall enough to cover it on short phone-width players. */
+.player-titlebar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 22px;
+  background: linear-gradient(#05070b, rgba(5, 7, 11, 0));
+}
+
+.player-titlebar-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-m);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-expand {
+  pointer-events: auto;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-m);
+  cursor: pointer;
+}
+
+.player-expand:hover {
+  background: var(--panel-hover);
+  color: var(--text-h);
+}
+
+/* Fallback blow-up for browsers without element fullscreen (iOS Safari). The
+   modal backdrop's backdrop-filter makes it the containing block for fixed
+   children, so fill that box rather than asserting viewport units. */
+.player-wrap.is-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
+.player-wrap:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  aspect-ratio: auto;
+  border-radius: 0;
+}
+
 .player-overlay {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3838,7 +4257,9 @@
     border-left: none;
     border-right: none;
     border-bottom: none;
-    padding: 52px 18px calc(24px + env(safe-area-inset-bottom));
+    --sheet-pad-top: 52px;
+    --sheet-pad-x: 18px;
+    padding: var(--sheet-pad-top) var(--sheet-pad-x) calc(24px + env(safe-area-inset-bottom));
     box-shadow: none;
     animation: modal-in-mobile 0.28s cubic-bezier(0.32, 0.72, 0, 1);
     overflow-y: auto;
@@ -3846,6 +4267,25 @@
     overscroll-behavior: contain;
     transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
     touch-action: pan-y;
+  }
+
+  /* Here the sheet is a fixed-height scroll container (drag-to-dismiss reads
+     its scrollTop), and an absolutely positioned child of a scroller scrolls
+     away with the content — a long sheet would lose its cloth below the first
+     screen. Sticky welds the fabric to the visible window instead. The
+     negative margins pull it out to the padding box and cancel its height in
+     flow, so it neither nudges the first row of content nor adds scroll.
+     The top offset is negative because a sticky box measures `top` from the
+     scroll container's content edge, inside its padding — `top: 0` would
+     park the cloth 52px down the sheet with a visible seam above it.
+     15px is the backdrop's 14px top inset plus the sheet's 1px top border. */
+  .modal > .match-fabric {
+    position: sticky;
+    inset: calc(-1 * var(--sheet-pad-top)) auto auto;
+    display: block;
+    height: calc(100dvh - 15px);
+    margin: calc(-1 * var(--sheet-pad-top)) calc(-1 * var(--sheet-pad-x))
+      calc(var(--sheet-pad-top) + 15px - 100dvh);
   }
 
   .modal-drag-handle {

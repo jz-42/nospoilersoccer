@@ -1,3 +1,4 @@
+import { clubColors } from './club-colors'
 import type { TeamId } from './types'
 
 /**
@@ -128,7 +129,19 @@ const COLLISION_DELTA_E = 0.12
  * pick the one whose two field colors are farthest apart in OKLab, preferring
  * chromatic fields (Spain moves to gold rather than Austria to silver) and
  * penalizing swaps so identity survives when possible.
+ *
+ * A near-black field is penalized much harder than a pale one. The sheet is
+ * painted over a near-black panel, so a black side is not a colour there, it
+ * is a hole: Dortmund–Villarreal went black against yellow on lightness
+ * contrast alone, where Apple (and Villarreal's own away kit) has yellow
+ * against blue. A pale field still reads as lit cloth, so Atlético moving to
+ * its white stripes against Liverpool keeps the light penalty.
  */
+function fieldPenalty(hex: string): number {
+  if (chroma(hex) >= 0.04) return 0
+  return hexToOklab(hex).L < 0.4 ? 0.25 : 0.05
+}
+
 function resolveFields(
   h: readonly [string, string],
   a: readonly [string, string],
@@ -144,8 +157,8 @@ function resolveFields(
       const hField = h[hi]
       const aField = a[ai]
       const swaps = hi + ai
-      const achromatic = (chroma(hField) < 0.04 ? 1 : 0) + (chroma(aField) < 0.04 ? 1 : 0)
-      const score = deltaE(hField, aField) - 0.04 * swaps - 0.05 * achromatic
+      const score =
+        deltaE(hField, aField) - 0.04 * swaps - fieldPenalty(hField) - fieldPenalty(aField)
       if (score > bestScore) {
         bestScore = score
         best = {
@@ -156,6 +169,21 @@ function resolveFields(
     }
   }
   return best
+}
+
+/**
+ * The palette for any team the site can show, national or club. The two tables
+ * are kept apart because they're maintained against different references, but
+ * their key spaces can't collide — countries are three-letter uppercase codes,
+ * clubs are lowercase slugs — so one lookup over both is unambiguous.
+ *
+ * Undefined for an unknown team, which every caller must treat as "no tint"
+ * rather than an error: a missing palette should mute a surface, not break it.
+ */
+export function paletteFor(
+  id: TeamId,
+): readonly [string, string] | readonly [string, string, string] | undefined {
+  return teamColors[id] ?? clubColors[id]
 }
 
 /**
@@ -173,8 +201,8 @@ export function matchTint(
   away: TeamId | null,
 ): Record<string, string> {
   const vars: Record<string, string> = {}
-  const hPal = home ? teamColors[home] : undefined
-  const aPal = away ? teamColors[away] : undefined
+  const hPal = home ? paletteFor(home) : undefined
+  const aPal = away ? paletteFor(away) : undefined
   let h: readonly [string, string] | undefined = hPal && [hPal[0], hPal[1]]
   let a: readonly [string, string] | undefined = aPal && [aPal[0], aPal[1]]
   if (h && a) {

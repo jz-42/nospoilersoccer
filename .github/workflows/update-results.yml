@@ -48,14 +48,83 @@ jobs:
           ODDS_BACKUP_FILE: /tmp/wc2026-before-odds.ts
           BACKFILL_BACKUP_FILE: /tmp/wc2026-before-odds-backfill.ts
           VIDEOS_BACKUP_DIR: /tmp/wc2026-videos-backup
+          CLUB_AUDIT_FILE: /tmp/club-audit.md
+          CLUB_BACKUP_ROOT: /tmp/club-backup
           # Optional: OPENAI_MODEL (default gpt-5.4), OPENAI_REASONING_EFFORT (default medium)
         run: |
           git config user.name "results-bot"
           git config user.email "actions@github.com"
-          deadline=$(( $(date +%s) + 3180 ))
+
+          # Club competitions, in the order they are updated each cycle:
+          #   <season id> <competition id> <ESPN league slug>
+          CLUB_COMPETITIONS="eng1-2026:eng1:eng.1 esp1-2026:esp1:esp.1 ucl-2026:ucl:uefa.champions"
+          mkdir -p src/data/club
+
+          # Stage only paths that exist. The club data and hot-state files are
+          # generated, so on a fresh season they are legitimately absent and
+          # `git add` on a missing pathspec is a fatal error under `set -e`.
+          add_if_present() {
+            for path in "$@"; do
+              if [ -e "$path" ]; then git add "$path"; fi
+            done
+            return 0
+          }
+
+          # Put one season's files back exactly as they were before a failed step.
+          # Deletes first so a file the failed step *created* does not survive.
+          club_restore() {
+            season="$1"; backup_dir="$2"
+            find src/data/club -maxdepth 1 -name "${season}*" -delete 2>/dev/null || true
+            if [ -n "$(ls -A "$backup_dir" 2>/dev/null)" ]; then
+              cp "$backup_dir"/* src/data/club/
+            fi
+            return 0
+          }
+
+          # Backup / run / validate / revert for one club step — the same
+          # discipline as each World Cup step above, scoped to a single season so
+          # one competition failing cannot discard another's work in the same
+          # cycle. This is why bad data never reaches main; keep it per step.
+          club_step() {
+            label="$1"; season="$2"; backup_dir="$3"
+            shift 3
+            rm -rf "$backup_dir"
+            mkdir -p "$backup_dir"
+            # Snapshot every file this season owns: the ingest scripts may write
+            # the season file, a sibling videos file, or both.
+            find src/data/club -maxdepth 1 -name "${season}*" -exec cp {} "$backup_dir/" \; 2>/dev/null || true
+            if "$@"; then
+              if ! (npm run validate:data && npx tsc -b); then
+                echo "::warning::$label validation failed; discarding $label changes for this cycle"
+                club_restore "$season" "$backup_dir"
+              fi
+            else
+              echo "::warning::$label step errored; discarding $label changes for this cycle"
+              club_restore "$season" "$backup_dir"
+            fi
+            return 0
+          }
+
+          # Budget the run against `timeout-minutes: 58` (3480s); setup costs ~15s.
+          # The old loop tested the deadline *before* sleeping, so it could start
+          # one more cycle at deadline+300s and overrun — that is what cancelled
+          # run 34300459923 at 58m04s, and adding three club competitions to each
+          # cycle would make that the normal outcome. So now:
+          #   - sleep only the remainder of the period, keeping a true 5-min cadence
+          #     even as the cycle body grows
+          #   - refuse to start a cycle that the slowest cycle so far says will not
+          #     finish inside the budget
+          # Ending early costs nothing: Cloudflare dispatches the next run within
+          # 5 minutes of this one finishing, so coverage stays continuous.
+          LOOP_BUDGET_SECONDS=3000
+          CYCLE_PERIOD_SECONDS=300
+          loop_start=$(date +%s)
+          deadline=$(( loop_start + LOOP_BUDGET_SECONDS ))
+          longest_cycle=0
           cycle=0
           while : ; do
             cycle=$((cycle + 1))
+            cycle_start=$(date +%s)
             echo "::group::cycle $cycle — $(date -u '+%H:%M:%SZ')"
             rm -f "$CURATOR_ERROR_FLAG"
             rm -f "$RESULTS_AUDIT_FILE"
@@ -224,9 +293,90 @@ jobs:
             else
               echo "::notice::skipping optional entertainment curation because core updater did not reach a clean commit point"
             fi
+
+            # --- Club competitions ------------------------------------------
+            # Results ingest + highlight curation only: no AI review, no odds,
+            # no entertainment summary. Those stay World Cup only.
+            #
+            # This runs AFTER the World Cup has committed, on purpose.
+            # `validate:data` validates every registered tournament, so a club
+            # season that goes bad would otherwise fail the World Cup's own
+            # commit gate. Running last means the tree the World Cup is gated on
+            # only ever contains club files that already passed this same gate.
+            rm -f "$CLUB_AUDIT_FILE"
+            for entry in $CLUB_COMPETITIONS; do
+              season="${entry%%:*}"
+              rest="${entry#*:}"
+              competition="${rest%%:*}"
+              league_slug="${rest#*:}"
+              export CLUB_SEASON="$season"
+              export CLUB_COMPETITION="$competition"
+              export CLUB_LEAGUE_SLUG="$league_slug"
+
+              # --competition, not a positional: both scripts scan every
+              # competition they are not narrowed to, so without it each one ran
+              # three times per cycle — and the curator's uploads scan is the
+              # expensive half of that.
+              club_step "$season results" "$season" "$CLUB_BACKUP_ROOT/$season-results" \
+                npx tsx scripts/espn-club.ts --competition "$competition"
+              club_step "$season videos" "$season" "$CLUB_BACKUP_ROOT/$season-videos" \
+                npx tsx scripts/curate-club-videos.ts --competition "$competition"
+            done
+            unset CLUB_SEASON CLUB_COMPETITION CLUB_LEAGUE_SLUG
+
+            if [ -f "$CLUB_AUDIT_FILE" ]; then
+              {
+                echo "### Club audit — cycle $cycle"
+                cat "$CLUB_AUDIT_FILE"
+                echo
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+
+            if npm run build:hot-state && npm run check:update; then
+              add_if_present src/data/club \
+                public/api/hot-state/eng1-2026.json \
+                public/api/hot-state/esp1-2026.json \
+                public/api/hot-state/ucl-2026.json
+              if git diff --cached --quiet; then
+                echo "no club changes this cycle"
+              else
+                git commit -m "Auto-update: club football data ($(date -u '+%F %H:%MZ'))"
+                git pull --rebase --autostash origin main || true
+                if git push origin HEAD:main; then
+                  git push origin HEAD:dev || echo "dev has diverged; skipping"
+                else
+                  # Warn and retry next cycle, exactly like the World Cup push
+                  # above. Deliberately NOT `reset --hard origin/main`: if the
+                  # World Cup's own push failed earlier this cycle, its commit is
+                  # sitting unpushed on HEAD and resetting would discard it.
+                  echo "::warning::club push to main failed; will retry next cycle"
+                fi
+              fi
+            else
+              # A warning, not CURATOR_ERROR_FLAG: club is best-effort and must
+              # never turn a healthy World Cup run red. The World Cup has already
+              # committed by this point either way.
+              echo "::warning::club validation failed; not committing club data this cycle"
+              {
+                echo "### Club audit — cycle $cycle"
+                echo "- reason: club_validation_failed"
+                echo "- action: skipped the club commit for this cycle"
+                echo
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
             echo "::endgroup::"
-            [ "$(date +%s)" -ge "$deadline" ] && break
-            sleep 300
+
+            cycle_end=$(date +%s)
+            cycle_seconds=$(( cycle_end - cycle_start ))
+            if [ "$cycle_seconds" -gt "$longest_cycle" ]; then longest_cycle=$cycle_seconds; fi
+            sleep_seconds=$(( CYCLE_PERIOD_SECONDS - cycle_seconds ))
+            if [ "$sleep_seconds" -lt 0 ]; then sleep_seconds=0; fi
+            echo "cycle $cycle took ${cycle_seconds}s (slowest ${longest_cycle}s); sleeping ${sleep_seconds}s"
+            if [ $(( cycle_end + sleep_seconds + longest_cycle )) -ge "$deadline" ]; then
+              echo "stopping after cycle $cycle — another cycle would not fit the run budget"
+              break
+            fi
+            sleep "$sleep_seconds"
           done
           # Fail the run (so GitHub emails you) only if the LAST cycle had a real
           # problem — bad data or a persistent curator error (e.g. a dead key).

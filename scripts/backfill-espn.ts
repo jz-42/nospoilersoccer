@@ -6,6 +6,7 @@
  *   npx tsx scripts/backfill-espn.ts 2026 > /tmp/espn-2026.json
  */
 import { tournaments } from '../src/data'
+import { wc2022 } from '../src/data/wc2022'
 import type { GroupMatch, KnockoutMatch, Tournament } from '../src/data/types'
 import { dateRange, fetchDay, parseEvent } from './espn'
 
@@ -26,7 +27,8 @@ function allMatches(t: Tournament): { id: string; home?: string; away?: string; 
 }
 
 const year = process.argv[2]
-const t = tournaments[`wc${year}`]
+// 2022 is archived — kept for backfilling, no longer offered in the app.
+const t = year === '2022' ? wc2022 : tournaments[`wc${year}`]
 if (!t) throw new Error(`usage: backfill-espn.ts 2022|2026`)
 
 const matches = allMatches(t)

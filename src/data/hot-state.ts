@@ -1,4 +1,4 @@
-import type { Goal, GroupMatch, KnockoutMatch, MatchLiveStatus, Score, Tournament } from './types'
+import type { Goal, GroupMatch, KnockoutMatch, MatchLiveStatus, Score, TeamId, Tournament } from './types'
 
 export interface HotStateMatch {
   liveStatus: MatchLiveStatus | null
@@ -13,6 +13,15 @@ export interface HotStateMatch {
 export interface TournamentHotState {
   tournamentId: string
   matches: Record<string, HotStateMatch>
+  ties?: Record<string, HotStateTie>
+}
+
+export interface HotStateTie {
+  aggregate: Score | null
+  penalties: Score | null
+  homeTeam: TeamId | null
+  awayTeam: TeamId | null
+  winner: TeamId | null
 }
 
 export interface FetchedTournamentHotState extends TournamentHotState {
@@ -74,6 +83,20 @@ function isHotStateMatch(matchId: string, value: unknown): value is HotStateMatc
   return true
 }
 
+function isHotStateTie(value: unknown): value is HotStateTie {
+  if (typeof value !== 'object' || value === null) return false
+  for (const key of ['aggregate', 'penalties', 'homeTeam', 'awayTeam', 'winner']) {
+    if (!hasOwn(value, key)) return false
+  }
+  if (!isNullableField((value as { aggregate?: unknown }).aggregate, isScore)) return false
+  if (!isNullableField((value as { penalties?: unknown }).penalties, isScore)) return false
+  for (const key of ['homeTeam', 'awayTeam', 'winner'] as const) {
+    const field = (value as Record<string, unknown>)[key]
+    if (field !== null && typeof field !== 'string') return false
+  }
+  return true
+}
+
 export function parseTournamentHotState(value: unknown): TournamentHotState | null {
   if (typeof value !== 'object' || value === null) return null
   const candidate = value as { tournamentId?: unknown; matches?: unknown }
@@ -81,6 +104,13 @@ export function parseTournamentHotState(value: unknown): TournamentHotState | nu
   if (typeof candidate.matches !== 'object' || candidate.matches === null) return null
   for (const [matchId, hotMatch] of Object.entries(candidate.matches)) {
     if (!isHotStateMatch(matchId, hotMatch)) return null
+  }
+  if (hasOwn(value, 'ties')) {
+    const ties = (value as { ties?: unknown }).ties
+    if (typeof ties !== 'object' || ties === null) return null
+    for (const hotTie of Object.values(ties)) {
+      if (!isHotStateTie(hotTie)) return null
+    }
   }
   return candidate as TournamentHotState
 }
@@ -117,10 +147,25 @@ export function buildTournamentHotState(tournament: Tournament): TournamentHotSt
     }
   }
 
-  return {
+  const snapshot: TournamentHotState = {
     tournamentId: tournament.id,
     matches,
   }
+  if (tournament.ties?.length) {
+    snapshot.ties = Object.fromEntries(
+      tournament.ties.map((tie) => [
+        tie.id,
+        {
+          aggregate: tie.aggregate ?? null,
+          penalties: tie.penalties ?? null,
+          homeTeam: tie.homeTeam ?? null,
+          awayTeam: tie.awayTeam ?? null,
+          winner: tie.winner ?? null,
+        },
+      ]),
+    )
+  }
+  return snapshot
 }
 
 function applyGroupMatchHotState(match: GroupMatch, hot: HotStateMatch | undefined): GroupMatch {
@@ -160,6 +205,18 @@ export function applyTournamentHotState(
       ...round,
       matches: round.matches.map((match) => applyKnockoutMatchHotState(match, hotState.matches[match.id])),
     })),
+    ties: tournament.ties?.map((tie) => {
+      const hot = hotState.ties?.[tie.id]
+      if (!hot) return tie
+      return {
+        ...tie,
+        aggregate: hot.aggregate ?? undefined,
+        penalties: hot.penalties ?? undefined,
+        homeTeam: hot.homeTeam ?? undefined,
+        awayTeam: hot.awayTeam ?? undefined,
+        winner: hot.winner ?? undefined,
+      }
+    }),
   }
 }
 

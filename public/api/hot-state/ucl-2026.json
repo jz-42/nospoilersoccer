@@ -1,0 +1,1009 @@
+{
+  "tournamentId": "ucl-2026",
+  "matches": {
+    "ucl-aek-athens-lask": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "aek-athens",
+          "player": "Razvan Marin",
+          "minute": "21'"
+        }
+      ]
+    },
+    "ucl-club-brugge-aston-villa": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "aston-villa",
+          "player": "John McGinn",
+          "minute": "11'"
+        },
+        {
+          "team": "club-brugge",
+          "player": "Hugo Vetlesen",
+          "minute": "19'"
+        },
+        {
+          "team": "aston-villa",
+          "player": "Emiliano Buendía",
+          "minute": "22'"
+        },
+        {
+          "team": "aston-villa",
+          "player": "Nicolas Jackson",
+          "minute": "43'"
+        },
+        {
+          "team": "club-brugge",
+          "player": "Nicolo Tresoldi",
+          "minute": "61'",
+          "penalty": true
+        }
+      ]
+    },
+    "ucl-dortmund-villarreal": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "dortmund",
+          "player": "Renato Veiga",
+          "minute": "53'",
+          "ownGoal": true
+        },
+        {
+          "team": "villarreal",
+          "player": "Santiago Mouriño",
+          "minute": "66'"
+        },
+        {
+          "team": "dortmund",
+          "player": "Serhou Guirassy",
+          "minute": "80'"
+        },
+        {
+          "team": "dortmund",
+          "player": "Serhou Guirassy",
+          "minute": "85'",
+          "penalty": true
+        },
+        {
+          "team": "villarreal",
+          "player": "Serhou Guirassy",
+          "minute": "90'+3'",
+          "ownGoal": true
+        }
+      ]
+    },
+    "ucl-lille-real-betis": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "lille",
+          "player": "Ayase Ueda",
+          "minute": "12'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Marc Bartra",
+          "minute": "33'"
+        },
+        {
+          "team": "lille",
+          "player": "Alexsandro",
+          "minute": "36'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Marc Bartra",
+          "minute": "49'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Troy Parrott",
+          "minute": "53'"
+        }
+      ]
+    },
+    "ucl-porto-manchester-city": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "manchester-city",
+          "player": "Erling Haaland",
+          "minute": "47'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Erling Haaland",
+          "minute": "90'+1'"
+        }
+      ]
+    },
+    "ucl-real-madrid-inter": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "real-madrid",
+          "player": "Kylian Mbappé",
+          "minute": "14'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Federico Valverde",
+          "minute": "23'"
+        },
+        {
+          "team": "inter",
+          "player": "Carlos Augusto",
+          "minute": "77'"
+        }
+      ]
+    },
+    "ucl-barcelona-feyenoord": {
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "3'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Karim Adeyemi",
+          "minute": "22'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "57'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "77'"
+        },
+        {
+          "team": "feyenoord",
+          "player": "Sem Steijn",
+          "minute": "82'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Gabriel Jesus",
+          "minute": "85'"
+        }
+      ]
+    },
+    "ucl-stuttgart-viking": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "stuttgart",
+          "player": "Ermedin Demirovic",
+          "minute": "20'"
+        },
+        {
+          "team": "viking",
+          "player": "Zlatko Tripic",
+          "minute": "22'"
+        },
+        {
+          "team": "stuttgart",
+          "player": "Ermedin Demirovic",
+          "minute": "26'"
+        },
+        {
+          "team": "stuttgart",
+          "player": "Ermedin Demirovic",
+          "minute": "32'"
+        }
+      ]
+    },
+    "ucl-liverpool-atletico-madrid": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Marcos Llorente",
+          "minute": "17'"
+        },
+        {
+          "team": "liverpool",
+          "player": "Dominik Szoboszlai",
+          "minute": "40'"
+        },
+        {
+          "team": "liverpool",
+          "player": "Alexis Mac Allister",
+          "minute": "50'"
+        }
+      ]
+    },
+    "ucl-napoli-arsenal": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "arsenal",
+          "player": "Martin Ødegaard",
+          "minute": "75'"
+        }
+      ]
+    },
+    "ucl-psg-slovan-bratislava": {
+      "liveStatus": null,
+      "score": {
+        "home": 6,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "psg",
+          "player": "Ousmane Dembélé",
+          "minute": "17'"
+        },
+        {
+          "team": "psg",
+          "player": "Ousmane Dembélé",
+          "minute": "23'"
+        },
+        {
+          "team": "psg",
+          "player": "Ferran Torres",
+          "minute": "31'"
+        },
+        {
+          "team": "psg",
+          "player": "Ferran Torres",
+          "minute": "47'"
+        },
+        {
+          "team": "psg",
+          "player": "Ferran Torres",
+          "minute": "57'"
+        },
+        {
+          "team": "slovan-bratislava",
+          "player": "Suleiman Camara",
+          "minute": "58'"
+        },
+        {
+          "team": "psg",
+          "player": "Fabián Ruiz",
+          "minute": "87'"
+        }
+      ]
+    },
+    "ucl-sporting-cp-galatasaray": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "galatasaray",
+          "player": "Gonçalo Inácio",
+          "minute": "5'",
+          "ownGoal": true
+        },
+        {
+          "team": "sporting-cp",
+          "player": "Geny Catamo",
+          "minute": "27'"
+        },
+        {
+          "team": "sporting-cp",
+          "player": "Luis Suárez",
+          "minute": "57'",
+          "penalty": true
+        },
+        {
+          "team": "sporting-cp",
+          "player": "Rodrigo Zalazar",
+          "minute": "63'"
+        }
+      ]
+    },
+    "ucl-fenerbahce-roma": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-psv-shakhtar": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-bayern-munich-bodo-glimt": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-como-rb-leipzig": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-manchester-united-sabah": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-slavia-prague-lens": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lens-sporting-cp": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-sabah-slavia-prague": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-arsenal-lille": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-atletico-madrid-manchester-united": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-galatasaray-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-inter-club-brugge": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-rb-leipzig-psv": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-viking-bayern-munich": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-villarreal-napoli": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-feyenoord-como": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lask-liverpool": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-aston-villa-fenerbahce": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-bodo-glimt-dortmund": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-manchester-city-psg": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-real-betis-porto": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-roma-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-shakhtar-aek-athens": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-slovan-bratislava-stuttgart": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-fenerbahce-slavia-prague": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-sabah-dortmund": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-liverpool-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-manchester-city-aek-athens": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-napoli-bodo-glimt": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-porto-psv": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-psg-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-roma-slovan-bratislava": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-stuttgart-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-como-manchester-united": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lille-galatasaray": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-aston-villa-viking": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-bayern-munich-arsenal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-club-brugge-lens": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-inter-shakhtar": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-real-betis-feyenoord": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-real-madrid-rb-leipzig": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-sporting-cp-lask": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-galatasaray-stuttgart": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-shakhtar-sporting-cp": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-atletico-madrid-bayern-munich": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-barcelona-aston-villa": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-bodo-glimt-lille": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-feyenoord-inter": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lask-slovan-bratislava": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-manchester-united-roma": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-villarreal-psg": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-aek-athens-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-fenerbahce-liverpool": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-dortmund-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lens-como": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-porto-napoli": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-psv-club-brugge": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-rb-leipzig-manchester-city": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-slavia-prague-arsenal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-viking-sabah": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-bodo-glimt-lask": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-galatasaray-aston-villa": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-arsenal-dortmund": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-como-aek-athens": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-feyenoord-porto": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-manchester-city-napoli": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-rb-leipzig-lens": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-real-madrid-psv": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-slovan-bratislava-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-sabah-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-slavia-prague-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-atletico-madrid-viking": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-club-brugge-liverpool": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-inter-stuttgart": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lille-bayern-munich": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-psg-roma": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-shakhtar-fenerbahce": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-sporting-cp-manchester-united": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-viking-feyenoord": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-villarreal-sabah": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-aek-athens-galatasaray": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-aston-villa-psg": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-barcelona-manchester-city": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-bayern-munich-slavia-prague": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-manchester-united-rb-leipzig": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-napoli-club-brugge": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-roma-sporting-cp": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-real-betis-como": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-slovan-bratislava-shakhtar": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-arsenal-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-dortmund-inter": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lask-fenerbahce": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lens-bodo-glimt": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-liverpool-porto": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-psv-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-stuttgart-lille": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-bodo-glimt-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-galatasaray-feyenoord": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-aek-athens-roma": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-aston-villa-dortmund": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-inter-liverpool": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lille-slovan-bratislava": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-porto-slavia-prague": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-real-madrid-lask": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-stuttgart-club-brugge": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-fenerbahce-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-sabah-napoli": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-como-psg": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lens-manchester-city": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-manchester-united-bayern-munich": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-rb-leipzig-shakhtar": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-real-betis-arsenal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-sporting-cp-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-viking-psv": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-arsenal-sabah": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-atletico-madrid-fenerbahce": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-barcelona-como": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-bayern-munich-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-club-brugge-bodo-glimt": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-dortmund-aek-athens": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-feyenoord-rb-leipzig": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-lask-porto": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-liverpool-lens": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-manchester-city-sporting-cp": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-napoli-viking": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-psg-galatasaray": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-psv-stuttgart": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-roma-lille": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-shakhtar-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-slavia-prague-aston-villa": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-slovan-bratislava-inter": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "ucl-villarreal-manchester-united": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    }
+  }
+}

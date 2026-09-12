@@ -26,6 +26,10 @@ The Worker still parses and reports conservative match windows for diagnostics:
 
 These windows no longer gate dispatch. They remain useful for checking whether the scheduler is running during expected result/highlight periods.
 
+Windows are parsed from `wc2026.ts` only. Club competitions run roughly year-round
+rather than in one burst, and dispatch is not window-gated, so they need no
+window source.
+
 ## Schedule source
 
 The Worker fetches and parses:
@@ -72,6 +76,7 @@ Optional plain variables:
 - `GITHUB_WORKFLOW`
 - `GITHUB_REF`
 - `SCHEDULE_URL`
+- `HOT_STATE_BASE_URL`
 
 Recommended values if unset:
 
@@ -150,11 +155,27 @@ This does not dispatch. It only reports:
 
 Hot-state endpoint:
 
-- `GET /api/hot-state/wc2026`
+- `GET /api/hot-state/{seasonId}`
 
-This proxies the generated `public/api/hot-state/wc2026.json` snapshot from
+This proxies the generated `public/api/hot-state/{seasonId}.json` snapshot from
 `main`, adds permissive CORS headers, and short-cache headers so the Render
 site can poll it directly without waiting for a full redeploy.
+
+`seasonId` is an allowlist, not a passthrough, so the Worker cannot be pointed
+at arbitrary `raw.githubusercontent.com` paths:
+
+- `wc2026` — World Cup
+- `eng1-2026` — Premier League
+- `esp1-2026` — La Liga
+- `ucl-2026` — Champions League
+
+An unknown season is a `404` with `error: unknown_season` (carrying CORS headers,
+so a browser sees the real status rather than a CORS failure) rather than a `502`.
+
+`wc2026` keeps honouring the single-season `HOT_STATE_URL` override, so its
+resolved source path — and therefore the `sourcePath` echoed in the payload —
+is unchanged from what the live site polls today. Club seasons always resolve
+against `HOT_STATE_BASE_URL`.
 
 Admin test endpoint:
 
@@ -189,3 +210,19 @@ Expected diagnostic signals:
 - `ok: true`
 - `insideWindow` reports whether the current time is inside a configured match polling window
 - `parsedMatchCount: 104` while `main` contains the full 2026 World Cup schedule
+- `hotStateSeasons` lists the four seasons the hot-state endpoint will serve
+
+## Run budget
+
+`update-results.yml` has `timeout-minutes: 58`. The loop inside it is budgeted to
+`LOOP_BUDGET_SECONDS=3000` (50 minutes) and paces itself to a true 5-minute
+period by sleeping only the *remainder* of each cycle, then refuses to start a
+cycle that the slowest cycle so far says would not finish in time.
+
+This matters because the loop previously tested its deadline *before* sleeping,
+so it could start one more cycle at `deadline + 300s` and overrun the job
+timeout — which is what cancelled run `34300459923` at 58m04s. With four
+competitions per cycle instead of one, that would have become the normal outcome.
+
+Finishing early costs no coverage: Cloudflare dispatches the next run within
+5 minutes of this one completing.

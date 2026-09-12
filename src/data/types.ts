@@ -17,8 +17,15 @@ export type GroupId = string
 export interface Team {
   id: TeamId
   name: string
-  /** Flag emoji, e.g. "🇦🇷". */
-  flag: string
+  /**
+   * Flag emoji, e.g. "🇦🇷". National teams only — clubs carry a crest asset
+   * instead and fall back to a `shortName` monogram, so this is optional.
+   */
+  flag?: string
+  /** Compact label for tight surfaces and the monogram fallback, e.g. "LIV". */
+  shortName?: string
+  /** ESPN's numeric team id. Ingest-only; nothing in the UI reads it. */
+  espnId?: string
 }
 
 export type VideoKind = 'normal' | 'extended'
@@ -122,6 +129,12 @@ export type SlotRef =
 
 export interface KnockoutMatch {
   id: string
+  /**
+   * Set only on a leg of a two-legged tie. Legs stay separate matches so each
+   * keeps its own date and lands on its own day in the Today view; the `Tie`
+   * holds whatever is only true of the pair (aggregate, who advanced).
+   */
+  tie?: { id: string; leg: 1 | 2 }
   /** Published schedule date, YYYY-MM-DD. UI dates derive from `kickoff`. */
   date: string
   /** Exact kickoff as UTC instant, e.g. "2022-12-18T15:00Z". */
@@ -150,12 +163,42 @@ export interface KnockoutMatch {
   videos?: HighlightVideo[]
 }
 
+/**
+ * A two-legged knockout tie (European club competitions). The two legs are
+ * ordinary `KnockoutMatch` entries carrying a `tie` back-reference; this holds
+ * only what the pair decides together.
+ *
+ * A `SlotRef` of `{ type: 'match-winner', match }` may name a tie id instead of
+ * a match id — the tie is what advances a team, not either individual leg.
+ */
+export interface Tie {
+  id: string
+  /** Leg match ids, in playing order. */
+  legs: [string, string]
+  /** Combined score across both legs. Absent until the tie is decided. */
+  aggregate?: Score
+  /** Shootout at the end of leg 2, when the aggregate finished level. */
+  penalties?: Score
+  /** Teams as they lined up in leg 1 (home = leg 1's home side). */
+  homeTeam?: TeamId
+  awayTeam?: TeamId
+  /**
+   * Stored rather than derived, for the same reason `KnockoutMatch.homeTeam`
+   * is: it lets the validator cross-check the aggregate instead of trusting
+   * our reading of it.
+   */
+  winner?: TeamId
+}
+
 export interface KnockoutRound {
   /** e.g. 'r32', 'r16', 'qf', 'sf', 'third-place', 'final' */
   id: string
   name: string
   matches: KnockoutMatch[]
 }
+
+/** Ordered comparisons applied after points to separate level teams. */
+export type Tiebreak = 'head-to-head' | 'goal-difference' | 'goals-for' | 'wins'
 
 export interface Group {
   id: GroupId
@@ -182,6 +225,22 @@ export interface Tournament {
   groupMatches: GroupMatch[]
   /** Ordered first round → final (third-place playoff before the final). */
   knockoutRounds: KnockoutRound[]
+  /** Two-legged ties, flat across all rounds. Single-leg rounds don't appear. */
+  ties?: Tie[]
+  /**
+   * Applied after points. Absent means ['goal-difference', 'goals-for'], which
+   * is what the World Cup and the Premier League both use. La Liga is the
+   * outlier: it settles level teams head-to-head first.
+   */
+  tiebreakers?: Tiebreak[]
+  /**
+   * Heading for a single-table competition, e.g. 'Table' or 'League phase'.
+   * Absent means the tournament is played in groups. Nothing else configures
+   * shape: a single table is `groups.length === 1`, and the knockouts tab
+   * appears when `knockoutRounds` is non-empty — derived, so config can never
+   * contradict the data.
+   */
+  tableLabel?: string
 }
 
 /** Winner of a knockout match (null while unplayed), accounting for shootouts. */
@@ -195,4 +254,33 @@ export function matchLoser(m: KnockoutMatch): TeamId | null {
   const winner = matchWinner(m)
   if (winner === null) return null
   return winner === m.homeTeam ? m.awayTeam! : m.homeTeam!
+}
+
+export function findTie(t: Tournament, id: string): Tie | null {
+  return t.ties?.find((x) => x.id === id) ?? null
+}
+
+/** The tie a match is a leg of, or null for single-leg matches. */
+export function tieOf(t: Tournament, m: KnockoutMatch): Tie | null {
+  return m.tie ? findTie(t, m.tie.id) : null
+}
+
+/**
+ * Winner of a two-legged tie (null while undecided): aggregate first, then the
+ * leg-2 shootout when it finished level. Prefers the stored `winner` so a
+ * competition with its own rules (away goals, in the years those applied)
+ * doesn't depend on us re-deriving them.
+ */
+export function tieWinner(tie: Tie): TeamId | null {
+  if (tie.winner !== undefined) return tie.winner
+  if (tie.homeTeam === undefined || tie.awayTeam === undefined) return null
+  const decider = tie.penalties ?? tie.aggregate
+  if (!decider || decider.home === decider.away) return null
+  return decider.home > decider.away ? tie.homeTeam : tie.awayTeam
+}
+
+export function tieLoser(tie: Tie): TeamId | null {
+  const winner = tieWinner(tie)
+  if (winner === null) return null
+  return winner === tie.homeTeam ? tie.awayTeam! : tie.homeTeam!
 }

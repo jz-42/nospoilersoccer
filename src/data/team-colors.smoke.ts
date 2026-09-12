@@ -1,5 +1,7 @@
+import { clubColors } from './club-colors'
+import { clubs } from './club/clubs'
 import { tournaments } from './index'
-import { matchTint, teamColors } from './team-colors'
+import { matchTint, paletteFor, teamColors } from './team-colors'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -8,21 +10,39 @@ function assert(condition: boolean, message: string) {
 
 const HEX = /^#[0-9a-f]{6}$/
 
-// Every team in every tournament must have a palette, or its modal renders
-// untinted. This is the guard that keeps the table in step with the rosters.
-for (const t of Object.values(tournaments)) {
-  for (const id of Object.keys(t.teams)) {
-    const palette = teamColors[id]
-    assert(Boolean(palette), `${t.year}: ${id} (${t.teams[id].name}) has a color palette`)
+// Every team the site can show must have a palette, or its modal renders
+// untinted. This is the guard that keeps the tables in step with the rosters.
+//
+// Club seasons are lazy chunks and `tournaments` only holds what ships in the
+// bundle, so they can't be reached the way the World Cup is. The shared club
+// registry is the roster instead — every club in it plays somewhere, and a
+// club in two competitions is one entry, so checking it covers all of them.
+const rosters: [string, Record<string, { name: string }>][] = [
+  ...Object.values(tournaments).map(
+    (t) => [String(t.year), t.teams] as [string, Record<string, { name: string }>],
+  ),
+  ['clubs', clubs],
+]
+for (const [label, teams] of rosters) {
+  for (const id of Object.keys(teams)) {
+    const palette = paletteFor(id)
+    assert(Boolean(palette), `${label}: ${id} (${teams[id].name}) has a color palette`)
     assert(
-      palette[0] !== palette[1],
+      palette![0] !== palette![1],
       `${id} primary and secondary differ (gives the side some depth)`,
     )
   }
 }
 
-for (const [id, palette] of Object.entries(teamColors)) {
+for (const [id, palette] of [...Object.entries(teamColors), ...Object.entries(clubColors)]) {
   assert(HEX.test(palette[0]) && HEX.test(palette[1]), `${id} palette is two #rrggbb hexes`)
+}
+
+// The two tables are merged by one lookup, so a shared key would silently
+// shadow a country. Countries are uppercase codes and clubs lowercase slugs,
+// which makes that impossible — assert it rather than trust it.
+for (const id of Object.keys(clubColors)) {
+  assert(teamColors[id] === undefined, `club id ${id} does not collide with a country code`)
 }
 
 // matchTint only sets the variables for sides whose team is known, so an

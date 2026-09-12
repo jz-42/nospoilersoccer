@@ -1,5 +1,5 @@
 import type { GroupId, KnockoutMatch, Tournament } from './types'
-import { matchLoser, matchWinner } from './types'
+import { findTie, matchLoser, matchWinner, tieLoser, tieWinner } from './types'
 import { groupStandings } from './standings'
 import { FIFA_WC2026_KICKOFFS } from './wc2026-official-schedule'
 import { localDateKey } from '../time/local'
@@ -125,11 +125,28 @@ export function validateTournament(t: Tournament): string[] {
   for (const m of t.groupMatches) checkGoals(m, m.home, m.away)
   for (const r of t.knockoutRounds) for (const m of r.matches) checkGoals(m, m.homeTeam, m.awayTeam)
 
-  // Every pair in a group should meet exactly once.
+  // A group's fixture list has to be balanced: every team plays the same
+  // number of matches. That is the rule all three shapes share — a World Cup
+  // group plays a single round robin, a league a double one, and the Champions
+  // League league phase gives all 36 teams eight opponents out of 35 — so it
+  // is checked instead of any one formula. It still catches what matters: a
+  // dropped or duplicated fixture leaves some team's count off.
   for (const g of t.groups) {
-    const expected = (g.teams.length * (g.teams.length - 1)) / 2
-    const actual = t.groupMatches.filter((m) => m.group === g.id).length
-    if (actual !== expected) err(`group ${g.id} has ${actual} matches, expected ${expected}`)
+    const played = new Map(g.teams.map((id) => [id, 0]))
+    for (const m of t.groupMatches) {
+      if (m.group !== g.id) continue
+      played.set(m.home, (played.get(m.home) ?? 0) + 1)
+      played.set(m.away, (played.get(m.away) ?? 0) + 1)
+    }
+    const counts = [...played.values()]
+    const most = Math.max(...counts)
+    if (counts.some((n) => n !== most)) {
+      const short = [...played.entries()]
+        .filter(([, n]) => n !== most)
+        .map(([id, n]) => `${id} ${n}`)
+        .join(', ')
+      err(`group ${g.id} fixtures are unbalanced: most teams play ${most}, but ${short}`)
+    }
   }
 
   // A group's final standings are only checkable once all its games are played.
@@ -210,12 +227,22 @@ export function validateTournament(t: Tournament): string[] {
           }
           case 'match-winner':
           case 'match-loser': {
-            const source = knockoutById.get(side.match)
-            if (!source) {
+            // The ref may name a tie instead of a match: what advances a team
+            // out of a two-legged round is the tie, not either leg. Same rule,
+            // resolved one level up.
+            const sourceTie = findTie(t, side.match)
+            const source = sourceTie ? null : knockoutById.get(side.match)
+            if (!source && !sourceTie) {
               err(`match ${m.id} ${label} slot references unknown match ${side.match}`)
               break
             }
-            const resolved = side.type === 'match-winner' ? matchWinner(source) : matchLoser(source)
+            const resolved = sourceTie
+              ? side.type === 'match-winner'
+                ? tieWinner(sourceTie)
+                : tieLoser(sourceTie)
+              : side.type === 'match-winner'
+                ? matchWinner(source!)
+                : matchLoser(source!)
             if (resolved === null) {
               if (actualTeam !== undefined)
                 err(`match ${m.id} ${label}: team ${actualTeam} set before ${side.match} was decided`)
@@ -243,10 +270,108 @@ export function validateTournament(t: Tournament): string[] {
         err(`match ${m.id} has penalties but afterExtraTime is not set`)
       if (m.penalties && m.penalties.home === m.penalties.away)
         err(`match ${m.id} penalties are level (${m.penalties.home}-${m.penalties.away})`)
-      if (!m.penalties && m.score.home === m.score.away)
+      // A single-leg knockout must produce a winner on the day. A leg of a
+      // two-legged tie must not: a drawn first leg is the most ordinary result
+      // in the competition, and only the aggregate has to separate the sides.
+      if (!m.penalties && !m.tie && m.score.home === m.score.away)
         err(`knockout match ${m.id} is level (${m.score.home}-${m.score.away}) with no penalties`)
     }
   }
 
+  validateTies(t, knockoutById, teamIds, err)
+
   return errors
+}
+
+/**
+ * Two-legged ties. The legs are validated as ordinary knockout matches above;
+ * this checks only what the pair has to agree on — that both legs exist, name
+ * this tie back, are played in order by the same two teams with home advantage
+ * swapped, and that the recorded aggregate and winner match the legs' scores.
+ *
+ * The redundancy is deliberate, the same bet `KnockoutMatch.homeTeam` makes:
+ * storing the aggregate *and* deriving it means a bad ingest is caught here
+ * rather than shown to someone as a result.
+ */
+function validateTies(
+  t: Tournament,
+  knockoutById: Map<string, KnockoutMatch>,
+  teamIds: Set<string>,
+  err: (msg: string) => void,
+): void {
+  const tieIds = new Set<string>()
+  for (const tie of t.ties ?? []) {
+    if (tieIds.has(tie.id)) err(`duplicate tie id ${tie.id}`)
+    tieIds.add(tie.id)
+
+    for (const side of ['homeTeam', 'awayTeam'] as const) {
+      const id = tie[side]
+      if (id !== undefined && !teamIds.has(id)) err(`tie ${tie.id} ${side} ${id} is not a team`)
+    }
+    if (tie.winner !== undefined && tie.winner !== tie.homeTeam && tie.winner !== tie.awayTeam)
+      err(`tie ${tie.id} winner ${tie.winner} did not play in the tie`)
+
+    const legs = tie.legs.map((id) => knockoutById.get(id))
+    legs.forEach((leg, i) => {
+      if (!leg) {
+        err(`tie ${tie.id} leg ${i + 1} references unknown match ${tie.legs[i]}`)
+        return
+      }
+      if (leg.tie?.id !== tie.id) err(`match ${leg.id} is a leg of ${tie.id} but does not say so`)
+      if (leg.tie?.leg !== i + 1) err(`match ${leg.id} is leg ${i + 1} of ${tie.id} but says ${leg.tie?.leg}`)
+    })
+
+    const [first, second] = legs
+    if (!first || !second) continue
+    if (second.date < first.date) err(`tie ${tie.id} leg 2 (${second.date}) is before leg 1 (${first.date})`)
+    // Home advantage swaps between legs — if it doesn't, we have the same
+    // fixture twice rather than a tie.
+    if (
+      first.homeTeam !== undefined &&
+      second.awayTeam !== undefined &&
+      first.homeTeam !== second.awayTeam
+    )
+      err(`tie ${tie.id} leg 1 host ${first.homeTeam} is not leg 2's visitor ${second.awayTeam}`)
+    if (
+      first.awayTeam !== undefined &&
+      second.homeTeam !== undefined &&
+      first.awayTeam !== second.homeTeam
+    )
+      err(`tie ${tie.id} leg 1 visitor ${first.awayTeam} is not leg 2's host ${second.homeTeam}`)
+    if (tie.homeTeam !== undefined && first.homeTeam !== undefined && tie.homeTeam !== first.homeTeam)
+      err(`tie ${tie.id} homeTeam ${tie.homeTeam} is not leg 1's host ${first.homeTeam}`)
+
+    if (!first.score || !second.score) {
+      if (tie.aggregate) err(`tie ${tie.id} has an aggregate before both legs were played`)
+      if (tie.winner !== undefined) err(`tie ${tie.id} has a winner before both legs were played`)
+      continue
+    }
+    // Aggregate is stated from leg 1's perspective, so leg 2's away score is
+    // the tie's home side.
+    const aggHome = first.score.home + second.score.away
+    const aggAway = first.score.away + second.score.home
+    if (tie.aggregate && (tie.aggregate.home !== aggHome || tie.aggregate.away !== aggAway))
+      err(
+        `tie ${tie.id} aggregate ${tie.aggregate.home}-${tie.aggregate.away} ` +
+          `does not match its legs (${aggHome}-${aggAway})`,
+      )
+    if (aggHome === aggAway && !tie.penalties)
+      err(`tie ${tie.id} finished level on aggregate (${aggHome}-${aggAway}) with no shootout`)
+    if (aggHome !== aggAway && tie.penalties)
+      err(`tie ${tie.id} has a shootout but was not level on aggregate (${aggHome}-${aggAway})`)
+    if (tie.penalties && tie.penalties.home === tie.penalties.away)
+      err(`tie ${tie.id} penalties are level (${tie.penalties.home}-${tie.penalties.away})`)
+    if (tie.winner !== undefined) {
+      const decider = tie.penalties ?? { home: aggHome, away: aggAway }
+      const derived = decider.home > decider.away ? tie.homeTeam : tie.awayTeam
+      if (derived !== undefined && derived !== tie.winner)
+        err(`tie ${tie.id} winner ${tie.winner} disagrees with its scores (${derived} won)`)
+    }
+  }
+
+  // A leg that no tie claims would never unlock, because the leg gate resolves
+  // through the tie.
+  for (const m of knockoutById.values()) {
+    if (m.tie && !tieIds.has(m.tie.id)) err(`match ${m.id} references unknown tie ${m.tie.id}`)
+  }
 }

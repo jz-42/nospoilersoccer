@@ -3,12 +3,16 @@ import test from 'node:test'
 import { readFileSync } from 'node:fs'
 
 import type { Tournament } from './types'
+import type { TournamentHotState } from './hot-state'
 import {
   buildTournamentHotState,
   applyHotStatePollFailure,
   applyTournamentHotState,
   parseTournamentHotState,
 } from './hot-state'
+import { eng1_2026 } from './club/eng1-2026'
+import { esp1_2026 } from './club/esp1-2026'
+import { ucl_2026 } from './club/ucl-2026'
 import { wc2026 as wc2026Base } from './wc2026'
 
 function sampleTournament(): Tournament {
@@ -74,6 +78,47 @@ test('buildTournamentHotState keeps only hot match fields', () => {
   })
 })
 
+test('hot state carries completed tie aggregates so the next round can unlock live', () => {
+  const tournament = sampleTournament()
+  tournament.ties = [
+    {
+      id: 'r32-1',
+      legs: ['m79', 'm80'],
+      homeTeam: 'MEX',
+      awayTeam: 'ECU',
+    },
+  ]
+
+  const built = buildTournamentHotState(tournament) as TournamentHotState & {
+    ties?: Record<string, unknown>
+  }
+  assert.deepEqual(built.ties?.['r32-1'], {
+    aggregate: null,
+    penalties: null,
+    homeTeam: 'MEX',
+    awayTeam: 'ECU',
+    winner: null,
+  })
+
+  const merged = applyTournamentHotState(
+    tournament,
+    {
+      ...built,
+      ties: {
+        'r32-1': {
+          aggregate: { home: 3, away: 2 },
+          penalties: null,
+          homeTeam: 'MEX',
+          awayTeam: 'ECU',
+          winner: 'MEX',
+        },
+      },
+    } as unknown as TournamentHotState,
+  )
+  assert.deepEqual(merged.ties?.[0].aggregate, { home: 3, away: 2 })
+  assert.equal(merged.ties?.[0].winner, 'MEX')
+})
+
 test('applyTournamentHotState clears stale live status and overlays finished results', () => {
   const tournament = sampleTournament()
   const merged = applyTournamentHotState(tournament, {
@@ -92,12 +137,14 @@ test('applyTournamentHotState clears stale live status and overlays finished res
   assert.deepEqual(merged.groupMatches[0].goals, [{ team: 'FRA', player: 'Kylian Mbappe', minute: "18'" }])
 })
 
-test('committed wc2026 hot-state snapshot matches the current tournament data', () => {
-  const snapshotText = readFileSync('public/api/hot-state/wc2026.json', 'utf8')
-  const committed = JSON.parse(snapshotText)
-  const generated = buildTournamentHotState(wc2026Base)
+test('every live-polled season has a committed hot-state snapshot matching its tournament data', () => {
+  for (const tournament of [wc2026Base, eng1_2026, esp1_2026, ucl_2026]) {
+    const snapshotText = readFileSync(`public/api/hot-state/${tournament.id}.json`, 'utf8')
+    const committed = JSON.parse(snapshotText)
+    const generated = buildTournamentHotState(tournament)
 
-  assert.deepEqual(committed, generated)
+    assert.deepEqual(committed, generated, tournament.id)
+  }
 })
 
 test('parseTournamentHotState rejects malformed payloads', () => {

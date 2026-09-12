@@ -68,10 +68,15 @@ assert(
   'App initializes from tournament phase',
 )
 assert(
-  appSource.includes('setTab(defaultTournamentView(tournaments[id]))'),
-  'tournament switching resets to its phase default',
+  appSource.includes('key={seasonId}'),
+  'switching season remounts, so the tab resets to that season’s phase default',
 )
-assert(appSource.includes('{dayTabLabel(t)}'), 'App renders the phase-aware day label')
+assert(
+  appSource.includes('availableViews(t).map('),
+  'App derives its tabs from the competition shape',
+)
+assert(appSource.includes('dayTabLabel(t)'), 'App renders the phase-aware day label')
+assert(appSource.includes('tableTabLabel(t)'), 'App renders the shape-aware table label')
 assert(
   railSource.includes('const anchorDate = dayRailInitialDate(t, now)'),
   'Rail uses the phase-aware anchor date',

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { tournaments } from '../data'
+import { wc2022 } from '../data/wc2022'
 import { ChampionMoment } from './Champion'
 
 function assert(condition: boolean, message: string) {
@@ -9,7 +10,6 @@ function assert(condition: boolean, message: string) {
 }
 
 const wc2026 = tournaments.wc2026
-const wc2022 = tournaments.wc2022
 const spain = wc2026.teams.ESP
 const argentina = wc2022.teams.ARG
 const championSource = readFileSync(new URL('./Champion.tsx', import.meta.url), 'utf8')
