@@ -704,18 +704,57 @@
       ]
     },
     "eng1-aston-villa-nottingham-forest": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "nottingham-forest",
+          "player": "Liam Delap",
+          "minute": "46'"
+        },
+        {
+          "team": "aston-villa",
+          "player": "Alysson",
+          "minute": "74'"
+        },
+        {
+          "team": "nottingham-forest",
+          "player": "Igor Jesus",
+          "minute": "88'"
+        }
+      ]
     },
     "eng1-bournemouth-brentford": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "brentford",
+          "player": "Kevin Schade",
+          "minute": "34'"
+        },
+        {
+          "team": "bournemouth",
+          "player": "Justin Kluivert",
+          "minute": "38'"
+        },
+        {
+          "team": "bournemouth",
+          "player": "Marcus Tavernier",
+          "minute": "52'"
+        },
+        {
+          "team": "brentford",
+          "player": "Kevin Schade",
+          "minute": "56'"
+        }
+      ]
     },
     "eng1-chelsea-hull": {
       "liveStatus": null,
@@ -747,11 +786,38 @@
       ]
     },
     "eng1-crystal-palace-ipswich": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 3
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "crystal-palace",
+          "player": "Anan Khalaili",
+          "minute": "14'"
+        },
+        {
+          "team": "ipswich",
+          "player": "Emersonn",
+          "minute": "23'"
+        },
+        {
+          "team": "ipswich",
+          "player": "Leif Davis",
+          "minute": "45'"
+        },
+        {
+          "team": "crystal-palace",
+          "player": "Jørgen Strand Larsen",
+          "minute": "75'"
+        },
+        {
+          "team": "ipswich",
+          "player": "Zian Flemming",
+          "minute": "90'"
+        }
+      ]
     },
     "eng1-liverpool-fulham": {
       "liveStatus": null,
