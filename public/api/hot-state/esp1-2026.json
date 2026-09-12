@@ -1074,11 +1074,39 @@
       ]
     },
     "esp1-real-madrid-rayo-vallecano": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "real-madrid",
+          "player": "Kylian Mbappé",
+          "minute": "14'",
+          "penalty": true
+        },
+        {
+          "team": "real-madrid",
+          "player": "Álvaro Carreras",
+          "minute": "17'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Jude Bellingham",
+          "minute": "35'"
+        },
+        {
+          "team": "rayo-vallecano",
+          "player": "Sergio Camello",
+          "minute": "51'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Kylian Mbappé",
+          "minute": "90'+1'"
+        }
+      ]
     },
     "esp1-celta-vigo-malaga": {
       "liveStatus": null,
