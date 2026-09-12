@@ -828,11 +828,12 @@
       "goals": []
     },
     "eng1-tottenham-everton": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null
+      "goals": []
     },
     "eng1-sunderland-arsenal": {
       "liveStatus": null,
