@@ -836,7 +836,9 @@
       "goals": []
     },
     "eng1-sunderland-arsenal": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
