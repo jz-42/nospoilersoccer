@@ -1035,11 +1035,23 @@
       ]
     },
     "esp1-osasuna-espanyol": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "espanyol",
+          "player": "Roberto Fernández",
+          "minute": "3'"
+        },
+        {
+          "team": "espanyol",
+          "player": "Roberto Fernández",
+          "minute": "17'"
+        }
+      ]
     },
     "esp1-athletic-club-elche": {
       "liveStatus": null,
