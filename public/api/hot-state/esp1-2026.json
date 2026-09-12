@@ -1054,7 +1054,9 @@
       ]
     },
     "esp1-athletic-club-elche": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
