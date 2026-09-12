@@ -718,11 +718,33 @@
       "goals": null
     },
     "eng1-chelsea-hull": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "chelsea",
+          "player": "Morgan Rogers",
+          "minute": "7'"
+        },
+        {
+          "team": "hull",
+          "player": "Mohamed Belloumi",
+          "minute": "28'"
+        },
+        {
+          "team": "hull",
+          "player": "Mohamed Belloumi",
+          "minute": "34'"
+        },
+        {
+          "team": "chelsea",
+          "player": "João Pedro",
+          "minute": "66'"
+        }
+      ]
     },
     "eng1-crystal-palace-ipswich": {
       "liveStatus": {
@@ -732,11 +754,12 @@
       "goals": null
     },
     "eng1-liverpool-fulham": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null
+      "goals": []
     },
     "eng1-tottenham-everton": {
       "liveStatus": null,
