@@ -347,33 +347,172 @@
     },
     "ucl-fenerbahce-roma": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "roma",
+          "player": "Bryan Cristante",
+          "minute": "39'"
+        },
+        {
+          "team": "fenerbahce",
+          "player": "Archie Brown",
+          "minute": "48'"
+        }
+      ]
     },
     "ucl-psv-shakhtar": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "shakhtar",
+          "player": "Gleiker Mendoza",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "psv",
+          "player": "Sergiño Dest",
+          "minute": "48'"
+        }
+      ]
     },
     "ucl-bayern-munich-bodo-glimt": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 5,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "bayern-munich",
+          "player": "Jamal Musiala",
+          "minute": "47'"
+        },
+        {
+          "team": "bayern-munich",
+          "player": "Harry Kane",
+          "minute": "61'"
+        },
+        {
+          "team": "bayern-munich",
+          "player": "Alphonso Davies",
+          "minute": "77'"
+        },
+        {
+          "team": "bayern-munich",
+          "player": "Michael Olise",
+          "minute": "83'"
+        },
+        {
+          "team": "bayern-munich",
+          "player": "Michael Olise",
+          "minute": "90'+2'"
+        }
+      ]
     },
     "ucl-como-rb-leipzig": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "como",
+          "player": "Martin Baturina",
+          "minute": "15'"
+        },
+        {
+          "team": "como",
+          "player": "Anastasios Douvikas",
+          "minute": "38'"
+        },
+        {
+          "team": "como",
+          "player": "Assane Diao",
+          "minute": "54'"
+        },
+        {
+          "team": "rb-leipzig",
+          "player": "Andrija Maksimovic",
+          "minute": "58'"
+        },
+        {
+          "team": "como",
+          "player": "Máximo Perrone",
+          "minute": "90'"
+        }
+      ]
     },
     "ucl-manchester-united-sabah": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 4,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "manchester-united",
+          "player": "Matheus Cunha",
+          "minute": "27'"
+        },
+        {
+          "team": "manchester-united",
+          "player": "Bruno Fernandes",
+          "minute": "42'"
+        },
+        {
+          "team": "manchester-united",
+          "player": "Benjamin Sesko",
+          "minute": "45'"
+        },
+        {
+          "team": "manchester-united",
+          "player": "Lisandro Martínez",
+          "minute": "68'"
+        }
+      ]
     },
     "ucl-slavia-prague-lens": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "slavia-prague",
+          "player": "Danijel Sturm",
+          "minute": "51'"
+        },
+        {
+          "team": "lens",
+          "player": "Abdallah Sima",
+          "minute": "73'"
+        },
+        {
+          "team": "slavia-prague",
+          "player": "Danijel Sturm",
+          "minute": "88'"
+        },
+        {
+          "team": "lens",
+          "player": "Florian Thauvin",
+          "minute": "90'+1'"
+        },
+        {
+          "team": "lens",
+          "player": "Ruben Aguilar",
+          "minute": "90'+3'"
+        }
+      ]
     },
     "ucl-lens-sporting-cp": {
       "liveStatus": null,

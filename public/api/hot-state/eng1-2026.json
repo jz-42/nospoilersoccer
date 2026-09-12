@@ -704,27 +704,37 @@
       ]
     },
     "eng1-aston-villa-nottingham-forest": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "eng1-bournemouth-brentford": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "eng1-chelsea-hull": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "eng1-crystal-palace-ipswich": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "eng1-liverpool-fulham": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
@@ -1358,16 +1368,6 @@
       "score": null,
       "goals": null
     },
-    "eng1-coventry-chelsea": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-crystal-palace-arsenal": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
     "eng1-everton-sunderland": {
       "liveStatus": null,
       "score": null,
@@ -1378,22 +1378,7 @@
       "score": null,
       "goals": null
     },
-    "eng1-hull-liverpool": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
     "eng1-ipswich-brentford": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-manchester-united-nottingham-forest": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-newcastle-manchester-city": {
       "liveStatus": null,
       "score": null,
       "goals": null
@@ -1403,7 +1388,42 @@
       "score": null,
       "goals": null
     },
-    "eng1-aston-villa-liverpool": {
+    "eng1-hull-liverpool": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-newcastle-manchester-city": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-coventry-chelsea": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-manchester-united-nottingham-forest": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-crystal-palace-arsenal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-hull-leeds": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-tottenham-brighton": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-everton-manchester-city": {
       "liveStatus": null,
       "score": null,
       "goals": null
@@ -1418,22 +1438,7 @@
       "score": null,
       "goals": null
     },
-    "eng1-everton-manchester-city": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
     "eng1-fulham-arsenal": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-hull-leeds": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-ipswich-chelsea": {
       "liveStatus": null,
       "score": null,
       "goals": null
@@ -1448,32 +1453,12 @@
       "score": null,
       "goals": null
     },
-    "eng1-tottenham-brighton": {
+    "eng1-aston-villa-liverpool": {
       "liveStatus": null,
       "score": null,
       "goals": null
     },
-    "eng1-arsenal-ipswich": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-bournemouth-aston-villa": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-brentford-crystal-palace": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-brighton-manchester-united": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-chelsea-newcastle": {
+    "eng1-ipswich-chelsea": {
       "liveStatus": null,
       "score": null,
       "goals": null
@@ -1483,12 +1468,22 @@
       "score": null,
       "goals": null
     },
-    "eng1-liverpool-coventry": {
+    "eng1-brighton-manchester-united": {
       "liveStatus": null,
       "score": null,
       "goals": null
     },
-    "eng1-manchester-city-tottenham": {
+    "eng1-arsenal-ipswich": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-brentford-crystal-palace": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-liverpool-coventry": {
       "liveStatus": null,
       "score": null,
       "goals": null
@@ -1503,6 +1498,21 @@
       "score": null,
       "goals": null
     },
+    "eng1-bournemouth-aston-villa": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-chelsea-newcastle": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-manchester-city-tottenham": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
     "eng1-arsenal-brentford": {
       "liveStatus": null,
       "score": null,
@@ -1513,12 +1523,22 @@
       "score": null,
       "goals": null
     },
-    "eng1-crystal-palace-chelsea": {
+    "eng1-everton-aston-villa": {
       "liveStatus": null,
       "score": null,
       "goals": null
     },
-    "eng1-everton-aston-villa": {
+    "eng1-nottingham-forest-hull": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-sunderland-liverpool": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "eng1-crystal-palace-chelsea": {
       "liveStatus": null,
       "score": null,
       "goals": null
@@ -1539,16 +1559,6 @@
       "goals": null
     },
     "eng1-manchester-united-newcastle": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-nottingham-forest-hull": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "eng1-sunderland-liverpool": {
       "liveStatus": null,
       "score": null,
       "goals": null
