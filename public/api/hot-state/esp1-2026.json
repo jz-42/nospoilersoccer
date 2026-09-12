@@ -1074,7 +1074,9 @@
       ]
     },
     "esp1-real-madrid-rayo-vallecano": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
