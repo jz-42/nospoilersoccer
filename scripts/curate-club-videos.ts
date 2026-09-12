@@ -5,7 +5,17 @@
  *   npx tsx scripts/curate-club-videos.ts --dry-run     # decide, write nothing
  *   npx tsx scripts/curate-club-videos.ts --competition ucl
  *
- * Source is CBS Sports Golazo on YouTube, one cut per match, `kind: 'normal'`.
+ * One cut per match, `kind: 'normal'`, from whichever rights holder publishes
+ * that competition:
+ *
+ *   ucl   CBS Sports Golazo   "Arsenal vs. Napoli: Extended Highlights | UCL …"
+ *   eng1  NBC Sports          "Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | 9/6/2026 | NBC Sports"
+ *   esp1  ESPN FC             "Athletic Club vs. Sevilla | LALIGA Highlights | ESPN FC"
+ *
+ * A source is trusted for the competitions it actually holds rights to and no
+ * others, so an NBC upload can never be offered to La Liga however its title
+ * reads. Each source owns its own title parser because the three shapes have
+ * nothing in common; everything downstream of the parse is shared.
  *
  * There is deliberately NO AI review on this path. The site never shows a
  * YouTube thumbnail — club highlights sit behind neutral cards — so the half of
@@ -13,8 +23,10 @@
  * here. Its replacement is the deterministic, fail-closed gate in
  * `acceptCandidate()`: a video is added only when ALL of
  *
- *   1. the channel is CBS Sports Golazo
- *   2. the title matches the full-match highlight pattern and names two clubs
+ *   1. the channel is the source we scanned, and that source covers this
+ *      competition
+ *   2. the title matches that source's full-match highlight shape and names
+ *      two clubs
  *   3. both clubs resolve to teams in *this* competition
  *   4. they map to EXACTLY ONE finished fixture still missing a cut
  *      (zero, or two or more, means skip)
@@ -29,27 +41,26 @@
  * The invariant, which predates this work and does not bend: the worst case is
  * a late or missing video, NEVER a spoiler.
  *
+ * ESPN FC and the editorial prefix. Golazo and NBC title their cuts to a fixed
+ * template; ESPN FC sometimes leads with a headline — "TITLE CLINCHER 🏆
+ * Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC" — and that headline can
+ * hint at a result. Those prefixed titles are rejected outright. The visible
+ * player still covers YouTube's title bar (see HighlightPlayer), but an iframe
+ * cover is not an absolute boundary for accessibility or native media surfaces,
+ * so it is defense in depth rather than permission to ingest a spoiler title.
+ *
  * NO DURATIONS, EVER. A club cut must not carry `durationSeconds`. That
  * omission is how "no runtime shown anywhere on a club match" is enforced — in
  * the data, not the UI — so adding the field back here would silently
  * reintroduce a runtime badge. `serializeVideo()` cannot emit it.
- *
- * Coverage note: Golazo carries the Champions League, Serie A and the English
- * cups, but CBS holds no Premier League or La Liga highlight rights, so in
- * practice eng1/esp1 find no candidates. They are still scanned — the gate is
- * what decides, not an assumption about the channel's schedule.
  */
 import { appendFileSync, writeFileSync } from 'fs'
 import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId, Tournament } from '../src/data/types'
-import { clubIdByName } from '../src/data/club/clubs'
+import { clubIdByName, clubs } from '../src/data/club/clubs'
 import { isPlayed } from '../src/logic/spoilers'
 import { CLUB_COMPETITIONS, SEASON_YEAR, pairKey, videosExportName, videosModulePath } from './espn-club'
 import type { ClubCompetitionConfig } from './espn-club'
 import { checkEmbeddable, getVideoMeta } from './youtube'
-
-/** CBS Sports Golazo; the uploads playlist is the channel id with UC→UU. */
-export const GOLAZO_CHANNEL_ID = 'UCET00YnetHT7tOpu12v8jxg'
-export const GOLAZO_UPLOADS_PLAYLIST = 'UU' + GOLAZO_CHANNEL_ID.slice(2)
 
 const API_KEY = process.env.YOUTUBE_API_KEY
 const API = 'https://www.googleapis.com/youtube/v3'
@@ -62,7 +73,72 @@ const onlyCompetition = (() => {
   return i === -1 ? null : process.argv[i + 1]
 })()
 
-// ---- title screening -------------------------------------------------------
+// ---- sources ---------------------------------------------------------------
+
+/** A matchup and its surroundings, as one source's titles express them. */
+export interface TitleParse {
+  homeName: string
+  awayName: string
+  /** Everything after the matchup, minus the source's own branding. */
+  context: string
+  /** `YYYY-MM-DD` when the title dates the fixture, else null. */
+  dateHint: string | null
+}
+
+export interface ClubVideoSource {
+  id: string
+  label: string
+  channelId: string
+  /** Competition ids this source holds highlight rights to, and no others. */
+  competitions: string[]
+  /**
+   * How many recent uploads to scan. A soccer-only channel needs a shallow
+   * window; a general-sports channel posting all day needs a deep one, or a
+   * Saturday's worth of football falls off the end before we look.
+   */
+  scanDepth: number
+  /** See the header — true for ESPN FC alone. */
+  rejectsLeadingPrefix: boolean
+  parse(title: string): TitleParse | null
+}
+
+/** Branding segments that are the channel signing its own work, not context. */
+function joinContext(tail: string, branding: RegExp): string {
+  return tail
+    .split('|')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && !branding.test(s))
+    .join(' | ')
+}
+
+const MONTHS = [
+  'january', 'february', 'march', 'april', 'may', 'june',
+  'july', 'august', 'september', 'october', 'november', 'december',
+]
+
+/**
+ * The match date a title prints, as `YYYY-MM-DD`, in either shape a US
+ * broadcaster uses: `9/6/2026` or `September 6, 2026`. Null when the title
+ * doesn't date the fixture, which is the common case and costs nothing — the
+ * date is a disambiguator, never a requirement.
+ */
+function titleDate(text: string): string | null {
+  const slash = text.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/)
+  if (slash) return iso(slash[3], Number(slash[1]), Number(slash[2]))
+
+  const long = text.match(/\b([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})\b/)
+  if (long) {
+    const month = MONTHS.findIndex((m) => m.startsWith(long[1].toLowerCase()))
+    if (month >= 0) return iso(long[3], month + 1, Number(long[2]))
+  }
+  return null
+}
+
+function iso(year: string, month: number, day: number): string | null {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null
+  const text = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  return Number.isFinite(Date.parse(`${text}T00:00:00Z`)) ? text : null
+}
 
 /**
  * Golazo's one trustworthy shape, e.g.
@@ -74,14 +150,110 @@ const onlyCompetition = (() => {
  * Everything else the channel posts — reaction shows, interviews, goal clips,
  * "UCL Today BEST BITS" — fails this pattern and is dropped before any fetch.
  */
-const HIGHLIGHT_RE = /^(.+?)\s+vs\.?\s+(.+?):\s+(?:Extended\s+)?Highlights\b(.*)$/i
+const GOLAZO_RE = /^(.+?)\s+vs\.?\s+(.+?):\s+(?:Extended\s+)?Highlights\b(.*)$/i
+
+/**
+ * NBC's Premier League template, e.g.
+ *   "Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | 9/6/2026 | NBC Sports"
+ *
+ * The competition segment is part of the pattern rather than a check further
+ * down, because NBC posts the same `A v. B | <COMPETITION> HIGHLIGHTS` shape for
+ * the NFL, NASCAR and the NWSL — matching the words "PREMIER LEAGUE" here is
+ * what keeps those out, and it costs no network call.
+ */
+const NBC_RE = /^([^|]+?)\s+vs?\.?\s+([^|]+?)\s*\|\s*(PREMIER\s+LEAGUE(?:\s+EXTENDED)?\s+HIGHLIGHTS\b.*)$/i
+
+/**
+ * ESPN FC's La Liga template, e.g.
+ *   "Athletic Club vs. Sevilla | LALIGA Highlights | ESPN FC"
+ *   "LALIGA SEASON OPENER 🚨 Getafe vs. Alaves | LALIGA Highlights | ESPN FC"
+ *
+ * The leading headline in the second form is rejected — see the header. The
+ * matchup is confined to one `|` segment, so a headline in its own segment does
+ * not parse either.
+ */
+const ESPNFC_RE = /^([^|]+?)\s+vs?\.?\s+([^|]+?)\s*\|\s*(LA\s?LIGA\s+(?:EXTENDED\s+)?HIGHLIGHTS\b.*)$/i
+
+export const GOLAZO_CHANNEL_ID = 'UCET00YnetHT7tOpu12v8jxg'
+export const NBC_CHANNEL_ID = 'UCqZQlzSHbVJrwrn5XvzrzcA'
+export const ESPNFC_CHANNEL_ID = 'UC6c1z7bA__85CIWZ_jpCK-Q'
+
+export const CLUB_VIDEO_SOURCES: Record<string, ClubVideoSource> = {
+  golazo: {
+    id: 'golazo',
+    label: 'CBS Sports Golazo',
+    channelId: GOLAZO_CHANNEL_ID,
+    competitions: ['ucl'],
+    scanDepth: 150,
+    rejectsLeadingPrefix: false,
+    parse(title) {
+      const m = title.match(GOLAZO_RE)
+      if (!m) return null
+      return {
+        homeName: m[1].trim(),
+        awayName: m[2].trim(),
+        context: joinContext(m[3], /^CBS\s+Sport/i),
+        dateHint: null,
+      }
+    },
+  },
+  nbc: {
+    id: 'nbc',
+    label: 'NBC Sports',
+    channelId: NBC_CHANNEL_ID,
+    competitions: ['eng1'],
+    // NBC posts every American sport it holds, all day; a weekend of Premier
+    // League is a thin slice of that.
+    scanDepth: 600,
+    rejectsLeadingPrefix: false,
+    parse(title) {
+      const m = title.match(NBC_RE)
+      if (!m) return null
+      return {
+        homeName: m[1].trim(),
+        awayName: m[2].trim(),
+        context: joinContext(m[3], /^NBC\s+Sport/i),
+        dateHint: titleDate(m[3]),
+      }
+    },
+  },
+  espnfc: {
+    id: 'espnfc',
+    label: 'ESPN FC',
+    channelId: ESPNFC_CHANNEL_ID,
+    competitions: ['esp1'],
+    scanDepth: 400,
+    rejectsLeadingPrefix: true,
+    parse(title) {
+      const m = title.match(ESPNFC_RE)
+      if (!m) return null
+      return {
+        homeName: m[1].trim(),
+        awayName: m[2].trim(),
+        context: joinContext(m[3], /^ESPN(\s+FC)?$/i),
+        // ESPN FC dates only some of its cuts; when it does, that date picks
+        // the right half of a home-and-away pair out on its own.
+        dateHint: titleDate(m[3]),
+      }
+    },
+  },
+}
+
+export const sourcesForCompetition = (competitionId: string): ClubVideoSource[] =>
+  Object.values(CLUB_VIDEO_SOURCES).filter((s) => s.competitions.includes(competitionId))
+
+/** The uploads playlist of a channel is its id with UC→UU. */
+export const uploadsPlaylistOf = (source: ClubVideoSource): string =>
+  'UU' + source.channelId.slice(2)
+
+// ---- title screening -------------------------------------------------------
 
 /** Result-leaking wording. The title shape already excludes it; belt and braces. */
 const TITLE_SPOILER_RE =
   /\d\s*[-–]\s*\d|\b(beat|beats|win|wins|won|loss|lose|loses|drew|draws|advance|advances|eliminat|knock(?:ed)? out|stunn|thrash|comeback)\b/i
 
 /**
- * Competitions Golazo covers that are NOT ours. Two clubs can be in our UCL
+ * Competitions a source covers that are NOT ours. Two clubs can be in our UCL
  * registry and still meet in Serie A or the Carabao Cup, so a domestic cut
  * could otherwise be mistaken for a European one. Rejection-only, so it can
  * never open the gate — it only closes it further.
@@ -97,11 +269,11 @@ const COMPETITION_TAG_RE: Record<string, RegExp> = {
 }
 
 /**
- * Round labels as Golazo writes them. A generic label ("Round of 16") is a weak
- * signal on its own — plenty of competitions have one — so a title carrying
- * only a round label is accepted just for the round it names, and the fixture
- * lookup then has to find the pair in exactly that round. A title carrying
- * `UCL` needs no such corroboration.
+ * Round labels as the sources write them. A generic label ("Round of 16") is a
+ * weak signal on its own — plenty of competitions have one — so a title
+ * carrying only a round label is accepted just for the round it names, and the
+ * fixture lookup then has to find the pair in exactly that round. A title
+ * carrying `UCL` needs no such corroboration.
  */
 const ROUND_TITLE_RE: Record<string, RegExp> = {
   'ko-playoff': /\bKnockout\s+(?:Round\s+)?Play-?offs?\b/i,
@@ -114,7 +286,7 @@ const ROUND_TITLE_RE: Record<string, RegExp> = {
 export interface TitleScreen {
   homeName: string
   awayName: string
-  /** Everything after "Highlights", minus CBS's own branding segments. */
+  /** Everything after the matchup, minus the source's own branding. */
   context: string
   /** Leg number when the title names one, else null. */
   leg: 1 | 2 | null
@@ -122,6 +294,8 @@ export interface TitleScreen {
   round: string | null
   /** The title named this competition outright, rather than only a round. */
   strongTag: boolean
+  /** `YYYY-MM-DD` when the title dates the fixture, else null. */
+  dateHint: string | null
 }
 
 export type ScreenResult =
@@ -132,27 +306,51 @@ export type ScreenResult =
   | { status: 'skip'; reason: string }
 
 /**
+ * The club named by the longest suffix of `raw` that resolves, as the registry
+ * writes it — the club name with any editorial headline in front of it
+ * stripped. Longest-first so "REAL MADRID SHOCKER 🚨 Espanyol" can only ever
+ * come back as Espanyol, and null when nothing in the tail is a club we know,
+ * which fails closed exactly like an unrecognised name.
+ */
+export function clubNameFromTail(raw: string): string | null {
+  const words = raw.trim().split(/\s+/)
+  for (let i = 0; i < words.length; i += 1) {
+    const id = clubIdByName(words.slice(i).join(' '))
+    if (id) return clubs[id].name
+  }
+  return null
+}
+
+/**
  * Everything decidable from the playlist title alone. Run first so the ~90% of
  * uploads that are talk shows and interviews cost no network calls at all.
  */
-export function screenTitle(config: ClubCompetitionConfig, title: string): ScreenResult {
-  const m = title.match(HIGHLIGHT_RE)
-  if (!m) return { status: 'ignore', reason: 'not a full-match highlight title' }
-  const [, homeName, awayName, tail] = m
+export function screenTitle(
+  config: ClubCompetitionConfig,
+  source: ClubVideoSource,
+  title: string,
+): ScreenResult {
+  if (!source.competitions.includes(config.id)) {
+    return { status: 'ignore', reason: `${source.label} does not cover ${config.id}` }
+  }
 
-  const context = tail
-    .split('|')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !/^CBS\s+Sport/i.test(s))
-    .join(' | ')
+  const parsed = source.parse(title)
+  if (!parsed) return { status: 'ignore', reason: 'not a full-match highlight title' }
+
+  const { homeName } = parsed
+  const { awayName, context, dateHint } = parsed
+  if (source.rejectsLeadingPrefix && !clubIdByName(homeName)) {
+    const tail = clubNameFromTail(homeName)
+    if (tail) return { status: 'skip', reason: 'editorial prefix is not spoiler-safe' }
+    return { status: 'skip', reason: 'title did not map to two known clubs' }
+  }
 
   if (FOREIGN_COMPETITION_RE.test(context)) {
     return { status: 'ignore', reason: 'another competition' }
   }
 
   const strongTag = COMPETITION_TAG_RE[config.id]?.test(context) ?? false
-  const round =
-    config.knockoutRounds.find((r) => ROUND_TITLE_RE[r.id]?.test(context))?.id ?? null
+  const round = config.knockoutRounds.find((r) => ROUND_TITLE_RE[r.id]?.test(context))?.id ?? null
   // A round-label-only title is trusted no further than the round it names, so
   // a same-pair league-phase fixture can never absorb a knockout cut.
   if (!strongTag && !round) return { status: 'ignore', reason: 'not this competition' }
@@ -166,12 +364,13 @@ export function screenTitle(config: ClubCompetitionConfig, title: string): Scree
   return {
     status: 'ok',
     screen: {
-      homeName: homeName.trim(),
+      homeName,
       awayName: awayName.trim(),
       context,
       leg: legMatch ? (Number(legMatch[1]) as 1 | 2) : null,
       round,
       strongTag,
+      dateHint,
     },
   }
 }
@@ -193,6 +392,8 @@ export type FixtureResult =
 
 const kickoffMs = (m: AnyMatch): number =>
   new Date(m.kickoff ?? `${m.date}T00:00:00Z`).getTime()
+
+const DAY_MS = 24 * 60 * 60 * 1000
 
 /**
  * The two clubs a fixture is between, or null while unknown. Knockout slots are
@@ -218,7 +419,7 @@ function roundIdOf(t: Tournament, m: AnyMatch): string | null {
  */
 export function findClubFixture(
   t: Tournament,
-  screen: Pick<TitleScreen, 'leg' | 'round' | 'strongTag'>,
+  screen: Pick<TitleScreen, 'leg' | 'round' | 'strongTag' | 'dateHint'>,
   home: TeamId,
   away: TeamId,
   publishedMs: number,
@@ -234,6 +435,18 @@ export function findClubFixture(
     return p !== null && pairKey(p[0], p[1]) === key
   })
   if (candidates.length === 0) return { status: 'none' }
+
+  // A dated title picks its own fixture out of a home-and-away pair. The window
+  // is a day either side because the date a broadcaster prints is its own local
+  // one, which straddles midnight UTC in both directions.
+  if (screen.dateHint) {
+    const hintMs = Date.parse(`${screen.dateHint}T00:00:00Z`)
+    const near = candidates.filter(
+      (m) => Math.abs(Date.parse(`${m.date}T00:00:00Z`) - hintMs) <= DAY_MS,
+    )
+    if (near.length === 0) return { status: 'none' }
+    candidates = near
+  }
 
   // A title that only named a round is trusted for that round and nothing else.
   if (screen.round !== null) {
@@ -261,12 +474,16 @@ export function findClubFixture(
   // A highlight is published after its match, never before.
   const after = played.filter((m) => publishedMs > kickoffMs(m))
   if (after.length === 0) return { status: 'early' }
+  // Existing cuts are not evidence about which fixture a new upload depicts.
+  // Resolve the title to one match first; otherwise a late re-upload of the
+  // first meeting could be attached to the return fixture simply because the
+  // first slot is already occupied.
+  if (after.length > 1) return { status: 'ambiguous' }
 
   const need = after.filter(
     (m) => (m.videos?.length ?? 0) === 0 && (existing[m.id]?.length ?? 0) === 0,
   )
   if (need.length === 0) return { status: 'have' }
-  if (need.length > 1) return { status: 'ambiguous' }
   return { status: 'ok', match: need[0] }
 }
 
@@ -274,6 +491,8 @@ export function findClubFixture(
 
 export interface CandidateInput {
   config: ClubCompetitionConfig
+  /** The source whose uploads this came from; its channel id must match. */
+  source: ClubVideoSource
   tournament: Tournament
   /** YouTube video id. */
   id: string
@@ -295,13 +514,16 @@ export type GateResult =
  * that isn't a positive answer to all six conditions returns ignore or skip.
  */
 export function acceptCandidate(input: CandidateInput): GateResult {
-  const screened = screenTitle(input.config, input.title)
+  const screened = screenTitle(input.config, input.source, input.title)
   if (screened.status !== 'ok') return screened
   const { screen } = screened
 
-  // 1. channel
-  if (input.channelId !== GOLAZO_CHANNEL_ID) {
-    return { status: 'skip', reason: `channel ${input.channelId ?? '?'} is not CBS Sports Golazo` }
+  // 1. channel — the video really is from the source we scanned
+  if (input.channelId !== input.source.channelId) {
+    return {
+      status: 'skip',
+      reason: `channel ${input.channelId ?? '?'} is not ${input.source.label}`,
+    }
   }
 
   // 3. both clubs resolve, and to teams in *this* competition
@@ -372,15 +594,18 @@ export function serializeVideoMap(
   map: Record<string, HighlightVideo[]>,
 ): string {
   const name = videosExportName(competitionId, year)
+  const sources = sourcesForCompetition(competitionId)
+    .map((s) => s.label)
+    .join(', ')
   const header = `// Generated — do not hand-edit
 import type { HighlightVideo } from '../types'
 
 /**
- * Auto-curated CBS Sports Golazo highlight cuts for ${competitionId} ${year}-${String(year + 1).slice(2)}, keyed by match id.
+ * Auto-curated ${sources || 'club'} highlight cuts for ${competitionId} ${year}-${String(year + 1).slice(2)}, keyed by match id.
  *
  * GENERATED by scripts/curate-club-videos.ts — do not edit by hand. Entries are
- * appended as Golazo publishes a full-match cut that clears every one of the
- * curator's deterministic gates; nothing is ever edited or removed.
+ * appended as the rights holder publishes a full-match cut that clears every
+ * one of the curator's deterministic gates; nothing is ever edited or removed.
  *
  * No entry carries \`durationSeconds\`, and none ever should: that omission is
  * what keeps a runtime badge off club matches.
@@ -396,42 +621,64 @@ import type { HighlightVideo } from '../types'
   return `${header}export const ${name}: Record<string, HighlightVideo[]> = {\n${body}\n}\n`
 }
 
-// ---- YouTube uploads (Golazo's own playlist) -------------------------------
+// ---- YouTube uploads -------------------------------------------------------
 
 export interface PlaylistVideo {
   id: string
   title: string
 }
 
-async function listUploadsApi(max: number): Promise<PlaylistVideo[]> {
+/**
+ * A cut we haven't picked up within a month is gone — the fixture is far behind
+ * the carousel by then — so paging further back only spends quota. It also
+ * bounds the cost of the deep scans the general-sports channels need.
+ */
+const LOOKBACK_DAYS = 30
+
+async function listUploadsApi(
+  playlistId: string,
+  max: number,
+  sinceMs: number,
+): Promise<PlaylistVideo[]> {
   const out: PlaylistVideo[] = []
   let pageToken = ''
   while (out.length < max) {
     const url =
-      `${API}/playlistItems?part=snippet&maxResults=50&playlistId=${GOLAZO_UPLOADS_PLAYLIST}` +
+      `${API}/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}` +
       `&key=${API_KEY}${pageToken ? `&pageToken=${pageToken}` : ''}`
     const res = await fetch(url)
-    if (!res.ok) throw new Error(`YouTube API ${res.status} listing Golazo uploads`)
+    if (!res.ok) throw new Error(`YouTube API ${res.status} listing ${playlistId}`)
     const data = (await res.json()) as {
       nextPageToken?: string
-      items?: { snippet?: { title?: string; resourceId?: { videoId?: string } } }[]
+      items?: {
+        snippet?: { title?: string; publishedAt?: string; resourceId?: { videoId?: string } }
+      }[]
     }
+    // An uploads playlist is strictly newest-first, so the first item past the
+    // floor means every later page is too.
+    let reachedFloor = false
     for (const it of data.items ?? []) {
+      const published = Date.parse(it.snippet?.publishedAt ?? '')
+      if (Number.isFinite(published) && published < sinceMs) {
+        reachedFloor = true
+        continue
+      }
       const id = it.snippet?.resourceId?.videoId
       const title = it.snippet?.title
       if (id && title) out.push({ id, title })
     }
-    if (!data.nextPageToken) break
+    if (reachedFloor || !data.nextPageToken) break
     pageToken = data.nextPageToken
   }
   return out.slice(0, max)
 }
 
-async function listUploadsScrape(max: number): Promise<PlaylistVideo[]> {
-  const res = await fetch(`https://www.youtube.com/playlist?list=${GOLAZO_UPLOADS_PLAYLIST}`, {
+/** Keyless fallback: one page of the playlist's HTML, no pagination, no dates. */
+async function listUploadsScrape(playlistId: string, max: number): Promise<PlaylistVideo[]> {
+  const res = await fetch(`https://www.youtube.com/playlist?list=${playlistId}`, {
     headers: { 'User-Agent': UA, 'Accept-Language': 'en-US' },
   })
-  if (!res.ok) throw new Error(`${res.status} listing Golazo uploads`)
+  if (!res.ok) throw new Error(`${res.status} listing ${playlistId}`)
   const html = await res.text()
   const out: PlaylistVideo[] = []
   const seen = new Set<string>()
@@ -446,9 +693,16 @@ async function listUploadsScrape(max: number): Promise<PlaylistVideo[]> {
   return out
 }
 
-/** Recent Golazo uploads, newest first — Data API when keyed, scrape when not. */
-export function listGolazoUploads(max = 150): Promise<PlaylistVideo[]> {
-  return API_KEY ? listUploadsApi(max) : listUploadsScrape(max)
+/** A source's recent uploads, newest first — Data API when keyed, scrape when not. */
+export function listSourceUploads(
+  source: ClubVideoSource,
+  now = Date.now(),
+): Promise<PlaylistVideo[]> {
+  const playlist = uploadsPlaylistOf(source)
+  const sinceMs = now - LOOKBACK_DAYS * DAY_MS
+  return API_KEY
+    ? listUploadsApi(playlist, source.scanDepth, sinceMs)
+    : listUploadsScrape(playlist, source.scanDepth)
 }
 
 // ---- run report ------------------------------------------------------------
@@ -502,12 +756,6 @@ async function run() {
   )
   if (configs.length === 0) throw new Error(`unknown competition ${onlyCompetition}`)
 
-  const uploads = await listGolazoUploads()
-  console.log(
-    `Scanning ${uploads.length} CBS Sports Golazo uploads across ${configs.map((c) => c.id).join(', ')}` +
-      `${dryRun ? ' (dry-run)' : ''}…`,
-  )
-
   const added: string[] = []
   const skipped: string[] = []
   const errors: string[] = []
@@ -516,6 +764,8 @@ async function run() {
     string,
     { channelId: string | null; publishedAt: string | null; embeddable: 'yes' | 'no' | 'unknown' }
   >()
+  /** One list per source, however many competitions that source covers. */
+  const uploadsCache = new Map<string, PlaylistVideo[]>()
 
   for (const config of configs) {
     const { tournament, videos } = await loadSeason(config.id)
@@ -527,57 +777,80 @@ async function run() {
     for (const [id, vids] of Object.entries(videos)) map[id] = [...vids]
     let addedHere = 0
 
-    for (const up of uploads) {
-      // Cheap pass first: no network for the reaction shows and interviews.
-      const screened = screenTitle(config, up.title)
-      if (screened.status === 'ignore') continue
-      if (screened.status === 'skip') {
-        skipped.push(`${config.id} ${up.id}: ${screened.reason}`)
-        continue
-      }
+    const sources = sourcesForCompetition(config.id)
+    if (sources.length === 0) {
+      errors.push(`${config.id}: no highlight source is configured for this competition`)
+      continue
+    }
 
-      let meta = metaCache.get(up.id)
-      if (!meta) {
+    for (const source of sources) {
+      let uploads = uploadsCache.get(source.id)
+      if (!uploads) {
         try {
-          const m = await getVideoMeta(up.id)
-          meta = {
-            channelId: m.channelId,
-            publishedAt: m.publishedAt,
-            embeddable: await checkEmbeddable(up.id),
-          }
-          metaCache.set(up.id, meta)
+          uploads = await listSourceUploads(source)
+          uploadsCache.set(source.id, uploads)
         } catch (e) {
-          errors.push(`${up.id}: metadata fetch failed (${e})`)
+          errors.push(`${source.label}: could not list uploads (${e})`)
           continue // transient — retried next cycle
         }
       }
+      console.log(
+        `Scanning ${uploads.length} ${source.label} uploads for ${config.id}${dryRun ? ' (dry-run)' : ''}…`,
+      )
 
-      const verdict = acceptCandidate({
-        config,
-        tournament,
-        id: up.id,
-        title: up.title,
-        channelId: meta.channelId,
-        publishedAt: meta.publishedAt,
-        embeddable: meta.embeddable,
-        existing: map,
-      })
-      if (verdict.status === 'ignore') continue
-      if (verdict.status === 'skip') {
-        skipped.push(`${config.id} ${up.id}: ${verdict.reason}`)
-        continue
+      for (const up of uploads) {
+        // Cheap pass first: no network for the reaction shows and interviews.
+        const screened = screenTitle(config, source, up.title)
+        if (screened.status === 'ignore') continue
+        if (screened.status === 'skip') {
+          skipped.push(`${config.id} ${up.id}: ${screened.reason}`)
+          continue
+        }
+
+        let meta = metaCache.get(up.id)
+        if (!meta) {
+          try {
+            const m = await getVideoMeta(up.id)
+            meta = {
+              channelId: m.channelId,
+              publishedAt: m.publishedAt,
+              embeddable: await checkEmbeddable(up.id),
+            }
+            metaCache.set(up.id, meta)
+          } catch (e) {
+            errors.push(`${up.id}: metadata fetch failed (${e})`)
+            continue // transient — retried next cycle
+          }
+        }
+
+        const verdict = acceptCandidate({
+          config,
+          source,
+          tournament,
+          id: up.id,
+          title: up.title,
+          channelId: meta.channelId,
+          publishedAt: meta.publishedAt,
+          embeddable: meta.embeddable,
+          existing: map,
+        })
+        if (verdict.status === 'ignore') continue
+        if (verdict.status === 'skip') {
+          skipped.push(`${config.id} ${up.id}: ${verdict.reason}`)
+          continue
+        }
+
+        // Append only: findClubFixture already refused any match that has a cut.
+        map[verdict.matchId] = [...(map[verdict.matchId] ?? []), verdict.video]
+        const all: AnyMatch[] = [
+          ...tournament.groupMatches,
+          ...tournament.knockoutRounds.flatMap((r) => r.matches),
+        ]
+        const match = all.find((m) => m.id === verdict.matchId)!
+        added.push(`${config.id} ${matchLabel(tournament, match)} ${up.id} (${source.label})`)
+        addedHere++
+        console.log(`  + ${added[added.length - 1]}`)
       }
-
-      // Append only: findClubFixture already refused any match that has a cut.
-      map[verdict.matchId] = [...(map[verdict.matchId] ?? []), verdict.video]
-      const all: AnyMatch[] = [
-        ...tournament.groupMatches,
-        ...tournament.knockoutRounds.flatMap((r) => r.matches),
-      ]
-      const match = all.find((m) => m.id === verdict.matchId)!
-      added.push(`${config.id} ${matchLabel(tournament, match)} ${up.id}`)
-      addedHere++
-      console.log(`  + ${added[added.length - 1]}`)
     }
 
     if (addedHere > 0 && !dryRun) {

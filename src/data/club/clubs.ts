@@ -125,9 +125,9 @@ export function normalizeClubName(name: string): string {
 }
 
 /**
- * Names that don't fold onto a club's registry name. Two sources feed this:
- * ESPN's `displayName` (e.g. "Internazionale") and CBS Golazo's video titles
- * (e.g. "Man. City", "Dortmund", "Spurs").
+ * Names that don't fold onto a club's registry name. Two things feed this:
+ * ESPN's `displayName` (e.g. "Internazionale") and the highlight sources' video
+ * titles — CBS Golazo's "Man. City", ESPN FC's "Malaga CF".
  *
  * Keep it conservative. An alias that is ambiguous across European football —
  * "Milan", which means AC Milan to CBS but reads like Inter Milan here — must
@@ -191,6 +191,11 @@ const ALIAS_NAMES: Record<string, TeamId> = {
   Ipswich: 'ipswich',
   Hull: 'hull',
   Coventry: 'coventry',
+
+  // ESPN FC title shorthands. NBC and ESPN otherwise write the short common
+  // name the registry already uses ("Brighton", "Nottingham Forest",
+  // "Deportivo"), so this list stays at the handful that don't fold.
+  'Malaga CF': 'malaga',
 }
 
 const byNormalizedName = new Map<string, TeamId>()

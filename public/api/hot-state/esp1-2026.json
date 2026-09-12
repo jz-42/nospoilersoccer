@@ -1,0 +1,2695 @@
+{
+  "tournamentId": "esp1-2026",
+  "matches": {
+    "esp1-alaves-getafe": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "alaves",
+          "player": "Nahuel Tenaglia",
+          "minute": "73'"
+        },
+        {
+          "team": "alaves",
+          "player": "Mariano Díaz",
+          "minute": "90'+1'"
+        },
+        {
+          "team": "alaves",
+          "player": "Mikel Rodriguez",
+          "minute": "90'+4'"
+        }
+      ]
+    },
+    "esp1-sevilla-rayo-vallecano": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "rayo-vallecano",
+          "player": "Álvaro García",
+          "minute": "4'"
+        },
+        {
+          "team": "sevilla",
+          "player": "Jon Guridi",
+          "minute": "52'",
+          "penalty": true
+        },
+        {
+          "team": "sevilla",
+          "player": "Peque",
+          "minute": "90'+7'",
+          "penalty": true
+        }
+      ]
+    },
+    "esp1-racing-santander-villarreal": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "racing-santander",
+          "player": "Andrés Martín",
+          "minute": "21'",
+          "penalty": true
+        },
+        {
+          "team": "racing-santander",
+          "player": "Sergio Martínez",
+          "minute": "34'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Pape Gueye",
+          "minute": "45'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Nicolas Pépé",
+          "minute": "45'+1'"
+        }
+      ]
+    },
+    "esp1-espanyol-levante": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "espanyol",
+          "player": "Roberto Fernández",
+          "minute": "5'"
+        },
+        {
+          "team": "espanyol",
+          "player": "Roberto Fernández",
+          "minute": "40'"
+        },
+        {
+          "team": "espanyol",
+          "player": "Tyrhys Dolan",
+          "minute": "80'"
+        }
+      ]
+    },
+    "esp1-deportivo-elche": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "deportivo",
+          "player": "Pierre-Emerick Aubameyang",
+          "minute": "21'"
+        },
+        {
+          "team": "elche",
+          "player": "Marc Aguado",
+          "minute": "76'"
+        }
+      ]
+    },
+    "esp1-atletico-madrid-malaga": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Lee Kang-In",
+          "minute": "70'"
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Álex Baena",
+          "minute": "85'"
+        }
+      ]
+    },
+    "esp1-rayo-vallecano-alaves": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "rayo-vallecano",
+          "player": "Sergio Camello",
+          "minute": "48'"
+        },
+        {
+          "team": "alaves",
+          "player": "Mariano Díaz",
+          "minute": "84'"
+        }
+      ]
+    },
+    "esp1-real-betis-real-sociedad": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "real-betis",
+          "player": "Rodrigo Riquelme",
+          "minute": "63'"
+        }
+      ]
+    },
+    "esp1-athletic-club-sevilla": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "sevilla",
+          "player": "Oso",
+          "minute": "15'"
+        },
+        {
+          "team": "sevilla",
+          "player": "Chidera Ejuke",
+          "minute": "50'"
+        },
+        {
+          "team": "sevilla",
+          "player": "Isaac Romero",
+          "minute": "57'"
+        },
+        {
+          "team": "athletic-club",
+          "player": "Aitor Paredes",
+          "minute": "70'"
+        }
+      ]
+    },
+    "esp1-valencia-celta-vigo": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "esp1-espanyol-real-madrid": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "real-madrid",
+          "player": "Jude Bellingham",
+          "minute": "9'"
+        },
+        {
+          "team": "espanyol",
+          "player": "Cala",
+          "minute": "30'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Carlos Espí",
+          "minute": "90'"
+        }
+      ]
+    },
+    "esp1-atletico-madrid-villarreal": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Marc Pubill",
+          "minute": "59'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Gerard Moreno",
+          "minute": "66'",
+          "penalty": true
+        },
+        {
+          "team": "villarreal",
+          "player": "Georges Mikautadze",
+          "minute": "78'",
+          "penalty": true
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Giuliano Simeone",
+          "minute": "85'"
+        }
+      ]
+    },
+    "esp1-getafe-racing-santander": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "getafe",
+          "player": "Enes Ünal",
+          "minute": "81'"
+        }
+      ]
+    },
+    "esp1-elche-barcelona": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 5
+      },
+      "goals": [
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "14'",
+          "penalty": true
+        },
+        {
+          "team": "barcelona",
+          "player": "Karim Adeyemi",
+          "minute": "45'+3'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "67'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Fermín López",
+          "minute": "71'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Fermín López",
+          "minute": "79'"
+        }
+      ]
+    },
+    "esp1-osasuna-levante": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "esp1-malaga-deportivo": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "deportivo",
+          "player": "Pierre-Emerick Aubameyang",
+          "minute": "21'"
+        },
+        {
+          "team": "malaga",
+          "player": "Chupete",
+          "minute": "34'",
+          "penalty": true
+        }
+      ]
+    },
+    "esp1-valencia-real-betis": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "real-betis",
+          "player": "Pablo García",
+          "minute": "83'"
+        }
+      ]
+    },
+    "esp1-real-madrid-real-sociedad": {
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "real-madrid",
+          "player": "Kylian Mbappé",
+          "minute": "40'"
+        },
+        {
+          "team": "real-sociedad",
+          "player": "Luka Sucic",
+          "minute": "44'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Kylian Mbappé",
+          "minute": "60'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Vinícius Júnior",
+          "minute": "68'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Kylian Mbappé",
+          "minute": "80'"
+        }
+      ]
+    },
+    "esp1-celta-vigo-osasuna": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "celta-vigo",
+          "player": "Iago Aspas",
+          "minute": "14'"
+        },
+        {
+          "team": "osasuna",
+          "player": "Enrique Barja",
+          "minute": "54'"
+        },
+        {
+          "team": "osasuna",
+          "player": "Ante Budimir",
+          "minute": "64'",
+          "penalty": true
+        }
+      ]
+    },
+    "esp1-barcelona-athletic-club": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "37'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Fermín López",
+          "minute": "82'"
+        }
+      ]
+    },
+    "esp1-racing-santander-elche": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "racing-santander",
+          "player": "Yassir Zabiri",
+          "minute": "15'"
+        },
+        {
+          "team": "racing-santander",
+          "player": "Yassir Zabiri",
+          "minute": "21'"
+        },
+        {
+          "team": "racing-santander",
+          "player": "Yassir Zabiri",
+          "minute": "36'"
+        },
+        {
+          "team": "elche",
+          "player": "Buba Sangaré",
+          "minute": "78'"
+        },
+        {
+          "team": "elche",
+          "player": "Fernando Niño",
+          "minute": "79'"
+        }
+      ]
+    },
+    "esp1-alaves-villarreal": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "alaves",
+          "player": "Lucas Boyé",
+          "minute": "31'"
+        }
+      ]
+    },
+    "esp1-levante-real-betis": {
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "levante",
+          "player": "Adrián de la Fuente",
+          "minute": "24'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Marc Bartra",
+          "minute": "34'"
+        },
+        {
+          "team": "levante",
+          "player": "Enzo Bardeli",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Rodrigo Riquelme",
+          "minute": "45'+4'"
+        },
+        {
+          "team": "levante",
+          "player": "Roger Brugué",
+          "minute": "56'"
+        },
+        {
+          "team": "levante",
+          "player": "Roger Brugué",
+          "minute": "70'"
+        },
+        {
+          "team": "levante",
+          "player": "Jon Ander Olasagasti",
+          "minute": "90'+5'"
+        }
+      ]
+    },
+    "esp1-real-sociedad-espanyol": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "real-sociedad",
+          "player": "Ander Barrenetxea",
+          "minute": "4'"
+        },
+        {
+          "team": "espanyol",
+          "player": "Roberto Fernández",
+          "minute": "45'"
+        },
+        {
+          "team": "real-sociedad",
+          "player": "Orri Óskarsson",
+          "minute": "61'"
+        }
+      ]
+    },
+    "esp1-sevilla-atletico-madrid": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Álex Baena",
+          "minute": "4'"
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Ademola Lookman",
+          "minute": "26'"
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Álex Baena",
+          "minute": "33'"
+        },
+        {
+          "team": "sevilla",
+          "player": "Miguel Sierra",
+          "minute": "66'"
+        }
+      ]
+    },
+    "esp1-real-madrid-malaga": {
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "real-madrid",
+          "player": "Jude Bellingham",
+          "minute": "19'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Alfonso Herrero",
+          "minute": "26'",
+          "ownGoal": true
+        },
+        {
+          "team": "real-madrid",
+          "player": "Kylian Mbappé",
+          "minute": "30'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Arda Güler",
+          "minute": "90'+1'"
+        }
+      ]
+    },
+    "esp1-deportivo-valencia": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "deportivo",
+          "player": "César Tárrega",
+          "minute": "13'",
+          "ownGoal": true
+        },
+        {
+          "team": "deportivo",
+          "player": "Pierre-Emerick Aubameyang",
+          "minute": "17'"
+        },
+        {
+          "team": "valencia",
+          "player": "Umar Sadiq",
+          "minute": "26'"
+        },
+        {
+          "team": "deportivo",
+          "player": "Mouctar Diakhaby",
+          "minute": "59'",
+          "ownGoal": true
+        }
+      ]
+    },
+    "esp1-celta-vigo-athletic-club": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "athletic-club",
+          "player": "Álex Berenguer",
+          "minute": "20'"
+        },
+        {
+          "team": "athletic-club",
+          "player": "Robert Navarro",
+          "minute": "22'"
+        }
+      ]
+    },
+    "esp1-osasuna-getafe": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "osasuna",
+          "player": "Ante Budimir",
+          "minute": "45'+2'",
+          "penalty": true
+        }
+      ]
+    },
+    "esp1-barcelona-rayo-vallecano": {
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "rayo-vallecano",
+          "player": "Sergio Camello",
+          "minute": "12'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "19'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "21'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Florian Lejeune",
+          "minute": "51'",
+          "ownGoal": true
+        },
+        {
+          "team": "rayo-vallecano",
+          "player": "Sergio Camello",
+          "minute": "59'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "71'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "90'"
+        }
+      ]
+    },
+    "esp1-real-sociedad-celta-vigo": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "esp1-real-betis-real-madrid": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "real-betis",
+          "player": "Troy Parrott",
+          "minute": "81'"
+        }
+      ]
+    },
+    "esp1-athletic-club-atletico-madrid": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "athletic-club",
+          "player": "Nico Williams",
+          "minute": "46'"
+        },
+        {
+          "team": "athletic-club",
+          "player": "Robert Navarro",
+          "minute": "48'"
+        },
+        {
+          "team": "athletic-club",
+          "player": "Oihan Sancet",
+          "minute": "90'"
+        }
+      ]
+    },
+    "esp1-rayo-vallecano-racing-santander": {
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "racing-santander",
+          "player": "Sergio Canales",
+          "minute": "4'"
+        },
+        {
+          "team": "rayo-vallecano",
+          "player": "Andrei Ratiu",
+          "minute": "17'"
+        },
+        {
+          "team": "racing-santander",
+          "player": "Pablo García",
+          "minute": "28'"
+        },
+        {
+          "team": "rayo-vallecano",
+          "player": "Sergio Camello",
+          "minute": "43'"
+        },
+        {
+          "team": "rayo-vallecano",
+          "player": "Sergio Camello",
+          "minute": "47'"
+        }
+      ]
+    },
+    "esp1-villarreal-deportivo": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "villarreal",
+          "player": "Nicolas Pépé",
+          "minute": "19'"
+        },
+        {
+          "team": "deportivo",
+          "player": "Luis Cruz",
+          "minute": "43'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Adama Traoré",
+          "minute": "76'",
+          "ownGoal": true
+        },
+        {
+          "team": "deportivo",
+          "player": "Zakaria Eddahchouri",
+          "minute": "79'"
+        },
+        {
+          "team": "deportivo",
+          "player": "Pierre-Emerick Aubameyang",
+          "minute": "88'"
+        }
+      ]
+    },
+    "esp1-valencia-barcelona": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 5
+      },
+      "goals": [
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "6'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Fermín López",
+          "minute": "22'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "50'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Pedri",
+          "minute": "79'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "84'"
+        }
+      ]
+    },
+    "esp1-alaves-osasuna": {
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "alaves",
+          "player": "Lucas Boyé",
+          "minute": "27'"
+        },
+        {
+          "team": "alaves",
+          "player": "Mariano Díaz",
+          "minute": "36'"
+        },
+        {
+          "team": "osasuna",
+          "player": "Ante Budimir",
+          "minute": "46'"
+        },
+        {
+          "team": "alaves",
+          "player": "Lucas Boyé",
+          "minute": "51'"
+        },
+        {
+          "team": "osasuna",
+          "player": "Ante Budimir",
+          "minute": "64'",
+          "penalty": true
+        },
+        {
+          "team": "alaves",
+          "player": "Lucas Boyé",
+          "minute": "68'"
+        },
+        {
+          "team": "alaves",
+          "player": "Pablo Ibáñez",
+          "minute": "90'"
+        }
+      ]
+    },
+    "esp1-malaga-levante": {
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
+    },
+    "esp1-espanyol-sevilla": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "sevilla",
+          "player": "Lucas Stassin",
+          "minute": "85'"
+        },
+        {
+          "team": "espanyol",
+          "player": "Marcos Fernández",
+          "minute": "90'+8'"
+        }
+      ]
+    },
+    "esp1-getafe-celta-vigo": {
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "getafe",
+          "player": "Martín Satriano",
+          "minute": "21'"
+        },
+        {
+          "team": "celta-vigo",
+          "player": "Carl Starfelt",
+          "minute": "57'"
+        }
+      ]
+    },
+    "esp1-elche-real-sociedad": {
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "real-sociedad",
+          "player": "Job Ochieng",
+          "minute": "11'"
+        },
+        {
+          "team": "real-sociedad",
+          "player": "Yangel Herrera",
+          "minute": "31'"
+        },
+        {
+          "team": "elche",
+          "player": "Thomas Lemar",
+          "minute": "67'"
+        },
+        {
+          "team": "elche",
+          "player": "Fernando Niño",
+          "minute": "74'"
+        },
+        {
+          "team": "real-sociedad",
+          "player": "Luka Sucic",
+          "minute": "90'"
+        }
+      ]
+    },
+    "esp1-sevilla-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-alaves-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-atletico-madrid-athletic-club": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-malaga": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-espanyol": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-levante": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-rayo-vallecano-real-betis": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-sevilla-getafe": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-valencia-elche": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-villarreal-osasuna": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-espanyol-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-barcelona": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-celta-vigo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-osasuna-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-betis-atletico-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-deportivo": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-sociedad-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    }
+  }
+}

@@ -111,6 +111,59 @@ export const CLUB_COMPETITIONS: Record<string, ClubCompetitionConfig> = {
 
 export const SEASON_YEAR = 2026
 
+export interface IngestSnapshot {
+  rawEventCount: number
+  tableTeamCount: number
+  tournament: Tournament
+  previousTournament?: Tournament
+  problems: string[]
+}
+
+/** Problems that make a whole-season regeneration unsafe to publish. */
+export function validateIngestSnapshot(
+  config: ClubCompetitionConfig,
+  snapshot: IngestSnapshot,
+): string[] {
+  const expected = config.id === 'ucl'
+    ? { teams: 36, leagueMatches: 144 }
+    : { teams: 20, leagueMatches: 380 }
+  const problems = [...snapshot.problems]
+
+  if (snapshot.rawEventCount === 0) problems.push('ESPN returned no events')
+  if (snapshot.tableTeamCount !== expected.teams) {
+    problems.push(
+      `ESPN standings returned ${snapshot.tableTeamCount} teams; expected ${expected.teams}`,
+    )
+  }
+  const teamCount = Object.keys(snapshot.tournament.teams).length
+  if (teamCount !== expected.teams) {
+    problems.push(`generated ${teamCount} teams; expected ${expected.teams}`)
+  }
+  if (snapshot.tournament.groupMatches.length !== expected.leagueMatches) {
+    problems.push(
+      `generated ${snapshot.tournament.groupMatches.length} league matches; expected ${expected.leagueMatches} league matches`,
+    )
+  }
+  if (snapshot.previousTournament) {
+    const currentTieIds = new Set((snapshot.tournament.ties ?? []).map((tie) => tie.id))
+    for (const tie of snapshot.previousTournament.ties ?? []) {
+      if (!currentTieIds.has(tie.id)) {
+        problems.push(`previously published tie ${tie.id} is missing from the new snapshot`)
+      }
+    }
+
+    const currentKnockoutIds = new Set(
+      snapshot.tournament.knockoutRounds.flatMap((round) => round.matches.map((match) => match.id)),
+    )
+    for (const match of snapshot.previousTournament.knockoutRounds.flatMap((round) => round.matches)) {
+      if (!currentKnockoutIds.has(match.id)) {
+        problems.push(`previously published knockout match ${match.id} is missing from the new snapshot`)
+      }
+    }
+  }
+  return problems
+}
+
 // ---- ESPN shapes we read beyond scripts/espn.ts ----------------------------
 
 interface EspnSeries {
@@ -422,7 +475,10 @@ export function assignTieIds(
 
 export interface SeasonBuild {
   tournament: Tournament
+  /** Data-loss or ambiguity problems that make the snapshot unsafe to write. */
   audit: string[]
+  /** Expected incomplete publication states that may safely wait for a later run. */
+  notices: string[]
 }
 
 export interface SeasonInput {
@@ -442,6 +498,7 @@ export interface SeasonInput {
 export function buildSeason(input: SeasonInput): SeasonBuild {
   const { config, year, events, calendar, ranks, previousTieIds } = input
   const audit: string[] = []
+  const notices: string[] = []
 
   const leagueEvents: ClubEvent[] = []
   const knockoutEvents = new Map<string, ClubEvent[]>()
@@ -526,7 +583,12 @@ export function buildSeason(input: SeasonInput): SeasonBuild {
       // only exists once both are known, so its id stays reserved and it
       // appears next run.
       if (evs.length !== 2) {
-        audit.push(`${round.id} tie ${key} has ${evs.length} leg(s) — held until both are published`)
+        const message = `${round.id} tie ${key} has ${evs.length} leg(s)`
+        if (previousTieIds.has(`${round.id}|${key}`)) {
+          audit.push(`${message} — previously complete tie would lose data`)
+        } else {
+          notices.push(`${message} — held until both are published`)
+        }
         continue
       }
       const tie = buildTie(ids.get(key)!, evs)
@@ -631,7 +693,7 @@ export function buildSeason(input: SeasonInput): SeasonBuild {
   if (config.tiebreakers) tournament.tiebreakers = config.tiebreakers
   if (ties.length > 0) tournament.ties = ties
 
-  return { tournament, audit }
+  return { tournament, audit, notices }
 }
 
 // ---- serialization ---------------------------------------------------------
@@ -883,17 +945,23 @@ export async function fetchTable(slug: string, year: number): Promise<ClubTable>
  * survives a regeneration. Missing or unreadable output is fine: on a first run
  * there is nothing to preserve.
  */
-export async function loadPreviousTieIds(competitionId: string, year: number): Promise<Map<string, string>> {
-  const out = new Map<string, string>()
-  let previous: Tournament | undefined
+export async function loadPreviousTournament(
+  competitionId: string,
+  year: number,
+): Promise<Tournament | undefined> {
   try {
     const mod = (await import(`../src/data/club/${competitionId}-${year}.ts`)) as Record<string, unknown>
-    previous = Object.values(mod).find(
-      (v): v is Tournament => Boolean(v) && typeof v === 'object' && 'groupMatches' in (v as object),
+    return Object.values(mod).find(
+      (value): value is Tournament =>
+        Boolean(value) && typeof value === 'object' && 'groupMatches' in (value as object),
     )
   } catch {
-    return out
+    return undefined
   }
+}
+
+export function previousTieIdsFromTournament(previous: Tournament | undefined): Map<string, string> {
+  const out = new Map<string, string>()
   if (!previous?.ties) return out
   const byId = new Map(previous.ties.map((t) => [t.id, t]))
   for (const round of previous.knockoutRounds) {
@@ -904,6 +972,10 @@ export async function loadPreviousTieIds(competitionId: string, year: number): P
     }
   }
   return out
+}
+
+export async function loadPreviousTieIds(competitionId: string, year: number): Promise<Map<string, string>> {
+  return previousTieIdsFromTournament(await loadPreviousTournament(competitionId, year))
 }
 
 // ---- CLI -------------------------------------------------------------------
@@ -947,12 +1019,13 @@ async function runIngest() {
 
   for (const config of configs) {
     console.log(`\n${config.name} (${config.espnSlug})`)
-    const [raw, calendar, table, previousTieIds] = await Promise.all([
+    const [raw, calendar, table, previousTournament] = await Promise.all([
       fetchSeasonEvents(config.espnSlug, SEASON_YEAR),
       config.knockoutRounds.length > 0 ? fetchCalendar(config.espnSlug, SEASON_YEAR) : Promise.resolve([]),
       fetchTable(config.espnSlug, SEASON_YEAR),
-      loadPreviousTieIds(config.id, SEASON_YEAR),
+      loadPreviousTournament(config.id, SEASON_YEAR),
     ])
+    const previousTieIds = previousTieIdsFromTournament(previousTournament)
 
     const events: ClubEvent[] = []
     const problems: string[] = []
@@ -964,7 +1037,7 @@ async function runIngest() {
       else problems.push(`event ${ev.id}: could not be parsed`)
     }
 
-    const { tournament, audit } = buildSeason({
+    const { tournament, audit, notices } = buildSeason({
       config,
       year: SEASON_YEAR,
       events,
@@ -983,7 +1056,21 @@ async function runIngest() {
       problems.push(`club ${c} is not in src/data/club/clubs.ts — its fixtures were dropped`)
     }
     for (const line of [...problems, ...audit]) console.log(`  ! ${line}`)
+    for (const line of notices) console.log(`  ~ ${line}`)
     if (unknownClubs.size > 0) console.log('  → run with --registry for paste-ready entries')
+
+    const unsafe = validateIngestSnapshot(config, {
+      rawEventCount: raw.length,
+      tableTeamCount: table.teams.length,
+      tournament,
+      previousTournament,
+      problems: [...problems, ...audit],
+    })
+    if (unsafe.length > 0) {
+      throw new Error(
+        `${config.id} ingest failed closed; generated season was not written:\n- ${unsafe.join('\n- ')}`,
+      )
+    }
 
     const path = seasonModulePath(config.id, SEASON_YEAR)
     if (dryRun) {

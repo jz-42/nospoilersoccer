@@ -19,8 +19,11 @@ import {
   roundIdForEvent,
   serializeSeason,
 } from './espn-club'
+import * as espnClub from './espn-club'
 import type { ClubEspnEvent, ClubEvent, EspnCalendarEntry } from './espn-club'
-import type { TeamId } from '../src/data/types'
+import type { TeamId, Tournament } from '../src/data/types'
+import { eng1_2026 } from '../src/data/club/eng1-2026'
+import { ucl_2026 } from '../src/data/club/ucl-2026'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -28,6 +31,11 @@ function assert(condition: boolean, message: string) {
 }
 
 const ucl = CLUB_COMPETITIONS.ucl
+
+assert(
+  'validateIngestSnapshot' in espnClub,
+  'the ingest exposes a completeness gate before generated data can be written',
+)
 
 // ESPN numeric ids for the clubs used below, from src/data/club/clubs.ts.
 const ESPN = {
@@ -270,6 +278,41 @@ assert(
 )
 assert(buildTie('ucl-r16-3', [leg1]) === null, 'a half-arrived tie is not built from one leg')
 
+const partialTieTeams: TeamId[] = ['arsenal', 'napoli', 'psv', 'real-madrid']
+const partialTieRanks = () => new Map<TeamId, number>([
+  ['arsenal', 1],
+  ['napoli', 2],
+  ['psv', 9],
+  ['real-madrid', 10],
+])
+const partialTieSeason = buildSeason({
+  config: ucl,
+  year: 2026,
+  events: [leagueEvent, leg1],
+  calendar,
+  tableTeams: partialTieTeams,
+  ranks: partialTieRanks(),
+  previousTieIds: new Map(),
+}) as ReturnType<typeof buildSeason> & { notices?: string[] }
+assert(
+  partialTieSeason.audit.length === 0 && partialTieSeason.notices?.length === 1,
+  'a newly published first leg is held as a nonfatal notice so other UCL updates can continue',
+)
+
+const regressedTieSeason = buildSeason({
+  config: ucl,
+  year: 2026,
+  events: [leagueEvent, leg1],
+  calendar,
+  tableTeams: partialTieTeams,
+  ranks: partialTieRanks(),
+  previousTieIds: new Map([[`r16|${pairKey('arsenal', 'psv')}`, 'ucl-r16-1']]),
+})
+assert(
+  regressedTieSeason.audit.some((line) => line.includes('previously complete tie')),
+  'a missing leg from a previously complete tie remains a fatal regression',
+)
+
 // ---- tie id stability ------------------------------------------------------
 
 const arsPsv = pairKey('arsenal', 'psv')
@@ -345,6 +388,86 @@ assert(
 assert(
   CLUB_COMPETITIONS.eng1.tiebreakers === undefined,
   'the Premier League uses the default chain, so the World Cup default is untouched',
+)
+
+// ---- whole-season publish gate --------------------------------------------
+
+if (!('validateIngestSnapshot' in espnClub)) throw new Error('unreachable')
+const validateIngestSnapshot = espnClub.validateIngestSnapshot
+const completePremierLeague = {
+  rawEventCount: 380,
+  tableTeamCount: 20,
+  tournament: eng1_2026,
+  problems: [],
+}
+assert(
+  validateIngestSnapshot(CLUB_COMPETITIONS.eng1, completePremierLeague).length === 0,
+  'a complete Premier League snapshot clears the publish gate',
+)
+assert(
+  validateIngestSnapshot(CLUB_COMPETITIONS.eng1, {
+    ...completePremierLeague,
+    rawEventCount: 0,
+  }).some((problem) => problem.includes('no events')),
+  'a 200 response with no events cannot replace the season',
+)
+assert(
+  validateIngestSnapshot(CLUB_COMPETITIONS.eng1, {
+    ...completePremierLeague,
+    tableTeamCount: 0,
+  }).some((problem) => problem.includes('standings')),
+  'an empty or wrong-season standings response cannot replace the team table',
+)
+assert(
+  validateIngestSnapshot(CLUB_COMPETITIONS.eng1, {
+    ...completePremierLeague,
+    tournament: { ...eng1_2026, groupMatches: eng1_2026.groupMatches.slice(0, 379) },
+  }).some((problem) => problem.includes('380 league matches')),
+  'a partial league schedule cannot replace a complete generated season',
+)
+assert(
+  validateIngestSnapshot(CLUB_COMPETITIONS.eng1, {
+    ...completePremierLeague,
+    problems: ['club 999999 is unknown'],
+  }).some((problem) => problem.includes('club 999999 is unknown')),
+  'unknown clubs and dropped fixtures make the regeneration fail closed',
+)
+
+const previousUcl: Tournament = {
+  ...ucl_2026,
+  knockoutRounds: [
+    ...season.tournament.knockoutRounds,
+    {
+      id: 'final',
+      name: 'Final',
+      matches: [
+        {
+          id: 'ucl-final',
+          date: '2027-05-29',
+          kickoff: '2027-05-29T19:00Z',
+          home: { type: 'match-winner', match: 'ucl-sf-1' },
+          away: { type: 'match-winner', match: 'ucl-sf-2' },
+        },
+      ],
+    },
+  ],
+  ties: season.tournament.ties,
+}
+const vanishedKnockoutSnapshot = {
+  rawEventCount: 144,
+  tableTeamCount: 36,
+  tournament: ucl_2026,
+  previousTournament: previousUcl,
+  problems: [],
+}
+const vanishedProblems = validateIngestSnapshot(CLUB_COMPETITIONS.ucl, vanishedKnockoutSnapshot)
+assert(
+  vanishedProblems.some((problem) => problem.includes('previously published tie')),
+  'omitting both legs of a previously published tie aborts the regeneration',
+)
+assert(
+  vanishedProblems.some((problem) => problem.includes('previously published knockout match')),
+  'omitting a previously published single-leg knockout match also aborts the regeneration',
 )
 
 console.log('ALL PASS')

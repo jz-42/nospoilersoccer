@@ -3,13 +3,21 @@
  *
  *   npx tsx scripts/curate-club-videos.smoke.ts
  *
- * The gate is the only thing standing between a CBS Sports Golazo upload and a
+ * The gate is the only thing standing between a broadcaster's upload and a
  * user's match card, and there is no AI review behind it, so every branch is
  * pinned here — especially the ones that must fail closed. The titles are real
- * Golazo uploads.
+ * uploads from the three sources.
  */
 import { CLUB_COMPETITIONS } from './espn-club'
-import { GOLAZO_CHANNEL_ID, acceptCandidate, screenTitle, serializeVideoMap } from './curate-club-videos'
+import {
+  CLUB_VIDEO_SOURCES,
+  acceptCandidate,
+  clubNameFromTail,
+  screenTitle,
+  serializeVideoMap,
+  sourcesForCompetition,
+  uploadsPlaylistOf,
+} from './curate-club-videos'
 import type { CandidateInput } from './curate-club-videos'
 import type { HighlightVideo, Tournament } from '../src/data/types'
 import { clubs } from '../src/data/club/clubs'
@@ -21,6 +29,9 @@ function assert(condition: boolean, message: string) {
 }
 
 const ucl = CLUB_COMPETITIONS.ucl
+const golazo = CLUB_VIDEO_SOURCES.golazo
+const nbc = CLUB_VIDEO_SOURCES.nbc
+const espnfc = CLUB_VIDEO_SOURCES.espnfc
 const teamIds = ['arsenal', 'psv', 'napoli', 'inter', 'real-madrid', 'manchester-city'] as const
 
 const tournament: Tournament = {
@@ -107,8 +118,9 @@ const tournament: Tournament = {
 
 const base: Omit<CandidateInput, 'title' | 'id'> = {
   config: ucl,
+  source: golazo,
   tournament,
-  channelId: GOLAZO_CHANNEL_ID,
+  channelId: golazo.channelId,
   publishedAt: '2026-09-16T23:30:00Z',
   embeddable: 'yes',
   existing: {},
@@ -159,7 +171,7 @@ for (const title of nonHighlights) {
   assert(gate(title).status === 'ignore', `not a highlight upload, dropped before any fetch: ${title.slice(0, 40)}…`)
 }
 assert(
-  screenTitle(ucl, nonHighlights[0]).status === 'ignore',
+  screenTitle(ucl, golazo, nonHighlights[0]).status === 'ignore',
   'screenTitle decides that from the title alone, so talk shows cost no network calls',
 )
 assert(
@@ -189,7 +201,7 @@ assert(
   'nor is a domestic cup cut between the same two clubs',
 )
 assert(
-  screenTitle(CLUB_COMPETITIONS.eng1, LEAGUE_TITLE).status === 'ignore',
+  screenTitle(CLUB_COMPETITIONS.eng1, golazo, LEAGUE_TITLE).status === 'ignore',
   'a UCL cut is not offered to the Premier League',
 )
 
@@ -266,6 +278,274 @@ assert(
   gate(LEAGUE_TITLE, { embeddable: 'unknown' }).status === 'skip',
   'an embeddability check that did not complete fails closed, and comes back next cycle',
 )
+
+// ---- the source table ------------------------------------------------------
+
+assert(
+  sourcesForCompetition('ucl').length === 1 && sourcesForCompetition('ucl')[0].id === 'golazo',
+  'the Champions League is sourced from CBS Sports Golazo',
+)
+assert(
+  sourcesForCompetition('eng1')[0].id === 'nbc' && sourcesForCompetition('esp1')[0].id === 'espnfc',
+  'the Premier League comes from NBC and La Liga from ESPN FC',
+)
+for (const id of ['ucl', 'eng1', 'esp1']) {
+  assert(sourcesForCompetition(id).length > 0, `${id} has a highlight source at all`)
+}
+assert(
+  uploadsPlaylistOf(nbc) === 'UUqZQlzSHbVJrwrn5XvzrzcA',
+  "a source's uploads playlist is its channel id with UC→UU",
+)
+assert(
+  new Set(Object.values(CLUB_VIDEO_SOURCES).map((x) => x.channelId)).size ===
+    Object.values(CLUB_VIDEO_SOURCES).length,
+  'no two sources share a channel id, so the channel gate stays unambiguous',
+)
+
+// ---- NBC Sports / Premier League -------------------------------------------
+
+const pl: Tournament = {
+  id: 'eng1-2026',
+  name: 'Premier League',
+  year: 2026,
+  advancingRanks: [],
+  tableLabel: 'Table',
+  teams: Object.fromEntries(
+    (['everton', 'manchester-united', 'arsenal', 'chelsea'] as const).map((id) => [id, clubs[id]]),
+  ),
+  groups: [{ id: 'league', teams: ['everton', 'manchester-united', 'arsenal', 'chelsea'] }],
+  groupMatches: [
+    {
+      id: 'eng1-everton-manutd',
+      group: 'league',
+      matchday: 3,
+      date: '2026-09-06',
+      kickoff: '2026-09-06T13:00Z',
+      home: 'everton',
+      away: 'manchester-united',
+      score: { home: 2, away: 2 },
+    },
+    {
+      // The reverse fixture, also played and also without a cut: the pair alone
+      // cannot choose between the two, so only the date in the title can.
+      id: 'eng1-manutd-everton',
+      group: 'league',
+      matchday: 22,
+      date: '2027-01-16',
+      kickoff: '2027-01-16T15:00Z',
+      home: 'manchester-united',
+      away: 'everton',
+      score: { home: 1, away: 0 },
+    },
+  ],
+  knockoutRounds: [],
+}
+
+const nbcBase: Omit<CandidateInput, 'title' | 'id'> = {
+  config: CLUB_COMPETITIONS.eng1,
+  source: nbc,
+  tournament: pl,
+  channelId: nbc.channelId,
+  publishedAt: '2026-09-06T20:00:00Z',
+  embeddable: 'yes',
+  existing: {},
+}
+const nbcGate = (title: string, over: Partial<CandidateInput> = {}) =>
+  acceptCandidate({ ...nbcBase, id: 'nbcvid00001', title, ...over })
+
+const NBC_TITLE =
+  'Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | 9/6/2026 | NBC Sports'
+
+const nbcAccepted = nbcGate(NBC_TITLE)
+assert(nbcAccepted.status === 'accept', "NBC's Premier League template is accepted")
+assert(
+  nbcAccepted.status === 'accept' && nbcAccepted.matchId === 'eng1-everton-manutd',
+  'and the date in the title picks the right half of the home-and-away pair',
+)
+assert(
+  nbcAccepted.status === 'accept' && nbcAccepted.video.durationSeconds === undefined,
+  'NO DURATION, on this source either',
+)
+const reverse = nbcGate(
+  'Manchester United v. Everton | PREMIER LEAGUE HIGHLIGHTS | 1/16/2027 | NBC Sports',
+  { publishedAt: '2027-01-16T20:00:00Z' },
+)
+assert(
+  reverse.status === 'accept' && reverse.matchId === 'eng1-manutd-everton',
+  'the return fixture goes to the return fixture, months later',
+)
+assert(
+  nbcGate('Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | NBC Sports', {
+    publishedAt: '2027-02-01T20:00:00Z',
+  }).status === 'skip',
+  'an undated title, once both halves of the pair have been played, is refused rather than guessed',
+)
+assert(
+  nbcGate('Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | NBC Sports', {
+    publishedAt: '2027-02-01T20:00:00Z',
+    existing: {
+      'eng1-everton-manutd': [{ youtubeId: 'alreadyhave1', kind: 'normal' }],
+    },
+  }).status === 'skip',
+  'an existing cut cannot make an otherwise ambiguous undated re-upload look like the return fixture',
+)
+assert(
+  nbcGate('Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | 4/4/2027 | NBC Sports', {
+    publishedAt: '2027-04-04T20:00:00Z',
+  }).status === 'ignore',
+  'a date matching no fixture between them is not quietly ignored into the nearest one',
+)
+for (const title of [
+  'Chiefs v. Bills | NFL HIGHLIGHTS | 9/6/2026 | NBC Sports',
+  'Gotham FC v. Portland Thorns | NWSL HIGHLIGHTS | 9/6/2026 | NBC Sports',
+  'Arsenal v. Chelsea | FA CUP HIGHLIGHTS | 9/6/2026 | NBC Sports',
+  'Premier League Weekend Roundup | NBC Sports',
+]) {
+  assert(
+    nbcGate(title).status === 'ignore',
+    `NBC's other sports never reach the Premier League: ${title.slice(0, 34)}…`,
+  )
+}
+assert(
+  nbcGate(NBC_TITLE, { channelId: golazo.channelId }).status === 'skip',
+  'an NBC-shaped title from another channel is rejected',
+)
+assert(
+  screenTitle(CLUB_COMPETITIONS.esp1, nbc, NBC_TITLE).status === 'ignore',
+  'NBC is not trusted for La Liga at all — the source table is a gate',
+)
+
+// ---- ESPN FC / La Liga -----------------------------------------------------
+
+const laliga: Tournament = {
+  id: 'esp1-2026',
+  name: 'La Liga',
+  year: 2026,
+  advancingRanks: [],
+  tableLabel: 'Table',
+  teams: Object.fromEntries(
+    (['getafe', 'alaves', 'espanyol', 'barcelona', 'malaga', 'atletico-madrid'] as const).map(
+      (id) => [id, clubs[id]],
+    ),
+  ),
+  groups: [
+    { id: 'league', teams: ['getafe', 'alaves', 'espanyol', 'barcelona', 'malaga', 'atletico-madrid'] },
+  ],
+  groupMatches: [
+    {
+      id: 'esp1-getafe-alaves',
+      group: 'league',
+      matchday: 1,
+      date: '2026-08-15',
+      kickoff: '2026-08-15T17:00Z',
+      home: 'getafe',
+      away: 'alaves',
+      score: { home: 0, away: 3 },
+    },
+    {
+      id: 'esp1-espanyol-barcelona',
+      group: 'league',
+      matchday: 2,
+      date: '2026-08-23',
+      kickoff: '2026-08-23T19:00Z',
+      home: 'espanyol',
+      away: 'barcelona',
+      score: { home: 1, away: 2 },
+    },
+    {
+      id: 'esp1-atletico-malaga',
+      group: 'league',
+      matchday: 3,
+      date: '2026-08-30',
+      kickoff: '2026-08-30T19:00Z',
+      home: 'atletico-madrid',
+      away: 'malaga',
+      score: { home: 2, away: 0 },
+    },
+  ],
+  knockoutRounds: [],
+}
+
+const espnBase: Omit<CandidateInput, 'title' | 'id'> = {
+  config: CLUB_COMPETITIONS.esp1,
+  source: espnfc,
+  tournament: laliga,
+  channelId: espnfc.channelId,
+  publishedAt: '2026-08-24T02:00:00Z',
+  embeddable: 'yes',
+  existing: {},
+}
+const espnGate = (title: string, over: Partial<CandidateInput> = {}) =>
+  acceptCandidate({ ...espnBase, id: 'espnvid0001', title, ...over })
+
+const plain = espnGate('Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC')
+assert(plain.status === 'accept', "ESPN FC's plain La Liga template is accepted")
+assert(
+  plain.status === 'accept' && plain.matchId === 'esp1-espanyol-barcelona',
+  'and lands on the fixture it names',
+)
+
+// Editorial headlines are refused even when the matchup at their tail resolves.
+// These two pin that: the club names survive it, and a headline that hints at
+// the result does not stop the cut, because no reader of this site ever sees a
+// YouTube title.
+const prefixed = espnGate(
+  'LALIGA SEASON OPENER 🚨 Getafe vs. Alaves | LALIGA Highlights | ESPN FC',
+  { publishedAt: '2026-08-16T02:00:00Z' },
+)
+assert(
+  prefixed.status === 'skip',
+  'an editorial prefix is rejected because an iframe cover is not an absolute redaction boundary',
+)
+const spoilerHeadline = espnGate('TITLE CLINCHER 🏆 Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC')
+assert(
+  spoilerHeadline.status === 'skip',
+  'a result-hinting ESPN headline is never linked even though the visible player has a title seal',
+)
+assert(
+  espnGate('Espanyol vs. Barcelona 1-2 | LALIGA Highlights | ESPN FC').status === 'skip',
+  'a scoreline in the matchup segment fails the spoiler check',
+)
+assert(
+  espnGate('BARCELONA WIN IT | Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC').status ===
+    'ignore',
+  'a headline in its own segment does not parse at all',
+)
+assert(
+  espnGate('MATCH OF THE WEEK 🔥 Some New Club vs. Barcelona | LALIGA Highlights | ESPN FC').status ===
+    'skip',
+  'a prefix whose tail is not a club we know fails closed rather than guessing',
+)
+assert(
+  espnGate('Atletico Madrid vs. Malaga CF | LALIGA Highlights | ESPN FC', {
+    publishedAt: '2026-08-31T02:00:00Z',
+  }).status === 'accept',
+  "ESPN FC's club wordings resolve through the alias table",
+)
+for (const title of [
+  'Real Madrid vs. Arsenal | UCL Highlights | ESPN FC',
+  'Why Barcelona are running away with LALIGA | ESPN FC',
+  'Espanyol vs. Barcelona | Copa del Rey Highlights | ESPN FC',
+]) {
+  assert(
+    espnGate(title).status === 'ignore',
+    `ESPN FC's other uploads never reach La Liga: ${title.slice(0, 34)}…`,
+  )
+}
+assert(
+  screenTitle(CLUB_COMPETITIONS.ucl, espnfc, 'Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC')
+    .status === 'ignore',
+  'ESPN FC is not trusted for the Champions League',
+)
+
+// The tail walk is longest-first, so a headline that happens to name another
+// club can never win over the club actually in the matchup.
+assert(clubNameFromTail('Espanyol') === 'Espanyol', 'a bare club name resolves to itself')
+assert(
+  clubNameFromTail('REAL MADRID SHOCKER 🚨 Espanyol') === 'Espanyol',
+  'and a headline naming a different club in front of it does not steal the match',
+)
+assert(clubNameFromTail('TOTAL NONSENSE 🚨') === null, 'a tail with no club in it resolves to nothing')
 
 // ---- serialization ---------------------------------------------------------
 

@@ -295,8 +295,8 @@ jobs:
             fi
 
             # --- Club competitions ------------------------------------------
-            # Results ingest + Golazo curation only: no AI review, no odds, no
-            # entertainment summary. Those stay World Cup only.
+            # Results ingest + highlight curation only: no AI review, no odds,
+            # no entertainment summary. Those stay World Cup only.
             #
             # This runs AFTER the World Cup has committed, on purpose.
             # `validate:data` validates every registered tournament, so a club
@@ -313,10 +313,14 @@ jobs:
               export CLUB_COMPETITION="$competition"
               export CLUB_LEAGUE_SLUG="$league_slug"
 
+              # --competition, not a positional: both scripts scan every
+              # competition they are not narrowed to, so without it each one ran
+              # three times per cycle — and the curator's uploads scan is the
+              # expensive half of that.
               club_step "$season results" "$season" "$CLUB_BACKUP_ROOT/$season-results" \
-                npx tsx scripts/espn-club.ts "$season"
+                npx tsx scripts/espn-club.ts --competition "$competition"
               club_step "$season videos" "$season" "$CLUB_BACKUP_ROOT/$season-videos" \
-                npx tsx scripts/curate-club-videos.ts "$season"
+                npx tsx scripts/curate-club-videos.ts --competition "$competition"
             done
             unset CLUB_SEASON CLUB_COMPETITION CLUB_LEAGUE_SLUG
 
