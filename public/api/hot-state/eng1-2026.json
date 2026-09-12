@@ -836,11 +836,24 @@
       "goals": []
     },
     "eng1-sunderland-arsenal": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "arsenal",
+          "player": "Bruno Guimarães",
+          "minute": "58'"
+        },
+        {
+          "team": "arsenal",
+          "player": "Bukayo Saka",
+          "minute": "90'+7'",
+          "penalty": true
+        }
+      ]
     },
     "eng1-coventry-brighton": {
       "liveStatus": null,
