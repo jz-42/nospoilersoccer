@@ -828,9 +828,7 @@
       "goals": []
     },
     "eng1-tottenham-everton": {
-      "liveStatus": {
-        "kind": "live"
-      },
+      "liveStatus": null,
       "score": null,
       "goals": null
     },
