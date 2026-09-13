@@ -1109,7 +1109,9 @@
       ]
     },
     "esp1-celta-vigo-malaga": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
