@@ -62,7 +62,7 @@ const base: Tournament = {
     { id: 'eng1-liverpool-fulham', group: 'league', matchday: 4, date: '2026-09-12', kickoff: '2026-09-12T14:00Z', home: 'liverpool', away: 'fulham', score: { home: 0, away: 0 }, goals: [] },
     { id: 'eng1-tottenham-everton', group: 'league', matchday: 4, date: '2026-09-12', kickoff: '2026-09-12T16:30Z', home: 'tottenham', away: 'everton', score: { home: 0, away: 0 }, goals: [] },
     { id: 'eng1-sunderland-arsenal', group: 'league', matchday: 4, date: '2026-09-12', kickoff: '2026-09-12T19:00Z', home: 'sunderland', away: 'arsenal', score: { home: 0, away: 2 }, goals: [{ team: 'arsenal', player: "Bruno Guimarães", minute: "58'" }, { team: 'arsenal', player: "Bukayo Saka", minute: "90'+7'", penalty: true }] },
-    { id: 'eng1-coventry-brighton', group: 'league', matchday: 4, date: '2026-09-13', kickoff: '2026-09-13T13:00Z', home: 'coventry', away: 'brighton', liveStatus: { kind: 'live' } },
+    { id: 'eng1-coventry-brighton', group: 'league', matchday: 4, date: '2026-09-13', kickoff: '2026-09-13T13:00Z', home: 'coventry', away: 'brighton' },
     { id: 'eng1-manchester-united-manchester-city', group: 'league', matchday: 4, date: '2026-09-13', kickoff: '2026-09-13T15:30Z', home: 'manchester-united', away: 'manchester-city' },
     { id: 'eng1-leeds-newcastle', group: 'league', matchday: 4, date: '2026-09-14', kickoff: '2026-09-14T19:00Z', home: 'leeds', away: 'newcastle' },
     { id: 'eng1-brentford-chelsea', group: 'league', matchday: 5, date: '2026-09-18', kickoff: '2026-09-18T19:00Z', home: 'brentford', away: 'chelsea' },
