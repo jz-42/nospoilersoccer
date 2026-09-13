@@ -891,7 +891,9 @@
       ]
     },
     "eng1-manchester-united-manchester-city": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
