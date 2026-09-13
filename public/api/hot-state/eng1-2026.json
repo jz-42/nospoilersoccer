@@ -856,11 +856,39 @@
       ]
     },
     "eng1-coventry-brighton": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 5
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "brighton",
+          "player": "Charalambos Kostoulas",
+          "minute": "35'"
+        },
+        {
+          "team": "brighton",
+          "player": "Malick Yalcouyé",
+          "minute": "51'"
+        },
+        {
+          "team": "brighton",
+          "player": "Pascal Gross",
+          "minute": "70'",
+          "penalty": true
+        },
+        {
+          "team": "brighton",
+          "player": "Lewis Dunk",
+          "minute": "83'"
+        },
+        {
+          "team": "brighton",
+          "player": "Yasin Ayari",
+          "minute": "90'+4'"
+        }
+      ]
     },
     "eng1-manchester-united-manchester-city": {
       "liveStatus": null,
