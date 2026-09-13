@@ -1128,11 +1128,44 @@
       ]
     },
     "esp1-levante-barcelona": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 4
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "barcelona",
+          "player": "Xavi Espart",
+          "minute": "5'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "19'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "48'",
+          "penalty": true
+        },
+        {
+          "team": "levante",
+          "player": "Iván Romero",
+          "minute": "79'"
+        },
+        {
+          "team": "levante",
+          "player": "Roger Brugué",
+          "minute": "88'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Karim Adeyemi",
+          "minute": "90'+3'"
+        }
+      ]
     },
     "esp1-getafe-deportivo": {
       "liveStatus": null,
