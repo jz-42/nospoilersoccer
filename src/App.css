@@ -3803,6 +3803,7 @@
 }
 
 .player-wrap {
+  --player-title-mask-height: 48px;
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -3831,35 +3832,21 @@
 /* Covers the strip where YouTube paints the video title and channel on hover,
    on pause and whenever its controls are up. There is no player var that
    suppresses it, and the iframe is cross-origin, so an opaque bar of our own is
-   the only way to keep a spoiler-laden title off screen. The title barely
-   shrinks with the player, so the height has a floor for phone-width players
-   and a ceiling so the bar does not eat a fullscreen frame. */
+   the only way to keep a spoiler-laden title off screen. YouTube's title strip
+   is fixed-height UI, so the mask is fixed too: scaling it with the fullscreen
+   viewport used to hide broadcast score graphics below the actual title. */
 .player-titlebar {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   z-index: 3;
-  height: clamp(46px, 14%, 90px);
+  height: var(--player-title-mask-height);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 0 6px 0 12px;
+  padding: 0 12px;
   background: #05070b;
   pointer-events: none;
-}
-
-/* The channel name sits just under the title; fade it out rather than paying
-   for a bar tall enough to cover it on short phone-width players. */
-.player-titlebar::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  height: 22px;
-  background: linear-gradient(#05070b, rgba(5, 7, 11, 0));
 }
 
 .player-titlebar-label {
@@ -3874,14 +3861,17 @@
 
 .player-expand {
   pointer-events: auto;
-  flex: none;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  z-index: 3;
   display: grid;
   place-items: center;
   width: 30px;
   height: 30px;
   border: 0;
   border-radius: 8px;
-  background: transparent;
+  background: rgba(5, 7, 11, 0.82);
   color: var(--text-m);
   cursor: pointer;
 }

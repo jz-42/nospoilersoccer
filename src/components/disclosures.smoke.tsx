@@ -306,6 +306,24 @@ assert(
   'an opaque bar covers the strip where YouTube draws the video title',
 )
 assert(
+  /\.player-titlebar\s*\{[\s\S]*?height:\s*var\(--player-title-mask-height\);/.test(appCss),
+  'the title mask uses a fixed measured height',
+)
+assert(
+  !/\.player-titlebar\s*\{[\s\S]*?height:\s*clamp\(/.test(appCss),
+  'fullscreen cannot scale the title mask with viewport height',
+)
+assert(
+  /\.player-expand\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?right:\s*10px;[\s\S]*?bottom:\s*10px;/.test(appCss),
+  'the custom fullscreen control occupies the familiar lower-right position',
+)
+assert(
+  /<div className="player-titlebar">\s*<span[\s\S]*?<\/span>\s*<\/div>\s*<button[\s\S]*?className="player-expand"/.test(
+    playerSource,
+  ),
+  'the fullscreen control is a sibling after the title mask rather than inside it',
+)
+assert(
   /playerVars:\s*\{[^}]*\bfs:\s*0\b/.test(playerSource)
     && playerSource.includes("removeAttribute('allowfullscreen')"),
   'the player cannot go fullscreen on its own, which would escape that bar',
