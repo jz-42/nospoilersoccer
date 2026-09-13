@@ -1187,7 +1187,9 @@
       ]
     },
     "esp1-real-sociedad-atletico-madrid": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
