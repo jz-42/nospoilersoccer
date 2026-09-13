@@ -1109,11 +1109,23 @@
       ]
     },
     "esp1-celta-vigo-malaga": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "celta-vigo",
+          "player": "Ferran Jutglà",
+          "minute": "41'"
+        },
+        {
+          "team": "malaga",
+          "player": "Adrián Niño",
+          "minute": "83'"
+        }
+      ]
     },
     "esp1-levante-barcelona": {
       "liveStatus": null,
