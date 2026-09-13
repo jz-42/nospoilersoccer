@@ -21,7 +21,7 @@ The player continues to disable YouTube's native fullscreen and Picture-in-Pictu
 
 The application fullscreen button continues to fullscreen the complete player wrapper, which keeps the application-owned title seal present. Its placement moves from the title seal's top-right corner to the conventional bottom-right player position so it is easier to reach.
 
-In the embedded player, an opaque application-owned strip covers YouTube's title and channel UI. In fullscreen, the wrapper reserves a shallow header rail for that seal and lays the iframe below it. The rail must not overlap the video image, so top-left broadcast score graphics remain visible. The fullscreen player may letterbox slightly to preserve the whole 16:9 picture; it must not crop or stretch the broadcast.
+In the embedded player, an opaque application-owned strip covers YouTube's title and channel UI. The same strip remains over the iframe in fullscreen because YouTube's title is painted inside that cross-origin frame and moves with it. Its fullscreen height is a fixed, measured title-strip height rather than a percentage of the viewport. The mask must cover YouTube's title without growing into the broadcast score area; it must not crop or stretch the broadcast.
 
 The title may remain in cross-origin iframe accessibility metadata because the application cannot rewrite YouTube's internal document. The visual UI must not show it. This limitation is acceptable for the current product, and no title-based AI review is used as a second gate.
 
@@ -53,7 +53,7 @@ Automated coverage asserts behavior rather than exact visual styling:
 - club labels and posters expose no duration or YouTube title;
 - the native iframe cannot enter fullscreen or Picture-in-Picture;
 - the application fullscreen control is outside the top title seal and occupies the bottom-right control position;
-- fullscreen layout reserves title-seal space instead of overlaying the video;
+- fullscreen title-seal height is fixed rather than viewport-percentage based;
 - no active workflow or updater command references OpenAI;
 - data validation, component tests, scheduler tests, type checking, and the production build pass.
 
