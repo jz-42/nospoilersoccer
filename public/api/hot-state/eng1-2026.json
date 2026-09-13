@@ -891,11 +891,18 @@
       ]
     },
     "eng1-manchester-united-manchester-city": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "manchester-city",
+          "player": "Erling Haaland",
+          "minute": "60'"
+        }
+      ]
     },
     "eng1-leeds-newcastle": {
       "liveStatus": null,
