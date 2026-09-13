@@ -1187,11 +1187,29 @@
       ]
     },
     "esp1-real-sociedad-atletico-madrid": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 3
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Alejandro Grimaldo",
+          "minute": "84'",
+          "penalty": true
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Jonathan David",
+          "minute": "90'"
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Giuliano Simeone",
+          "minute": "90'+5'"
+        }
+      ]
     },
     "esp1-villarreal-real-betis": {
       "liveStatus": null,
