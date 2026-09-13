@@ -29,19 +29,14 @@ jobs:
       - run: npm ci
 
       # Poll every 5 minutes for ~53 minutes. Each cycle pulls results + odds +
-      # spoiler-free highlights, validates, and commits ONLY if something changed.
+      # highlights, validates, and commits ONLY if something changed.
       # Cloudflare decides when to start each run and checks every 5 minutes.
       - name: Update loop (every 5 min)
         env:
-          # Accept any of the names this secret has been stored under.
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || secrets.OPENAI_REVIEW_KEY || secrets.GPT_VIDEO_REVIEW_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
           CURATOR_ERROR_FLAG: /tmp/curator-error
-          AI_REJECTION_ALERT_MENTION: jz-42
           RESULTS_AUDIT_FILE: /tmp/results-audit.md
-          ENTERTAINMENT_AUDIT_FILE: /tmp/entertainment-audit.md
-          ENTERTAINMENT_BACKUP_FILE: /tmp/wc2026-entertainment.ts.before
           RESULTS_BACKUP_FILE: /tmp/wc2026-before-results.ts
           LIVE_STATUS_AUDIT_FILE: /tmp/live-status-audit.md
           LIVE_STATUS_BACKUP_FILE: /tmp/wc2026-before-live-status.ts
@@ -50,7 +45,6 @@ jobs:
           VIDEOS_BACKUP_DIR: /tmp/wc2026-videos-backup
           CLUB_AUDIT_FILE: /tmp/club-audit.md
           CLUB_BACKUP_ROOT: /tmp/club-backup
-          # Optional: OPENAI_MODEL (default gpt-5.4), OPENAI_REASONING_EFFORT (default medium)
         run: |
           git config user.name "results-bot"
           git config user.email "actions@github.com"
@@ -128,9 +122,7 @@ jobs:
             echo "::group::cycle $cycle — $(date -u '+%H:%M:%SZ')"
             rm -f "$CURATOR_ERROR_FLAG"
             rm -f "$RESULTS_AUDIT_FILE"
-            rm -f "$ENTERTAINMENT_AUDIT_FILE"
-
-            # Core updater path: keep this independent from optional entertainment AI.
+            # Core updater path.
             cp src/data/wc2026.ts "$RESULTS_BACKUP_FILE"
             if npx tsx scripts/update-results.ts; then
               if [ -f "$RESULTS_AUDIT_FILE" ]; then
@@ -194,19 +186,16 @@ jobs:
             mkdir -p "$VIDEOS_BACKUP_DIR"
             cp src/data/wc2026-videos.ts "$VIDEOS_BACKUP_DIR/wc2026-videos.ts"
             cp scripts/curate-skip.json "$VIDEOS_BACKUP_DIR/curate-skip.json"
-            cp scripts/curate-ai-rejections.json "$VIDEOS_BACKUP_DIR/curate-ai-rejections.json"
             if CURATOR_CYCLE="$cycle" npx tsx scripts/curate-videos.ts; then
               if ! (npm run validate:data && npx tsx src/data/videos.smoke.ts && npx tsc -b); then
                 echo "::warning::video validation failed; discarding video changes for this cycle"
                 cp "$VIDEOS_BACKUP_DIR/wc2026-videos.ts" src/data/wc2026-videos.ts
                 cp "$VIDEOS_BACKUP_DIR/curate-skip.json" scripts/curate-skip.json
-                cp "$VIDEOS_BACKUP_DIR/curate-ai-rejections.json" scripts/curate-ai-rejections.json
               fi
             else
               echo "::warning::video curator step errored; discarding video changes for this cycle"
               cp "$VIDEOS_BACKUP_DIR/wc2026-videos.ts" src/data/wc2026-videos.ts
               cp "$VIDEOS_BACKUP_DIR/curate-skip.json" scripts/curate-skip.json
-              cp "$VIDEOS_BACKUP_DIR/curate-ai-rejections.json" scripts/curate-ai-rejections.json
             fi
 
             core_ok=false
@@ -214,17 +203,15 @@ jobs:
               core_ok=true
             fi
 
-            core_ready_for_entertainment=false
             if [ "$core_ok" = true ]; then
-              git add src/data/wc2026.ts src/data/wc2026-videos.ts public/api/hot-state/wc2026.json scripts/curate-skip.json scripts/curate-ai-rejections.json
+              git add src/data/wc2026.ts src/data/wc2026-videos.ts public/api/hot-state/wc2026.json scripts/curate-skip.json
               if git diff --cached --quiet; then
                 echo "no core changes this cycle"
-                core_ready_for_entertainment=true
               else
                 git commit -m "Auto-update: World Cup 2026 data ($(date -u '+%F %H:%MZ'))"
                 git pull --rebase --autostash origin main || true
                 if git push origin HEAD:main; then
-                  core_ready_for_entertainment=true
+                  :
                 else
                   echo "::warning::push to main failed; will retry next cycle"
                 fi
@@ -235,68 +222,8 @@ jobs:
               touch "$CURATOR_ERROR_FLAG"
             fi
 
-            if [ "$core_ready_for_entertainment" = true ]; then
-              CURATOR_CYCLE="$cycle" npx tsx scripts/notify-ai-rejections.ts scripts/curate-ai-rejections.json \
-                || echo "::warning::failed to post AI rejection alert issue comment"
-            fi
-
-            # Optional entertainment AI path: never let this block core updates.
-            if [ "$core_ready_for_entertainment" = true ]; then
-              rm -f "$ENTERTAINMENT_AUDIT_FILE"
-              cp src/data/wc2026-entertainment.ts "$ENTERTAINMENT_BACKUP_FILE"
-              entertainment_ok=false
-              if npx tsx scripts/curate-entertainment.ts; then
-                entertainment_ok=true
-              else
-                echo "::warning::entertainment step errored this cycle"
-                cp "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts
-                {
-                  echo "### Entertainment audit — cycle $cycle"
-                  echo "- reason: entertainment_step_error"
-                  echo "- action: skipped entertainment curation for this cycle"
-                  echo
-                } >> "$GITHUB_STEP_SUMMARY"
-              fi
-              if [ -f "$ENTERTAINMENT_AUDIT_FILE" ]; then
-                {
-                  echo "### Entertainment audit — cycle $cycle"
-                  cat "$ENTERTAINMENT_AUDIT_FILE"
-                  echo
-                } >> "$GITHUB_STEP_SUMMARY"
-              fi
-              if [ "$entertainment_ok" = true ] && ! cmp -s "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts; then
-                if npm run check:update; then
-                  git add src/data/wc2026-entertainment.ts
-                  if git diff --cached --quiet; then
-                    echo "no entertainment changes this cycle"
-                  else
-                    git commit -m "Auto-update: World Cup 2026 entertainment ($(date -u '+%F %H:%MZ'))"
-                    git pull --rebase --autostash origin main || true
-                    if git push origin HEAD:main; then
-                      git push origin HEAD:dev  || echo "dev has diverged; skipping"
-                    else
-                      echo "::warning::entertainment push to main failed; discarding local entertainment commit"
-                      git fetch origin main && git reset --hard origin/main || echo "::warning::failed to restore local main after entertainment push failure"
-                    fi
-                  fi
-                else
-                  echo "::warning::entertainment validation failed; discarding entertainment changes"
-                  cp "$ENTERTAINMENT_BACKUP_FILE" src/data/wc2026-entertainment.ts
-                  {
-                    echo "### Entertainment audit — cycle $cycle"
-                    echo "- reason: entertainment_validation_failed"
-                    echo "- action: discarded entertainment changes for this cycle"
-                    echo
-                  } >> "$GITHUB_STEP_SUMMARY"
-                fi
-              fi
-            else
-              echo "::notice::skipping optional entertainment curation because core updater did not reach a clean commit point"
-            fi
-
             # --- Club competitions ------------------------------------------
-            # Results ingest + highlight curation only: no AI review, no odds,
-            # no entertainment summary. Those stay World Cup only.
+            # Results ingest + highlight curation only: no odds.
             #
             # This runs AFTER the World Cup has committed, on purpose.
             # `validate:data` validates every registered tournament, so a club

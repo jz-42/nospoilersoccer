@@ -1,6 +1,6 @@
 import type { Tournament } from '../src/data/types'
+import { readFileSync } from 'node:fs'
 import * as curateVideos from './curate-videos'
-import { sanitizeTitleForSpoilerCheck } from './spoiler-check'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -93,6 +93,14 @@ assert(
   !(shouldRetrySkippedId as (reason: string) => boolean)('already have a normal cut'),
   'stable skip reasons remain permanent',
 )
+assert(
+  (shouldRetrySkippedId as (reason: string) => boolean)('AI rejected: possible spoiler in title'),
+  'videos held by the retired AI gate are reconsidered',
+)
+assert(
+  (shouldRetrySkippedId as (reason: string) => boolean)('title failed spoiler check'),
+  'videos held by the retired title-wording gate are reconsidered',
+)
 
 assert(
   (
@@ -113,20 +121,15 @@ assert(
   'sub-10-minute plain Highlights uploads stay quick cuts',
 )
 
+const activeAutomation = [
+  readFileSync(new URL('./curate-videos.ts', import.meta.url), 'utf8'),
+  readFileSync(new URL('./curate-club-videos.ts', import.meta.url), 'utf8'),
+  readFileSync(new URL('../.github/workflows/update-results.yml', import.meta.url), 'utf8'),
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+].join('\n')
 assert(
-  sanitizeTitleForSpoilerCheck('United States vs Belgium Highlights 🌎🏆 2026 FIFA World Cup™ | Round of 16') ===
-    'United States vs Belgium Highlights 🌎🏆 2026 FIFA World Cup™',
-  'trusted full-match titles strip knockout-stage suffixes before the AI spoiler check',
-)
-assert(
-  sanitizeTitleForSpoilerCheck('France vs England Highlights 🌎🏆 2026 FIFA World Cup™ | Bronze Final') ===
-    'France vs England Highlights 🌎🏆 2026 FIFA World Cup™',
-  'trusted full-match titles strip third-place progression context before the AI spoiler check',
-)
-assert(
-  sanitizeTitleForSpoilerCheck('Lionel Messi & Argentina ADVANCE to Quarterfinals vs Egypt') ===
-    'Lionel Messi & Argentina ADVANCE to Quarterfinals vs Egypt',
-  'non-highlight titles keep their original text for the AI spoiler check',
+  !/OPENAI_API_KEY|checkVideoForSpoilers|curate-entertainment|notify-ai-rejections/.test(activeAutomation),
+  'active updater code contains no OpenAI-backed path',
 )
 
 console.log('ALL PASS')

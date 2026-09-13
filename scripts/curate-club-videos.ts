@@ -43,11 +43,10 @@
  *
  * ESPN FC and the editorial prefix. Golazo and NBC title their cuts to a fixed
  * template; ESPN FC sometimes leads with a headline — "TITLE CLINCHER 🏆
- * Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC" — and that headline can
- * hint at a result. Those prefixed titles are rejected outright. The visible
- * player still covers YouTube's title bar (see HighlightPlayer), but an iframe
- * cover is not an absolute boundary for accessibility or native media surfaces,
- * so it is defense in depth rather than permission to ingest a spoiler title.
+ * Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC". The parser strips
+ * that wording solely to resolve the fixture. The site never renders the
+ * upstream title: HighlightPlayer shows a generic label and seals YouTube's
+ * title chrome in both inline and fullscreen playback.
  *
  * NO DURATIONS, EVER. A club cut must not carry `durationSeconds`. That
  * omission is how "no runtime shown anywhere on a club match" is enforced — in
@@ -97,8 +96,6 @@ export interface ClubVideoSource {
    * Saturday's worth of football falls off the end before we look.
    */
   scanDepth: number
-  /** See the header — true for ESPN FC alone. */
-  rejectsLeadingPrefix: boolean
   parse(title: string): TitleParse | null
 }
 
@@ -168,9 +165,9 @@ const NBC_RE = /^([^|]+?)\s+vs?\.?\s+([^|]+?)\s*\|\s*(PREMIER\s+LEAGUE(?:\s+EXTE
  *   "Athletic Club vs. Sevilla | LALIGA Highlights | ESPN FC"
  *   "LALIGA SEASON OPENER 🚨 Getafe vs. Alaves | LALIGA Highlights | ESPN FC"
  *
- * The leading headline in the second form is rejected — see the header. The
- * matchup is confined to one `|` segment, so a headline in its own segment does
- * not parse either.
+ * The leading headline in the second form is stripped during club-name
+ * resolution — see the header. The matchup is confined to one `|` segment, so
+ * a headline in its own segment does not parse either.
  */
 const ESPNFC_RE = /^([^|]+?)\s+vs?\.?\s+([^|]+?)\s*\|\s*(LA\s?LIGA\s+(?:EXTENDED\s+)?HIGHLIGHTS\b.*)$/i
 
@@ -185,7 +182,6 @@ export const CLUB_VIDEO_SOURCES: Record<string, ClubVideoSource> = {
     channelId: GOLAZO_CHANNEL_ID,
     competitions: ['ucl'],
     scanDepth: 150,
-    rejectsLeadingPrefix: false,
     parse(title) {
       const m = title.match(GOLAZO_RE)
       if (!m) return null
@@ -205,7 +201,6 @@ export const CLUB_VIDEO_SOURCES: Record<string, ClubVideoSource> = {
     // NBC posts every American sport it holds, all day; a weekend of Premier
     // League is a thin slice of that.
     scanDepth: 600,
-    rejectsLeadingPrefix: false,
     parse(title) {
       const m = title.match(NBC_RE)
       if (!m) return null
@@ -223,7 +218,6 @@ export const CLUB_VIDEO_SOURCES: Record<string, ClubVideoSource> = {
     channelId: ESPNFC_CHANNEL_ID,
     competitions: ['esp1'],
     scanDepth: 400,
-    rejectsLeadingPrefix: true,
     parse(title) {
       const m = title.match(ESPNFC_RE)
       if (!m) return null
@@ -247,10 +241,6 @@ export const uploadsPlaylistOf = (source: ClubVideoSource): string =>
   'UU' + source.channelId.slice(2)
 
 // ---- title screening -------------------------------------------------------
-
-/** Result-leaking wording. The title shape already excludes it; belt and braces. */
-const TITLE_SPOILER_RE =
-  /\d\s*[-–]\s*\d|\b(beat|beats|win|wins|won|loss|lose|loses|drew|draws|advance|advances|eliminat|knock(?:ed)? out|stunn|thrash|comeback)\b/i
 
 /**
  * Competitions a source covers that are NOT ours. Two clubs can be in our UCL
@@ -321,6 +311,12 @@ export function clubNameFromTail(raw: string): string | null {
   return null
 }
 
+/** Resolve a plain club name or the known-club suffix of an editorial prefix. */
+function resolvedClubName(raw: string): string | null {
+  const id = clubIdByName(raw)
+  return id ? clubs[id].name : clubNameFromTail(raw)
+}
+
 /**
  * Everything decidable from the playlist title alone. Run first so the ~90% of
  * uploads that are talk shows and interviews cost no network calls at all.
@@ -337,13 +333,10 @@ export function screenTitle(
   const parsed = source.parse(title)
   if (!parsed) return { status: 'ignore', reason: 'not a full-match highlight title' }
 
-  const { homeName } = parsed
-  const { awayName, context, dateHint } = parsed
-  if (source.rejectsLeadingPrefix && !clubIdByName(homeName)) {
-    const tail = clubNameFromTail(homeName)
-    if (tail) return { status: 'skip', reason: 'editorial prefix is not spoiler-safe' }
-    return { status: 'skip', reason: 'title did not map to two known clubs' }
-  }
+  const { context, dateHint } = parsed
+  const homeName = resolvedClubName(parsed.homeName)
+  const awayName = resolvedClubName(parsed.awayName)
+  if (!homeName || !awayName) return { status: 'skip', reason: 'title did not map to two known clubs' }
 
   if (FOREIGN_COMPETITION_RE.test(context)) {
     return { status: 'ignore', reason: 'another competition' }
@@ -355,17 +348,12 @@ export function screenTitle(
   // a same-pair league-phase fixture can never absorb a knockout cut.
   if (!strongTag && !round) return { status: 'ignore', reason: 'not this competition' }
 
-  if (TITLE_SPOILER_RE.test(title)) {
-    // Never echo the title back — that is exactly where a score would be.
-    return { status: 'skip', reason: 'title failed the spoiler check' }
-  }
-
   const legMatch = context.match(/\bLeg\s*([12])\b/i)
   return {
     status: 'ok',
     screen: {
       homeName,
-      awayName: awayName.trim(),
+      awayName,
       context,
       leg: legMatch ? (Number(legMatch[1]) as 1 | 2) : null,
       round,
