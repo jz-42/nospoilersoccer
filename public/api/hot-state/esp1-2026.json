@@ -1168,7 +1168,9 @@
       ]
     },
     "esp1-getafe-deportivo": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
