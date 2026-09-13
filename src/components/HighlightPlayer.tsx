@@ -105,6 +105,18 @@ const KIND_LABEL: Record<HighlightVideo['kind'], string> = {
   extended: 'Extended Highlights',
 }
 
+const CLUB_PROVIDER_BY_MATCH_PREFIX = {
+  'eng1-': 'NBC',
+  'esp1-': 'ESPN',
+  'ucl-': 'CBS',
+} as const
+
+export function highlightLabel(matchId: string, kind: HighlightVideo['kind']): string {
+  const provider = Object.entries(CLUB_PROVIDER_BY_MATCH_PREFIX)
+    .find(([prefix]) => matchId.startsWith(prefix))?.[1]
+  return provider ? `Highlights (${provider})` : KIND_LABEL[kind]
+}
+
 export function HighlightPlayer({
   videos,
   tournamentYear,
@@ -294,7 +306,7 @@ export function HighlightPlayer({
             className={`kind-chip ${highlightKey(selected) === highlightKey(v) ? 'active' : ''}`}
             onClick={() => play(v)}
           >
-            {KIND_LABEL[v.kind]}
+            {highlightLabel(matchId, v.kind)}
             {dur && <span className="kind-chip-time">{dur}</span>}
           </button>
         )
@@ -325,7 +337,7 @@ export function HighlightPlayer({
                   </svg>
                 </span>
                 <span className="poster-label">
-                  {KIND_LABEL[v.kind]}
+                  {highlightLabel(matchId, v.kind)}
                   {dur && <span className="poster-time"> · {dur}</span>}
                 </span>
                 {v.community && <span className="poster-note">Community upload</span>}
@@ -346,7 +358,7 @@ export function HighlightPlayer({
           <iframe
             className="player-host player-host-fox"
             src={highlightEmbedUrl(active)}
-            title={KIND_LABEL[active.kind]}
+            title={highlightLabel(matchId, active.kind)}
             scrolling="no"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
@@ -358,7 +370,7 @@ export function HighlightPlayer({
                 It stays out of the pointer path so the player's own controls
                 below it keep working. */}
             <div className="player-titlebar">
-              <span className="player-titlebar-label">{KIND_LABEL[active.kind]}</span>
+              <span className="player-titlebar-label">{highlightLabel(matchId, active.kind)}</span>
               <button
                 type="button"
                 className="player-expand"
