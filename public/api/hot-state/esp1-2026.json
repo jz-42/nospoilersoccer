@@ -1128,7 +1128,9 @@
       ]
     },
     "esp1-levante-barcelona": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
