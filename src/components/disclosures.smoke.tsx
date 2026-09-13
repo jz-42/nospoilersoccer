@@ -310,6 +310,10 @@ assert(
   'the title mask uses a fixed measured height',
 )
 assert(
+  /\.player-wrap\s*\{[\s\S]*?--player-title-mask-height:\s*38px;/.test(appCss),
+  'the measured title mask stops at the 38px cross-browser safety boundary',
+)
+assert(
   !/\.player-titlebar\s*\{[\s\S]*?height:\s*clamp\(/.test(appCss),
   'fullscreen cannot scale the title mask with viewport height',
 )

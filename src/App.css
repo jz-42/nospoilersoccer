@@ -3803,7 +3803,7 @@
 }
 
 .player-wrap {
-  --player-title-mask-height: 48px;
+  --player-title-mask-height: 38px;
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
