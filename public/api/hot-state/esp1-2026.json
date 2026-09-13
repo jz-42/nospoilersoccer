@@ -1168,11 +1168,23 @@
       ]
     },
     "esp1-getafe-deportivo": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "getafe",
+          "player": "Ramón Terrats",
+          "minute": "66'"
+        },
+        {
+          "team": "deportivo",
+          "player": "Pierre-Emerick Aubameyang",
+          "minute": "78'"
+        }
+      ]
     },
     "esp1-real-sociedad-atletico-madrid": {
       "liveStatus": null,
