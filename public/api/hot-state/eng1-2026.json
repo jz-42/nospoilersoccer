@@ -856,7 +856,9 @@
       ]
     },
     "eng1-coventry-brighton": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
