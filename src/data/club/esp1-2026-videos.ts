@@ -24,6 +24,7 @@ export const esp1_2026_videos: Record<string, HighlightVideo[]> = {
   'esp1-osasuna-getafe': [{ youtubeId: 'wmCXSxhPJDg', kind: 'normal' }],
   'esp1-real-betis-real-sociedad': [{ youtubeId: 'pJRJsX-3U4w', kind: 'normal' }],
   'esp1-real-madrid-rayo-vallecano': [{ youtubeId: 'GtscnZUGLe4', kind: 'normal' }],
+  'esp1-real-sociedad-atletico-madrid': [{ youtubeId: '7Rb78W9GlM4', kind: 'normal' }],
   'esp1-real-sociedad-celta-vigo': [{ youtubeId: 'w6vspBHbyr0', kind: 'normal' }],
   'esp1-real-sociedad-espanyol': [{ youtubeId: 'tgYYdJCBFY4', kind: 'normal' }],
   'esp1-sevilla-atletico-madrid': [{ youtubeId: 'PkBJJjyfV_A', kind: 'normal' }],
