@@ -1212,7 +1212,9 @@
       ]
     },
     "esp1-villarreal-real-betis": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },

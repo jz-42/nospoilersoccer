@@ -905,7 +905,9 @@
       ]
     },
     "eng1-leeds-newcastle": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
