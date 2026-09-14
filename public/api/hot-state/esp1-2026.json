@@ -1212,11 +1212,28 @@
       ]
     },
     "esp1-villarreal-real-betis": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "villarreal",
+          "player": "Gerard Moreno",
+          "minute": "29'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Cucho Hernández",
+          "minute": "39'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Natan",
+          "minute": "43'"
+        }
+      ]
     },
     "esp1-rayo-vallecano-espanyol": {
       "liveStatus": null,

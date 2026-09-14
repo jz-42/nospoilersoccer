@@ -905,11 +905,39 @@
       ]
     },
     "eng1-leeds-newcastle": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "leeds",
+          "player": "Lewis Miley",
+          "minute": "32'",
+          "ownGoal": true
+        },
+        {
+          "team": "leeds",
+          "player": "Jayden Bogle",
+          "minute": "34'"
+        },
+        {
+          "team": "leeds",
+          "player": "Dominic Calvert-Lewin",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "leeds",
+          "player": "Noah Okafor",
+          "minute": "59'"
+        },
+        {
+          "team": "newcastle",
+          "player": "Bazoumana Touré",
+          "minute": "90'"
+        }
+      ]
     },
     "eng1-brentford-chelsea": {
       "liveStatus": null,
