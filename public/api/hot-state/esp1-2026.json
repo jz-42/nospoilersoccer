@@ -1236,12 +1236,16 @@
       ]
     },
     "esp1-rayo-vallecano-espanyol": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "esp1-alaves-valencia": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
