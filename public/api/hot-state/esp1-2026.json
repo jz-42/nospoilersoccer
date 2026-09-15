@@ -1236,9 +1236,7 @@
       ]
     },
     "esp1-rayo-vallecano-espanyol": {
-      "liveStatus": {
-        "kind": "live"
-      },
+      "liveStatus": null,
       "score": null,
       "goals": null
     },
