@@ -92,9 +92,14 @@ function GroupCard({
     <section className="group-card">
       <header className="group-card-header">
         <h3>{single ? tableTabLabel(t) : `Group ${group.id}`}</h3>
-        <span className={`group-progress ${seen === matches.length ? 'done' : ''}`}>
-          {seen}/{matches.length}
-        </span>
+        {/* "4/6" is a readable goal for a World Cup group. "30/380" for a
+            league season is just a number ticking in the corner of a table
+            nobody is trying to clear — same call as the header meter. */}
+        {!single && (
+          <span className={`group-progress ${seen === matches.length ? 'done' : ''}`}>
+            {seen}/{matches.length}
+          </span>
+        )}
       </header>
       <Standings t={t} group={group} progress={progress} />
       {matchDays.length > 0 && (

@@ -1,3 +1,4 @@
+import { ucl_2026 } from './club/ucl-2026'
 import type { HighlightVideo, Tournament } from './types'
 import { highlightKey, preferredHighlightVideos } from './videos'
 import { wc2026Entertainment } from './wc2026-entertainment'
@@ -92,15 +93,15 @@ const CLUB_COMPETITIONS: readonly { id: string; name: string; shortName: string 
  * imported the way the World Cup is.
  *
  * import.meta.glob is Vite-only and throws under plain Node (tsx), where the
- * smoke tests run; there the map stays empty and only the World Cup is
- * offered. Same pattern, and same reason, as src/components/Flag.tsx — note
+ * smoke tests run; there the map stays empty and only the World Cup and the
+ * eagerly bundled default season (EAGER_CLUB_SEASONS below) are offered. Same pattern, and same reason, as src/components/Flag.tsx — note
  * that a `typeof` guard does not work, the try/catch is required.
  */
 let clubSeasonModules: Record<string, () => Promise<unknown>> = {}
 try {
   clubSeasonModules = import.meta.glob('./club/*-*.ts')
 } catch {
-  // Node: no bundler, no chunks — World Cup only.
+  // Node: no bundler, no chunks — World Cup and eager seasons only.
 }
 
 /** './club/eng1-2026.ts' → { competition: 'eng1', year: 2026 } */
@@ -116,40 +117,76 @@ function seasonLabel(year: number): string {
   return `${String(year).slice(2)}/${String(year + 1).slice(2)}`
 }
 
+/**
+ * Club seasons baked into the main bundle instead of code-split. Only the
+ * default belongs here: it is what paints on a cold load, and a lazy chunk
+ * cannot paint without showing a spinner first. Every other season stays a
+ * chunk, so the bundle does not grow as seasons accumulate.
+ *
+ * A static import also works under plain Node, where the glob below does not —
+ * so the default season is offered even in the smoke tests.
+ */
+const EAGER_CLUB_SEASONS: Record<string, Tournament> = { 'ucl-2026': ucl_2026 }
+
 function clubSeasons(competitionId: string): Season[] {
   const seasons: Season[] = []
+  const seen = new Set<string>()
   for (const [path, load] of Object.entries(clubSeasonModules)) {
     const parsed = parseSeasonPath(path)
     if (!parsed || parsed.competition !== competitionId) continue
+    const id = `${competitionId}-${parsed.year}`
+    seen.add(id)
+    const eager = EAGER_CLUB_SEASONS[id]
     seasons.push({
-      id: `${competitionId}-${parsed.year}`,
+      id,
       label: seasonLabel(parsed.year),
       year: parsed.year,
-      // Each season file default-exports nothing; it names its export after
-      // the file (eng1_2026). Take whichever export is the Tournament.
-      load: async () => {
-        const mod = (await load()) as Record<string, Tournament>
-        const found = Object.values(mod).find((v) => v && typeof v === 'object' && 'groupMatches' in v)
-        if (!found) throw new Error(`${path} does not export a Tournament`)
-        return found
-      },
+      ...(eager
+        ? { tournament: eager }
+        : {
+            // Each season file default-exports nothing; it names its export
+            // after the file (eng1_2026). Take whichever export is the
+            // Tournament.
+            load: async () => {
+              const mod = (await load()) as Record<string, Tournament>
+              const found = Object.values(mod).find((v) => v && typeof v === 'object' && 'groupMatches' in v)
+              if (!found) throw new Error(`${path} does not export a Tournament`)
+              return found
+            },
+          }),
     })
+  }
+  // Node has no glob, so an eager season would otherwise go missing entirely.
+  for (const [id, tournament] of Object.entries(EAGER_CLUB_SEASONS)) {
+    const parsed = parseSeasonPath(`./club/${id}.ts`)
+    if (!parsed || parsed.competition !== competitionId || seen.has(id)) continue
+    seasons.push({ id, label: seasonLabel(parsed.year), year: parsed.year, tournament })
   }
   return seasons.sort((a, b) => b.year - a.year)
 }
 
+/**
+ * Picker order: the club competitions people follow week to week first, the
+ * World Cup last. It runs every four years, so it is the occasional visit
+ * rather than the habit — being at the bottom of the menu costs it nothing.
+ */
 export const competitions: Competition[] = [
+  ...CLUB_COMPETITIONS.map((c) => ({ ...c, seasons: clubSeasons(c.id) })),
   {
     id: 'wc',
     name: 'World Cup',
     shortName: 'World Cup',
     seasons: [{ id: 'wc2026', label: '2026', year: 2026, tournament: wc2026 }],
   },
-  ...CLUB_COMPETITIONS.map((c) => ({ ...c, seasons: clubSeasons(c.id) })),
   // A competition with no season files yet would render an empty picker entry.
 ].filter((c) => c.seasons.length > 0)
 
-export const defaultSeasonId = 'wc2026'
+/**
+ * The competition the app opens on for a first-time visitor. It is the one
+ * people follow week to week, and the one bundled eagerly above so it paints
+ * with no spinner.
+ */
+export const defaultSeasonId = 'ucl-2026'
 
 export function findSeason(id: string): { competition: Competition; season: Season } | null {
   for (const competition of competitions) {

@@ -10,6 +10,7 @@ import { matchTint } from '../data/team-colors'
 import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
 import { resolveSlot, slotLabel } from '../logic/spoilers'
+import { hasGroups, roundLabel } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
 import { LiveStatusBadge } from './live-status'
@@ -49,7 +50,11 @@ export function PreviewCard({
     const gm = m as GroupMatch
     homeLabel = t.teams[gm.home].name
     awayLabel = t.teams[gm.away].name
-    context = `Group ${gm.group}`
+    // A cup's group is a real name people use ("Group F"). A single-table
+    // competition's sole group is called 'league' in the data, and printing
+    // that gave every Premier League card a chip reading "GROUP LEAGUE" —
+    // the round it belongs to is the matchweek (or matchday, per competition).
+    context = hasGroups(t) ? `Group ${gm.group}` : `${roundLabel(t)} ${gm.matchday}`
   } else {
     const km = m as KnockoutMatch
     const home = resolveSlot(t, km, 'home', progress.marks, progress.revealed)

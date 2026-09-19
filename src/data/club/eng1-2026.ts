@@ -22,6 +22,7 @@ const base: Tournament = {
   year: 2026,
   advancingRanks: [],
   tableLabel: "Table",
+  roundLabel: "Matchweek",
   teams: Object.fromEntries(teamIds.map((id) => [id, clubs[id]] as const)),
   groups: [{ id: 'league', teams: [...teamIds] }],
   groupMatches: [

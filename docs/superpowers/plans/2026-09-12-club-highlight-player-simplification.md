@@ -203,3 +203,40 @@ Open the seeded preview, choose a recent NBC Chelsea/Arsenal highlight, start pl
 - [ ] **Step 4: Leave localhost ready for user testing**
 
 Keep the preview process running and leave Firefox on the test match. Report the exact local URL and navigation steps. Do not merge or deploy until the user confirms the localhost behavior.
+
+### Task 5: Expose YouTube controls beside a glass title shield
+
+**Files:**
+- Modify: `src/components/disclosures.smoke.tsx`
+- Modify: `src/components/HighlightPlayer.tsx`
+- Modify: `src/App.css` (player selectors only; preserve unrelated working-tree edits)
+
+- [x] **Step 1: Write failing shield and fullscreen-control assertions**
+
+Assert that the fixed-height `.player-titlebar` ends before a named YouTube control-cluster reserve instead of spanning to `right: 0`; that its opaque fallback is overridden inside a backdrop-filter feature query by a dark translucent fill and strong blur; and that `.player-expand` has a 48px hit target, transparent resting background, visible hover/focus treatment, and a 24px glyph.
+
+- [x] **Step 2: Run and verify RED**
+
+Run: `npx tsx --tsconfig tsconfig.app.json src/components/disclosures.smoke.tsx`
+
+Expected: FAIL because the title bar currently spans the full width with a flat opaque fill and the fullscreen control is a permanently boxed 30px button with a 16px glyph.
+
+- [x] **Step 3: Implement the minimal player-only refinement**
+
+Keep the 38px measured title height. Add a player custom property for the reserved YouTube top-right controls, end `.player-titlebar` at that reserve, retain `pointer-events: none`, and use `#05070b` as the non-filter fallback. In a feature query, switch to a dark translucent fill with `backdrop-filter`/`-webkit-backdrop-filter`, strong blur, restrained saturation, and a subtle bottom hairline. Change `.player-expand` to a 48px square with a transparent resting fill, a 24px enter/exit glyph, a light icon shadow, and hover/focus-visible affordances.
+
+- [x] **Step 4: Run focused and full verification**
+
+Run:
+
+```bash
+npx tsx --tsconfig tsconfig.app.json src/components/disclosures.smoke.tsx
+npm run check
+npm run build
+```
+
+Expected: all commands PASS.
+
+- [ ] **Step 5: Verify the real player manually** *(pending: SelfControl currently blocks the privacy-enhanced YouTube embed; direct Firefox playback works through the VPN)*
+
+At normal modal width and 320px responsive width, start an official YouTube highlight and check paused, playing, controls-visible, wrapper-fullscreen, and fullscreen-exit states. The upstream title must stay unreadable; the top-right YouTube control cluster and bottom-right application fullscreen control must stay visible and clickable; the cover must not reach broadcast score graphics below the 38px title line.

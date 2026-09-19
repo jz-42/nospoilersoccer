@@ -120,7 +120,7 @@ function DaySwitcher({
   const anchorDate = dayRailInitialDate(t, now)
   const dates = [...new Set([...entries.map((e) => e.date), anchorDate])].sort()
   const anchorIndex = dates.indexOf(anchorDate)
-  const anchorLabel = isTournamentArchived(t, now) ? 'Final day' : 'Today'
+  const anchorLabel = isTournamentArchived(t, now) ? 'First day' : 'Today'
 
   const [active, setActive] = useState(anchorIndex)
   const idx = Math.min(Math.max(active, 0), dates.length - 1)
@@ -571,9 +571,80 @@ function DaySwitcher({
           ))}
         </div>
       ) : (
-        <div className="day-empty">No matches {date === today ? 'today' : 'this day'} — rest day.</div>
+        <RestDay
+          date={date}
+          isToday={date === today}
+          nextDate={dates[idx + 1]}
+          onJump={() => scrollToIndex(idx + 1, true)}
+        />
       )}
     </section>
+  )
+}
+
+const SLEEPING_MASCOTS = [
+  new URL('../assets/mascot-sleeping-1.webp', import.meta.url).href,
+  new URL('../assets/mascot-sleeping-2.webp', import.meta.url).href,
+  new URL('../assets/mascot-sleeping-3.webp', import.meta.url).href,
+] as const
+
+/** Stable per calendar day so the pose doesn't flicker, but rest days vary. */
+function sleepingMascotFor(date: string): string {
+  let h = 0
+  for (let i = 0; i < date.length; i++) h = (h * 31 + date.charCodeAt(i)) | 0
+  return SLEEPING_MASCOTS[Math.abs(h) % SLEEPING_MASCOTS.length]
+}
+
+/**
+ * A day with no fixtures.
+ *
+ * This is a normal, frequent state — most days of a league season are rest
+ * days — so it gets a composed page rather than an error box. The page is
+ * almost empty: a sleeping mascot, one line of copy, and a text jump to the
+ * next matchday. Which pose you get is hashed from the date, so a given rest
+ * day always shows the same one and neighbouring empty days feel different.
+ */
+function RestDay({
+  date,
+  isToday,
+  nextDate,
+  onJump,
+}: {
+  date: string
+  isToday: boolean
+  nextDate: string | undefined
+  onJump: () => void
+}) {
+  return (
+    <div className="rest-day">
+      <img
+        className="rest-day-mascot"
+        src={sleepingMascotFor(date)}
+        alt=""
+        width={240}
+        height={216}
+        draggable={false}
+      />
+      <p className="rest-day-title">No matches {isToday ? 'today' : 'this day'}</p>
+      {nextDate ? (
+        <button type="button" className="rest-day-next" onClick={onJump}>
+          Next matchday
+          <span className="rest-day-next-date">{formatWeekdayLong(nextDate)}</span>
+          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+            <path
+              d="M4.4 2.5 7.9 6l-3.5 3.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      ) : (
+        <p className="rest-day-sub">That's the last matchday on the calendar.</p>
+      )}
+    </div>
   )
 }
 

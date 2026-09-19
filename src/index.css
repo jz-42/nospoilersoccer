@@ -31,6 +31,14 @@
   --saved-bar: rgba(233, 184, 90, 0.85);
   --saved-wash: rgba(233, 184, 90, 0.09);
   --saved-ink: #f1c97a;
+  /* Controls — one flat opaque surface, three states, no ornament.
+     Opaque because every control in this app can end up over match artwork
+     (the sticky header, the footer above a lit card grid); flat because a
+     bevel is one more thing on screen that isn't information. */
+  --control: #161d26;
+  --control-hover: #1f2832;
+  --control-press: #121820;
+
   --radius-lg: 16px;
   --radius: 12px;
   --radius-sm: 8px;

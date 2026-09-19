@@ -85,7 +85,7 @@ export function Onboarding({ onClose }: { onClose: () => void }) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal dialog onboarding" onClick={(e) => e.stopPropagation()}>
         <div className="onboarding-badge">
-          <Logo size={40} />
+          <Logo size={56} />
         </div>
         <h3 className="onboarding-title">Catch up. No spoilers.</h3>
         <ul className="onboarding-list">

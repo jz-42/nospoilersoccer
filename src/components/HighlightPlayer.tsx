@@ -7,10 +7,11 @@
  *  - the player's own title bar (YouTube draws the video title + channel over
  *    the top of the frame on hover, on pause and while the controls are up):
  *    there is no player var that turns it off — showinfo/modestbranding were
- *    both retired — so we cover that strip with our own opaque bar. Because a
- *    fullscreen iframe would escape that cover, YouTube's fullscreen button is
- *    disabled (fs=0, allowfullscreen stripped) and our own expand control
- *    fullscreens the wrapper — bar included. Picture-in-picture is dropped
+ *    both retired — so we cover that strip with our own title shield while
+ *    leaving YouTube's reserved top-right control cluster exposed. Because a
+ *    fullscreen iframe would escape that shield, YouTube's fullscreen button
+ *    is disabled (fs=0, allowfullscreen stripped) and our own expand control
+ *    fullscreens the wrapper — shield included. Picture-in-picture is dropped
  *    from the iframe's permissions for the same reason: it is a surface we
  *    cannot paint over.
  *  - end-screen suggestion grid (often shows *later* matches): YouTube uses
@@ -366,9 +367,9 @@ export function HighlightPlayer({
         ) : (
           <>
             <div ref={hostRef} className="player-host" />
-            {/* Opaque cover for YouTube's title strip — see the file header.
-                It stays out of the pointer path so the player's own controls
-                below it keep working. */}
+            {/* Spoiler-safe glass over YouTube's title line — see the file
+                header. It stops before the player's top-right control cluster
+                and stays out of the pointer path. */}
             <div className="player-titlebar">
               <span className="player-titlebar-label">{highlightLabel(matchId, active.kind)}</span>
             </div>
@@ -378,7 +379,7 @@ export function HighlightPlayer({
               onClick={toggleExpanded}
               aria-label={expanded ? 'Exit full screen' : 'Full screen'}
             >
-              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
+              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="currentColor">
                 {expanded ? (
                   <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
                 ) : (
