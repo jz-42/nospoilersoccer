@@ -860,18 +860,29 @@ async function getJson(url: string): Promise<unknown> {
 }
 
 /**
- * The whole season in one call. ESPN's scoreboard accepts a date range and
- * returns every fixture in it, played and unplayed, with the same goal details
- * a single-day query gives — so there is no reason to walk the calendar day by
- * day, and no window for a partially-ingested season.
+ * The whole season in two calls. ESPN's scoreboard accepts a bare calendar
+ * year and returns every fixture in it, played and unplayed, with the same goal
+ * details a single-day query gives — so there is no reason to walk the calendar
+ * day by day, and no window for a partially-ingested season.
+ *
+ * This used to be one `dates=YYYYMMDD-YYYYMMDD` range call, but ESPN began
+ * answering every range with a 400 in September 2026, which silently froze all
+ * three club seasons. Single days, months and whole years still work.
  */
 export async function fetchSeasonEvents(slug: string, year: number): Promise<ClubEspnEvent[]> {
-  const from = `${year}0701`
-  const to = `${year + 1}0701`
-  const data = (await getJson(`${SITE_API}/${slug}/scoreboard?dates=${from}-${to}&limit=1000`)) as {
-    events?: ClubEspnEvent[]
+  const from = Date.parse(`${year}-07-01T00:00:00Z`)
+  const to = Date.parse(`${year + 1}-07-01T00:00:00Z`)
+  const byId = new Map<string, ClubEspnEvent>()
+  for (const calendarYear of [year, year + 1]) {
+    const data = (await getJson(`${SITE_API}/${slug}/scoreboard?dates=${calendarYear}&limit=1000`)) as {
+      events?: ClubEspnEvent[]
+    }
+    for (const ev of data.events ?? []) {
+      const at = Date.parse(ev.date)
+      if (at >= from && at < to) byId.set(ev.id, ev)
+    }
   }
-  return data.events ?? []
+  return [...byId.values()].sort((a, b) => Date.parse(a.date) - Date.parse(b.date))
 }
 
 function readCalendar(raw: unknown): EspnCalendarEntry[] {
