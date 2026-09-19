@@ -5,6 +5,7 @@ import type { Tournament } from './types'
 import {
   applyHighlightStatePollFailure,
   applyRuntimeHighlightState,
+  buildRuntimeHighlightState,
   fetchRuntimeHighlightState,
   parseRuntimeHighlightState,
   type RuntimeHighlightState,
@@ -64,6 +65,24 @@ test('applyRuntimeHighlightState appends a new cut to the named match', () => {
   assert.deepEqual(next.groupMatches[0].videos, [
     { youtubeId: 'abcdefghijk', kind: 'normal' },
   ])
+})
+
+test('buildRuntimeHighlightState extracts only matches that have videos', () => {
+  const withVideo: Tournament = {
+    ...tournament,
+    groupMatches: tournament.groupMatches.map((match) => ({
+      ...match,
+      videos: [{ youtubeId: 'abcdefghijk', kind: 'normal' }],
+    })),
+  }
+  const built = buildRuntimeHighlightState(withVideo, 9, '2026-09-19T20:00:00Z')
+  assert.deepEqual(built, {
+    schemaVersion: 1,
+    tournamentId: 'test-2026',
+    version: 9,
+    generatedAt: '2026-09-19T20:00:00Z',
+    matches: { 'a-b': [{ youtubeId: 'abcdefghijk', kind: 'normal' }] },
+  })
 })
 
 test('runtime state cannot replace a bundled cut of the same kind', () => {

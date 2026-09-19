@@ -87,6 +87,27 @@ export function applyRuntimeHighlightState(
   }
 }
 
+export function buildRuntimeHighlightState(
+  tournament: Tournament,
+  version: number,
+  generatedAt = new Date().toISOString(),
+): RuntimeHighlightState {
+  const matches: Record<string, HighlightVideo[]> = {}
+  for (const match of [
+    ...tournament.groupMatches,
+    ...tournament.knockoutRounds.flatMap((round) => round.matches),
+  ]) {
+    if (match.videos?.length) matches[match.id] = [...match.videos]
+  }
+  return {
+    schemaVersion: 1,
+    tournamentId: tournament.id,
+    version,
+    generatedAt,
+    matches,
+  }
+}
+
 export function applyHighlightStatePollFailure(
   state: FetchedRuntimeHighlightState | null,
   now: number,

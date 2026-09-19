@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "tournamentId": "eng1-2026",
+  "version": 234154406894858,
+  "generatedAt": "2026-09-19T23:00:39.183Z",
+  "matches": {
+    "eng1-arsenal-coventry": [
+      {
+        "youtubeId": "W8RdGyfuyS8",
+        "kind": "normal"
+      }
+    ],
+    "eng1-hull-manchester-united": [
+      {
+        "youtubeId": "NR74IpnbJNk",
+        "kind": "normal"
+      }
+    ],
+    "eng1-everton-crystal-palace": [
+      {
+        "youtubeId": "Fl3b1fK05M0",
+        "kind": "normal"
+      }
+    ],
+    "eng1-ipswich-sunderland": [
+      {
+        "youtubeId": "V-tiewVuOuM",
+        "kind": "normal"
+      }
+    ],
+    "eng1-nottingham-forest-leeds": [
+      {
+        "youtubeId": "rXJuv_bLLOI",
+        "kind": "normal"
+      }
+    ],
+    "eng1-brentford-tottenham": [
+      {
+        "youtubeId": "RoyXhBUFMXg",
+        "kind": "normal"
+      }
+    ],
+    "eng1-brighton-aston-villa": [
+      {
+        "youtubeId": "ODz7s3NzaDY",
+        "kind": "normal"
+      }
+    ],
+    "eng1-manchester-city-bournemouth": [
+      {
+        "youtubeId": "8bWcZxr_bKE",
+        "kind": "normal"
+      }
+    ],
+    "eng1-newcastle-liverpool": [
+      {
+        "youtubeId": "j_18Q-ziTKQ",
+        "kind": "normal"
+      }
+    ],
+    "eng1-fulham-chelsea": [
+      {
+        "youtubeId": "qvNrmj_uNhE",
+        "kind": "normal"
+      }
+    ],
+    "eng1-crystal-palace-manchester-city": [
+      {
+        "youtubeId": "GUajJBdfOiE",
+        "kind": "normal"
+      }
+    ],
+    "eng1-liverpool-nottingham-forest": [
+      {
+        "youtubeId": "7JhVpSsE9Cg",
+        "kind": "normal"
+      }
+    ],
+    "eng1-bournemouth-everton": [
+      {
+        "youtubeId": "99hklXmmItA",
+        "kind": "normal"
+      }
+    ],
+    "eng1-coventry-hull": [
+      {
+        "youtubeId": "xCgwdIGxIAw",
+        "kind": "normal"
+      }
+    ],
+    "eng1-tottenham-newcastle": [
+      {
+        "youtubeId": "MW1Ym7zlqRs",
+        "kind": "normal"
+      }
+    ],
+    "eng1-chelsea-brighton": [
+      {
+        "youtubeId": "mfN4qZtc5sk",
+        "kind": "normal"
+      }
+    ],
+    "eng1-leeds-brentford": [
+      {
+        "youtubeId": "-gPHZTkPkW4",
+        "kind": "normal"
+      }
+    ],
+    "eng1-sunderland-fulham": [
+      {
+        "youtubeId": "Z1y3_Lq4HP0",
+        "kind": "normal"
+      }
+    ],
+    "eng1-manchester-united-ipswich": [
+      {
+        "youtubeId": "o5IagQpM_kE",
+        "kind": "normal"
+      }
+    ],
+    "eng1-aston-villa-arsenal": [
+      {
+        "youtubeId": "1sNwH8dNDsk",
+        "kind": "normal"
+      }
+    ],
+    "eng1-ipswich-liverpool": [
+      {
+        "youtubeId": "Bof91dSanf0",
+        "kind": "normal"
+      }
+    ],
+    "eng1-newcastle-bournemouth": [
+      {
+        "youtubeId": "yBbX4kzQQKE",
+        "kind": "normal"
+      }
+    ],
+    "eng1-brentford-sunderland": [
+      {
+        "youtubeId": "LdVvjmqvfeE",
+        "kind": "normal"
+      }
+    ],
+    "eng1-brighton-leeds": [
+      {
+        "youtubeId": "2AA1Hav2SxY",
+        "kind": "normal"
+      }
+    ],
+    "eng1-fulham-crystal-palace": [
+      {
+        "youtubeId": "yCdVWUWsIcQ",
+        "kind": "normal"
+      }
+    ],
+    "eng1-manchester-city-coventry": [
+      {
+        "youtubeId": "hPFyxjFj6nI",
+        "kind": "normal"
+      }
+    ],
+    "eng1-nottingham-forest-tottenham": [
+      {
+        "youtubeId": "IKRku-nFmcc",
+        "kind": "normal"
+      }
+    ],
+    "eng1-hull-aston-villa": [
+      {
+        "youtubeId": "BlL9dkAzHFY",
+        "kind": "normal"
+      }
+    ],
+    "eng1-everton-manchester-united": [
+      {
+        "youtubeId": "cPklX9Z9PWg",
+        "kind": "normal"
+      }
+    ],
+    "eng1-arsenal-chelsea": [
+      {
+        "youtubeId": "9UhwBF261BU",
+        "kind": "normal"
+      }
+    ],
+    "eng1-aston-villa-nottingham-forest": [
+      {
+        "youtubeId": "ZlKJpot0SLY",
+        "kind": "normal"
+      }
+    ],
+    "eng1-bournemouth-brentford": [
+      {
+        "youtubeId": "HfX417hSwPM",
+        "kind": "normal"
+      }
+    ],
+    "eng1-chelsea-hull": [
+      {
+        "youtubeId": "1-G_ZhydOd4",
+        "kind": "normal"
+      }
+    ],
+    "eng1-crystal-palace-ipswich": [
+      {
+        "youtubeId": "PZYCxiepQ_o",
+        "kind": "normal"
+      }
+    ],
+    "eng1-liverpool-fulham": [
+      {
+        "youtubeId": "lhlRY_fCebQ",
+        "kind": "normal"
+      }
+    ],
+    "eng1-tottenham-everton": [
+      {
+        "youtubeId": "HQh-DHi2iOY",
+        "kind": "normal"
+      }
+    ],
+    "eng1-sunderland-arsenal": [
+      {
+        "youtubeId": "vH9PRdWxf3Q",
+        "kind": "normal"
+      }
+    ],
+    "eng1-coventry-brighton": [
+      {
+        "youtubeId": "HZO6C-XMnp8",
+        "kind": "normal"
+      }
+    ],
+    "eng1-manchester-united-manchester-city": [
+      {
+        "youtubeId": "AIBC0fJMgLA",
+        "kind": "normal"
+      }
+    ],
+    "eng1-leeds-newcastle": [
+      {
+        "youtubeId": "3o5LJWz8euw",
+        "kind": "normal"
+      }
+    ]
+  }
+}

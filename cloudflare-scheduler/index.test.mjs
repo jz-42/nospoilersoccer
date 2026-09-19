@@ -6,7 +6,9 @@ import worker, {
   buildWindowReport,
   chooseAction,
   createGitHubClient,
+  handleHighlightStateRequest,
   handleHotStateRequest,
+  highlightStateSourceUrl,
   hotStateSourceUrl,
   parseMatchKickoffs,
   runScheduler,
@@ -311,6 +313,76 @@ test('hot-state route accepts the four seasons and rejects anything else', async
 
     const unknown = await worker.fetch(new Request('https://w.dev/api/hot-state/wc2022'), env)
     assert.equal(unknown.headers.get('access-control-allow-origin'), '*')
+    assert.equal((await unknown.json()).error, 'unknown_season')
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})
+
+test('highlight state resolves from the generated runtime snapshot path', () => {
+  assert.equal(
+    highlightStateSourceUrl({}, 'eng1-2026'),
+    'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/highlights/eng1-2026.json',
+  )
+  assert.equal(
+    highlightStateSourceUrl({ HIGHLIGHT_STATE_BASE_URL: 'https://example.test/highlights' }, 'wc2026'),
+    'https://example.test/highlights/wc2026.json',
+  )
+})
+
+test('worker serves highlight state with a stable etag and honors conditional requests', async () => {
+  const body = {
+    schemaVersion: 1,
+    tournamentId: 'eng1-2026',
+    version: 42,
+    generatedAt: '2026-09-19T20:00:00Z',
+    matches: {},
+  }
+  const fetchImpl = async () =>
+    new Response(JSON.stringify(body), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
+
+  const first = await handleHighlightStateRequest(
+    {},
+    new Request('https://w.dev/api/highlights/eng1-2026'),
+    fetchImpl,
+    'eng1-2026',
+  )
+  assert.equal(first.status, 200)
+  assert.equal(first.headers.get('etag'), '"42"')
+  assert.equal(first.headers.get('access-control-allow-origin'), '*')
+
+  const second = await handleHighlightStateRequest(
+    {},
+    new Request('https://w.dev/api/highlights/eng1-2026', {
+      headers: { 'If-None-Match': '"42"' },
+    }),
+    fetchImpl,
+    'eng1-2026',
+  )
+  assert.equal(second.status, 304)
+})
+
+test('highlight-state route accepts known seasons and rejects unknown ones', async () => {
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        schemaVersion: 1,
+        tournamentId: 'stub',
+        version: 1,
+        generatedAt: '2026-09-19T20:00:00Z',
+        matches: {},
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    )
+  try {
+    const response = await worker.fetch(new Request('https://w.dev/api/highlights/ucl-2026'), {})
+    assert.equal(response.status, 200)
+    const unknown = await worker.fetch(new Request('https://w.dev/api/highlights/wc2022'), {})
+    assert.equal(unknown.status, 404)
     assert.equal((await unknown.json()).error, 'unknown_season')
   } finally {
     globalThis.fetch = originalFetch

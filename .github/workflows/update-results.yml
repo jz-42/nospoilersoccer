@@ -199,12 +199,12 @@ jobs:
             fi
 
             core_ok=false
-            if npm run build:hot-state && npm run check:update; then
+            if npm run build:hot-state && npm run build:highlight-state && npm run check:update; then
               core_ok=true
             fi
 
             if [ "$core_ok" = true ]; then
-              git add src/data/wc2026.ts src/data/wc2026-videos.ts public/api/hot-state/wc2026.json scripts/curate-skip.json
+              git add src/data/wc2026.ts src/data/wc2026-videos.ts public/api/hot-state/wc2026.json public/api/highlights/wc2026.json scripts/curate-skip.json
               if git diff --cached --quiet; then
                 echo "no core changes this cycle"
               else
@@ -259,11 +259,14 @@ jobs:
               } >> "$GITHUB_STEP_SUMMARY"
             fi
 
-            if npm run build:hot-state && npm run check:update; then
+            if npm run build:hot-state && npm run build:highlight-state && npm run check:update; then
               add_if_present src/data/club \
                 public/api/hot-state/eng1-2026.json \
                 public/api/hot-state/esp1-2026.json \
-                public/api/hot-state/ucl-2026.json
+                public/api/hot-state/ucl-2026.json \
+                public/api/highlights/eng1-2026.json \
+                public/api/highlights/esp1-2026.json \
+                public/api/highlights/ucl-2026.json
               if git diff --cached --quiet; then
                 echo "no club changes this cycle"
               else
