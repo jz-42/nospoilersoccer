@@ -178,8 +178,6 @@ export function findFixtureForCandidate(
   const need = pool.filter((m) => !hasCut(m, kind, source))
   if (need.length === 0) return { status: 'have' }
   if (need.length === 1) return { status: 'ok', match: need[0] }
-  need.sort((a, b) => kickoffMs(b) - kickoffMs(a))
-  if (kickoffMs(need[0]) !== kickoffMs(need[1])) return { status: 'ok', match: need[0] }
   return { status: 'ambiguous' }
 }
 

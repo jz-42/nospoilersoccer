@@ -85,6 +85,43 @@ assert(
   'unresolved knockout pair is held for retry instead of being skip-listed as missing',
 )
 
+const repeatedPairTournament: Tournament = {
+  ...tournament,
+  knockoutRounds: [
+    {
+      id: 'final',
+      name: 'Final',
+      matches: [
+        {
+          id: 'm73',
+          date: '2026-07-19',
+          kickoff: '2026-07-19T19:00Z',
+          home: { type: 'group-rank', group: 'A', rank: 1 },
+          away: { type: 'group-rank', group: 'A', rank: 2 },
+          homeTeam: 'MEX',
+          awayTeam: 'RSA',
+          score: { home: 2, away: 1 },
+        },
+      ],
+    },
+  ],
+}
+const repeatedPair = (
+  findFixtureForCandidate as (
+    tournament: Tournament,
+    home: string,
+    away: string,
+    kind: 'normal' | 'extended',
+    publishedMs: number,
+    source?: 'youtube' | 'fox',
+  ) => { status: string }
+)(repeatedPairTournament, 'MEX', 'RSA', 'normal', Date.parse('2026-07-19T23:00:00Z'))
+
+assert(
+  repeatedPair.status === 'ambiguous',
+  'a repeated World Cup pairing is refused rather than guessed onto the latest fixture',
+)
+
 assert(
   (shouldRetrySkippedId as (reason: string) => boolean)('no matching played fixture'),
   'no matching played fixture skips are retried after bracket slots become resolvable',
