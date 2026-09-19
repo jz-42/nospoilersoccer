@@ -29,8 +29,7 @@ import { matchLocalDate } from './schedule'
 import { addLocalDays, localDateKey, relativeDayLabel } from '../time/local'
 import {
   findNearestItemIndex,
-  getBalancedRows,
-  getCenteredRowStarts,
+  getDayColumns,
   getCarouselVisualState,
   getCommittedDaySwipe,
   getDayCardMetrics,
@@ -58,30 +57,35 @@ function allEntries(t: Tournament): RailEntry[] {
 }
 
 const GRID_GAP = 16
-const CARD_MIN = 230 // narrowest a card may get before we drop a column
-// Lighter days get gently bigger cards — an even step up from the 4/6 base.
-const CARD_MAX = 348 // 4+ matches (a 4-across card; 6 matches 4)
+// Column count comes from this, not from the absolute floor: a grid that
+// squeezes in one more 240px column to leave two cards stranded on row two
+// is worse than a wider, calmer four.
+const CARD_PREF = 300
+const CARD_MAX = 348 // 4+ matches
+// Lighter days get gently bigger cards — an even step up from the base.
 const TRIO_MAX = 378 // 3 matches
 const DUO_MAX = 424 // 2 matches
 const HERO_MAX = 470 // a lone match — the biggest "hero" card
 
 /**
- * Lay the day's cards out in *balanced*, *centred* rows. CSS can pack cards
- * but can't balance them — only we know the match count — so a six-match day
- * that only fits five across becomes a tidy 3 + 3 instead of an ugly 5 + 1,
- * seven is 4 + 3 with the three centred under the four (not hanging off the
- * left edge), two matches sit together rather than drifting to opposite
- * edges, and a single match blooms into one hero card. Columns are sized in
- * pixels and the whole block is centred, so cards never stretch to fill a
- * half-empty row.
+ * Size the day's cards and pick a column count.
  *
- * The grid runs on half-card tracks — two per column, gaps included — so a
- * short row can start half a card in; `cellStyle(i)` is that offset for card
- * `i`.
+ * The rows themselves are left to CSS, deliberately: cards fill left to
+ * right and a short final row stays flush left, the way every app that
+ * shows a grid of equal tiles does it. The column is the spine — every
+ * card's left edge lines up with the one above — and balancing or centring
+ * the last row buys tidiness on one day by breaking that alignment on
+ * every other. Ten matches across four columns is 4 + 4 + 2, and that is
+ * the right answer.
+ *
+ * What we *do* own, because CSS can't know the match count, is in
+ * `getDayColumns` — never more columns than matches, and never one card
+ * widowed on the last row — plus gently bigger cards on a light day, up to
+ * one hero card on its own.
  */
-function useBalancedColumns(count: number) {
+function useDayColumns(count: number) {
   const ref = useRef<HTMLDivElement>(null)
-  const [layout, setLayout] = useState({ maxCols: 1, width: CARD_MAX })
+  const [layout, setLayout] = useState({ cols: 1, width: CARD_MAX })
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -89,11 +93,11 @@ function useBalancedColumns(count: number) {
     const measure = () => {
       const avail = el.clientWidth
       if (!avail) return
-      const maxCols = Math.max(1, Math.floor((avail + GRID_GAP) / (CARD_MIN + GRID_GAP)))
-      const cols = getBalancedRows(count, maxCols)[0]
+      const fit = Math.max(1, Math.floor((avail + GRID_GAP) / (CARD_PREF + GRID_GAP)))
+      const cols = getDayColumns(count, fit)
       const cap = { 1: HERO_MAX, 2: DUO_MAX, 3: TRIO_MAX }[count] ?? CARD_MAX
       const width = Math.min(cap, Math.floor((avail - (cols - 1) * GRID_GAP) / cols))
-      setLayout({ maxCols, width })
+      setLayout({ cols, width })
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -101,18 +105,13 @@ function useBalancedColumns(count: number) {
     return () => ro.disconnect()
   }, [count])
 
-  const rows = getBalancedRows(count, layout.maxCols)
-  const cols = rows[0] ?? 1
-  const starts = getCenteredRowStarts(rows)
   const { flagSize, flagGap } = getDayCardMetrics(layout.width)
   const style: CSSProperties = {
-    gridTemplateColumns: `repeat(${cols * 2}, ${(layout.width - GRID_GAP) / 2}px)`,
+    gridTemplateColumns: `repeat(${layout.cols}, ${layout.width}px)`,
     ['--day-flag-size' as string]: `${flagSize}px`,
     ['--day-flag-gap' as string]: `${flagGap}px`,
   }
-  const cellStyle = (i: number): CSSProperties =>
-    starts[i] ? { gridColumn: `${starts[i]} / span 2` } : { gridColumn: 'span 2' }
-  return [ref, style, cellStyle] as const
+  return [ref, style] as const
 }
 
 function DaySwitcher({
@@ -397,7 +396,7 @@ function DaySwitcher({
 
   const date = dates[idx]
   const dayEntries = entries.filter((e) => e.date === date)
-  const [gridRef, gridStyle, cellStyle] = useBalancedColumns(dayEntries.length)
+  const [gridRef, gridStyle] = useDayColumns(dayEntries.length)
 
   const yesterday = addLocalDays(today, -1)
   const tomorrow = addLocalDays(today, 1)
@@ -578,15 +577,8 @@ function DaySwitcher({
 
       {dayEntries.length > 0 ? (
         <div className="day-grid" ref={gridRef} style={gridStyle}>
-          {dayEntries.map((e, i) => (
-            <PreviewCard
-              key={e.target.match.id}
-              t={t}
-              entry={e}
-              progress={progress}
-              onOpen={onOpen}
-              style={cellStyle(i)}
-            />
+          {dayEntries.map((e) => (
+            <PreviewCard key={e.target.match.id} t={t} entry={e} progress={progress} onOpen={onOpen} />
           ))}
         </div>
       ) : (

@@ -32,29 +32,22 @@ export function getDayCardMetrics(cardWidth: number): DayCardMetrics {
 }
 
 /**
- * Split a day's cards into rows as evenly as the column cap allows, fuller
- * rows first: 7 across four columns is 4 + 3, 10 is 4 + 3 + 3 (never
- * 4 + 4 + 2). Returns each row's card count.
+ * How many columns a day of `count` matches should open, given how many fit.
+ *
+ * Two guards, both about the *last* row. Never open more columns than there
+ * are matches, so a two-match day is two centred cards rather than two cards
+ * hugging the left of a four-column grid. And never leave exactly one card
+ * alone on the last row — a widow is the one ragged row that reads as a
+ * mistake rather than a grid — so five across four becomes 3 + 2, not 4 + 1.
+ * Anything else rags left the way a column grid should: ten across four is
+ * 4 + 4 + 2.
  */
-export function getBalancedRows(count: number, maxCols: number): number[] {
-  if (count <= 0) return []
-  const rows = Math.ceil(count / Math.max(1, maxCols))
-  const base = Math.floor(count / rows)
-  const extra = count % rows
-  return Array.from({ length: rows }, (_, i) => base + (i < extra ? 1 : 0))
-}
-
-/**
- * The grid runs on half-card tracks (two per column), so a short row can sit
- * centred under a full one. Returns, per card, the 1-based half-track it
- * starts on when its row is short and it opens that row; null means "let
- * auto-placement follow on".
- */
-export function getCenteredRowStarts(rows: number[]): (number | null)[] {
-  const cols = rows[0] ?? 0
-  return rows.flatMap((n) =>
-    Array.from({ length: n }, (_, i) => (i === 0 && n < cols ? cols - n + 1 : null)),
-  )
+export function getDayColumns(count: number, fit: number): number {
+  const most = Math.max(1, Math.min(count, fit))
+  for (let cols = most; cols >= 2; cols--) {
+    if (count % cols !== 1) return cols
+  }
+  return most
 }
 
 export function getCarouselVisualState(

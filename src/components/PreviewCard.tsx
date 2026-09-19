@@ -30,15 +30,12 @@ export function PreviewCard({
   progress,
   onOpen,
   showDate = false,
-  style,
 }: {
   t: Tournament
   entry: RailEntry
   progress: Progress
   onOpen: (target: ModalTarget) => void
   showDate?: boolean
-  /** Grid placement from the day grid; merged under the team tint. */
-  style?: CSSProperties
 }) {
   const { target } = entry
   const m = target.match
@@ -116,7 +113,7 @@ export function PreviewCard({
     <button
       type="button"
       className={`preview-card state-${state} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
-      style={{ ...style, ...tintStyle }}
+      style={tintStyle}
       onClick={() => onOpen(target)}
     >
       <div className="preview-media">
