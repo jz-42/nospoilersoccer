@@ -241,6 +241,11 @@ export interface Tournament {
    * contradict the data.
    */
   tableLabel?: string
+  /**
+   * What one round of a single-table competition is called: 'Matchweek' in the
+   * Premier League, 'Matchday' for UEFA and La Liga. Absent means 'Matchday'.
+   */
+  roundLabel?: string
 }
 
 /** Winner of a knockout match (null while unplayed), accounting for shootouts. */

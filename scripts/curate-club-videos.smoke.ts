@@ -175,8 +175,8 @@ assert(
   'screenTitle decides that from the title alone, so talk shows cost no network calls',
 )
 assert(
-  gate('Arsenal vs. Napoli: Extended Highlights 2-1 | UCL on CBS Sports').status === 'skip',
-  'a title carrying a scoreline is refused outright',
+  gate('Arsenal vs. Napoli: Extended Highlights 2-1 | UCL on CBS Sports').status === 'accept',
+  'title wording is not screened for spoilers',
 )
 
 // ---- 3. clubs resolve, and to this competition -----------------------------
@@ -485,26 +485,24 @@ assert(
   'and lands on the fixture it names',
 )
 
-// Editorial headlines are refused even when the matchup at their tail resolves.
-// These two pin that: the club names survive it, and a headline that hints at
-// the result does not stop the cut, because no reader of this site ever sees a
-// YouTube title.
+// Editorial headlines are accepted because no reader of this site sees the
+// upstream title; the parser still has to resolve the matchup at the tail.
 const prefixed = espnGate(
   'LALIGA SEASON OPENER 🚨 Getafe vs. Alaves | LALIGA Highlights | ESPN FC',
   { publishedAt: '2026-08-16T02:00:00Z' },
 )
 assert(
-  prefixed.status === 'skip',
-  'an editorial prefix is rejected because an iframe cover is not an absolute redaction boundary',
+  prefixed.status === 'accept' && prefixed.matchId === 'esp1-getafe-alaves',
+  'an editorial prefix is stripped before the fixture is assigned',
 )
 const spoilerHeadline = espnGate('TITLE CLINCHER 🏆 Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC')
 assert(
-  spoilerHeadline.status === 'skip',
-  'a result-hinting ESPN headline is never linked even though the visible player has a title seal',
+  spoilerHeadline.status === 'accept' && spoilerHeadline.matchId === 'esp1-espanyol-barcelona',
+  'a result-hinting ESPN headline is safe to link behind the title seal',
 )
 assert(
-  espnGate('Espanyol vs. Barcelona 1-2 | LALIGA Highlights | ESPN FC').status === 'skip',
-  'a scoreline in the matchup segment fails the spoiler check',
+  espnGate('Espanyol vs. Barcelona | LALIGA Highlights 1-2 | ESPN FC').status === 'accept',
+  'title wording is not screened for spoilers',
 )
 assert(
   espnGate('BARCELONA WIN IT | Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC').status ===

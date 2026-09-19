@@ -7,10 +7,11 @@
  *  - the player's own title bar (YouTube draws the video title + channel over
  *    the top of the frame on hover, on pause and while the controls are up):
  *    there is no player var that turns it off — showinfo/modestbranding were
- *    both retired — so we cover that strip with our own opaque bar. Because a
- *    fullscreen iframe would escape that cover, YouTube's fullscreen button is
- *    disabled (fs=0, allowfullscreen stripped) and our own expand control
- *    fullscreens the wrapper — bar included. Picture-in-picture is dropped
+ *    both retired — so we cover that strip with our own title shield while
+ *    leaving YouTube's reserved top-right control cluster exposed. Because a
+ *    fullscreen iframe would escape that shield, YouTube's fullscreen button
+ *    is disabled (fs=0, allowfullscreen stripped) and our own expand control
+ *    fullscreens the wrapper — shield included. Picture-in-picture is dropped
  *    from the iframe's permissions for the same reason: it is a surface we
  *    cannot paint over.
  *  - end-screen suggestion grid (often shows *later* matches): YouTube uses
@@ -103,6 +104,18 @@ const END_GUARD_SECONDS = 9
 const KIND_LABEL: Record<HighlightVideo['kind'], string> = {
   normal: 'Quick Highlights',
   extended: 'Extended Highlights',
+}
+
+const CLUB_PROVIDER_BY_MATCH_PREFIX = {
+  'eng1-': 'NBC',
+  'esp1-': 'ESPN',
+  'ucl-': 'CBS',
+} as const
+
+export function highlightLabel(matchId: string, kind: HighlightVideo['kind']): string {
+  const provider = Object.entries(CLUB_PROVIDER_BY_MATCH_PREFIX)
+    .find(([prefix]) => matchId.startsWith(prefix))?.[1]
+  return provider ? `Highlights (${provider})` : KIND_LABEL[kind]
 }
 
 export function HighlightPlayer({
@@ -294,7 +307,7 @@ export function HighlightPlayer({
             className={`kind-chip ${highlightKey(selected) === highlightKey(v) ? 'active' : ''}`}
             onClick={() => play(v)}
           >
-            {KIND_LABEL[v.kind]}
+            {highlightLabel(matchId, v.kind)}
             {dur && <span className="kind-chip-time">{dur}</span>}
           </button>
         )
@@ -325,7 +338,7 @@ export function HighlightPlayer({
                   </svg>
                 </span>
                 <span className="poster-label">
-                  {KIND_LABEL[v.kind]}
+                  {highlightLabel(matchId, v.kind)}
                   {dur && <span className="poster-time"> · {dur}</span>}
                 </span>
                 {v.community && <span className="poster-note">Community upload</span>}
@@ -346,7 +359,7 @@ export function HighlightPlayer({
           <iframe
             className="player-host player-host-fox"
             src={highlightEmbedUrl(active)}
-            title={KIND_LABEL[active.kind]}
+            title={highlightLabel(matchId, active.kind)}
             scrolling="no"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
@@ -354,26 +367,26 @@ export function HighlightPlayer({
         ) : (
           <>
             <div ref={hostRef} className="player-host" />
-            {/* Opaque cover for YouTube's title strip — see the file header.
-                It stays out of the pointer path so the player's own controls
-                below it keep working. */}
+            {/* Spoiler-safe glass over YouTube's title line — see the file
+                header. It stops before the player's top-right control cluster
+                and stays out of the pointer path. */}
             <div className="player-titlebar">
-              <span className="player-titlebar-label">{KIND_LABEL[active.kind]}</span>
-              <button
-                type="button"
-                className="player-expand"
-                onClick={toggleExpanded}
-                aria-label={expanded ? 'Exit full screen' : 'Full screen'}
-              >
-                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
-                  {expanded ? (
-                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
-                  ) : (
-                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-                  )}
-                </svg>
-              </button>
+              <span className="player-titlebar-label">{highlightLabel(matchId, active.kind)}</span>
             </div>
+            <button
+              type="button"
+              className="player-expand"
+              onClick={toggleExpanded}
+              aria-label={expanded ? 'Exit full screen' : 'Full screen'}
+            >
+              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="currentColor">
+                {expanded ? (
+                  <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                ) : (
+                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                )}
+              </svg>
+            </button>
           </>
         )}
         {showOverlay && (

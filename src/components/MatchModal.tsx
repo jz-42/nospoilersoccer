@@ -13,6 +13,7 @@ import {
   resolveSlot,
   slotLabel,
 } from '../logic/spoilers'
+import { hasGroups, roundLabel } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
 import { HighlightPlayer } from './HighlightPlayer'
@@ -257,8 +258,16 @@ export function MatchModal({
   const homePlaceholder = km ? slotLabel(t, km.home) : ''
   const awayPlaceholder = km ? slotLabel(t, km.away) : ''
   const ready = km ? knockoutReady(t, km, progress.marks, progress.revealed) : played
+  // Same call as PreviewCard: a cup group has a name people say out loud
+  // ("Group F"), but a single-table competition's sole group is called
+  // 'league' in the data, and "GROUP LEAGUE" is not a thing. There the
+  // round a match belongs to is its matchweek (or matchday, per competition).
   const context =
-    target.kind === 'group' ? `Group ${target.match.group}` : target.roundName
+    target.kind === 'group'
+      ? hasGroups(t)
+        ? `Group ${target.match.group}`
+        : `${roundLabel(t)} ${target.match.matchday}`
+      : target.roundName
   const locked = km !== null && (homeTeam === null || awayTeam === null)
   const score = m.score
   const homeNameForAnalytics = homeTeam ? t.teams[homeTeam].name : homePlaceholder || 'Home'

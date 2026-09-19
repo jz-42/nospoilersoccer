@@ -306,6 +306,50 @@ assert(
   'an opaque bar covers the strip where YouTube draws the video title',
 )
 assert(
+  /\.player-titlebar\s*\{[\s\S]*?height:\s*var\(--player-title-mask-height\);/.test(appCss),
+  'the title mask uses a fixed measured height',
+)
+assert(
+  /\.player-wrap\s*\{[\s\S]*?--player-title-mask-height:\s*38px;/.test(appCss),
+  'the measured title mask stops at the 38px cross-browser safety boundary',
+)
+assert(
+  !/\.player-titlebar\s*\{[\s\S]*?height:\s*clamp\(/.test(appCss),
+  'fullscreen cannot scale the title mask with viewport height',
+)
+assert(
+  /\.player-wrap\s*\{[\s\S]*?--player-youtube-controls-width:\s*156px;/.test(appCss) &&
+    /\.player-titlebar\s*\{[\s\S]*?right:\s*var\(--player-youtube-controls-width\);/.test(appCss),
+  'the title shield ends where YouTube reserves its top-right control cluster',
+)
+assert(
+  /\.player-titlebar\s*\{[\s\S]*?background:\s*#05070b;/.test(appCss) &&
+    /@supports\s*\(\(backdrop-filter:\s*blur\(1px\)\)\s*or\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)\)\s*\{[\s\S]*?\.player-titlebar\s*\{[\s\S]*?background:\s*rgba\(5,\s*7,\s*11,\s*0\.78\);[\s\S]*?backdrop-filter:\s*blur\(18px\)\s+saturate\(0\.72\);/.test(
+      appCss,
+    ),
+  'the title shield uses spoiler-safe glass with an opaque fallback',
+)
+assert(
+  /\.player-expand\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?right:\s*0;[\s\S]*?bottom:\s*0;/.test(appCss),
+  'the custom fullscreen control occupies the familiar lower-right position',
+)
+assert(
+  /\.player-expand\s*\{[\s\S]*?width:\s*48px;[\s\S]*?height:\s*48px;[\s\S]*?background:\s*transparent;/.test(
+    appCss,
+  ) &&
+    /\.player-expand:hover,[\s\S]*?\.player-expand:focus-visible\s*\{[\s\S]*?background:\s*rgba\(5,\s*7,\s*11,\s*0\.42\);/.test(
+      appCss,
+    ) &&
+    /className="player-expand"[\s\S]*?<svg[^>]*width="24" height="24"/.test(playerSource),
+  'the fullscreen control has a native-size hit target and glyph without a permanent box',
+)
+assert(
+  /<div className="player-titlebar">\s*<span[\s\S]*?<\/span>\s*<\/div>\s*<button[\s\S]*?className="player-expand"/.test(
+    playerSource,
+  ),
+  'the fullscreen control is a sibling after the title mask rather than inside it',
+)
+assert(
   /playerVars:\s*\{[^}]*\bfs:\s*0\b/.test(playerSource)
     && playerSource.includes("removeAttribute('allowfullscreen')"),
   'the player cannot go fullscreen on its own, which would escape that bar',

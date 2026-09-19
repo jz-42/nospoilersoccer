@@ -44,28 +44,36 @@ export function tableTabLabel(t: Tournament): string {
   return t.tableLabel ?? 'Group stage'
 }
 
+/** A single-table competition's round name: 'Matchweek' or 'Matchday'. */
+export function roundLabel(t: Tournament): string {
+  return t.roundLabel ?? 'Matchday'
+}
+
 /** The tabs this competition can show, in display order. */
 export function availableViews(t: Tournament): View[] {
   return ['day', 'groups', ...(hasKnockouts(t) ? (['bracket'] as const) : [])]
 }
 
-export function defaultTournamentView(
-  t: Tournament,
-  now: Date = new Date(),
-  timeZone?: string,
-): View {
-  if (!isTournamentArchived(t, now, timeZone)) return 'day'
-  // A finished competition opens on its result: the bracket if it has one,
-  // otherwise the final table.
-  return hasKnockouts(t) ? 'bracket' : 'groups'
+/**
+ * Always the day rail. Every competition opens the same way, on the same tab,
+ * so switching between them does not also switch what you are looking at.
+ *
+ * A finished competition used to open on its result — the bracket, or the
+ * final table. That is the one thing a no-spoiler app must not do: it is the
+ * standings, and the standings are the ending. `dayRailInitialDate` puts an
+ * archived competition at its *first* matchday instead, which is where someone
+ * catching up actually wants to start.
+ */
+export function defaultTournamentView(): View {
+  return 'day'
 }
 
-export function dayTabLabel(
-  t: Tournament,
-  now: Date = new Date(),
-  timeZone?: string,
-): 'Today' | 'Day' {
-  return isTournamentArchived(t, now, timeZone) ? 'Day' : 'Today'
+/**
+ * One name for the day rail, in every competition. The tab names a *view*, not
+ * a date — the rail's own anchor chip says which day you are standing on.
+ */
+export function dayTabLabel(): 'Today' {
+  return 'Today'
 }
 
 export function dayRailInitialDate(
@@ -74,5 +82,7 @@ export function dayRailInitialDate(
   timeZone?: string,
 ): string {
   if (!isTournamentArchived(t, now, timeZone)) return localDateKey(now, timeZone)
-  return tournamentMatchDates(t, timeZone).at(-1) ?? localDateKey(now, timeZone)
+  // Finished competition: open at the beginning, not the end. Landing on the
+  // final day of a tournament you have not watched is a spoiler in itself.
+  return tournamentMatchDates(t, timeZone)[0] ?? localDateKey(now, timeZone)
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import './App.css'
 import { analytics } from './analytics'
@@ -53,9 +53,17 @@ function hotStateUrl(seasonId: string): string {
 }
 
 /**
- * Season picker. Competition first, then season within it — most people choose
- * once and never come back, so the competition list is the primary control and
- * the season row only appears when that competition actually has more than one.
+ * Season picker — a menu, not a row of pills.
+ *
+ * Which competition you're in is a *setting*, not a navigation choice: people
+ * pick once and stay. A row of pills spent the header's widest real estate
+ * shouting four options at someone who wants one, and it could not grow. The
+ * menu states the current competition in one line and keeps the rest one click
+ * away, which is also the only shape that survives adding competitions.
+ *
+ * A competition with a single season collapses to one row under its own name;
+ * one with several lists its seasons under a heading, so the menu never
+ * mentions a season count that doesn't exist.
  */
 function SeasonPicker({
   seasonId,
@@ -66,35 +74,124 @@ function SeasonPicker({
 }) {
   const current = findSeason(seasonId)
   const competition: Competition | undefined = current?.competition
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Dismissal is on the document so a click anywhere else — including on the
+  // view tabs right next to it — closes the menu before it does its own job.
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  // Opening with the keyboard should land you *in* the menu, not behind it.
+  useEffect(() => {
+    if (!open) return
+    menuRef.current?.querySelector<HTMLButtonElement>('.picker-item.is-active')?.focus()
+  }, [open])
+
+  const choose = (id: string) => {
+    onSelect(id)
+    setOpen(false)
+  }
+
+  const multiSeason = (competition?.seasons.length ?? 0) > 1
+  const label = competition?.name ?? 'Choose a competition'
+
   return (
-    <div className="season-picker">
-      <nav className="seg seg-mini" aria-label="Competition">
-        {competitions.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            className={`seg-btn ${competition?.id === c.id ? 'active' : ''}`}
-            onClick={() => onSelect(c.seasons[0].id)}
-          >
-            {c.shortName}
-          </button>
-        ))}
-      </nav>
-      {competition && competition.seasons.length > 1 && (
-        <nav className="seg seg-mini" aria-label="Season">
-          {competition.seasons.map((s: Season) => (
-            <button
-              key={s.id}
-              type="button"
-              className={`seg-btn ${seasonId === s.id ? 'active' : ''}`}
-              onClick={() => onSelect(s.id)}
-            >
-              {s.label}
-            </button>
-          ))}
-        </nav>
+    <div className={`season-picker ${open ? 'is-open' : ''}`} ref={rootRef}>
+      <button
+        type="button"
+        className="picker-trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="picker-trigger-label">{label}</span>
+        {multiSeason && current && <span className="picker-trigger-season">{current.season.label}</span>}
+        <svg className="picker-chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+          <path
+            d="M3 4.6 6 7.6l3-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="picker-menu" role="menu" aria-label="Competition" ref={menuRef}>
+          {competitions.map((c) =>
+            c.seasons.length === 1 ? (
+              <PickerItem
+                key={c.id}
+                label={c.name}
+                active={seasonId === c.seasons[0].id}
+                onSelect={() => choose(c.seasons[0].id)}
+              />
+            ) : (
+              <div className="picker-group" key={c.id}>
+                <span className="picker-group-label">{c.name}</span>
+                {c.seasons.map((s: Season) => (
+                  <PickerItem
+                    key={s.id}
+                    label={s.label}
+                    active={seasonId === s.id}
+                    onSelect={() => choose(s.id)}
+                  />
+                ))}
+              </div>
+            ),
+          )}
+        </div>
       )}
     </div>
+  )
+}
+
+function PickerItem({
+  label,
+  active,
+  onSelect,
+}: {
+  label: string
+  active: boolean
+  onSelect: () => void
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitemradio"
+      aria-checked={active}
+      className={`picker-item ${active ? 'is-active' : ''}`}
+      onClick={onSelect}
+    >
+      <span className="picker-item-label">{label}</span>
+      <svg className="picker-check" viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">
+        <path
+          d="M2.6 7.4 5.4 10.2l6-6.4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
   )
 }
 
@@ -113,7 +210,10 @@ function App() {
       return defaultSeasonId
     }
   })
-  const season = (findSeason(seasonId) ?? findSeason(defaultSeasonId))?.season
+  const found = findSeason(seasonId) ?? findSeason(defaultSeasonId)
+  const season = found?.season
+  // Only the World Cup gets a completion meter (see `showProgress` below).
+  const showProgress = found?.competition.id === 'wc'
   // Tagged with the season it belongs to, so a slow chunk that resolves after
   // the user has already moved on is ignored rather than rendered.
   const [lazy, setLazy] = useState<{ id: string; tournament: Tournament } | null>(null)
@@ -146,7 +246,7 @@ function App() {
       <div className="app">
         <header className="app-header">
           <div className="app-brand">
-            <Logo size={26} />
+            <Logo size={32} />
             <span className="app-name">No Spoiler Soccer</span>
             {picker}
           </div>
@@ -159,7 +259,13 @@ function App() {
   // Keyed by season so switching competitions remounts rather than carrying
   // one competition's open modal or scroll position into another.
   return (
-    <TournamentApp key={seasonId} seasonId={seasonId} baseTournament={tournament} picker={picker} />
+    <TournamentApp
+      key={seasonId}
+      seasonId={seasonId}
+      baseTournament={tournament}
+      picker={picker}
+      showProgress={showProgress}
+    />
   )
 }
 
@@ -167,10 +273,18 @@ function TournamentApp({
   seasonId,
   baseTournament,
   picker,
+  showProgress,
 }: {
   seasonId: string
   baseTournament: Tournament
   picker: ReactNode
+  /**
+   * The meter counts matches you've revealed out of the whole competition.
+   * That is a real, finishable goal for a 104-match World Cup and a
+   * meaningless one for a 380-match league season nobody sets out to clear —
+   * there it was just a number ticking in the corner. So: World Cup only.
+   */
+  showProgress: boolean
 }) {
   const [hotState, setHotState] = useState<FetchedTournamentHotState | null>(null)
   // No reset on season change: `seasonId` is also this component's key, so a
@@ -219,7 +333,7 @@ function TournamentApp({
     [baseTournament, hotState],
   )
   const progress = useProgress(t)
-  const [tab, setTab] = useState<View>(() => defaultTournamentView(baseTournament))
+  const [tab, setTab] = useState<View>(defaultTournamentView)
   const view = tab
   useEffect(() => {
     analytics.viewChanged({ view })
@@ -255,7 +369,7 @@ function TournamentApp({
     <div className="app">
       <header className="app-header">
         <div className="app-brand">
-          <Logo size={26} />
+          <Logo size={32} />
           <span className="app-name">No Spoiler Soccer</span>
           {picker}
         </div>
@@ -268,42 +382,48 @@ function TournamentApp({
               className={`seg-btn ${view === v ? 'active' : ''}`}
               onClick={() => setTab(v)}
             >
-              {v === 'day' ? dayTabLabel(t) : v === 'groups' ? tableTabLabel(t) : 'Knockouts'}
+              {v === 'day' ? dayTabLabel() : v === 'groups' ? tableTabLabel(t) : 'Knockouts'}
             </button>
           ))}
         </nav>
 
-        <div className="app-progress" title="Matches you've revealed">
-          <span className="app-progress-num">
-            {marked}
-            <span className="app-progress-total">/{total}</span>
-          </span>
-          <div className="app-progress-bar">
-            <div className="app-progress-fill" style={{ width: `${(marked / total) * 100}%` }} />
-          </div>
-        </div>
+        {/* Everything from here right is the utility cluster, pushed to the far
+            edge as a group so removing the meter can't reflow the rest. */}
+        <div className="app-header-end">
+          {showProgress && (
+            <div className="app-progress" title="Matches you've revealed">
+              <span className="app-progress-num">
+                {marked}
+                <span className="app-progress-total">/{total}</span>
+              </span>
+              <div className="app-progress-bar">
+                <div className="app-progress-fill" style={{ width: `${(marked / total) * 100}%` }} />
+              </div>
+            </div>
+          )}
 
-        {catchUpIds.length > 0 && (
+          {catchUpIds.length > 0 && (
+            <button
+              type="button"
+              className="btn-ghost btn-small btn-catch-up"
+              onClick={() => setConfirmCatchUp(true)}
+            >
+              Catch up
+            </button>
+          )}
+
+          <FavoritesPanel t={t} progress={progress} />
+
           <button
             type="button"
-            className="btn-ghost btn-small btn-catch-up"
-            onClick={() => setConfirmCatchUp(true)}
+            className="help-btn"
+            aria-label="How this works"
+            title="How this works"
+            onClick={() => setShowOnboarding(true)}
           >
-            Catch up
+            ?
           </button>
-        )}
-
-        <FavoritesPanel t={t} progress={progress} />
-
-        <button
-          type="button"
-          className="help-btn"
-          aria-label="How this works"
-          title="How this works"
-          onClick={() => setShowOnboarding(true)}
-        >
-          ?
-        </button>
+        </div>
       </header>
 
       <main className={`app-main ${view === 'bracket' ? 'app-main-wide' : ''}`}>

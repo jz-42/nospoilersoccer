@@ -58,6 +58,8 @@ export interface ClubCompetitionConfig {
   name: string
   /** Heading for the single table. */
   tableLabel: string
+  /** What one round is called, e.g. 'Matchweek' (PL) or 'Matchday' (UEFA). */
+  roundLabel: string
   /** Absent means the default goal-difference → goals-for chain. */
   tiebreakers?: Tiebreak[]
   /**
@@ -77,6 +79,7 @@ export const CLUB_COMPETITIONS: Record<string, ClubCompetitionConfig> = {
     espnSlug: 'eng.1',
     name: 'Premier League',
     tableLabel: 'Table',
+    roundLabel: 'Matchweek',
     advancingRanks: [],
     knockoutRounds: [],
   },
@@ -85,6 +88,7 @@ export const CLUB_COMPETITIONS: Record<string, ClubCompetitionConfig> = {
     espnSlug: 'esp.1',
     name: 'La Liga',
     tableLabel: 'Table',
+    roundLabel: 'Matchday',
     // La Liga settles level teams head-to-head before goal difference. This is
     // a visible difference in table order, not a rounding detail.
     tiebreakers: ['head-to-head', 'goal-difference', 'goals-for'],
@@ -97,6 +101,7 @@ export const CLUB_COMPETITIONS: Record<string, ClubCompetitionConfig> = {
     name: 'Champions League',
     // No groups since 2024-25: one 36-team league phase, then knockouts.
     tableLabel: 'League phase',
+    roundLabel: 'Matchday',
     // Top 8 go straight to the round of 16; 9th-24th play the knockout playoff.
     advancingRanks: range(1, 24),
     knockoutRounds: [
@@ -685,6 +690,7 @@ export function buildSeason(input: SeasonInput): SeasonBuild {
     year,
     advancingRanks: config.advancingRanks,
     tableLabel: config.tableLabel,
+    roundLabel: config.roundLabel,
     teams: Object.fromEntries(teamIds.map((id) => [id, clubs[id]])),
     groups: [{ id: LEAGUE_GROUP, teams: teamIds }],
     groupMatches,
@@ -808,6 +814,7 @@ export function serializeSeason(t: Tournament, config: ClubCompetitionConfig, ye
     `  advancingRanks: [${t.advancingRanks.join(', ')}],`,
   ]
   if (t.tableLabel) lines.push(`  tableLabel: ${j(t.tableLabel)},`)
+  if (t.roundLabel) lines.push(`  roundLabel: ${j(t.roundLabel)},`)
   if (t.tiebreakers) lines.push(`  tiebreakers: [${t.tiebreakers.map(q).join(', ')}],`)
   lines.push(
     '  teams: Object.fromEntries(teamIds.map((id) => [id, clubs[id]] as const)),',
