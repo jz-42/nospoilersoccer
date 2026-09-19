@@ -1136,6 +1136,10 @@
     box-shadow 0.15s,
     opacity 0.15s;
   box-shadow: var(--shadow);
+  /* Keep the card on its own compositor layer at rest, so the hover lift
+     doesn't promote it mid-interaction — that re-layering is what made the
+     frosted chips inside re-sample their backdrop and flash. */
+  will-change: transform;
 }
 
 .preview-card:hover {
@@ -1447,11 +1451,14 @@
 
 /* Watch affordance: a glass circle in the center slot between the two flags —
    the Today tab is the watch surface, so this is the most important button in
-   the app. Real glass physics: backdrop blur pulls the matchup colors through
-   it, a specular top edge and lower inner shade give it curvature, and the
-   halo is tinted by the card's own team colors (not generic black) so an
-   England–Congo button glows faintly red–blue at its rim. The rectangular
-   flags beside it mean it can't read as a row of three tokens. */
+   the app. A translucent fill lets the matchup colors through, a specular top
+   edge and lower inner shade give it curvature, and the halo is tinted by the
+   card's own team colors (not generic black) so an England–Congo button glows
+   faintly red–blue at its rim. The rectangular flags beside it mean it can't
+   read as a row of three tokens.
+   No backdrop-filter: what sits behind it is a smooth field, so a blur buys
+   nothing, and on hover the card's lift re-layers it — Chromium re-samples
+   the backdrop and flashes the disc white for a frame. */
 .preview-play {
   display: inline-flex;
   align-items: center;
@@ -1462,8 +1469,6 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.17);
   border: 1.5px solid rgba(255, 255, 255, 0.7);
-  -webkit-backdrop-filter: blur(8px) saturate(1.35);
-  backdrop-filter: blur(8px) saturate(1.35);
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),

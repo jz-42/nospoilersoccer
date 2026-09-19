@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs'
 import {
   findNearestItemIndex,
+  getBalancedRows,
+  getCenteredRowStarts,
   getCarouselVisualState,
   getCommittedDaySwipe,
   getDayCardMetrics,
@@ -9,6 +11,20 @@ import {
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
 }
+
+const rowsOf = (count: number, maxCols: number) => getBalancedRows(count, maxCols).join('+')
+assert(rowsOf(7, 4) === '4+3', `expected 7 across 4 to be 4+3, got ${rowsOf(7, 4)}`)
+assert(rowsOf(10, 4) === '4+3+3', `expected 10 across 4 to be 4+3+3, got ${rowsOf(10, 4)}`)
+assert(rowsOf(6, 5) === '3+3', `expected 6 across 5 to be 3+3, got ${rowsOf(6, 5)}`)
+assert(rowsOf(5, 4) === '3+2', `expected 5 across 4 to be 3+2, got ${rowsOf(5, 4)}`)
+assert(rowsOf(2, 1) === '1+1', `expected 2 across 1 to be 1+1, got ${rowsOf(2, 1)}`)
+assert(rowsOf(0, 4) === '', `expected no rows for no cards`)
+
+const starts = getCenteredRowStarts([4, 3, 3]).map((s) => s ?? '-').join(',')
+assert(
+  starts === '-,-,-,-,2,-,-,2,-,-',
+  `expected short rows to open on half-track 2, got ${starts}`,
+)
 
 const hero = getDayCardMetrics(470)
 assert(hero.flagSize === 84, `expected hero flag size 84, got ${hero.flagSize}`)

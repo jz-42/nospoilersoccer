@@ -29,6 +29,8 @@ import { matchLocalDate } from './schedule'
 import { addLocalDays, localDateKey, relativeDayLabel } from '../time/local'
 import {
   findNearestItemIndex,
+  getBalancedRows,
+  getCenteredRowStarts,
   getCarouselVisualState,
   getCommittedDaySwipe,
   getDayCardMetrics,
@@ -64,16 +66,22 @@ const DUO_MAX = 424 // 2 matches
 const HERO_MAX = 470 // a lone match — the biggest "hero" card
 
 /**
- * Lay the day's cards out in *balanced* rows. CSS can pack cards but can't
- * balance them — only we know the match count — so a six-match day that only
- * fits five across becomes a tidy 3 + 3 instead of an ugly 5 + 1, two matches
- * sit together rather than drifting to opposite edges, and a single match
- * blooms into one hero card. Columns are sized in pixels and the whole block
- * is centred, so cards never stretch to fill a half-empty row.
+ * Lay the day's cards out in *balanced*, *centred* rows. CSS can pack cards
+ * but can't balance them — only we know the match count — so a six-match day
+ * that only fits five across becomes a tidy 3 + 3 instead of an ugly 5 + 1,
+ * seven is 4 + 3 with the three centred under the four (not hanging off the
+ * left edge), two matches sit together rather than drifting to opposite
+ * edges, and a single match blooms into one hero card. Columns are sized in
+ * pixels and the whole block is centred, so cards never stretch to fill a
+ * half-empty row.
+ *
+ * The grid runs on half-card tracks — two per column, gaps included — so a
+ * short row can start half a card in; `cellStyle(i)` is that offset for card
+ * `i`.
  */
 function useBalancedColumns(count: number) {
   const ref = useRef<HTMLDivElement>(null)
-  const [layout, setLayout] = useState({ cols: 1, width: CARD_MAX })
+  const [layout, setLayout] = useState({ maxCols: 1, width: CARD_MAX })
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -82,11 +90,10 @@ function useBalancedColumns(count: number) {
       const avail = el.clientWidth
       if (!avail) return
       const maxCols = Math.max(1, Math.floor((avail + GRID_GAP) / (CARD_MIN + GRID_GAP)))
-      const rows = Math.ceil(count / maxCols)
-      const cols = Math.ceil(count / rows)
+      const cols = getBalancedRows(count, maxCols)[0]
       const cap = { 1: HERO_MAX, 2: DUO_MAX, 3: TRIO_MAX }[count] ?? CARD_MAX
       const width = Math.min(cap, Math.floor((avail - (cols - 1) * GRID_GAP) / cols))
-      setLayout({ cols, width })
+      setLayout({ maxCols, width })
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -94,13 +101,18 @@ function useBalancedColumns(count: number) {
     return () => ro.disconnect()
   }, [count])
 
+  const rows = getBalancedRows(count, layout.maxCols)
+  const cols = rows[0] ?? 1
+  const starts = getCenteredRowStarts(rows)
   const { flagSize, flagGap } = getDayCardMetrics(layout.width)
   const style: CSSProperties = {
-    gridTemplateColumns: `repeat(${layout.cols}, ${layout.width}px)`,
+    gridTemplateColumns: `repeat(${cols * 2}, ${(layout.width - GRID_GAP) / 2}px)`,
     ['--day-flag-size' as string]: `${flagSize}px`,
     ['--day-flag-gap' as string]: `${flagGap}px`,
   }
-  return [ref, style] as const
+  const cellStyle = (i: number): CSSProperties =>
+    starts[i] ? { gridColumn: `${starts[i]} / span 2` } : { gridColumn: 'span 2' }
+  return [ref, style, cellStyle] as const
 }
 
 function DaySwitcher({
@@ -385,7 +397,7 @@ function DaySwitcher({
 
   const date = dates[idx]
   const dayEntries = entries.filter((e) => e.date === date)
-  const [gridRef, gridStyle] = useBalancedColumns(dayEntries.length)
+  const [gridRef, gridStyle, cellStyle] = useBalancedColumns(dayEntries.length)
 
   const yesterday = addLocalDays(today, -1)
   const tomorrow = addLocalDays(today, 1)
@@ -566,8 +578,15 @@ function DaySwitcher({
 
       {dayEntries.length > 0 ? (
         <div className="day-grid" ref={gridRef} style={gridStyle}>
-          {dayEntries.map((e) => (
-            <PreviewCard key={e.target.match.id} t={t} entry={e} progress={progress} onOpen={onOpen} />
+          {dayEntries.map((e, i) => (
+            <PreviewCard
+              key={e.target.match.id}
+              t={t}
+              entry={e}
+              progress={progress}
+              onOpen={onOpen}
+              style={cellStyle(i)}
+            />
           ))}
         </div>
       ) : (
