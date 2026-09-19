@@ -388,3 +388,17 @@ test('highlight-state route accepts known seasons and rejects unknown ones', asy
     globalThis.fetch = originalFetch
   }
 })
+
+test('worker exposes the YouTube WebSub verification callback', async () => {
+  const topic = encodeURIComponent(
+    'https://www.youtube.com/feeds/videos.xml?channel_id=UCwNqHDsnBCKT-olwJwIFyfg',
+  )
+  const response = await worker.fetch(
+    new Request(
+      `https://w.dev/websub/youtube?hub.mode=subscribe&hub.challenge=verified&hub.topic=${topic}`,
+    ),
+    {},
+  )
+  assert.equal(response.status, 200)
+  assert.equal(await response.text(), 'verified')
+})

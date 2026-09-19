@@ -67,6 +67,13 @@ const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36'
 
 const dryRun = process.argv.includes('--dry-run')
+const targetVideoId = (() => {
+  const i = process.argv.indexOf('--video-id')
+  if (i === -1) return null
+  const id = process.argv[i + 1]
+  if (!id || !/^[A-Za-z0-9_-]{11}$/.test(id)) throw new Error('--video-id requires an 11-character YouTube id')
+  return id
+})()
 const onlyCompetition = (() => {
   const i = process.argv.indexOf('--competition')
   return i === -1 ? null : process.argv[i + 1]
@@ -754,6 +761,19 @@ async function run() {
   >()
   /** One list per source, however many competitions that source covers. */
   const uploadsCache = new Map<string, PlaylistVideo[]>()
+  const targetMeta = targetVideoId
+    ? await getVideoMeta(targetVideoId).then(async (metadata) => ({
+        metadata,
+        embeddable: await checkEmbeddable(targetVideoId),
+      }))
+    : null
+  if (targetMeta) {
+    metaCache.set(targetMeta.metadata.id, {
+      channelId: targetMeta.metadata.channelId,
+      publishedAt: targetMeta.metadata.publishedAt,
+      embeddable: targetMeta.embeddable,
+    })
+  }
 
   for (const config of configs) {
     const { tournament, videos } = await loadSeason(config.id)
@@ -772,10 +792,13 @@ async function run() {
     }
 
     for (const source of sources) {
+      if (targetMeta && targetMeta.metadata.channelId !== source.channelId) continue
       let uploads = uploadsCache.get(source.id)
       if (!uploads) {
         try {
-          uploads = await listSourceUploads(source)
+          uploads = targetMeta
+            ? [{ id: targetMeta.metadata.id, title: targetMeta.metadata.title }]
+            : await listSourceUploads(source)
           uploadsCache.set(source.id, uploads)
         } catch (e) {
           errors.push(`${source.label}: could not list uploads (${e})`)
@@ -857,7 +880,8 @@ if (import.meta.main) {
   try {
     await run()
   } catch (e) {
-    // Never fail the workflow over curation — log and move on.
+    if (targetVideoId) throw e
+    // Never fail the general updater over curation — log and move on.
     console.error(`curate-club-videos failed: ${e}`)
   }
 }

@@ -1,0 +1,118 @@
+name: Curate one highlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_id:
+        description: YouTube video id
+        required: true
+        type: string
+      source_id:
+        description: Trusted source id
+        required: true
+        type: choice
+        options:
+          - fox
+          - golazo
+          - nbc
+          - espnfc
+      content_version:
+        description: Candidate content version
+        required: true
+        type: string
+
+concurrency:
+  group: curate-highlight-${{ inputs.video_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  curate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Curate exact notified video
+        env:
+          VIDEO_ID: ${{ inputs.video_id }}
+          SOURCE_ID: ${{ inputs.source_id }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+        run: |
+          case "$SOURCE_ID" in
+            fox)
+              npx tsx scripts/curate-videos.ts --video-id "$VIDEO_ID"
+              ;;
+            golazo)
+              npx tsx scripts/curate-club-videos.ts --competition ucl --video-id "$VIDEO_ID"
+              ;;
+            nbc)
+              npx tsx scripts/curate-club-videos.ts --competition eng1 --video-id "$VIDEO_ID"
+              ;;
+            espnfc)
+              npx tsx scripts/curate-club-videos.ts --competition esp1 --video-id "$VIDEO_ID"
+              ;;
+            *)
+              echo "unknown source id" >&2
+              exit 2
+              ;;
+          esac
+
+      - name: Validate and build runtime state
+        run: |
+          npm run validate:data
+          npx tsx src/data/videos.smoke.ts
+          npx tsx scripts/curate-videos.smoke.ts
+          npx tsx scripts/curate-club-videos.smoke.ts
+          npx tsc -b
+          npm run build:highlight-state
+
+      - name: Commit accepted highlight
+        id: persist
+        env:
+          VIDEO_ID: ${{ inputs.video_id }}
+        run: |
+          git config user.name "highlight-bot"
+          git config user.email "actions@github.com"
+          git add src/data/wc2026-videos.ts src/data/club/*-videos.ts public/api/highlights scripts/curate-skip.json
+          if git diff --cached --quiet; then
+            echo "candidate produced no accepted change"
+            echo "status=retry" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Auto-curate highlight ${VIDEO_ID}"
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
+          echo "status=accepted" >> "$GITHUB_OUTPUT"
+
+      - name: Report candidate result
+        if: always()
+        env:
+          CALLBACK_SECRET: ${{ secrets.HIGHLIGHT_CALLBACK_SECRET }}
+          CONTENT_VERSION: ${{ inputs.content_version }}
+          VIDEO_ID: ${{ inputs.video_id }}
+          PERSIST_STATUS: ${{ steps.persist.outputs.status }}
+        run: |
+          status="${PERSIST_STATUS:-retry}"
+          payload=$(jq -cn \
+            --arg videoId "$VIDEO_ID" \
+            --arg contentVersion "$CONTENT_VERSION" \
+            --arg status "$status" \
+            '{videoId: $videoId, contentVersion: $contentVersion, status: $status}')
+          curl --silent --show-error --fail \
+            -X POST \
+            -H "Authorization: Bearer $CALLBACK_SECRET" \
+            -H "Content-Type: application/json" \
+            --data "$payload" \
+            https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/admin/highlight-result

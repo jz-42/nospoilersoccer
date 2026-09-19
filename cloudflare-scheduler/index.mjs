@@ -1,3 +1,13 @@
+import {
+  createD1HighlightStore,
+  createHighlightDispatchClient,
+  enqueueDueCandidates,
+  handleCandidateResultRequest,
+  handleWebSubRequest,
+  processHighlightQueue,
+  runHighlightRecovery,
+} from './highlights.mjs'
+
 const DEFAULT_SCHEDULE_URL =
   'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/wc2026.ts'
 const DEFAULT_HOT_STATE_BASE_URL =
@@ -429,6 +439,25 @@ export default {
     if (url.pathname === '/admin/test-dispatch') {
       return handleAdminTest(url, env)
     }
+    if (url.pathname === '/websub/youtube') {
+      const store = env.HIGHLIGHT_DB ? createD1HighlightStore(env.HIGHLIGHT_DB) : null
+      if (request.method === 'POST' && (!store || !env.HIGHLIGHT_QUEUE)) {
+        return json({ ok: false, error: 'highlight_ingestion_not_configured' }, 503)
+      }
+      return handleWebSubRequest(request, {
+        store,
+        queue: env.HIGHLIGHT_QUEUE,
+      })
+    }
+    if (url.pathname === '/admin/highlight-result') {
+      if (!env.HIGHLIGHT_DB) {
+        return json({ ok: false, error: 'highlight_ingestion_not_configured' }, 503)
+      }
+      return handleCandidateResultRequest(request, {
+        secret: env.HIGHLIGHT_CALLBACK_SECRET,
+        store: createD1HighlightStore(env.HIGHLIGHT_DB),
+      })
+    }
     const hotStateMatch = url.pathname.match(HOT_STATE_PATH_PATTERN)
     if (hotStateMatch) {
       const seasonId = hotStateMatch[1]
@@ -457,11 +486,45 @@ export default {
   },
 
   async scheduled(_controller, env) {
-    await runScheduler({
-      now: new Date(),
-      fetchSchedule: () => fetchScheduleText(env),
-      githubClient: createEnvGitHubClient(env),
-      throwOnError: true,
-    })
+    const now = new Date()
+    const jobs = [
+      runScheduler({
+        now,
+        fetchSchedule: () => fetchScheduleText(env),
+        githubClient: createEnvGitHubClient(env),
+        throwOnError: true,
+      }),
+    ]
+    if (env.HIGHLIGHT_DB && env.HIGHLIGHT_QUEUE && env.YOUTUBE_API_KEY) {
+      const store = createD1HighlightStore(env.HIGHLIGHT_DB)
+      jobs.push(
+        (async () => {
+          const recovery = await runHighlightRecovery({
+            now,
+            apiKey: env.YOUTUBE_API_KEY,
+            store,
+            queue: env.HIGHLIGHT_QUEUE,
+          })
+          await enqueueDueCandidates(store, env.HIGHLIGHT_QUEUE, now)
+          return recovery
+        })(),
+      )
+    }
+    const results = await Promise.allSettled(jobs)
+    const failures = results.filter((result) => result.status === 'rejected')
+    if (failures.length) throw new AggregateError(failures.map((failure) => failure.reason))
+  },
+
+  async queue(batch, env) {
+    await processHighlightQueue(
+      batch,
+      createHighlightDispatchClient({
+        token: getRequiredEnv(env, 'GITHUB_TOKEN'),
+        owner: env.GITHUB_OWNER || 'jz-42',
+        repo: env.GITHUB_REPO || 'nospoilersoccer',
+        ref: env.GITHUB_REF || 'main',
+      }),
+      env.HIGHLIGHT_DB ? createD1HighlightStore(env.HIGHLIGHT_DB) : null,
+    )
   },
 }
