@@ -12,26 +12,23 @@ import type { HighlightVideo } from '../types'
  * what keeps a runtime badge off club matches.
  */
 export const esp1_2026_videos: Record<string, HighlightVideo[]> = {
-  'esp1-athletic-club-atletico-madrid': [{ youtubeId: 'P9prR9H28Gg', kind: 'normal' }],
-  'esp1-athletic-club-elche': [{ youtubeId: '6FyomrQosP8', kind: 'normal' }],
   'esp1-athletic-club-sevilla': [{ youtubeId: 'Q-kKpIvXp0k', kind: 'normal' }],
   'esp1-atletico-madrid-villarreal': [{ youtubeId: 'aEleu6mtpxk', kind: 'normal' }],
   'esp1-barcelona-rayo-vallecano': [{ youtubeId: 'KIA683_HiLw', kind: 'normal' }],
   'esp1-celta-vigo-athletic-club': [{ youtubeId: 'H8gfjh4f0iE', kind: 'normal' }],
   'esp1-deportivo-valencia': [{ youtubeId: 'aUYYjd9lAKs', kind: 'normal' }],
   'esp1-elche-barcelona': [{ youtubeId: 'T1B9zsH9adY', kind: 'normal' }],
-  'esp1-elche-real-sociedad': [{ youtubeId: '4Sgi6wmKi88', kind: 'normal' }],
   'esp1-espanyol-real-madrid': [{ youtubeId: 'i1rmAdOSfuA', kind: 'normal' }],
   'esp1-espanyol-sevilla': [{ youtubeId: 'Rvz6erOp-k0', kind: 'normal' }],
   'esp1-levante-real-betis': [{ youtubeId: 'JIaT0ZrCXV8', kind: 'normal' }],
   'esp1-osasuna-getafe': [{ youtubeId: 'wmCXSxhPJDg', kind: 'normal' }],
-  'esp1-real-betis-real-madrid': [{ youtubeId: 'Ls7lgDXcZp8', kind: 'normal' }],
   'esp1-real-betis-real-sociedad': [{ youtubeId: 'pJRJsX-3U4w', kind: 'normal' }],
   'esp1-real-madrid-rayo-vallecano': [{ youtubeId: 'GtscnZUGLe4', kind: 'normal' }],
+  'esp1-real-sociedad-atletico-madrid': [{ youtubeId: '7Rb78W9GlM4', kind: 'normal' }],
   'esp1-real-sociedad-celta-vigo': [{ youtubeId: 'w6vspBHbyr0', kind: 'normal' }],
   'esp1-real-sociedad-espanyol': [{ youtubeId: 'tgYYdJCBFY4', kind: 'normal' }],
   'esp1-sevilla-atletico-madrid': [{ youtubeId: 'PkBJJjyfV_A', kind: 'normal' }],
   'esp1-sevilla-valencia': [{ youtubeId: 'l4qqAX2GS7o', kind: 'normal' }],
-  'esp1-valencia-barcelona': [{ youtubeId: 'BVeuyol-th4', kind: 'normal' }],
   'esp1-valencia-real-betis': [{ youtubeId: 'qcxVr9sggWw', kind: 'normal' }],
+  'esp1-villarreal-real-betis': [{ youtubeId: 'GrjB1mwr6GQ', kind: 'normal' }],
 }

@@ -1110,36 +1110,142 @@
     },
     "esp1-celta-vigo-malaga": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "celta-vigo",
+          "player": "Ferran Jutglà",
+          "minute": "41'"
+        },
+        {
+          "team": "malaga",
+          "player": "Adrián Niño",
+          "minute": "83'"
+        }
+      ]
     },
     "esp1-levante-barcelona": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 2,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "barcelona",
+          "player": "Xavi Espart",
+          "minute": "5'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "19'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "48'",
+          "penalty": true
+        },
+        {
+          "team": "levante",
+          "player": "Iván Romero",
+          "minute": "79'"
+        },
+        {
+          "team": "levante",
+          "player": "Roger Brugué",
+          "minute": "88'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Karim Adeyemi",
+          "minute": "90'+3'"
+        }
+      ]
     },
     "esp1-getafe-deportivo": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "getafe",
+          "player": "Ramón Terrats",
+          "minute": "66'"
+        },
+        {
+          "team": "deportivo",
+          "player": "Pierre-Emerick Aubameyang",
+          "minute": "78'"
+        }
+      ]
     },
     "esp1-real-sociedad-atletico-madrid": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Alejandro Grimaldo",
+          "minute": "84'",
+          "penalty": true
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Jonathan David",
+          "minute": "90'"
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Giuliano Simeone",
+          "minute": "90'+5'"
+        }
+      ]
     },
     "esp1-villarreal-real-betis": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "villarreal",
+          "player": "Gerard Moreno",
+          "minute": "29'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Cucho Hernández",
+          "minute": "39'"
+        },
+        {
+          "team": "real-betis",
+          "player": "Natan",
+          "minute": "43'"
+        }
+      ]
     },
     "esp1-rayo-vallecano-espanyol": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "esp1-alaves-valencia": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },

@@ -857,18 +857,87 @@
     },
     "eng1-coventry-brighton": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 0,
+        "away": 5
+      },
+      "goals": [
+        {
+          "team": "brighton",
+          "player": "Charalambos Kostoulas",
+          "minute": "35'"
+        },
+        {
+          "team": "brighton",
+          "player": "Malick Yalcouyé",
+          "minute": "51'"
+        },
+        {
+          "team": "brighton",
+          "player": "Pascal Gross",
+          "minute": "70'",
+          "penalty": true
+        },
+        {
+          "team": "brighton",
+          "player": "Lewis Dunk",
+          "minute": "83'"
+        },
+        {
+          "team": "brighton",
+          "player": "Yasin Ayari",
+          "minute": "90'+4'"
+        }
+      ]
     },
     "eng1-manchester-united-manchester-city": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "manchester-city",
+          "player": "Erling Haaland",
+          "minute": "60'"
+        }
+      ]
     },
     "eng1-leeds-newcastle": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "leeds",
+          "player": "Lewis Miley",
+          "minute": "32'",
+          "ownGoal": true
+        },
+        {
+          "team": "leeds",
+          "player": "Jayden Bogle",
+          "minute": "34'"
+        },
+        {
+          "team": "leeds",
+          "player": "Dominic Calvert-Lewin",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "leeds",
+          "player": "Noah Okafor",
+          "minute": "59'"
+        },
+        {
+          "team": "newcastle",
+          "player": "Bazoumana Touré",
+          "minute": "90'"
+        }
+      ]
     },
     "eng1-brentford-chelsea": {
       "liveStatus": null,
