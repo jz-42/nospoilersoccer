@@ -1088,11 +1088,12 @@
       ]
     },
     "eng1-leeds-crystal-palace": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null
+      "goals": []
     },
     "eng1-manchester-city-sunderland": {
       "liveStatus": {
