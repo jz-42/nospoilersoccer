@@ -19,6 +19,7 @@ export const esp1_2026_videos: Record<string, HighlightVideo[]> = {
   'esp1-athletic-club-elche': [{ youtubeId: '6FyomrQosP8', kind: 'normal' }],
   'esp1-athletic-club-sevilla': [{ youtubeId: 'Q-kKpIvXp0k', kind: 'normal' }],
   'esp1-atletico-madrid-osasuna': [{ youtubeId: 'vIYc6FMKy8Y', kind: 'normal' }],
+  'esp1-atletico-madrid-real-madrid': [{ youtubeId: 'bLzrK9H8XLc', kind: 'normal' }],
   'esp1-atletico-madrid-villarreal': [{ youtubeId: 'aEleu6mtpxk', kind: 'normal' }],
   'esp1-barcelona-athletic-club': [{ youtubeId: '0OHaoF7myVY', kind: 'normal' }],
   'esp1-barcelona-racing-santander': [{ youtubeId: 'bWC2XazMFK8', kind: 'normal' }],
