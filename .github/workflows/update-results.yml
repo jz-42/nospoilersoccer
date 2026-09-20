@@ -28,9 +28,10 @@ jobs:
 
       - run: npm ci
 
-      # Poll every 5 minutes for ~53 minutes. Each cycle pulls results + odds +
-      # highlights, validates, and commits ONLY if something changed.
-      # Cloudflare decides when to start each run and checks every 5 minutes.
+      # Poll every 5 minutes for ~53 minutes. Each cycle pulls results + odds;
+      # the broad YouTube recovery scan runs only on cycle 1 because the Worker
+      # handles new uploads through WebSub plus quota-free one-minute feeds.
+      # Cloudflare decides when to start each run and checks every minute.
       - name: Update loop (every 5 min)
         env:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
@@ -182,29 +183,33 @@ jobs:
               cp "$BACKFILL_BACKUP_FILE" src/data/wc2026.ts
             fi
 
-            rm -rf "$VIDEOS_BACKUP_DIR"
-            mkdir -p "$VIDEOS_BACKUP_DIR"
-            cp src/data/wc2026-videos.ts "$VIDEOS_BACKUP_DIR/wc2026-videos.ts"
-            cp scripts/curate-skip.json "$VIDEOS_BACKUP_DIR/curate-skip.json"
-            if CURATOR_CYCLE="$cycle" npx tsx scripts/curate-videos.ts; then
-              if ! (npm run validate:data && npx tsx src/data/videos.smoke.ts && npx tsc -b); then
-                echo "::warning::video validation failed; discarding video changes for this cycle"
+            if [ "$cycle" -eq 1 ]; then
+              rm -rf "$VIDEOS_BACKUP_DIR"
+              mkdir -p "$VIDEOS_BACKUP_DIR"
+              cp src/data/wc2026-videos.ts "$VIDEOS_BACKUP_DIR/wc2026-videos.ts"
+              cp scripts/curate-skip.json "$VIDEOS_BACKUP_DIR/curate-skip.json"
+              if CURATOR_CYCLE="$cycle" npx tsx scripts/curate-videos.ts; then
+                if ! (npm run validate:data && npx tsx src/data/videos.smoke.ts && npx tsc -b); then
+                  echo "::warning::video validation failed; discarding video changes for this cycle"
+                  cp "$VIDEOS_BACKUP_DIR/wc2026-videos.ts" src/data/wc2026-videos.ts
+                  cp "$VIDEOS_BACKUP_DIR/curate-skip.json" scripts/curate-skip.json
+                fi
+              else
+                echo "::warning::video curator step errored; discarding video changes for this cycle"
                 cp "$VIDEOS_BACKUP_DIR/wc2026-videos.ts" src/data/wc2026-videos.ts
                 cp "$VIDEOS_BACKUP_DIR/curate-skip.json" scripts/curate-skip.json
               fi
             else
-              echo "::warning::video curator step errored; discarding video changes for this cycle"
-              cp "$VIDEOS_BACKUP_DIR/wc2026-videos.ts" src/data/wc2026-videos.ts
-              cp "$VIDEOS_BACKUP_DIR/curate-skip.json" scripts/curate-skip.json
+              echo "skipping World Cup broad highlight scan; fast ingestion handles new uploads"
             fi
 
             core_ok=false
-            if npm run build:hot-state && npm run check:update; then
+            if npm run build:hot-state && npm run build:highlight-state && npm run check:update; then
               core_ok=true
             fi
 
             if [ "$core_ok" = true ]; then
-              git add src/data/wc2026.ts src/data/wc2026-videos.ts public/api/hot-state/wc2026.json scripts/curate-skip.json
+              git add src/data/wc2026.ts src/data/wc2026-videos.ts public/api/hot-state/wc2026.json public/api/highlights/wc2026.json scripts/curate-skip.json
               if git diff --cached --quiet; then
                 echo "no core changes this cycle"
               else
@@ -246,8 +251,10 @@ jobs:
               # expensive half of that.
               club_step "$season results" "$season" "$CLUB_BACKUP_ROOT/$season-results" \
                 npx tsx scripts/espn-club.ts --competition "$competition"
-              club_step "$season videos" "$season" "$CLUB_BACKUP_ROOT/$season-videos" \
-                npx tsx scripts/curate-club-videos.ts --competition "$competition"
+              if [ "$cycle" -eq 1 ]; then
+                club_step "$season videos" "$season" "$CLUB_BACKUP_ROOT/$season-videos" \
+                  npx tsx scripts/curate-club-videos.ts --competition "$competition"
+              fi
             done
             unset CLUB_SEASON CLUB_COMPETITION CLUB_LEAGUE_SLUG
 
@@ -259,11 +266,14 @@ jobs:
               } >> "$GITHUB_STEP_SUMMARY"
             fi
 
-            if npm run build:hot-state && npm run check:update; then
+            if npm run build:hot-state && npm run build:highlight-state && npm run check:update; then
               add_if_present src/data/club \
                 public/api/hot-state/eng1-2026.json \
                 public/api/hot-state/esp1-2026.json \
-                public/api/hot-state/ucl-2026.json
+                public/api/hot-state/ucl-2026.json \
+                public/api/highlights/eng1-2026.json \
+                public/api/highlights/esp1-2026.json \
+                public/api/highlights/ucl-2026.json
               if git diff --cached --quiet; then
                 echo "no club changes this cycle"
               else

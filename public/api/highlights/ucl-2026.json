@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "tournamentId": "ucl-2026",
+  "version": 251263584195712,
+  "generatedAt": "2026-09-19T23:00:39.183Z",
+  "matches": {
+    "ucl-aek-athens-lask": [
+      {
+        "youtubeId": "is5uZYIIHSA",
+        "kind": "normal"
+      }
+    ],
+    "ucl-club-brugge-aston-villa": [
+      {
+        "youtubeId": "XgqVXSOGtCw",
+        "kind": "normal"
+      }
+    ],
+    "ucl-dortmund-villarreal": [
+      {
+        "youtubeId": "d6yIgsNGZ5Y",
+        "kind": "normal"
+      }
+    ],
+    "ucl-lille-real-betis": [
+      {
+        "youtubeId": "klu6Xk-DL-4",
+        "kind": "normal"
+      }
+    ],
+    "ucl-porto-manchester-city": [
+      {
+        "youtubeId": "mXNFbZJdcqY",
+        "kind": "normal"
+      }
+    ],
+    "ucl-real-madrid-inter": [
+      {
+        "youtubeId": "m-Er4N3eVpE",
+        "kind": "normal"
+      }
+    ],
+    "ucl-barcelona-feyenoord": [
+      {
+        "youtubeId": "kPdMCaxCNJQ",
+        "kind": "normal"
+      }
+    ],
+    "ucl-stuttgart-viking": [
+      {
+        "youtubeId": "oc0Su0XNufI",
+        "kind": "normal"
+      }
+    ],
+    "ucl-liverpool-atletico-madrid": [
+      {
+        "youtubeId": "GRp9iiO-I3k",
+        "kind": "normal"
+      }
+    ],
+    "ucl-napoli-arsenal": [
+      {
+        "youtubeId": "7HFHdzIMgZ8",
+        "kind": "normal"
+      }
+    ],
+    "ucl-psg-slovan-bratislava": [
+      {
+        "youtubeId": "WFvEejQvVlk",
+        "kind": "normal"
+      }
+    ],
+    "ucl-sporting-cp-galatasaray": [
+      {
+        "youtubeId": "BtFR9xVI9aw",
+        "kind": "normal"
+      }
+    ],
+    "ucl-fenerbahce-roma": [
+      {
+        "youtubeId": "O83kM__1F5Q",
+        "kind": "normal"
+      }
+    ],
+    "ucl-psv-shakhtar": [
+      {
+        "youtubeId": "glFWbS_yJ1Q",
+        "kind": "normal"
+      }
+    ],
+    "ucl-bayern-munich-bodo-glimt": [
+      {
+        "youtubeId": "DW68WzlQ2l4",
+        "kind": "normal"
+      }
+    ],
+    "ucl-como-rb-leipzig": [
+      {
+        "youtubeId": "CPE5kdgkOA4",
+        "kind": "normal"
+      }
+    ],
+    "ucl-manchester-united-sabah": [
+      {
+        "youtubeId": "AytJ8mEWwSA",
+        "kind": "normal"
+      }
+    ],
+    "ucl-slavia-prague-lens": [
+      {
+        "youtubeId": "oC5pM4Z4jDI",
+        "kind": "normal"
+      }
+    ]
+  }
+}

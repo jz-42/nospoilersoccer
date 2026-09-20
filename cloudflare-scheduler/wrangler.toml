@@ -4,10 +4,28 @@ compatibility_date = "2026-06-25"
 workers_dev = true
 
 [triggers]
-crons = ["*/5 * * * *"]
+crons = ["* * * * *"]
 
 [vars]
 GITHUB_OWNER = "jz-42"
 GITHUB_REPO = "nospoilersoccer"
 GITHUB_WORKFLOW = "update-results.yml"
 GITHUB_REF = "main"
+WEBSUB_CALLBACK_URL = "https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/websub/youtube"
+
+[[d1_databases]]
+binding = "HIGHLIGHT_DB"
+database_name = "nospoilersoccer-highlights"
+database_id = "645a2a9d-4fe1-44ea-bf7e-c04dda32aadc"
+migrations_dir = "migrations"
+
+[[queues.producers]]
+binding = "HIGHLIGHT_QUEUE"
+queue = "nospoilersoccer-highlight-candidates"
+
+[[queues.consumers]]
+queue = "nospoilersoccer-highlight-candidates"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 5
+dead_letter_queue = "nospoilersoccer-highlight-dead"

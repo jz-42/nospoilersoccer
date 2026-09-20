@@ -30,6 +30,7 @@ import { isPlayed } from '../src/logic/spoilers'
 import { checkEmbeddable, FOX_CHANNEL_ID, getVideoMeta, listFoxUploads, parseHighlightTitle } from './youtube'
 import { checkFoxEmbed, listFoxQuickRecaps } from './fox'
 import type { FoxVideoMeta } from './fox'
+import { loadTargetedUploads } from './highlight-candidate'
 
 const VIDEOS_FILE = 'src/data/wc2026-videos.ts'
 const SKIP_FILE = 'scripts/curate-skip.json'
@@ -41,6 +42,13 @@ const FOX_QUICK_MAX_SECONDS = 600
 const t = tournaments.wc2026
 const dryRun = process.argv.includes('--dry-run')
 const validate = process.argv.includes('--validate')
+const targetVideoId = (() => {
+  const i = process.argv.indexOf('--video-id')
+  if (i === -1) return null
+  const id = process.argv[i + 1]
+  if (!id || !/^[A-Za-z0-9_-]{11}$/.test(id)) throw new Error('--video-id requires an 11-character YouTube id')
+  return id
+})()
 
 // ---- team-name resolution --------------------------------------------------
 
@@ -178,8 +186,6 @@ export function findFixtureForCandidate(
   const need = pool.filter((m) => !hasCut(m, kind, source))
   if (need.length === 0) return { status: 'have' }
   if (need.length === 1) return { status: 'ok', match: need[0] }
-  need.sort((a, b) => kickoffMs(b) - kickoffMs(a))
-  if (kickoffMs(need[0]) !== kickoffMs(need[1])) return { status: 'ok', match: need[0] }
   return { status: 'ambiguous' }
 }
 
@@ -377,7 +383,12 @@ async function runCurate() {
     seen.add(id)
     rejected.push(`${id}: ${reason}`)
   }
-  const uploads = await listFoxUploads(100)
+  const targeted = await loadTargetedUploads(
+    targetVideoId,
+    () => listFoxUploads(100),
+    getVideoMeta,
+  )
+  const uploads = targeted.uploads
   console.log(`Scanning ${uploads.length} FOX YouTube uploads${dryRun ? ' (dry-run)' : ''}…`)
 
   for (const up of uploads) {
@@ -394,7 +405,7 @@ async function runCurate() {
 
     let meta
     try {
-      meta = await getVideoMeta(up.id)
+      meta = targeted.metadata?.id === up.id ? targeted.metadata : await getVideoMeta(up.id)
     } catch (e) {
       errors.push(`${up.id}: metadata fetch failed (${e})`)
       note(`! ${up.id}: meta fetch failed, will retry next run (${e})`)
@@ -453,11 +464,13 @@ async function runCurate() {
   }
 
   let foxRecaps: FoxVideoMeta[] = []
-  try {
-    foxRecaps = await listFoxQuickRecaps(150)
-  } catch (e) {
-    errors.push(`FOX quick recap feed failed (${e})`)
-    foxRecaps = []
+  if (!targetVideoId) {
+    try {
+      foxRecaps = await listFoxQuickRecaps(150)
+    } catch (e) {
+      errors.push(`FOX quick recap feed failed (${e})`)
+      foxRecaps = []
+    }
   }
   console.log(`Scanning ${foxRecaps.length} FOX quick recaps…`)
 
@@ -528,7 +541,8 @@ if (import.meta.main) {
     if (validate) await runValidate()
     else await runCurate()
   } catch (e) {
-    // Never fail the workflow over curation — log and move on.
+    if (targetVideoId) throw e
+    // Never fail the general updater over curation — log and move on.
     console.error(`curate-videos failed: ${e}`)
   }
 }

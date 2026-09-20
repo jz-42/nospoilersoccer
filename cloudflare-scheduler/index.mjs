@@ -1,8 +1,19 @@
+import {
+  createD1HighlightStore,
+  createHighlightDispatchClient,
+  handleCandidateResultRequest,
+  handleWebSubRequest,
+  processHighlightQueue,
+  runHighlightIngestion,
+} from './highlights.mjs'
+
 const DEFAULT_SCHEDULE_URL =
   'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/wc2026.ts'
 const DEFAULT_HOT_STATE_BASE_URL =
   'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/hot-state'
 const DEFAULT_HOT_STATE_URL = `${DEFAULT_HOT_STATE_BASE_URL}/wc2026.json`
+const DEFAULT_HIGHLIGHT_STATE_BASE_URL =
+  'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/highlights'
 
 // Seasons the hot-state endpoint will serve. An allowlist rather than a
 // passthrough so the Worker cannot be pointed at arbitrary raw.githubusercontent
@@ -10,6 +21,7 @@ const DEFAULT_HOT_STATE_URL = `${DEFAULT_HOT_STATE_BASE_URL}/wc2026.json`
 export const HOT_STATE_SEASON_IDS = ['wc2026', 'eng1-2026', 'esp1-2026', 'ucl-2026']
 
 const HOT_STATE_PATH_PATTERN = /^\/api\/hot-state\/([A-Za-z0-9-]+)$/
+const HIGHLIGHT_STATE_PATH_PATTERN = /^\/api\/highlights\/([A-Za-z0-9-]+)$/
 
 const GROUP_START_OFFSET_MINUTES = 90
 const GROUP_END_OFFSET_MINUTES = 8 * 60
@@ -299,7 +311,7 @@ function corsHeaders(extraHeaders = {}) {
   return {
     'access-control-allow-origin': '*',
     'access-control-allow-methods': 'GET, OPTIONS',
-    'access-control-allow-headers': 'content-type',
+    'access-control-allow-headers': 'content-type, if-none-match',
     ...extraHeaders,
   }
 }
@@ -350,6 +362,42 @@ export function hotStateSourceUrl(env, seasonId) {
   return `${base}/${seasonId}.json`
 }
 
+export function highlightStateSourceUrl(env, seasonId) {
+  const base = env.HIGHLIGHT_STATE_BASE_URL || DEFAULT_HIGHLIGHT_STATE_BASE_URL
+  return `${base}/${seasonId}.json`
+}
+
+export async function handleHighlightStateRequest(
+  env,
+  request,
+  fetchImpl = fetch,
+  seasonId = 'wc2026',
+) {
+  const sourcePath = highlightStateSourceUrl(env, seasonId)
+  const response = await fetchImpl(sourcePath, {
+    headers: { Accept: 'application/json' },
+    cf: { cacheEverything: true, cacheTtl: 15 },
+  })
+
+  if (!response.ok) {
+    return json(
+      { ok: false, error: 'highlight_state_fetch_failed', status: response.status },
+      502,
+      corsHeaders({ 'cache-control': 'no-store' }),
+    )
+  }
+
+  const payload = await response.json()
+  const etag = `"${payload.version}"`
+  if (request.headers.get('if-none-match') === etag) {
+    return new Response(null, {
+      status: 304,
+      headers: corsHeaders({ etag, 'cache-control': 'public, max-age=15' }),
+    })
+  }
+  return json(payload, 200, corsHeaders({ etag, 'cache-control': 'public, max-age=15' }))
+}
+
 export async function handleHotStateRequest(env, fetchImpl = fetch, seasonId = 'wc2026') {
   const sourcePath = hotStateSourceUrl(env, seasonId)
   const response = await fetchImpl(sourcePath, {
@@ -390,6 +438,25 @@ export default {
     if (url.pathname === '/admin/test-dispatch') {
       return handleAdminTest(url, env)
     }
+    if (url.pathname === '/websub/youtube') {
+      const store = env.HIGHLIGHT_DB ? createD1HighlightStore(env.HIGHLIGHT_DB) : null
+      if (request.method === 'POST' && (!store || !env.HIGHLIGHT_QUEUE)) {
+        return json({ ok: false, error: 'highlight_ingestion_not_configured' }, 503)
+      }
+      return handleWebSubRequest(request, {
+        store,
+        queue: env.HIGHLIGHT_QUEUE,
+      })
+    }
+    if (url.pathname === '/admin/highlight-result') {
+      if (!env.HIGHLIGHT_DB) {
+        return json({ ok: false, error: 'highlight_ingestion_not_configured' }, 503)
+      }
+      return handleCandidateResultRequest(request, {
+        secret: env.HIGHLIGHT_CALLBACK_SECRET,
+        store: createD1HighlightStore(env.HIGHLIGHT_DB),
+      })
+    }
     const hotStateMatch = url.pathname.match(HOT_STATE_PATH_PATTERN)
     if (hotStateMatch) {
       const seasonId = hotStateMatch[1]
@@ -402,15 +469,58 @@ export default {
       }
       return handleHotStateRequest(env, fetch, seasonId)
     }
+    const highlightStateMatch = url.pathname.match(HIGHLIGHT_STATE_PATH_PATTERN)
+    if (highlightStateMatch) {
+      const seasonId = highlightStateMatch[1]
+      if (!HOT_STATE_SEASON_IDS.includes(seasonId)) {
+        return json(
+          { ok: false, error: 'unknown_season', seasonId, known: HOT_STATE_SEASON_IDS },
+          404,
+          corsHeaders({ 'cache-control': 'no-store' }),
+        )
+      }
+      return handleHighlightStateRequest(env, request, fetch, seasonId)
+    }
     return json({ ok: false, error: 'not_found' }, 404)
   },
 
   async scheduled(_controller, env) {
-    await runScheduler({
-      now: new Date(),
-      fetchSchedule: () => fetchScheduleText(env),
-      githubClient: createEnvGitHubClient(env),
-      throwOnError: true,
-    })
+    const now = new Date()
+    const jobs = [
+      runScheduler({
+        now,
+        fetchSchedule: () => fetchScheduleText(env),
+        githubClient: createEnvGitHubClient(env),
+        throwOnError: true,
+      }),
+    ]
+    if (env.HIGHLIGHT_DB && env.HIGHLIGHT_QUEUE) {
+      const store = createD1HighlightStore(env.HIGHLIGHT_DB)
+      jobs.push(
+        runHighlightIngestion({
+          now,
+          apiKey: env.YOUTUBE_API_KEY,
+          webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
+          store,
+          queue: env.HIGHLIGHT_QUEUE,
+        }),
+      )
+    }
+    const results = await Promise.allSettled(jobs)
+    const failures = results.filter((result) => result.status === 'rejected')
+    if (failures.length) throw new AggregateError(failures.map((failure) => failure.reason))
+  },
+
+  async queue(batch, env) {
+    await processHighlightQueue(
+      batch,
+      createHighlightDispatchClient({
+        token: getRequiredEnv(env, 'GITHUB_TOKEN'),
+        owner: env.GITHUB_OWNER || 'jz-42',
+        repo: env.GITHUB_REPO || 'nospoilersoccer',
+        ref: env.GITHUB_REF || 'main',
+      }),
+      env.HIGHLIGHT_DB ? createD1HighlightStore(env.HIGHLIGHT_DB) : null,
+    )
   },
 }

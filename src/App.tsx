@@ -14,6 +14,11 @@ import { competitions, defaultSeasonId, findSeason } from './data'
 import type { Competition, Season } from './data'
 import type { Tournament } from './data/types'
 import {
+  applyRuntimeHighlightState,
+  fetchRuntimeHighlightState,
+  type FetchedRuntimeHighlightState,
+} from './data/highlight-state'
+import {
   applyHotStatePollFailure,
   applyTournamentHotState,
   parseTournamentHotState,
@@ -38,6 +43,11 @@ const HOT_STATE_BASE_URL =
     : '')
 const HOT_STATE_POLL_MS = 5 * 60 * 1000
 const HOT_STATE_STALE_MS = 15 * 60 * 1000
+const HIGHLIGHT_STATE_BASE_URL = HOT_STATE_BASE_URL
+  ? HOT_STATE_BASE_URL.replace(/\/api\/hot-state$/, '/api/highlights')
+  : ''
+const HIGHLIGHT_STATE_POLL_MS = 30 * 1000
+const HIGHLIGHT_STATE_STALE_MS = 5 * 60 * 1000
 
 /**
  * Hot state is per season. `VITE_HOT_STATE_URL` stays honoured for wc2026 so an
@@ -287,6 +297,7 @@ function TournamentApp({
   showProgress: boolean
 }) {
   const [hotState, setHotState] = useState<FetchedTournamentHotState | null>(null)
+  const [highlightState, setHighlightState] = useState<FetchedRuntimeHighlightState | null>(null)
   // No reset on season change: `seasonId` is also this component's key, so a
   // different season remounts with a fresh null rather than clearing in place.
   useEffect(() => {
@@ -328,9 +339,40 @@ function TournamentApp({
       window.clearInterval(pollId)
     }
   }, [seasonId])
+
+  useEffect(() => {
+    if (!HIGHLIGHT_STATE_BASE_URL) return
+    let cancelled = false
+    let current: FetchedRuntimeHighlightState | null = null
+    let etag: string | null = null
+    const url = `${HIGHLIGHT_STATE_BASE_URL}/${seasonId}`
+
+    const loadHighlightState = async () => {
+      const result = await fetchRuntimeHighlightState(
+        url,
+        current,
+        etag,
+        Date.now(),
+        HIGHLIGHT_STATE_STALE_MS,
+      )
+      current = result.state
+      etag = result.etag
+      if (!cancelled) setHighlightState(result.state)
+    }
+
+    void loadHighlightState()
+    const pollId = window.setInterval(() => {
+      void loadHighlightState()
+    }, HIGHLIGHT_STATE_POLL_MS)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(pollId)
+    }
+  }, [seasonId])
   const t = useMemo(
-    () => applyTournamentHotState(baseTournament, hotState),
-    [baseTournament, hotState],
+    () => applyRuntimeHighlightState(applyTournamentHotState(baseTournament, hotState), highlightState),
+    [baseTournament, hotState, highlightState],
   )
   const progress = useProgress(t)
   const [tab, setTab] = useState<View>(defaultTournamentView)

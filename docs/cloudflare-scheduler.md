@@ -4,17 +4,21 @@
 
 Cloudflare is the scheduler. GitHub Actions remains the executor.
 
-Cloudflare also serves the runtime hot-state feed that the static site polls
-for live badges and fresh results.
+Cloudflare also serves the runtime hot-state and highlight-state feeds, and
+provides the WebSub/Atom fast highlight-ingestion path.
 
-The Worker wakes up every 5 minutes and triggers `.github/workflows/update-results.yml` on `main` whenever no previous run is still active.
+The Worker wakes up every minute. It checks quota-free public channel feeds,
+renews WebSub subscriptions, retries durable candidates, and triggers
+`.github/workflows/update-results.yml` on `main` whenever no previous run is
+still active.
 
 This exists because GitHub `schedule` is not reliable enough to provide continuous coverage during the live tournament. The GitHub workflow itself decides whether anything changed and commits only validated updates.
 
 ## Files
 
-- Worker source: [cloudflare-scheduler/index.mjs](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/casablanca/cloudflare-scheduler/index.mjs)
-- Worker tests: [cloudflare-scheduler/index.test.mjs](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/casablanca/cloudflare-scheduler/index.test.mjs)
+- Worker source: `cloudflare-scheduler/index.mjs`
+- Highlight ingestion: `cloudflare-scheduler/highlights.mjs`
+- Worker tests: `cloudflare-scheduler/index.test.mjs` and `cloudflare-scheduler/highlights.test.mjs`
 
 ## Match windows
 
@@ -44,7 +48,7 @@ Create a dedicated Worker, not a Pages build/deploy integration.
 
 The reproducible deployment config is:
 
-- [cloudflare-scheduler/wrangler.toml](/Users/JerryZhan/conductor/workspaces/nospoilersoccer/casablanca/cloudflare-scheduler/wrangler.toml)
+- `cloudflare-scheduler/wrangler.toml`
 
 Deploy from the Worker directory:
 
@@ -64,6 +68,7 @@ Then rerun the deploy command.
 Required secret:
 
 - `GITHUB_TOKEN`
+- `HIGHLIGHT_CALLBACK_SECRET` (use the same random value as the GitHub Actions secret)
 
 Optional secret:
 
@@ -77,6 +82,8 @@ Optional plain variables:
 - `GITHUB_REF`
 - `SCHEDULE_URL`
 - `HOT_STATE_BASE_URL`
+- `HIGHLIGHT_STATE_BASE_URL`
+- `WEBSUB_CALLBACK_URL`
 
 Recommended values if unset:
 
@@ -84,10 +91,21 @@ Recommended values if unset:
 - `GITHUB_REPO=nospoilersoccer`
 - `GITHUB_WORKFLOW=update-results.yml`
 - `GITHUB_REF=main`
+- `WEBSUB_CALLBACK_URL=https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/websub/youtube`
 
 Cron Trigger:
 
-- `*/5 * * * *`
+- `* * * * *`
+
+Required resources:
+
+- D1 database bound as `HIGHLIGHT_DB`
+- Queue producer/consumer bound as `HIGHLIGHT_QUEUE`
+- dead-letter queue `nospoilersoccer-highlight-dead`
+
+Apply `cloudflare-scheduler/migrations/0001_highlights.sql` before deployment.
+The normal minute-level path does not require a Worker `YOUTUBE_API_KEY`;
+leaving it unset avoids duplicating the hourly authenticated CI recovery.
 
 ## GitHub token permissions
 
@@ -177,6 +195,18 @@ resolved source path — and therefore the `sourcePath` echoed in the payload �
 is unchanged from what the live site polls today. Club seasons always resolve
 against `HOT_STATE_BASE_URL`.
 
+Highlight-state endpoint:
+
+- `GET /api/highlights/{seasonId}`
+
+This serves generated validated highlight snapshots with a stable ETag and a
+15-second edge cache. Browser conditional requests are supported through CORS.
+
+Highlight ingestion endpoints:
+
+- `GET|POST /websub/youtube` — Google subscription verification and Atom notifications
+- `POST /admin/highlight-result` — authenticated GitHub workflow result callback
+
 Admin test endpoint:
 
 - `GET /admin/test-dispatch?secret=...`
@@ -194,7 +224,7 @@ Rotate or delete `SCHEDULER_TEST_SECRET` after testing if it was ever set to an 
 Run the focused Worker tests:
 
 ```bash
-node --test cloudflare-scheduler/index.test.mjs
+node --test cloudflare-scheduler/index.test.mjs cloudflare-scheduler/highlights.test.mjs
 ```
 
 The parser should find `72` actual matches in the current `wc2026.ts`.
