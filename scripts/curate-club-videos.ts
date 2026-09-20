@@ -54,8 +54,15 @@
  * reintroduce a runtime badge. `serializeVideo()` cannot emit it.
  */
 import { appendFileSync, writeFileSync } from 'fs'
-import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId, Tournament } from '../src/data/types'
-import { clubIdByName, clubs } from '../src/data/club/clubs'
+import type {
+  GroupMatch,
+  HighlightVideo,
+  KnockoutMatch,
+  TeamId,
+  Tournament,
+  YouTubeHighlightPublisher,
+} from '../src/data/types'
+import { clubIdByName, clubNameCandidates, clubs, normalizeClubName } from '../src/data/club/clubs'
 import { isPlayed } from '../src/logic/spoilers'
 import { CLUB_COMPETITIONS, SEASON_YEAR, pairKey, videosExportName, videosModulePath } from './espn-club'
 import type { ClubCompetitionConfig } from './espn-club'
@@ -68,10 +75,13 @@ const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36'
 
 const dryRun = process.argv.includes('--dry-run')
+const argumentValue = (name: string): string | null => {
+  const i = process.argv.indexOf(name)
+  return i === -1 ? null : (process.argv[i + 1] ?? null)
+}
 const targetVideoId = (() => {
-  const i = process.argv.indexOf('--video-id')
-  if (i === -1) return null
-  const id = process.argv[i + 1]
+  const id = argumentValue('--video-id')
+  if (id === null) return null
   if (!id || !/^[A-Za-z0-9_-]{11}$/.test(id)) throw new Error('--video-id requires an 11-character YouTube id')
   return id
 })()
@@ -83,9 +93,19 @@ const providedTargetMetadata = targetVideoId
     })
   : null
 const onlyCompetition = (() => {
-  const i = process.argv.indexOf('--competition')
-  return i === -1 ? null : process.argv[i + 1]
+  return argumentValue('--competition')
 })()
+const onlySourceId = argumentValue('--source')
+const scanDepthOverride = (() => {
+  const raw = argumentValue('--scan-depth')
+  if (raw === null) return null
+  const value = Number(raw)
+  if (!Number.isInteger(value) || value < 1 || value > 1_000) {
+    throw new Error('--scan-depth requires an integer from 1 to 1000')
+  }
+  return value
+})()
+const targetResultFile = process.env.HIGHLIGHT_RESULT_FILE
 
 // ---- sources ---------------------------------------------------------------
 
@@ -111,7 +131,7 @@ export interface ClubVideoSource {
    * Saturday's worth of football falls off the end before we look.
    */
   scanDepth: number
-  parse(title: string): TitleParse | null
+  parse(title: string, tournament?: Tournament): TitleParse | null
 }
 
 /** Branding segments that are the channel signing its own work, not context. */
@@ -186,9 +206,48 @@ const NBC_RE = /^([^|]+?)\s+vs?\.?\s+([^|]+?)\s*\|\s*(PREMIER\s+LEAGUE(?:\s+EXTE
  */
 const ESPNFC_RE = /^([^|]+?)\s+vs?\.?\s+([^|]+?)\s*\|\s*(LA\s?LIGA\s+(?:EXTENDED\s+)?HIGHLIGHTS\b.*)$/i
 
+/**
+ * ESPN Deportes writes editorial Spanish headlines instead of a fixed
+ * `A vs B` template. The exact final La Liga segment is therefore the positive
+ * gate; known single-play vocabulary is an additional rejection-only gate.
+ */
+const ESPN_DEPORTES_LALIGA_RE = /\|\s*(?:Resumen\s*\|\s*)?La Liga\s*$/i
+const ESPN_DEPORTES_SINGLE_PLAY_RE =
+  /(?:^|[^\p{L}])(?:marca|marc[oó]|anota|anot[oó]|ampl[ií]a|descuenta|penal|tarjeta roja|atajada|salvada)(?=$|[^\p{L}])/iu
+
 export const GOLAZO_CHANNEL_ID = 'UCET00YnetHT7tOpu12v8jxg'
 export const NBC_CHANNEL_ID = 'UCqZQlzSHbVJrwrn5XvzrzcA'
 export const ESPNFC_CHANNEL_ID = 'UC6c1z7bA__85CIWZ_jpCK-Q'
+export const ESPN_DEPORTES_CHANNEL_ID = 'UC08mnbiC4FykqpHqbEWgFcg'
+
+function parseEspnDeportes(title: string, tournament?: Tournament): TitleParse | null {
+  if (!tournament || !ESPN_DEPORTES_LALIGA_RE.test(title)) return null
+  if (ESPN_DEPORTES_SINGLE_PLAY_RE.test(title)) return null
+
+  const normalizedTitle = normalizeClubName(title.replace(ESPN_DEPORTES_LALIGA_RE, ''))
+  const matches = clubNameCandidates.filter(
+    ({ normalized, id }) => tournament.teams[id] && normalizedTitle.includes(normalized),
+  )
+  // Prefer the longest exact name when one club name is contained in another
+  // club's spelling. Aliases for the same club collapse below via Set.
+  const maximal = matches.filter(
+    (candidate) =>
+      !matches.some(
+        (other) =>
+          other.id !== candidate.id &&
+          other.normalized.length > candidate.normalized.length &&
+          other.normalized.includes(candidate.normalized),
+      ),
+  )
+  const ids = [...new Set(maximal.map(({ id }) => id))]
+  if (ids.length !== 2) return null
+  return {
+    homeName: clubs[ids[0]].name,
+    awayName: clubs[ids[1]].name,
+    context: 'La Liga',
+    dateHint: null,
+  }
+}
 
 export const CLUB_VIDEO_SOURCES: Record<string, ClubVideoSource> = {
   golazo: {
@@ -246,10 +305,26 @@ export const CLUB_VIDEO_SOURCES: Record<string, ClubVideoSource> = {
       }
     },
   },
+  espndeportes: {
+    id: 'espndeportes',
+    label: 'ESPN Deportes',
+    channelId: ESPN_DEPORTES_CHANNEL_ID,
+    competitions: ['esp1'],
+    scanDepth: 100,
+    parse: parseEspnDeportes,
+  },
 }
 
 export const sourcesForCompetition = (competitionId: string): ClubVideoSource[] =>
   Object.values(CLUB_VIDEO_SOURCES).filter((s) => s.competitions.includes(competitionId))
+
+export function resolveTargetSource(competitionId: string, sourceId: string): ClubVideoSource {
+  const source = CLUB_VIDEO_SOURCES[sourceId]
+  if (!source || !source.competitions.includes(competitionId)) {
+    throw new Error(`source ${sourceId} is not trusted for ${competitionId}`)
+  }
+  return source
+}
 
 /** The uploads playlist of a channel is its id with UC→UU. */
 export const uploadsPlaylistOf = (source: ClubVideoSource): string =>
@@ -340,12 +415,13 @@ export function screenTitle(
   config: ClubCompetitionConfig,
   source: ClubVideoSource,
   title: string,
+  tournament?: Tournament,
 ): ScreenResult {
   if (!source.competitions.includes(config.id)) {
     return { status: 'ignore', reason: `${source.label} does not cover ${config.id}` }
   }
 
-  const parsed = source.parse(title)
+  const parsed = source.parse(title, tournament)
   if (!parsed) return { status: 'ignore', reason: 'not a full-match highlight title' }
 
   const { context, dateHint } = parsed
@@ -381,6 +457,22 @@ export function screenTitle(
 // ---- fixture lookup --------------------------------------------------------
 
 type AnyMatch = (GroupMatch | KnockoutMatch) & { videos?: HighlightVideo[] }
+
+export function needsHighlightScan(
+  tournament: Tournament,
+  existing: Record<string, HighlightVideo[]>,
+): boolean {
+  const matches: AnyMatch[] = [
+    ...tournament.groupMatches,
+    ...tournament.knockoutRounds.flatMap((round) => round.matches),
+  ]
+  return matches.some(
+    (match) =>
+      isPlayed(match) &&
+      (match.videos?.length ?? 0) === 0 &&
+      (existing[match.id]?.length ?? 0) === 0,
+  )
+}
 
 export type FixtureResult =
   | { status: 'ok'; match: AnyMatch }
@@ -511,13 +603,29 @@ export type GateResult =
   | { status: 'ignore'; reason: string }
   | { status: 'skip'; reason: string }
 
+export type TargetDisposition = 'accepted' | 'retry' | 'quarantined'
+
+export function targetDisposition(verdict: GateResult): TargetDisposition {
+  if (verdict.status === 'accept') return 'accepted'
+  if (verdict.status === 'ignore') return 'quarantined'
+  if (verdict.reason === 'already have a cut') return 'accepted'
+  if (
+    verdict.reason === 'fixture not finished yet' ||
+    verdict.reason === 'embeddability check did not complete' ||
+    verdict.reason === 'no publish date'
+  ) {
+    return 'retry'
+  }
+  return 'quarantined'
+}
+
 /**
  * The whole accept/reject decision, pure and side-effect free so the smoke test
  * can drive every branch without touching the network. Fail closed: every path
  * that isn't a positive answer to all six conditions returns ignore or skip.
  */
 export function acceptCandidate(input: CandidateInput): GateResult {
-  const screened = screenTitle(input.config, input.source, input.title)
+  const screened = screenTitle(input.config, input.source, input.title, input.tournament)
   if (screened.status !== 'ok') return screened
   const { screen } = screened
 
@@ -573,10 +681,16 @@ export function acceptCandidate(input: CandidateInput): GateResult {
   }
 
   // One cut, kind 'normal', and no durationSeconds — see the file header.
+  const publisher: YouTubeHighlightPublisher | undefined =
+    input.source.id === 'espnfc'
+      ? 'espn-fc'
+      : input.source.id === 'espndeportes'
+        ? 'espn-deportes'
+        : undefined
   return {
     status: 'accept',
     matchId: fixture.match.id,
-    video: { youtubeId: input.id, kind: 'normal' },
+    video: { youtubeId: input.id, kind: 'normal', ...(publisher ? { publisher } : {}) },
   }
 }
 
@@ -588,7 +702,8 @@ export function acceptCandidate(input: CandidateInput): GateResult {
  */
 export function serializeVideo(v: HighlightVideo): string {
   if (!('youtubeId' in v) || !v.youtubeId) throw new Error('club cuts are YouTube only')
-  return `{ youtubeId: '${v.youtubeId}', kind: 'normal' }`
+  const publisher = v.publisher ? `, publisher: '${v.publisher}'` : ''
+  return `{ youtubeId: '${v.youtubeId}', kind: 'normal'${publisher} }`
 }
 
 export function serializeVideoMap(
@@ -700,12 +815,26 @@ async function listUploadsScrape(playlistId: string, max: number): Promise<Playl
 export function listSourceUploads(
   source: ClubVideoSource,
   now = Date.now(),
+  max = source.scanDepth,
 ): Promise<PlaylistVideo[]> {
   const playlist = uploadsPlaylistOf(source)
   const sinceMs = now - LOOKBACK_DAYS * DAY_MS
   return API_KEY
-    ? listUploadsApi(playlist, source.scanDepth, sinceMs)
-    : listUploadsScrape(playlist, source.scanDepth)
+    ? listUploadsApi(playlist, max, sinceMs)
+    : listUploadsScrape(playlist, max)
+}
+
+type AcceptedCandidate = {
+  source: ClubVideoSource
+  id: string
+  verdict: Extract<GateResult, { status: 'accept' }>
+}
+
+export function choosePreferredCandidate(
+  fallback: AcceptedCandidate,
+  preferred: AcceptedCandidate[],
+): AcceptedCandidate {
+  return preferred.find((candidate) => candidate.verdict.matchId === fallback.verdict.matchId) ?? fallback
 }
 
 // ---- run report ------------------------------------------------------------
@@ -769,12 +898,12 @@ async function run() {
   >()
   /** One list per source, however many competitions that source covers. */
   const uploadsCache = new Map<string, PlaylistVideo[]>()
-  const targetSources = targetVideoId
-    ? [...new Map(configs.flatMap((config) => sourcesForCompetition(config.id)).map((source) => [source.id, source])).values()]
-    : []
-  if (targetVideoId && targetSources.length !== 1) {
-    throw new Error('targeted club curation requires exactly one trusted source')
+  if (targetVideoId && (!onlyCompetition || !process.env.SOURCE_ID)) {
+    throw new Error('targeted club curation requires --competition and SOURCE_ID')
   }
+  const targetSources = targetVideoId
+    ? [resolveTargetSource(onlyCompetition!, process.env.SOURCE_ID!)]
+    : []
   const targetMeta = targetVideoId
     ? await loadTargetedMetadata(
         targetVideoId,
@@ -795,6 +924,7 @@ async function run() {
     })
   }
 
+  let targetedDisposition: TargetDisposition = 'retry'
   for (const config of configs) {
     const { tournament, videos } = await loadSeason(config.id)
     if (!tournament || !videos) {
@@ -805,7 +935,15 @@ async function run() {
     for (const [id, vids] of Object.entries(videos)) map[id] = [...vids]
     let addedHere = 0
 
-    const sources = sourcesForCompetition(config.id)
+    if (!targetMeta && !needsHighlightScan(tournament, map)) {
+      console.log(`Skipping ${config.id} highlight scan: every finished fixture already has a cut.`)
+      continue
+    }
+
+    let sources = targetVideoId
+      ? targetSources.filter((source) => source.competitions.includes(config.id))
+      : sourcesForCompetition(config.id)
+    if (onlySourceId) sources = [resolveTargetSource(config.id, onlySourceId)]
     if (sources.length === 0) {
       errors.push(`${config.id}: no highlight source is configured for this competition`)
       continue
@@ -818,7 +956,7 @@ async function run() {
         try {
           uploads = targetMeta
             ? [{ id: targetMeta.metadata.id, title: targetMeta.metadata.title }]
-            : await listSourceUploads(source)
+            : await listSourceUploads(source, Date.now(), scanDepthOverride ?? source.scanDepth)
           uploadsCache.set(source.id, uploads)
         } catch (e) {
           errors.push(`${source.label}: could not list uploads (${e})`)
@@ -831,10 +969,14 @@ async function run() {
 
       for (const up of uploads) {
         // Cheap pass first: no network for the reaction shows and interviews.
-        const screened = screenTitle(config, source, up.title)
-        if (screened.status === 'ignore') continue
+        const screened = screenTitle(config, source, up.title, tournament)
+        if (screened.status === 'ignore') {
+          if (targetMeta) targetedDisposition = targetDisposition(screened)
+          continue
+        }
         if (screened.status === 'skip') {
           skipped.push(`${config.id} ${up.id}: ${screened.reason}`)
+          if (targetMeta) targetedDisposition = targetDisposition(screened)
           continue
         }
 
@@ -850,6 +992,7 @@ async function run() {
             metaCache.set(up.id, meta)
           } catch (e) {
             errors.push(`${up.id}: metadata fetch failed (${e})`)
+            if (targetMeta) targetedDisposition = 'retry'
             continue // transient — retried next cycle
           }
         }
@@ -865,21 +1008,71 @@ async function run() {
           embeddable: meta.embeddable,
           existing: map,
         })
-        if (verdict.status === 'ignore') continue
+        if (verdict.status === 'ignore') {
+          if (targetMeta) targetedDisposition = targetDisposition(verdict)
+          continue
+        }
         if (verdict.status === 'skip') {
           skipped.push(`${config.id} ${up.id}: ${verdict.reason}`)
+          if (targetMeta) targetedDisposition = targetDisposition(verdict)
           continue
         }
 
+        let selected: AcceptedCandidate = { source, id: up.id, verdict }
+        if (targetMeta && source.id === 'espndeportes') {
+          const preferredSource = CLUB_VIDEO_SOURCES.espnfc
+          const preferred: AcceptedCandidate[] = []
+          try {
+            const preferredUploads = await listSourceUploads(preferredSource, Date.now(), 50)
+            for (const candidate of preferredUploads) {
+              const preferredScreen = screenTitle(config, preferredSource, candidate.title, tournament)
+              if (preferredScreen.status !== 'ok') continue
+              let preferredMeta = metaCache.get(candidate.id)
+              if (!preferredMeta) {
+                const fetched = await getVideoMeta(candidate.id)
+                preferredMeta = {
+                  channelId: fetched.channelId,
+                  publishedAt: fetched.publishedAt,
+                  embeddable: await checkEmbeddable(candidate.id),
+                }
+                metaCache.set(candidate.id, preferredMeta)
+              }
+              const preferredVerdict = acceptCandidate({
+                config,
+                source: preferredSource,
+                tournament,
+                id: candidate.id,
+                title: candidate.title,
+                channelId: preferredMeta.channelId,
+                publishedAt: preferredMeta.publishedAt,
+                embeddable: preferredMeta.embeddable,
+                existing: map,
+              })
+              if (preferredVerdict.status === 'accept') {
+                preferred.push({ source: preferredSource, id: candidate.id, verdict: preferredVerdict })
+                if (preferredVerdict.matchId === verdict.matchId) break
+              }
+            }
+          } catch (e) {
+            // Preference lookup is best-effort: never delay a valid fallback.
+            errors.push(`${preferredSource.label}: preference check failed (${e})`)
+          }
+          selected = choosePreferredCandidate(selected, preferred)
+        }
+
         // Append only: findClubFixture already refused any match that has a cut.
-        map[verdict.matchId] = [...(map[verdict.matchId] ?? []), verdict.video]
+        map[selected.verdict.matchId] = [
+          ...(map[selected.verdict.matchId] ?? []),
+          selected.verdict.video,
+        ]
         const all: AnyMatch[] = [
           ...tournament.groupMatches,
           ...tournament.knockoutRounds.flatMap((r) => r.matches),
         ]
-        const match = all.find((m) => m.id === verdict.matchId)!
-        added.push(`${config.id} ${matchLabel(tournament, match)} ${up.id} (${source.label})`)
+        const match = all.find((m) => m.id === selected.verdict.matchId)!
+        added.push(`${config.id} ${matchLabel(tournament, match)} ${selected.id} (${selected.source.label})`)
         addedHere++
+        if (targetMeta) targetedDisposition = 'accepted'
         console.log(`  + ${added[added.length - 1]}`)
       }
     }
@@ -893,6 +1086,7 @@ async function run() {
   console.log(`\nAdded ${added.length}, skipped ${skipped.length}, errors ${errors.length}.`)
   for (const s of skipped) console.log(`  ✗ ${s}`)
   writeReport(added, skipped, errors)
+  if (targetVideoId && targetResultFile) writeFileSync(targetResultFile, targetedDisposition)
   if (dryRun) console.log('(dry-run — nothing written)')
 }
 

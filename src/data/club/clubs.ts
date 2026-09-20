@@ -202,6 +202,15 @@ const byNormalizedName = new Map<string, TeamId>()
 for (const club of Object.values(clubs)) byNormalizedName.set(normalizeClubName(club.name), club.id)
 for (const [name, id] of Object.entries(ALIAS_NAMES)) byNormalizedName.set(normalizeClubName(name), id)
 
+/**
+ * Every exact registry/alias spelling available to title parsers. Consumers
+ * must still constrain these candidates to the tournament they are parsing;
+ * this list deliberately contains no fuzzy guesses.
+ */
+export const clubNameCandidates = Object.freeze(
+  [...byNormalizedName.entries()].map(([normalized, id]) => Object.freeze({ normalized, id })),
+)
+
 const byEspnId = new Map<string, TeamId>()
 for (const club of Object.values(clubs)) {
   if (club.espnId) byEspnId.set(club.espnId, club.id)

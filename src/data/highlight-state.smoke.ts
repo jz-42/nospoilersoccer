@@ -60,6 +60,28 @@ test('parseRuntimeHighlightState rejects malformed provider identifiers', () => 
   )
 })
 
+test('parseRuntimeHighlightState preserves known YouTube publishers', () => {
+  const deportesPayload = {
+    ...payload,
+    matches: {
+      'a-b': [{ youtubeId: 'abcdefghijk', kind: 'normal', publisher: 'espn-deportes' }],
+    },
+  }
+  assert.deepEqual(parseRuntimeHighlightState(deportesPayload), deportesPayload)
+})
+
+test('parseRuntimeHighlightState rejects unknown YouTube publishers', () => {
+  assert.equal(
+    parseRuntimeHighlightState({
+      ...payload,
+      matches: {
+        'a-b': [{ youtubeId: 'abcdefghijk', kind: 'normal', publisher: 'unknown' }],
+      },
+    }),
+    null,
+  )
+})
+
 test('applyRuntimeHighlightState appends a new cut to the named match', () => {
   const next = applyRuntimeHighlightState(tournament, payload)
   assert.deepEqual(next.groupMatches[0].videos, [

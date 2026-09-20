@@ -12,10 +12,14 @@ import { CLUB_COMPETITIONS } from './espn-club'
 import {
   CLUB_VIDEO_SOURCES,
   acceptCandidate,
+  choosePreferredCandidate,
   clubNameFromTail,
+  resolveTargetSource,
+  needsHighlightScan,
   screenTitle,
   serializeVideoMap,
   sourcesForCompetition,
+  targetDisposition,
   uploadsPlaylistOf,
 } from './curate-club-videos'
 import type { CandidateInput } from './curate-club-videos'
@@ -32,6 +36,7 @@ const ucl = CLUB_COMPETITIONS.ucl
 const golazo = CLUB_VIDEO_SOURCES.golazo
 const nbc = CLUB_VIDEO_SOURCES.nbc
 const espnfc = CLUB_VIDEO_SOURCES.espnfc
+const espndeportes = CLUB_VIDEO_SOURCES.espndeportes
 const teamIds = ['arsenal', 'psv', 'napoli', 'inter', 'real-madrid', 'manchester-city'] as const
 
 const tournament: Tournament = {
@@ -289,6 +294,22 @@ assert(
   sourcesForCompetition('eng1')[0].id === 'nbc' && sourcesForCompetition('esp1')[0].id === 'espnfc',
   'the Premier League comes from NBC and La Liga from ESPN FC',
 )
+assert(
+  sourcesForCompetition('esp1').map((source) => source.id).join(',') === 'espnfc,espndeportes',
+  'La Liga keeps ESPN FC first and ESPN Deportes second',
+)
+assert(resolveTargetSource('esp1', 'espnfc').id === 'espnfc', 'targeted ESPN FC events route exactly')
+assert(
+  resolveTargetSource('esp1', 'espndeportes').id === 'espndeportes',
+  'targeted ESPN Deportes events route exactly',
+)
+let untrustedSourceRejected = false
+try {
+  resolveTargetSource('esp1', 'nbc')
+} catch (error) {
+  untrustedSourceRejected = /not trusted for esp1/.test(String(error))
+}
+assert(untrustedSourceRejected, 'a source outside the competition cannot be targeted')
 for (const id of ['ucl', 'eng1', 'esp1']) {
   assert(sourcesForCompetition(id).length > 0, `${id} has a highlight source at all`)
 }
@@ -424,12 +445,19 @@ const laliga: Tournament = {
   advancingRanks: [],
   tableLabel: 'Table',
   teams: Object.fromEntries(
-    (['getafe', 'alaves', 'espanyol', 'barcelona', 'malaga', 'atletico-madrid'] as const).map(
-      (id) => [id, clubs[id]],
-    ),
+    ([
+      'getafe', 'alaves', 'espanyol', 'barcelona', 'malaga', 'atletico-madrid',
+      'villarreal', 'levante', 'real-sociedad', 'valencia',
+    ] as const).map((id) => [id, clubs[id]]),
   ),
   groups: [
-    { id: 'league', teams: ['getafe', 'alaves', 'espanyol', 'barcelona', 'malaga', 'atletico-madrid'] },
+    {
+      id: 'league',
+      teams: [
+        'getafe', 'alaves', 'espanyol', 'barcelona', 'malaga', 'atletico-madrid',
+        'villarreal', 'levante', 'real-sociedad', 'valencia',
+      ],
+    },
   ],
   groupMatches: [
     {
@@ -462,9 +490,52 @@ const laliga: Tournament = {
       away: 'malaga',
       score: { home: 2, away: 0 },
     },
+    {
+      id: 'esp1-getafe-malaga',
+      group: 'league',
+      matchday: 7,
+      date: '2026-09-20',
+      kickoff: '2026-09-20T12:00Z',
+      home: 'getafe',
+      away: 'malaga',
+      score: { home: 1, away: 0 },
+    },
+    {
+      id: 'esp1-villarreal-levante',
+      group: 'league',
+      matchday: 7,
+      date: '2026-09-20',
+      kickoff: '2026-09-20T16:30Z',
+      home: 'villarreal',
+      away: 'levante',
+      score: { home: 3, away: 1 },
+    },
+    {
+      id: 'esp1-real-sociedad-valencia',
+      group: 'league',
+      matchday: 7,
+      date: '2026-09-20',
+      kickoff: '2026-09-20T19:00Z',
+      home: 'real-sociedad',
+      away: 'valencia',
+      score: { home: 3, away: 1 },
+    },
   ],
   knockoutRounds: [],
 }
+assert(needsHighlightScan(laliga, {}) === true, 'a finished fixture without a cut needs a scan')
+assert(
+  needsHighlightScan(
+    laliga,
+    Object.fromEntries(
+      laliga.groupMatches.map((match, index) => [
+        match.id,
+        [{ youtubeId: `filled0000${index}`.slice(0, 11), kind: 'normal' }],
+      ]),
+    ),
+  ) === false,
+  'a season whose finished fixtures all have cuts skips playlist recovery entirely',
+)
 
 const espnBase: Omit<CandidateInput, 'title' | 'id'> = {
   config: CLUB_COMPETITIONS.esp1,
@@ -480,6 +551,10 @@ const espnGate = (title: string, over: Partial<CandidateInput> = {}) =>
 
 const plain = espnGate('Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC')
 assert(plain.status === 'accept', "ESPN FC's plain La Liga template is accepted")
+assert(
+  plain.status === 'accept' && plain.video.publisher === 'espn-fc',
+  'ESPN FC acceptances retain their exact publisher',
+)
 assert(
   plain.status === 'accept' && plain.matchId === 'esp1-espanyol-barcelona',
   'and lands on the fixture it names',
@@ -536,6 +611,111 @@ assert(
   'ESPN FC is not trusted for the Champions League',
 )
 
+// ---- ESPN Deportes / La Liga fallback ------------------------------------
+
+const deportesBase: Omit<CandidateInput, 'title' | 'id'> = {
+  config: CLUB_COMPETITIONS.esp1,
+  source: espndeportes,
+  tournament: laliga,
+  channelId: espndeportes.channelId,
+  publishedAt: '2026-09-20T20:00:00Z',
+  embeddable: 'yes',
+  existing: {},
+}
+const deportesGate = (title: string, over: Partial<CandidateInput> = {}) =>
+  acceptCandidate({ ...deportesBase, id: 'deportes001', title, ...over })
+
+const getafeDeportes = deportesGate(
+  'GETAFE VUELVE A LA VICTORIA tras imponerse 1-0 ante MÁLAGA con gol agónico de IVÁN AZÓN | La Liga',
+  { id: 'VTqhYR74sHY', publishedAt: '2026-09-20T14:05:28Z' },
+)
+assert(
+  getafeDeportes.status === 'accept' && getafeDeportes.matchId === 'esp1-getafe-malaga',
+  'the real ESPN Deportes Getafe-Malaga title maps to its finished fixture',
+)
+assert(
+  getafeDeportes.status === 'accept' && getafeDeportes.video.publisher === 'espn-deportes',
+  'ESPN Deportes acceptances retain their exact publisher',
+)
+assert(
+  getafeDeportes.status === 'accept' &&
+    choosePreferredCandidate(
+      { source: espndeportes, id: 'VTqhYR74sHY', verdict: getafeDeportes },
+      [
+        {
+          source: espnfc,
+          id: 'preferred01',
+          verdict: {
+            ...getafeDeportes,
+            video: { youtubeId: 'preferred01', kind: 'normal', publisher: 'espn-fc' },
+          },
+        },
+      ],
+    ).source.id === 'espnfc',
+  'an ESPN FC candidate for the same fixture wins at decision time',
+)
+assert(
+  getafeDeportes.status === 'accept' &&
+    choosePreferredCandidate(
+      { source: espndeportes, id: 'VTqhYR74sHY', verdict: getafeDeportes },
+      [],
+    ).source.id === 'espndeportes',
+  'ESPN Deportes is accepted immediately when ESPN FC has no matching upload',
+)
+
+const villarrealDeportes = deportesGate(
+  'VILLARREAL firmó SEGUNDA VICTORIA al vencer 3-1 al LEVANTE con goles de AYOZE y MOLEIRO | La Liga',
+  { id: 'LAR13_KP79g', publishedAt: '2026-09-20T18:25:01Z' },
+)
+assert(
+  villarrealDeportes.status === 'accept' &&
+    villarrealDeportes.matchId === 'esp1-villarreal-levante',
+  'the real ESPN Deportes Villarreal-Levante title maps to its finished fixture',
+)
+
+const scorelessDeportes = deportesGate(
+  'LA REAL SOCIEDAD se quedó con la VICTORIA vs VALENCIA. Goles de Sucic, Soler y Barrenetxea | La Liga',
+  { id: 'scoreless01', publishedAt: '2026-09-20T21:00:00Z' },
+)
+assert(
+  scorelessDeportes.status === 'accept' &&
+    scorelessDeportes.matchId === 'esp1-real-sociedad-valencia',
+  'a legitimate scoreless-title match summary is accepted',
+)
+
+for (const title of [
+  'EL ARBITRAJE en el DERBI DE MADRID fue un DESASTRE | La Liga Al Día',
+  'RUDIGER DESCUENTA para el REAL MADRID ante ATLÉTICO DE MADRID | La Liga',
+  'IVÁN AZÓN MARCÓ para GETAFE ante MÁLAGA | La Liga',
+  'GETAFE vuelve a la victoria | La Liga',
+  'GETAFE venció a MÁLAGA y VALENCIA reaccionó | La Liga',
+  'GETAFE venció 1-0 a MÁLAGA | Copa del Rey',
+]) {
+  assert(
+    deportesGate(title).status !== 'accept',
+    `ESPN Deportes noise fails closed: ${title.slice(0, 40)}…`,
+  )
+}
+assert(
+  deportesGate(
+    'GETAFE venció 1-0 a MÁLAGA | La Liga',
+    { channelId: espnfc.channelId },
+  ).status === 'skip',
+  'an ESPN Deportes-shaped title from another channel is rejected',
+)
+assert(
+  targetDisposition({ status: 'skip', reason: 'already have a cut' }) === 'accepted',
+  'an already-covered target is acknowledged and stops retrying',
+)
+assert(
+  targetDisposition({ status: 'skip', reason: 'fixture not finished yet' }) === 'retry',
+  'a target that arrived before the result is retried',
+)
+assert(
+  targetDisposition({ status: 'skip', reason: 'more than one candidate fixture' }) === 'quarantined',
+  'an ambiguous target is quarantined instead of retried forever',
+)
+
 // The tail walk is longest-first, so a headline that happens to name another
 // club can never win over the club actually in the matchup.
 assert(clubNameFromTail('Espanyol') === 'Espanyol', 'a bare club name resolves to itself')
@@ -558,6 +738,15 @@ assert(
     'ucl-arsenal-napoli': [{ youtubeId: 'vid00000001', kind: 'normal', durationSeconds: 615 }],
   }).includes('615'),
   'a duration smuggled into the map is dropped rather than written',
+)
+const providerWritten = serializeVideoMap('esp1', 2026, {
+  'esp1-getafe-malaga': [
+    { youtubeId: 'VTqhYR74sHY', kind: 'normal', publisher: 'espn-deportes' },
+  ],
+})
+assert(
+  providerWritten.includes("publisher: 'espn-deportes'"),
+  'serialization preserves the exact ESPN publisher',
 )
 
 // ---- the fold into the season ---------------------------------------------

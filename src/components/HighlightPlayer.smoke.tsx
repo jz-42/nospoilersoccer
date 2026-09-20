@@ -32,6 +32,16 @@ for (const [matchId, provider] of [
   assert(!html.includes('Extended Highlights'), `${matchId} does not call a club cut extended`)
 }
 
+const espnFc = renderPlayer('esp1-home-away', [
+  { youtubeId: 'espnfc00001', kind: 'normal', publisher: 'espn-fc' },
+])
+assert(espnFc.includes('Highlights (ESPN FC)'), 'ESPN FC publisher is explicit')
+
+const deportes = renderPlayer('esp1-home-away', [
+  { youtubeId: 'deportes001', kind: 'normal', publisher: 'espn-deportes' },
+])
+assert(deportes.includes('Highlights (ESPN Deportes)'), 'ESPN Deportes publisher is explicit')
+
 const worldCup = renderPlayer('A1', [
   { youtubeId: 'quick-video', kind: 'normal', durationSeconds: 300 },
   { youtubeId: 'extended-video', kind: 'extended', durationSeconds: 900 },

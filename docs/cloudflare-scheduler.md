@@ -107,6 +107,25 @@ Apply `cloudflare-scheduler/migrations/0001_highlights.sql` before deployment.
 The normal minute-level path does not require a Worker `YOUTUBE_API_KEY`;
 leaving it unset avoids duplicating the hourly authenticated CI recovery.
 
+## Highlight quota bounds
+
+The fast path checks five public Atom feeds every minute and receives WebSub
+notifications for the same five channels. Both paths use zero YouTube Data API
+units. ESPN Deportes is the fifth source and is limited to its newest 100
+uploads during a deep scan; its strict prefilter forwards only La Liga summary
+titles and rejects known single-play goal/card/save titles.
+
+When `YOUTUBE_API_KEY` is configured, a complete hourly deep sweep costs at
+most 27 playlist requests, or 648 units across 24 hours. The updater's
+five-minute ESPN Deportes recovery uses only the newest page, adding at most
+288 playlist units per day plus the second page of each hourly deep scan.
+Candidate metadata checks add a small bounded amount. Every Worker Data API
+call reserves quota in D1 first, and the Worker hard-stops authenticated
+recovery at 8,000 units per Pacific quota day; Atom/WebSub discovery remains
+active at that cap. GitHub's independently bounded recovery stays below 936
+playlist units/day (648 hourly deep + at most 288 five-minute fallback), before
+the small number of metadata checks for titles that pass deterministic screens.
+
 ## GitHub token permissions
 
 Use a fine-grained PAT scoped only to `jz-42/nospoilersoccer`.
