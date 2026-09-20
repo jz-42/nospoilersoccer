@@ -601,6 +601,70 @@ test('highlight ingestion always uses quota-free feeds and requeues due work wit
   ])
 })
 
+test('feed failures trigger shallow API recovery outside the hourly sweep', async () => {
+  const fetched = []
+  let consumed = 0
+  const store = {
+    quotaUsed: async () => consumed,
+    consumeQuota: async (_day, _method, units) => {
+      if (consumed + units > DAILY_QUOTA_LIMIT) return false
+      consumed += units
+      return true
+    },
+    upsertCandidate: async () => 'unchanged',
+    dueCandidates: async () => [],
+  }
+
+  const result = await runHighlightIngestion({
+    now: new Date('2026-09-19T20:17:00Z'),
+    apiKey: 'test-key',
+    store,
+    queue: { send: async () => {} },
+    fetchImpl: async (url) => {
+      fetched.push(url)
+      if (url.startsWith('https://www.youtube.com/feeds/videos.xml')) {
+        return new Response(null, { status: 404 })
+      }
+      return new Response(JSON.stringify({ items: [] }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    },
+  })
+
+  assert.equal(result.feed.errors.length, HIGHLIGHT_SOURCES.length)
+  assert.equal(result.api.mode, 'normal')
+  assert.equal(result.api.pagesFetched, HIGHLIGHT_SOURCES.length)
+  assert.equal(consumed, HIGHLIGHT_SOURCES.length)
+  assert.equal(
+    fetched.filter((url) => url.startsWith('https://www.googleapis.com/youtube/v3/')).length,
+    HIGHLIGHT_SOURCES.length,
+  )
+})
+
+test('healthy feeds avoid API quota outside the hourly sweep even when a key is configured', async () => {
+  let quotaCalls = 0
+  const result = await runHighlightIngestion({
+    now: new Date('2026-09-19T20:17:00Z'),
+    apiKey: 'test-key',
+    store: {
+      quotaUsed: async () => 0,
+      consumeQuota: async () => {
+        quotaCalls += 1
+        return true
+      },
+      upsertCandidate: async () => 'unchanged',
+      dueCandidates: async () => [],
+    },
+    queue: { send: async () => {} },
+    fetchImpl: async () => new Response('<feed></feed>', { status: 200 }),
+  })
+
+  assert.equal(result.feed.errors.length, 0)
+  assert.equal(result.api, null)
+  assert.equal(quotaCalls, 0)
+})
+
 test('slow WebSub renewal does not delay the quota-free feed recovery path', async () => {
   let renewalsCompleted = 0
   let feedStartedBeforeRenewalsCompleted = false
