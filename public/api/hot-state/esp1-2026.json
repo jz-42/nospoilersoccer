@@ -1588,7 +1588,9 @@
       ]
     },
     "esp1-atletico-madrid-real-madrid": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
