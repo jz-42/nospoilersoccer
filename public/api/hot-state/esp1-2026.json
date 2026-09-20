@@ -1661,7 +1661,9 @@
       ]
     },
     "esp1-valencia-real-sociedad": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
