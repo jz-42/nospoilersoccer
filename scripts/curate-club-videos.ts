@@ -59,7 +59,8 @@ import { clubIdByName, clubs } from '../src/data/club/clubs'
 import { isPlayed } from '../src/logic/spoilers'
 import { CLUB_COMPETITIONS, SEASON_YEAR, pairKey, videosExportName, videosModulePath } from './espn-club'
 import type { ClubCompetitionConfig } from './espn-club'
-import { checkEmbeddable, getVideoMeta } from './youtube'
+import { loadTargetedMetadata } from './highlight-candidate'
+import { checkEmbeddable, getVideoMeta, getVideoMetaFromFeed } from './youtube'
 
 const API_KEY = process.env.YOUTUBE_API_KEY
 const API = 'https://www.googleapis.com/youtube/v3'
@@ -761,8 +762,19 @@ async function run() {
   >()
   /** One list per source, however many competitions that source covers. */
   const uploadsCache = new Map<string, PlaylistVideo[]>()
+  const targetSources = targetVideoId
+    ? [...new Map(configs.flatMap((config) => sourcesForCompetition(config.id)).map((source) => [source.id, source])).values()]
+    : []
+  if (targetVideoId && targetSources.length !== 1) {
+    throw new Error('targeted club curation requires exactly one trusted source')
+  }
   const targetMeta = targetVideoId
-    ? await getVideoMeta(targetVideoId).then(async (metadata) => ({
+    ? await loadTargetedMetadata(
+        targetVideoId,
+        targetSources[0].channelId,
+        getVideoMetaFromFeed,
+        getVideoMeta,
+      ).then(async (metadata) => ({
         metadata,
         embeddable: await checkEmbeddable(targetVideoId),
       }))
