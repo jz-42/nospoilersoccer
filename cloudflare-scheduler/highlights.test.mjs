@@ -336,6 +336,7 @@ test('WebSub notification persists before enqueue and deduplicates unchanged ver
     queue: {
       send: async (message) => order.push(`queue:${message.videoId}`),
     },
+    fetchImpl: async () => new Response(NOTIFICATION_XML, { status: 200 }),
   }
   const first = await handleWebSubRequest(
     new Request('https://worker.test/websub/youtube', {
@@ -356,6 +357,20 @@ test('WebSub notification persists before enqueue and deduplicates unchanged ver
   )
   assert.equal(duplicate.status, 204)
   assert.deepEqual(order, ['store:abcdefghijk'])
+})
+
+test('WebSub notification must exist on the trusted live channel feed before enqueue', async () => {
+  let stored = 0
+  const response = await handleWebSubRequest(
+    new Request('https://worker.test/websub/youtube', { method: 'POST', body: NOTIFICATION_XML }),
+    {
+      store: { recordNotification: async () => {}, upsertCandidate: async () => { stored += 1 } },
+      queue: { send: async () => { throw new Error('must not enqueue') } },
+      fetchImpl: async () => new Response('<feed></feed>', { status: 200 }),
+    },
+  )
+  assert.equal(response.status, 204)
+  assert.equal(stored, 0)
 })
 
 test('normal recovery polls one newest page per source and enqueues only changed uploads', async () => {
@@ -594,6 +609,9 @@ test('highlight dispatch client starts the narrow workflow with candidate inputs
     videoId: 'abcdefghijk',
     sourceId: 'nbc',
     contentVersion: 'version-1',
+    channelId: HIGHLIGHT_SOURCES[2].channelId,
+    title: 'Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | NBC Sports',
+    publishedAt: '2026-09-19T20:00:00Z',
   })
   assert.match(calls[0].url, /actions\/workflows\/curate-highlight\.yml\/dispatches$/)
   assert.deepEqual(JSON.parse(calls[0].init.body), {
@@ -602,6 +620,9 @@ test('highlight dispatch client starts the narrow workflow with candidate inputs
       video_id: 'abcdefghijk',
       source_id: 'nbc',
       content_version: 'version-1',
+      channel_id: HIGHLIGHT_SOURCES[2].channelId,
+      candidate_title: 'Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | NBC Sports',
+      published_at: '2026-09-19T20:00:00Z',
     },
   })
 })

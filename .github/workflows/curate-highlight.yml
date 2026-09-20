@@ -20,6 +20,18 @@ on:
         description: Candidate content version
         required: true
         type: string
+      channel_id:
+        description: Channel id verified by the ingestion worker
+        required: true
+        type: string
+      candidate_title:
+        description: Video title verified by the ingestion worker
+        required: true
+        type: string
+      published_at:
+        description: Publish time verified by the ingestion worker
+        required: true
+        type: string
 
 concurrency:
   group: curate-highlight-${{ inputs.video_id }}
@@ -49,6 +61,9 @@ jobs:
           VIDEO_ID: ${{ inputs.video_id }}
           SOURCE_ID: ${{ inputs.source_id }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          HIGHLIGHT_CANDIDATE_CHANNEL_ID: ${{ inputs.channel_id }}
+          HIGHLIGHT_CANDIDATE_TITLE: ${{ inputs.candidate_title }}
+          HIGHLIGHT_CANDIDATE_PUBLISHED_AT: ${{ inputs.published_at }}
         run: |
           case "$SOURCE_ID" in
             fox)
