@@ -12,6 +12,7 @@ import type { HighlightVideo } from '../types'
  * what keeps a runtime badge off club matches.
  */
 export const esp1_2026_videos: Record<string, HighlightVideo[]> = {
+  'esp1-athletic-club-alaves': [{ youtubeId: 'jjDZU_NpYIQ', kind: 'normal' }],
   'esp1-athletic-club-sevilla': [{ youtubeId: 'Q-kKpIvXp0k', kind: 'normal' }],
   'esp1-atletico-madrid-villarreal': [{ youtubeId: 'aEleu6mtpxk', kind: 'normal' }],
   'esp1-barcelona-rayo-vallecano': [{ youtubeId: 'KIA683_HiLw', kind: 'normal' }],
