@@ -1574,11 +1574,18 @@
       ]
     },
     "esp1-getafe-malaga": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "getafe",
+          "player": "Ivan Azón",
+          "minute": "85'"
+        }
+      ]
     },
     "esp1-atletico-madrid-real-madrid": {
       "liveStatus": null,
