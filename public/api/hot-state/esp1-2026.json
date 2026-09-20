@@ -1613,11 +1613,23 @@
       ]
     },
     "esp1-deportivo-real-betis": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "real-betis",
+          "player": "Cucho Hernández",
+          "minute": "43'"
+        },
+        {
+          "team": "deportivo",
+          "player": "Diego Villares",
+          "minute": "87'"
+        }
+      ]
     },
     "esp1-villarreal-levante": {
       "liveStatus": null,
