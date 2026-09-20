@@ -25,6 +25,7 @@ export const esp1_2026_videos: Record<string, HighlightVideo[]> = {
   'esp1-barcelona-racing-santander': [{ youtubeId: 'bWC2XazMFK8', kind: 'normal' }],
   'esp1-barcelona-rayo-vallecano': [{ youtubeId: 'KIA683_HiLw', kind: 'normal' }],
   'esp1-celta-vigo-athletic-club': [{ youtubeId: 'H8gfjh4f0iE', kind: 'normal' }],
+  'esp1-deportivo-real-betis': [{ youtubeId: 'UD3hrcbpcWM', kind: 'normal' }],
   'esp1-deportivo-valencia': [{ youtubeId: 'aUYYjd9lAKs', kind: 'normal' }],
   'esp1-elche-barcelona': [{ youtubeId: 'T1B9zsH9adY', kind: 'normal' }],
   'esp1-elche-real-madrid': [{ youtubeId: '3EhCO20HrB4', kind: 'normal' }],
@@ -50,6 +51,7 @@ export const esp1_2026_videos: Record<string, HighlightVideo[]> = {
   'esp1-sevilla-valencia': [{ youtubeId: 'l4qqAX2GS7o', kind: 'normal' }],
   'esp1-valencia-barcelona': [{ youtubeId: 'BVeuyol-th4', kind: 'normal' }],
   'esp1-valencia-real-betis': [{ youtubeId: 'qcxVr9sggWw', kind: 'normal' }],
+  'esp1-valencia-real-sociedad': [{ youtubeId: '55MzS3qrRJ8', kind: 'normal' }],
   'esp1-villarreal-levante': [{ youtubeId: 'LAR13_KP79g', kind: 'normal', publisher: 'espn-deportes' }],
   'esp1-villarreal-real-betis': [{ youtubeId: 'GrjB1mwr6GQ', kind: 'normal' }],
 }

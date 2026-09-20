@@ -36,6 +36,7 @@ export const eng1_2026_videos: Record<string, HighlightVideo[]> = {
   'eng1-everton-manchester-united': [{ youtubeId: 'cPklX9Z9PWg', kind: 'normal' }],
   'eng1-fulham-chelsea': [{ youtubeId: 'qvNrmj_uNhE', kind: 'normal' }],
   'eng1-fulham-crystal-palace': [{ youtubeId: 'yCdVWUWsIcQ', kind: 'normal' }],
+  'eng1-fulham-manchester-united': [{ youtubeId: 'Crem8PmPDBw', kind: 'normal' }],
   'eng1-hull-aston-villa': [{ youtubeId: 'BlL9dkAzHFY', kind: 'normal' }],
   'eng1-hull-manchester-united': [{ youtubeId: 'NR74IpnbJNk', kind: 'normal' }],
   'eng1-ipswich-liverpool': [{ youtubeId: 'Bof91dSanf0', kind: 'normal' }],

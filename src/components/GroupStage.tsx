@@ -1,7 +1,9 @@
-import type { Group, Tournament } from '../data/types'
+import type { Group, TeamId, Tournament } from '../data/types'
 import { groupStandings } from '../data/standings'
 import { groupComplete } from '../logic/spoilers'
-import { hasGroups, tableTabLabel } from '../navigation'
+import { tableZones, zoneAt } from '../data/table-zones'
+import type { TableZone } from '../data/table-zones'
+import { hasGroups } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
 import type { ModalTarget } from './MatchModal'
@@ -16,7 +18,17 @@ import { groupMatchesByLocalDate } from './schedule'
  * table for — and there is room for it. Same component, same maths; the extra
  * columns appear only when the competition is a single table.
  */
-function Standings({ t, group, progress }: { t: Tournament; group: Group; progress: Progress }) {
+function Standings({
+  t,
+  group,
+  progress,
+  zones,
+}: {
+  t: Tournament
+  group: Group
+  progress: Progress
+  zones: TableZone[]
+}) {
   const live = groupStandings(t, group.id, (id) => progress.marks[id] !== undefined)
   const complete = groupComplete(t, group.id, progress.marks)
   const full = !hasGroups(t)
@@ -43,8 +55,12 @@ function Standings({ t, group, progress }: { t: Tournament; group: Group; progre
         {live.map((row, i) => {
           const team = t.teams[row.team]
           const advances = complete && t.advancingRanks.includes(i + 1)
+          const zone = zoneAt(zones, i + 1)
           return (
-            <tr key={row.team} className={advances ? 'advances' : ''}>
+            <tr
+              key={row.team}
+              className={`${advances ? 'advances' : ''} ${zone ? `zone-${zone.kind}` : ''}`.trim()}
+            >
               <td className="pos">{i + 1}</td>
               <td className="name">
                 <Flag team={team} className="flag" /> {team.name}
@@ -88,20 +104,59 @@ function GroupCard({
   // stops there.
   const matchDays = single ? [] : groupMatchesByLocalDate(matches)
 
+  /*
+   * Bands only once every team has a result to its name. This table is built
+   * from the matches you've opened, so a team you haven't reached yet sits on
+   * nought and sorts alphabetically — reveal one match and Bournemouth is
+   * fourth, Tottenham nineteenth, both on the letter they start with. A
+   * Champions League bar drawn there is inventing a standing. Once nobody is
+   * left at zero the order is a real, if partial, ranking, and the note under
+   * the table says how partial.
+   */
+  const played = new Set<TeamId>()
+  for (const m of matches) {
+    if (progress.marks[m.id] !== undefined) {
+      played.add(m.home)
+      played.add(m.away)
+    }
+  }
+  const zones = single && group.teams.every((id) => played.has(id)) ? tableZones(t) : []
+
   return (
     <section className="group-card">
-      <header className="group-card-header">
-        <h3>{single ? tableTabLabel(t) : `Group ${group.id}`}</h3>
-        {/* "4/6" is a readable goal for a World Cup group. "30/380" for a
-            league season is just a number ticking in the corner of a table
-            nobody is trying to clear — same call as the header meter. */}
-        {!single && (
+      {/* A single-table competition's heading is the tab you clicked to get
+          here — "Table" above the Table tab. Its slot goes to the thing the
+          table can't say for itself: how much of the season it knows about. */}
+      {!single && (
+        <header className="group-card-header">
+          <h3>{`Group ${group.id}`}</h3>
+          {/* "4/6" is a readable goal for a World Cup group. "30/380" for a
+              league season is just a number ticking in the corner of a table
+              nobody is trying to clear — same call as the header meter. */}
           <span className={`group-progress ${seen === matches.length ? 'done' : ''}`}>
             {seen}/{matches.length}
           </span>
-        )}
-      </header>
-      <Standings t={t} group={group} progress={progress} />
+        </header>
+      )}
+      <Standings t={t} group={group} progress={progress} zones={zones} />
+      {single && (
+        <footer className="table-footer">
+          {zones.length > 0 && (
+            <ul className="table-legend">
+              {zones.map((z) => (
+                <li key={z.kind} className={`table-legend-item zone-${z.kind}`}>
+                  {z.label}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="table-note">
+            {seen === 0
+              ? 'This table fills in as you reveal results.'
+              : `Built from the ${seen} of ${matches.length} results you've revealed.`}
+          </p>
+        </footer>
+      )}
       {matchDays.length > 0 && (
         <div className="group-matches">
           {matchDays.map(({ date, matches: dayMatches }) => (

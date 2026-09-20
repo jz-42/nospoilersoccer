@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "tournamentId": "esp1-2026",
-  "version": 105864404957292,
-  "generatedAt": "2026-09-20T16:58:48.210Z",
+  "version": 56166343194328,
+  "generatedAt": "2026-09-20T21:13:21.666Z",
   "matches": {
     "esp1-real-betis-real-sociedad": [
       {
@@ -229,6 +229,18 @@
     "esp1-atletico-madrid-real-madrid": [
       {
         "youtubeId": "bLzrK9H8XLc",
+        "kind": "normal"
+      }
+    ],
+    "esp1-deportivo-real-betis": [
+      {
+        "youtubeId": "UD3hrcbpcWM",
+        "kind": "normal"
+      }
+    ],
+    "esp1-valencia-real-sociedad": [
+      {
+        "youtubeId": "55MzS3qrRJ8",
         "kind": "normal"
       }
     ]

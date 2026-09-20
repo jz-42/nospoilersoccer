@@ -1145,11 +1145,24 @@
       ]
     },
     "eng1-fulham-manchester-united": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "fulham",
+          "player": "Lisandro Martínez",
+          "minute": "63'",
+          "ownGoal": true
+        },
+        {
+          "team": "manchester-united",
+          "player": "Matheus Cunha",
+          "minute": "89'"
+        }
+      ]
     },
     "eng1-arsenal-leeds": {
       "liveStatus": null,
