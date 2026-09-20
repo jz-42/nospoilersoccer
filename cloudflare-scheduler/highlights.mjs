@@ -78,7 +78,8 @@ export function createD1HighlightStore(db) {
       if (!row) return true
 
       const requestedAt = row.requested_at ? new Date(row.requested_at) : null
-      if (requestedAt && now.getTime() - requestedAt.getTime() < 6 * 60 * 60 * 1000) return false
+      const requestCooldown = row.status === 'error' ? 5 * 60 * 1000 : 6 * 60 * 60 * 1000
+      if (requestedAt && now.getTime() - requestedAt.getTime() < requestCooldown) return false
 
       const expiresAt = row.expires_at ? new Date(row.expires_at) : null
       return !expiresAt || expiresAt.getTime() <= now.getTime() + 48 * 60 * 60 * 1000
@@ -415,15 +416,15 @@ export async function runHighlightRecovery({
 }
 
 export async function runFeedRecovery({ now = new Date(), store, queue, fetchImpl = fetch }) {
-  const result = { feedsFetched: 0, candidatesChanged: 0, errors: [] }
-  for (const source of HIGHLIGHT_SOURCES) {
+  const sourceResults = await Promise.all(HIGHLIGHT_SOURCES.map(async (source) => {
+    const result = { feedsFetched: 0, candidatesChanged: 0, errors: [] }
     const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`
     try {
       const response = await fetchImpl(url)
       result.feedsFetched += 1
       if (!response.ok) {
         result.errors.push(`${source.id}:feed_${response.status}`)
-        continue
+        return result
       }
       for (const parsed of parseYouTubeFeed(await response.text())) {
         if (parsed.channelId !== source.channelId) continue
@@ -446,8 +447,16 @@ export async function runFeedRecovery({ now = new Date(), store, queue, fetchImp
     } catch (error) {
       result.errors.push(`${source.id}:${error instanceof Error ? error.message : String(error)}`)
     }
-  }
-  return result
+    return result
+  }))
+  return sourceResults.reduce(
+    (total, result) => ({
+      feedsFetched: total.feedsFetched + result.feedsFetched,
+      candidatesChanged: total.candidatesChanged + result.candidatesChanged,
+      errors: [...total.errors, ...result.errors],
+    }),
+    { feedsFetched: 0, candidatesChanged: 0, errors: [] },
+  )
 }
 
 export async function renewWebSubSubscriptions({
@@ -456,11 +465,9 @@ export async function renewWebSubSubscriptions({
   store,
   fetchImpl = fetch,
 }) {
-  const result = { requested: 0, skipped: 0, errors: [] }
-  for (const source of HIGHLIGHT_SOURCES) {
+  const sourceResults = await Promise.all(HIGHLIGHT_SOURCES.map(async (source) => {
     if (!(await store.subscriptionDue(source.channelId, now))) {
-      result.skipped += 1
-      continue
+      return { requested: 0, skipped: 1, errors: [] }
     }
 
     const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`
@@ -483,10 +490,18 @@ export async function renewWebSubSubscriptions({
       error = caught instanceof Error ? caught.message : String(caught)
     }
     await store.recordSubscriptionRequest(source.channelId, topicUrl, error, now)
-    if (error) result.errors.push(`${source.id}:${error}`)
-    else result.requested += 1
-  }
-  return result
+    return error
+      ? { requested: 0, skipped: 0, errors: [`${source.id}:${error}`] }
+      : { requested: 1, skipped: 0, errors: [] }
+  }))
+  return sourceResults.reduce(
+    (total, result) => ({
+      requested: total.requested + result.requested,
+      skipped: total.skipped + result.skipped,
+      errors: [...total.errors, ...result.errors],
+    }),
+    { requested: 0, skipped: 0, errors: [] },
+  )
 }
 
 export async function runHighlightIngestion({
@@ -497,10 +512,11 @@ export async function runHighlightIngestion({
   queue,
   fetchImpl = fetch,
 }) {
-  const subscriptions = webSubCallbackUrl
-    ? await renewWebSubSubscriptions({ now, callbackUrl: webSubCallbackUrl, store, fetchImpl })
-    : null
-  const feed = await runFeedRecovery({ now, store, queue, fetchImpl })
+  const subscriptionsPromise = webSubCallbackUrl
+    ? renewWebSubSubscriptions({ now, callbackUrl: webSubCallbackUrl, store, fetchImpl })
+    : Promise.resolve(null)
+  const feedPromise = runFeedRecovery({ now, store, queue, fetchImpl })
+  const [subscriptions, feed] = await Promise.all([subscriptionsPromise, feedPromise])
   const api = apiKey && now.getUTCMinutes() === 0
     ? await runHighlightRecovery({ now, apiKey, store, queue, fetchImpl })
     : null
