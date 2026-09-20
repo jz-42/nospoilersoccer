@@ -1613,12 +1613,16 @@
       ]
     },
     "esp1-deportivo-real-betis": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "esp1-villarreal-levante": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
