@@ -557,7 +557,7 @@ export async function runHighlightIngestion({
     : Promise.resolve(null)
   const feedPromise = runFeedRecovery({ now, store, queue, fetchImpl })
   const [subscriptions, feed] = await Promise.all([subscriptionsPromise, feedPromise])
-  const api = apiKey && now.getUTCMinutes() === 0
+  const api = apiKey && (now.getUTCMinutes() === 0 || feed.errors.length > 0)
     ? await runHighlightRecovery({ now, apiKey, store, queue, fetchImpl })
     : null
   const requeued = await enqueueDueCandidates(store, queue, now)
