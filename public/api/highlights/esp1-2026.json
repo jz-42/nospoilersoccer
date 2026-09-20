@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "tournamentId": "esp1-2026",
-  "version": 56166343194328,
-  "generatedAt": "2026-09-20T21:13:21.666Z",
+  "version": 227167195871923,
+  "generatedAt": "2026-09-20T22:45:03.350Z",
   "matches": {
     "esp1-real-betis-real-sociedad": [
       {
@@ -226,6 +226,13 @@
         "kind": "normal"
       }
     ],
+    "esp1-getafe-malaga": [
+      {
+        "youtubeId": "VTqhYR74sHY",
+        "kind": "normal",
+        "publisher": "espn-deportes"
+      }
+    ],
     "esp1-atletico-madrid-real-madrid": [
       {
         "youtubeId": "bLzrK9H8XLc",
@@ -236,6 +243,13 @@
       {
         "youtubeId": "UD3hrcbpcWM",
         "kind": "normal"
+      }
+    ],
+    "esp1-villarreal-levante": [
+      {
+        "youtubeId": "LAR13_KP79g",
+        "kind": "normal",
+        "publisher": "espn-deportes"
       }
     ],
     "esp1-valencia-real-sociedad": [

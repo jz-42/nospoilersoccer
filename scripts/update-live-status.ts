@@ -7,7 +7,6 @@ import {
   type GroupId,
   type GroupMatch,
   type KnockoutMatch,
-  type SlotRef,
 } from '../src/data/types'
 import { fetchDay, parseEvent } from './espn'
 import {

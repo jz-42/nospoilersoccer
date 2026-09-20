@@ -117,7 +117,7 @@ const PUBLISHER_LABEL = {
   'espn-deportes': 'ESPN Deportes',
 } as const
 
-export function highlightLabel(matchId: string, video: HighlightVideo): string {
+function highlightLabel(matchId: string, video: HighlightVideo): string {
   if ('publisher' in video && video.publisher) {
     return `Highlights (${PUBLISHER_LABEL[video.publisher]})`
   }
