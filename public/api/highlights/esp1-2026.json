@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "tournamentId": "esp1-2026",
-  "version": 114424755648780,
-  "generatedAt": "2026-09-19T23:00:39.183Z",
+  "version": 96391002511866,
+  "generatedAt": "2026-09-20T04:29:20.958Z",
   "matches": {
     "esp1-real-betis-real-sociedad": [
       {
@@ -115,6 +115,18 @@
     "esp1-villarreal-real-betis": [
       {
         "youtubeId": "GrjB1mwr6GQ",
+        "kind": "normal"
+      }
+    ],
+    "esp1-athletic-club-alaves": [
+      {
+        "youtubeId": "jjDZU_NpYIQ",
+        "kind": "normal"
+      }
+    ],
+    "esp1-sevilla-barcelona": [
+      {
+        "youtubeId": "ujkBRg-upZY",
         "kind": "normal"
       }
     ]

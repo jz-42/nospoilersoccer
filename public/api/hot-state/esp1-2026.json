@@ -466,7 +466,7 @@
         },
         {
           "team": "elche",
-          "player": "Fernando Niño",
+          "player": "Fer Niño",
           "minute": "79'"
         }
       ]
@@ -986,7 +986,7 @@
         },
         {
           "team": "elche",
-          "player": "Fernando Niño",
+          "player": "Fer Niño",
           "minute": "74'"
         },
         {
@@ -1236,78 +1236,342 @@
       ]
     },
     "esp1-rayo-vallecano-espanyol": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "rayo-vallecano",
+          "player": "Álvaro García",
+          "minute": "3'"
+        },
+        {
+          "team": "rayo-vallecano",
+          "player": "Adrià Pedrosa",
+          "minute": "26'"
+        },
+        {
+          "team": "espanyol",
+          "player": "Roberto Fernández",
+          "minute": "54'"
+        }
+      ]
     },
     "esp1-alaves-valencia": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "valencia",
+          "player": "Luis Rioja",
+          "minute": "78'"
+        }
+      ]
     },
     "esp1-elche-real-madrid": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "real-madrid",
+          "player": "Matías Dituro",
+          "minute": "25'",
+          "ownGoal": true
+        },
+        {
+          "team": "real-madrid",
+          "player": "Kylian Mbappé",
+          "minute": "33'"
+        },
+        {
+          "team": "elche",
+          "player": "Abiel Osorio",
+          "minute": "71'"
+        },
+        {
+          "team": "elche",
+          "player": "Fer Niño",
+          "minute": "83'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Carlos Espí",
+          "minute": "90'+1'"
+        }
+      ]
     },
     "esp1-atletico-madrid-osasuna": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 4,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Jonathan David",
+          "minute": "24'"
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Lee Kang-In",
+          "minute": "54'"
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Robin Le Normand",
+          "minute": "63'"
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Álex Baena",
+          "minute": "82'"
+        }
+      ]
     },
     "esp1-deportivo-sevilla": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "sevilla",
+          "player": "Miguel Sierra",
+          "minute": "52'"
+        }
+      ]
     },
     "esp1-barcelona-racing-santander": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "esp1-levante-athletic-club": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 7,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "barcelona",
+          "player": "João Cancelo",
+          "minute": "8'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "25'",
+          "penalty": true
+        },
+        {
+          "team": "racing-santander",
+          "player": "Maguette Gueye",
+          "minute": "30'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Asier Villalibre",
+          "minute": "36'",
+          "ownGoal": true
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "42'"
+        },
+        {
+          "team": "racing-santander",
+          "player": "Yassir Zabiri",
+          "minute": "65'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "67'",
+          "penalty": true
+        },
+        {
+          "team": "barcelona",
+          "player": "Gabriel Jesus",
+          "minute": "79'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Lamine Yamal",
+          "minute": "89'"
+        }
+      ]
     },
     "esp1-real-betis-getafe": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "real-betis",
+          "player": "Abde Ezzalzouli",
+          "minute": "45'"
+        }
+      ]
     },
     "esp1-malaga-villarreal": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "malaga",
+          "player": "Carlos Dotor",
+          "minute": "12'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Alberto Moleiro",
+          "minute": "40'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Pape Gueye",
+          "minute": "45'+2'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Pape Gueye",
+          "minute": "86'",
+          "penalty": true
+        }
+      ]
     },
     "esp1-espanyol-elche": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "elche",
+          "player": "Fer Niño",
+          "minute": "26'"
+        },
+        {
+          "team": "elche",
+          "player": "Fer Niño",
+          "minute": "29'"
+        },
+        {
+          "team": "espanyol",
+          "player": "Víctor Chust",
+          "minute": "72'",
+          "ownGoal": true
+        },
+        {
+          "team": "elche",
+          "player": "Germán Valera",
+          "minute": "78'"
+        }
+      ]
     },
     "esp1-osasuna-rayo-vallecano": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "osasuna",
+          "player": "Ante Budimir",
+          "minute": "16'"
+        },
+        {
+          "team": "rayo-vallecano",
+          "player": "Sergio Camello",
+          "minute": "50'"
+        }
+      ]
     },
     "esp1-athletic-club-alaves": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     "esp1-celta-vigo-racing-santander": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 5,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "celta-vigo",
+          "player": "Hugo Gonzalez",
+          "minute": "32'",
+          "penalty": true
+        },
+        {
+          "team": "celta-vigo",
+          "player": "Ilaix Moriba",
+          "minute": "43'"
+        },
+        {
+          "team": "celta-vigo",
+          "player": "Miguel Román",
+          "minute": "69'"
+        },
+        {
+          "team": "celta-vigo",
+          "player": "Pablo Durán",
+          "minute": "78'"
+        },
+        {
+          "team": "celta-vigo",
+          "player": "Pablo Durán",
+          "minute": "90'+2'"
+        }
+      ]
     },
     "esp1-sevilla-barcelona": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "sevilla",
+          "player": "Youssouf Fofana",
+          "minute": "19'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "22'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "52'"
+        },
+        {
+          "team": "barcelona",
+          "player": "Raphinha",
+          "minute": "69'"
+        }
+      ]
     },
     "esp1-getafe-malaga": {
       "liveStatus": null,
@@ -1384,11 +1648,6 @@
       "score": null,
       "goals": null
     },
-    "esp1-celta-vigo-alaves": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
     "esp1-deportivo-levante": {
       "liveStatus": null,
       "score": null,
@@ -1399,17 +1658,7 @@
       "score": null,
       "goals": null
     },
-    "esp1-getafe-rayo-vallecano": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "esp1-malaga-real-sociedad": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "esp1-osasuna-racing-santander": {
+    "esp1-villarreal-elche": {
       "liveStatus": null,
       "score": null,
       "goals": null
@@ -1419,17 +1668,37 @@
       "score": null,
       "goals": null
     },
-    "esp1-real-madrid-sevilla": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
     "esp1-valencia-athletic-club": {
       "liveStatus": null,
       "score": null,
       "goals": null
     },
-    "esp1-villarreal-elche": {
+    "esp1-osasuna-racing-santander": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-celta-vigo-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-malaga-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-real-madrid-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-rayo-vallecano": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-levante-athletic-club": {
       "liveStatus": null,
       "score": null,
       "goals": null

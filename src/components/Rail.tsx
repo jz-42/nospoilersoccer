@@ -496,9 +496,13 @@ function DaySwitcher({
     }
   }
 
+  const isRestDay = dayEntries.length === 0
+
   return (
     <section
-      className={`day-rail ${isSwipeTransitioning ? 'is-swipe-transitioning' : ''}`.trim()}
+      className={`day-rail ${isSwipeTransitioning ? 'is-swipe-transitioning' : ''} ${
+        isRestDay ? 'is-rest-day' : ''
+      }`.trim()}
       aria-label="Matchday"
       onClickCapture={onSectionClickCapture}
     >
@@ -564,19 +568,14 @@ function DaySwitcher({
         </button>
       </div>
 
-      {dayEntries.length > 0 ? (
+      {!isRestDay ? (
         <div className="day-grid" ref={gridRef} style={gridStyle}>
           {dayEntries.map((e) => (
             <PreviewCard key={e.target.match.id} t={t} entry={e} progress={progress} onOpen={onOpen} />
           ))}
         </div>
       ) : (
-        <RestDay
-          date={date}
-          isToday={date === today}
-          nextDate={dates[idx + 1]}
-          onJump={() => scrollToIndex(idx + 1, true)}
-        />
+        <RestDay date={date} />
       )}
     </section>
   )
@@ -588,62 +587,43 @@ const SLEEPING_MASCOTS = [
   new URL('../assets/mascot-sleeping-3.webp', import.meta.url).href,
 ] as const
 
-/** Stable per calendar day so the pose doesn't flicker, but rest days vary. */
+/**
+ * Daily-deterministic pose, not a roll of the dice.
+ *
+ * Random-on-load is the cheap-widget pattern: the art reshuffles every
+ * refresh, which fights the stillness the page is going for. Indexing by the
+ * calendar day cycles 1 → 2 → 3, so a given date always looks the same and
+ * two rest days in a row never show the same pose.
+ */
 function sleepingMascotFor(date: string): string {
-  let h = 0
-  for (let i = 0; i < date.length; i++) h = (h * 31 + date.charCodeAt(i)) | 0
-  return SLEEPING_MASCOTS[Math.abs(h) % SLEEPING_MASCOTS.length]
+  const [year, month, day] = date.split('-').map(Number)
+  const dayNumber = Math.floor(Date.UTC(year, month - 1, day) / 86_400_000)
+  const n = SLEEPING_MASCOTS.length
+  return SLEEPING_MASCOTS[((dayNumber % n) + n) % n]
 }
 
 /**
  * A day with no fixtures.
  *
- * This is a normal, frequent state — most days of a league season are rest
- * days — so it gets a composed page rather than an error box. The page is
- * almost empty: a sleeping mascot, one line of copy, and a text jump to the
- * next matchday. Which pose you get is hashed from the date, so a given rest
- * day always shows the same one and neighbouring empty days feel different.
+ * This is a normal, frequent state — most days of a season are rest days — so
+ * it gets a composed page rather than an error box. The whole page is the
+ * napping mascot and the words under it; there is deliberately no "jump to
+ * the next matchday" control, because the carousel directly above already
+ * has the next matchday sitting one step to the right (a rest day only ever
+ * renders for today, so `dates[idx + 1]` *is* that neighbour).
  */
-function RestDay({
-  date,
-  isToday,
-  nextDate,
-  onJump,
-}: {
-  date: string
-  isToday: boolean
-  nextDate: string | undefined
-  onJump: () => void
-}) {
+function RestDay({ date }: { date: string }) {
   return (
     <div className="rest-day">
       <img
         className="rest-day-mascot"
         src={sleepingMascotFor(date)}
         alt=""
-        width={240}
-        height={216}
+        width={800}
+        height={768}
         draggable={false}
       />
-      <p className="rest-day-title">No matches {isToday ? 'today' : 'this day'}</p>
-      {nextDate ? (
-        <button type="button" className="rest-day-next" onClick={onJump}>
-          Next matchday
-          <span className="rest-day-next-date">{formatWeekdayLong(nextDate)}</span>
-          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
-            <path
-              d="M4.4 2.5 7.9 6l-3.5 3.5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-      ) : (
-        <p className="rest-day-sub">That's the last matchday on the calendar.</p>
-      )}
+      <p className="rest-day-label">Rest Day</p>
     </div>
   )
 }

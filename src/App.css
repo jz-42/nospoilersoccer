@@ -839,100 +839,119 @@
   font-size: calc(var(--day-flag-size) * 0.4);
 }
 
-/* Rest day — see RestDay in Rail.tsx. Almost empty: mascot, one line, a
-   text jump. Quiet on purpose, not broken. */
+/* Rest day — see RestDay in Rail.tsx. The whole page is the napping mascot
+   with one word under it. Quiet on purpose, not broken. */
 .rest-day {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  /* Sits in the space below the carousel rather than hugging it, so a rest
-     day reads as a composed page instead of a stub under the day nav. The
-     carousel itself never moves — see the comment on .day-rail. */
-  min-height: min(46vh, 420px);
-  padding: 18px 20px 48px;
+  /* Grows into whatever is left between the carousel and the footer, so the
+     mascot lands in the middle of the empty half of the page instead of
+     hanging off the day nav. Only this block stretches — the carousel above
+     it never moves, see the comment on .day-rail. The 396px is measured:
+     everything this box shares the viewport with (header, day nav and its
+     margins, page padding, footer) plus a few px of slack, so the page fills
+     the window without scrolling. The floor covers short windows. */
+  min-height: max(260px, calc(100vh - 396px));
+  padding: 16px 20px 24px;
   text-align: center;
+  /* A pool of light under the mascot, so it reads as placed on a surface
+     rather than pasted on a void — the same pale blue the body canvas uses,
+     centred on the art rather than the box so it doesn't halo the caption.
+     This is the whole reason the page stops looking switched-off.
+     The radii are proportional with a cap: at a fixed px size the ellipse is
+     wider than a phone's box, gets clipped at the edges, and the pool reads as
+     a grey rectangle instead of light. Percentages keep it fading out inside
+     the box on any screen; the px caps stop it ballooning on a desktop. */
+  background: radial-gradient(
+    min(70%, 700px) min(60%, 500px) at 50% 42%,
+    rgba(148, 178, 224, 0.05),
+    transparent 70%
+  );
 }
 
+/* One fixed box for all three poses. The poses are drawn at different
+   heights (pose 1's z's rise higher), so the export normalises them on width
+   and bottom-aligns them onto one 800x768 canvas — same ball size, same
+   resting line, whichever pose comes up. This box matches that canvas, so
+   `contain` never has to letterbox and the word underneath lands on the same
+   line every day. No animation: a rest day should look asleep, not idling.
+   The third term is the one that keeps the page from scrolling: 474px is
+   everything the art shares the window with — the 396px of chrome above and
+   below plus this box's own padding, caption and the gap over it — so the
+   art can only ever take what is genuinely left. A flat fraction of vh looked
+   fine at 900px and overflowed by 9px at 661px, because the content grew past
+   the min-height instead of being bounded by it. */
 .rest-day-mascot {
-  width: min(228px, 56vw);
+  width: min(258px, 54vw, calc((100vh - 474px) * 1.042));
+  aspect-ratio: 25 / 24;
   height: auto;
+  object-fit: contain;
   display: block;
   pointer-events: none;
   user-select: none;
-  animation: rest-day-breathe 4.8s ease-in-out infinite;
 }
 
-@keyframes rest-day-breathe {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(7px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .rest-day-mascot {
-    animation: none;
-  }
-}
-
-.rest-day-title {
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: var(--muted);
-}
-
-.rest-day-sub {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-/* A text control, not a chip. The date is the only weight; hover just
-   brightens and nudges the chevron. */
-.rest-day-next {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font-size: 13.5px;
-  font-weight: 500;
-  padding: 4px 2px;
-  cursor: pointer;
-  transition: color 0.18s ease;
-}
-
-.rest-day-next:hover {
-  color: var(--text);
-}
-
-.rest-day-next:active {
-  color: var(--text-h);
-}
-
-.rest-day-next-date {
+/* A caption under the artwork, not a heading over a page: small, tracked,
+   quiet. The mascot is the thing you look at; this only names it. */
+.rest-day-label {
+  margin: 20px 0 0;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--text-h);
-  letter-spacing: -0.008em;
-}
-
-.rest-day-next svg {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--muted);
-  transition:
-    transform 0.2s cubic-bezier(0.32, 0.72, 0, 1),
-    color 0.18s ease;
 }
 
-.rest-day-next:hover svg {
-  color: var(--text-h);
-  transform: translateX(2px);
+/* Short windows — landscape phones, small laptops, half-height browser
+   windows. The chrome around the carousel is trimmed and the art is sized
+   off the height that is actually left, so the page fits without scrolling
+   all the way down to a 844x390 landscape phone.
+
+   The 660px cut-off is not arbitrary: below it the default rule's 260px
+   floor on .rest-day is taller than the space left over, so anything in the
+   600-655px band would scroll. This branch has to start above that band. */
+@media (max-height: 660px) {
+  .app-main {
+    padding-top: 10px;
+    padding-bottom: 14px;
+  }
+
+  .day-rail {
+    margin-top: 0;
+    margin-bottom: 10px;
+  }
+
+  .day-carousel {
+    margin-bottom: 8px;
+  }
+
+  /* Deliberately no .day-toolbar override here. The row is empty on a rest
+     day and collapsing it would buy 28px of art, but the "back to today"
+     button that lives in it is 28px tall, so the row would grow the moment
+     you navigated to a matchday and shove the carousel down with it. The
+     carousel does not move — see the comment on .day-rail. */
+
+  .rest-day {
+    min-height: 0;
+    padding: 2px 16px 8px;
+  }
+
+  /* Sized off the height actually left over rather than a flat fraction of
+     the viewport. 291px is everything this branch shares the window with —
+     header, toolbar row, carousel and its margin, page padding, footer, and
+     the caption under the art. So the art takes the whole remainder: it
+     shrinks to ~100px on a 390px-tall landscape phone and is back at full
+     size by the time the window is 600px tall. dvh, not vh, because a phone
+     in landscape is exactly where the two differ. */
+  .rest-day-mascot {
+    width: min(258px, 38vw, calc((100dvh - 291px) * 1.042));
+  }
+
+  .rest-day-label {
+    margin-top: 6px;
+  }
 }
 
 /* ============ the fabric layer ============ */
@@ -4611,6 +4630,29 @@
 
   .day-rail {
     min-height: calc(100dvh - 120px);
+  }
+
+  /* A rest day has nothing to fill a screen-height rail with, so it doesn't
+     reserve one — otherwise the page scrolls down into 200px of nothing. */
+  .day-rail.is-rest-day {
+    min-height: 0;
+  }
+
+  /* Same budget arithmetic as the desktop rule, with the phone's numbers:
+     444px is the header (which wraps to three rows here), the day nav, the
+     page padding and the footer. dvh throughout, because this is exactly
+     where a browser's disappearing toolbar changes the answer. */
+  .rest-day {
+    min-height: max(160px, calc(100dvh - 460px));
+    padding: 8px 16px 32px;
+  }
+
+  /* The outer max is a floor, and it is allowed to lose. On a 568px-tall
+     phone the budget works out to a 46px mascot, which is not a rest day,
+     it's a bullet point. Below about 620px the art holds at 120px and the
+     page scrolls instead — the right trade on a screen that small. */
+  .rest-day-mascot {
+    width: max(120px, min(256px, 66vw, calc((100dvh - 522px) * 1.042)));
   }
 
   .day-grid {
