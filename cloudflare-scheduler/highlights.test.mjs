@@ -6,6 +6,7 @@ import {
   HIGHLIGHT_SOURCES,
   createD1HighlightStore,
   createHighlightDispatchClient,
+  candidateRetryDelayMs,
   deepScanPageCost,
   handleWebSubRequest,
   handleCandidateResultRequest,
@@ -111,6 +112,13 @@ test('quota mode degrades expensive recovery before the notification fast path',
   assert.equal(quotaMode(7_999), 'slow_shallow')
   assert.equal(quotaMode(8_000), 'websub_only')
   assert.equal(DAILY_QUOTA_LIMIT, 8_000)
+})
+
+test('candidate retries stay one-minute fast initially, then back off to five minutes', () => {
+  assert.equal(candidateRetryDelayMs(0), 60_000)
+  assert.equal(candidateRetryDelayMs(29), 60_000)
+  assert.equal(candidateRetryDelayMs(30), 5 * 60_000)
+  assert.equal(candidateRetryDelayMs(287), 5 * 60_000)
 })
 
 test('D1 store enforces the hard quota and deduplicates candidate versions', async () => {
