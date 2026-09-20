@@ -1074,11 +1074,18 @@
       ]
     },
     "eng1-bournemouth-liverpool": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "liverpool",
+          "player": "Alexander Isak",
+          "minute": "57'"
+        }
+      ]
     },
     "eng1-leeds-crystal-palace": {
       "liveStatus": {
