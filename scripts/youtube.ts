@@ -138,6 +138,24 @@ function extract(re: RegExp, html: string): string | null {
   return m ? m[1] : null
 }
 
+function decodeXml(value: string): string {
+  return value.replace(/&(#(?:x[0-9a-f]+|\d+)|amp|lt|gt|quot|apos);/gi, (entity, code: string) => {
+    if (code[0] === '#') {
+      const hex = code[1]?.toLowerCase() === 'x'
+      const point = Number.parseInt(code.slice(hex ? 2 : 1), hex ? 16 : 10)
+      return Number.isFinite(point) ? String.fromCodePoint(point) : entity
+    }
+    return ({ amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" } as Record<string, string>)[
+      code.toLowerCase()
+    ]
+  })
+}
+
+function xmlElement(xml: string, name: string): string | null {
+  const match = xml.match(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${name}>`, 'i'))
+  return match ? decodeXml(match[1].trim()) : null
+}
+
 async function listUploadsScrape(max: number): Promise<PlaylistVideo[]> {
   const html = await getText(`https://www.youtube.com/playlist?list=${FOX_UPLOADS_PLAYLIST}`)
   const out: PlaylistVideo[] = []
@@ -180,6 +198,33 @@ export function listFoxUploads(max = 100): Promise<PlaylistVideo[]> {
 /** Full metadata for one video, via the Data API or a scrape fallback. */
 export function getVideoMeta(id: string): Promise<VideoMeta> {
   return API_KEY ? getMetaApi(id) : getMetaScrape(id)
+}
+
+/**
+ * Exact metadata from a trusted channel's public Atom feed. This costs no Data
+ * API quota. Both ids must match the same entry, so spoofed candidates fail closed.
+ */
+export async function getVideoMetaFromFeed(
+  id: string,
+  expectedChannelId: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<VideoMeta> {
+  const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${encodeURIComponent(expectedChannelId)}`
+  const response = await fetchImpl(url)
+  if (!response.ok) throw new Error(`YouTube feed ${response.status} for channel ${expectedChannelId}`)
+
+  const xml = await response.text()
+  for (const entry of xml.match(/<entry(?:\s[^>]*)?>[\s\S]*?<\/entry>/gi) ?? []) {
+    if (xmlElement(entry, 'yt:videoId') !== id) continue
+    const channelId = xmlElement(entry, 'yt:channelId')
+    if (channelId !== expectedChannelId) break
+    const title = xmlElement(entry, 'title')
+    const publishedAt = xmlElement(entry, 'published')
+    if (!title || !publishedAt) break
+    return { id, title, durationSeconds: 0, channelId, channelTitle: null, publishedAt }
+  }
+
+  throw new Error(`video ${id} is not present on expected channel feed ${expectedChannelId}`)
 }
 
 /**

@@ -27,10 +27,10 @@ import { matchLoser, matchWinner } from '../src/data/types'
 import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId, Tournament, SlotRef } from '../src/data/types'
 import { highlightKey, isFoxHighlight, isYouTubeHighlight } from '../src/data/videos'
 import { isPlayed } from '../src/logic/spoilers'
-import { checkEmbeddable, FOX_CHANNEL_ID, getVideoMeta, listFoxUploads, parseHighlightTitle } from './youtube'
+import { checkEmbeddable, FOX_CHANNEL_ID, getVideoMeta, getVideoMetaFromFeed, listFoxUploads, parseHighlightTitle } from './youtube'
 import { checkFoxEmbed, listFoxQuickRecaps } from './fox'
 import type { FoxVideoMeta } from './fox'
-import { loadTargetedUploads } from './highlight-candidate'
+import { loadTargetedMetadata, loadTargetedUploads } from './highlight-candidate'
 
 const VIDEOS_FILE = 'src/data/wc2026-videos.ts'
 const SKIP_FILE = 'scripts/curate-skip.json'
@@ -386,7 +386,7 @@ async function runCurate() {
   const targeted = await loadTargetedUploads(
     targetVideoId,
     () => listFoxUploads(100),
-    getVideoMeta,
+    (id) => loadTargetedMetadata(id, FOX_CHANNEL_ID, getVideoMetaFromFeed, getVideoMeta),
   )
   const uploads = targeted.uploads
   console.log(`Scanning ${uploads.length} FOX YouTube uploads${dryRun ? ' (dry-run)' : ''}…`)
