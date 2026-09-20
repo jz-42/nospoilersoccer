@@ -1620,11 +1620,33 @@
       "goals": null
     },
     "esp1-villarreal-levante": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "villarreal",
+          "player": "Ayoze Pérez",
+          "minute": "41'"
+        },
+        {
+          "team": "levante",
+          "player": "Iván Romero",
+          "minute": "42'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Alberto Moleiro",
+          "minute": "54'"
+        },
+        {
+          "team": "villarreal",
+          "player": "Georges Mikautadze",
+          "minute": "86'"
+        }
+      ]
     },
     "esp1-valencia-real-sociedad": {
       "liveStatus": null,
