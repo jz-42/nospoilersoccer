@@ -50,5 +50,6 @@ export const esp1_2026_videos: Record<string, HighlightVideo[]> = {
   'esp1-sevilla-valencia': [{ youtubeId: 'l4qqAX2GS7o', kind: 'normal' }],
   'esp1-valencia-barcelona': [{ youtubeId: 'BVeuyol-th4', kind: 'normal' }],
   'esp1-valencia-real-betis': [{ youtubeId: 'qcxVr9sggWw', kind: 'normal' }],
+  'esp1-valencia-real-sociedad': [{ youtubeId: '55MzS3qrRJ8', kind: 'normal' }],
   'esp1-villarreal-real-betis': [{ youtubeId: 'GrjB1mwr6GQ', kind: 'normal' }],
 }
