@@ -59,9 +59,14 @@ class FakeD1 {
           }
           if (sql.includes('INSERT INTO quota_events')) return { success: true }
           if (sql.includes('INSERT INTO candidates')) {
+            const existing = this.candidates.get(args[0])
             this.candidates.set(args[0], {
               contentVersion: args[1],
               title: args[4],
+              attemptCount: sql.includes('attempt_count = 0') ? 0 : (existing?.attemptCount ?? 0),
+              nextAttemptAt: sql.includes('next_attempt_at = NULL')
+                ? null
+                : (existing?.nextAttemptAt ?? null),
             })
             return { success: true }
           }
@@ -145,6 +150,38 @@ test('D1 store enforces the hard quota and deduplicates candidate versions', asy
     await store.upsertCandidate({ ...candidate, contentVersion: 'v2', title: 'Retitled' }),
     'updated',
   )
+})
+
+test('a new content version receives a fresh fast-retry lifecycle', async () => {
+  const db = new FakeD1()
+  const store = createD1HighlightStore(db)
+  const candidate = {
+    videoId: 'abcdefghijk',
+    contentVersion: 'v1',
+    sourceId: 'nbc',
+    channelId: HIGHLIGHT_SOURCES[2].channelId,
+    title: 'Original title',
+    publishedAt: '2026-09-19T20:00:00Z',
+    updatedAt: '2026-09-19T20:00:00Z',
+    discoveredBy: 'feed_poll',
+  }
+  await store.upsertCandidate(candidate)
+  Object.assign(db.candidates.get(candidate.videoId), {
+    attemptCount: 288,
+    nextAttemptAt: '2026-09-20T00:00:00Z',
+  })
+
+  assert.equal(
+    await store.upsertCandidate({
+      ...candidate,
+      contentVersion: 'v2',
+      title: 'Corrected title',
+      updatedAt: '2026-09-20T01:00:00Z',
+    }),
+    'updated',
+  )
+  assert.equal(db.candidates.get(candidate.videoId).attemptCount, 0)
+  assert.equal(db.candidates.get(candidate.videoId).nextAttemptAt, null)
 })
 
 test('WebSub verification creates its lease row even when the hub callback wins the request race', async () => {

@@ -193,6 +193,8 @@ export function createD1HighlightStore(db) {
             updated_at = excluded.updated_at,
             discovered_by = excluded.discovered_by,
             status = 'pending',
+            attempt_count = 0,
+            next_attempt_at = NULL,
             last_seen_at = excluded.last_seen_at,
             last_error = NULL`,
         )
