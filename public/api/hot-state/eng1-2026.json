@@ -1074,17 +1074,23 @@
       ]
     },
     "eng1-bournemouth-liverpool": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "eng1-leeds-crystal-palace": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
     "eng1-manchester-city-sunderland": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
