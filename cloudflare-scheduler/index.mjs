@@ -374,7 +374,12 @@ export async function handleHighlightStateRequest(
   seasonId = 'wc2026',
 ) {
   const sourcePath = highlightStateSourceUrl(env, seasonId)
-  const response = await fetchImpl(sourcePath, {
+  const sourceUrl = new URL(sourcePath)
+  // raw.githubusercontent.com advertises a five-minute cache. A short bucket
+  // in the upstream cache key prevents that CDN from hiding a newly committed
+  // highlight behind data older than this endpoint's own 15-second contract.
+  sourceUrl.searchParams.set('refresh', String(Math.floor(Date.now() / 15_000)))
+  const response = await fetchImpl(sourceUrl.toString(), {
     headers: { Accept: 'application/json' },
     cf: { cacheEverything: true, cacheTtl: 15 },
   })

@@ -219,7 +219,9 @@ Highlight-state endpoint:
 - `GET /api/highlights/{seasonId}`
 
 This serves generated validated highlight snapshots with a stable ETag and a
-15-second edge cache. Browser conditional requests are supported through CORS.
+15-second edge cache. Its upstream URL also rotates on a 15-second bucket so
+GitHub raw's longer CDN cache cannot delay a newly committed highlight.
+Browser conditional requests are supported through CORS.
 
 Highlight ingestion endpoints:
 
