@@ -1574,7 +1574,9 @@
       ]
     },
     "esp1-getafe-malaga": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
