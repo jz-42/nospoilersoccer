@@ -28,6 +28,7 @@ export const esp1_2026_videos: Record<string, HighlightVideo[]> = {
   'esp1-real-sociedad-celta-vigo': [{ youtubeId: 'w6vspBHbyr0', kind: 'normal' }],
   'esp1-real-sociedad-espanyol': [{ youtubeId: 'tgYYdJCBFY4', kind: 'normal' }],
   'esp1-sevilla-atletico-madrid': [{ youtubeId: 'PkBJJjyfV_A', kind: 'normal' }],
+  'esp1-sevilla-barcelona': [{ youtubeId: 'ujkBRg-upZY', kind: 'normal' }],
   'esp1-sevilla-valencia': [{ youtubeId: 'l4qqAX2GS7o', kind: 'normal' }],
   'esp1-valencia-real-betis': [{ youtubeId: 'qcxVr9sggWw', kind: 'normal' }],
   'esp1-villarreal-real-betis': [{ youtubeId: 'GrjB1mwr6GQ', kind: 'normal' }],
