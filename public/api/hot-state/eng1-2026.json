@@ -1075,21 +1075,79 @@
     },
     "eng1-bournemouth-liverpool": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "liverpool",
+          "player": "Alexander Isak",
+          "minute": "57'"
+        }
+      ]
     },
     "eng1-leeds-crystal-palace": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     "eng1-manchester-city-sunderland": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 5,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "manchester-city",
+          "player": "Enzo Fernández",
+          "minute": "9'"
+        },
+        {
+          "team": "sunderland",
+          "player": "Brian Brobbey",
+          "minute": "12'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Rayan Cherki",
+          "minute": "29'"
+        },
+        {
+          "team": "sunderland",
+          "player": "Brian Brobbey",
+          "minute": "33'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Antoine Semenyo",
+          "minute": "43'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Antoine Semenyo",
+          "minute": "57'"
+        },
+        {
+          "team": "sunderland",
+          "player": "Brian Brobbey",
+          "minute": "59'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Erling Haaland",
+          "minute": "81'"
+        }
+      ]
     },
     "eng1-fulham-manchester-united": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },

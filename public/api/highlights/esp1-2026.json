@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "tournamentId": "esp1-2026",
-  "version": 96391002511866,
-  "generatedAt": "2026-09-20T04:29:20.958Z",
+  "version": 9345044935524,
+  "generatedAt": "2026-09-20T07:35:34.479Z",
   "matches": {
     "esp1-real-betis-real-sociedad": [
       {
@@ -40,6 +40,24 @@
         "kind": "normal"
       }
     ],
+    "esp1-real-madrid-real-sociedad": [
+      {
+        "youtubeId": "K_4yDlQknUI",
+        "kind": "normal"
+      }
+    ],
+    "esp1-barcelona-athletic-club": [
+      {
+        "youtubeId": "0OHaoF7myVY",
+        "kind": "normal"
+      }
+    ],
+    "esp1-alaves-villarreal": [
+      {
+        "youtubeId": "Z48lJUXIG20",
+        "kind": "normal"
+      }
+    ],
     "esp1-levante-real-betis": [
       {
         "youtubeId": "JIaT0ZrCXV8",
@@ -55,6 +73,12 @@
     "esp1-sevilla-atletico-madrid": [
       {
         "youtubeId": "PkBJJjyfV_A",
+        "kind": "normal"
+      }
+    ],
+    "esp1-real-madrid-malaga": [
+      {
+        "youtubeId": "BSb9iSg0D4s",
         "kind": "normal"
       }
     ],
@@ -88,9 +112,33 @@
         "kind": "normal"
       }
     ],
+    "esp1-real-betis-real-madrid": [
+      {
+        "youtubeId": "Ls7lgDXcZp8",
+        "kind": "normal"
+      }
+    ],
+    "esp1-athletic-club-atletico-madrid": [
+      {
+        "youtubeId": "P9prR9H28Gg",
+        "kind": "normal"
+      }
+    ],
+    "esp1-valencia-barcelona": [
+      {
+        "youtubeId": "BVeuyol-th4",
+        "kind": "normal"
+      }
+    ],
     "esp1-espanyol-sevilla": [
       {
         "youtubeId": "Rvz6erOp-k0",
+        "kind": "normal"
+      }
+    ],
+    "esp1-elche-real-sociedad": [
+      {
+        "youtubeId": "4Sgi6wmKi88",
         "kind": "normal"
       }
     ],
@@ -100,9 +148,21 @@
         "kind": "normal"
       }
     ],
+    "esp1-athletic-club-elche": [
+      {
+        "youtubeId": "6FyomrQosP8",
+        "kind": "normal"
+      }
+    ],
     "esp1-real-madrid-rayo-vallecano": [
       {
         "youtubeId": "GtscnZUGLe4",
+        "kind": "normal"
+      }
+    ],
+    "esp1-levante-barcelona": [
+      {
+        "youtubeId": "bSeIHtsdJyo",
         "kind": "normal"
       }
     ],
@@ -115,6 +175,42 @@
     "esp1-villarreal-real-betis": [
       {
         "youtubeId": "GrjB1mwr6GQ",
+        "kind": "normal"
+      }
+    ],
+    "esp1-alaves-valencia": [
+      {
+        "youtubeId": "MxVq5adjkVU",
+        "kind": "normal"
+      }
+    ],
+    "esp1-elche-real-madrid": [
+      {
+        "youtubeId": "3EhCO20HrB4",
+        "kind": "normal"
+      }
+    ],
+    "esp1-atletico-madrid-osasuna": [
+      {
+        "youtubeId": "vIYc6FMKy8Y",
+        "kind": "normal"
+      }
+    ],
+    "esp1-barcelona-racing-santander": [
+      {
+        "youtubeId": "bWC2XazMFK8",
+        "kind": "normal"
+      }
+    ],
+    "esp1-real-betis-getafe": [
+      {
+        "youtubeId": "QAIYVBuuh0c",
+        "kind": "normal"
+      }
+    ],
+    "esp1-espanyol-elche": [
+      {
+        "youtubeId": "_WLWxOTY2Ck",
         "kind": "normal"
       }
     ],

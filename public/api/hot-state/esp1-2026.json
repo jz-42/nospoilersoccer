@@ -1575,13 +1575,42 @@
     },
     "esp1-getafe-malaga": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "getafe",
+          "player": "Ivan Azón",
+          "minute": "85'"
+        }
+      ]
     },
     "esp1-atletico-madrid-real-madrid": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Alejandro Grimaldo",
+          "minute": "53'",
+          "penalty": true
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Jonathan David",
+          "minute": "59'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Antonio Rüdiger",
+          "minute": "89'"
+        }
+      ]
     },
     "esp1-deportivo-real-betis": {
       "liveStatus": null,
