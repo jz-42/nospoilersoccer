@@ -213,7 +213,7 @@ const ESPNFC_RE = /^([^|]+?)\s+vs?\.?\s+([^|]+?)\s*\|\s*(LA\s?LIGA\s+(?:EXTENDED
  */
 const ESPN_DEPORTES_LALIGA_RE = /\|\s*(?:Resumen\s*\|\s*)?La Liga\s*$/i
 const ESPN_DEPORTES_SINGLE_PLAY_RE =
-  /\b(?:marca|marc[oó]|anota|anot[oó]|ampl[ií]a|descuenta|penal|tarjeta roja|atajada|salvada)\b/i
+  /(?:^|[^\p{L}])(?:marca|marc[oó]|anota|anot[oó]|ampl[ií]a|descuenta|penal|tarjeta roja|atajada|salvada)(?=$|[^\p{L}])/iu
 
 export const GOLAZO_CHANNEL_ID = 'UCET00YnetHT7tOpu12v8jxg'
 export const NBC_CHANNEL_ID = 'UCqZQlzSHbVJrwrn5XvzrzcA'

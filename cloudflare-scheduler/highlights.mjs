@@ -47,7 +47,7 @@ const POTENTIAL_HIGHLIGHT_RE = {
 }
 
 const ESPN_DEPORTES_SINGLE_PLAY_RE =
-  /\b(?:marca|marc[oó]|anota|anot[oó]|ampl[ií]a|descuenta|penal|tarjeta roja|atajada|salvada)\b/i
+  /(?:^|[^\p{L}])(?:marca|marc[oó]|anota|anot[oó]|ampl[ií]a|descuenta|penal|tarjeta roja|atajada|salvada)(?=$|[^\p{L}])/iu
 
 export function isPotentialHighlight(sourceId, title) {
   if (typeof title !== 'string') return false

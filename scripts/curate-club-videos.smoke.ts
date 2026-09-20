@@ -686,6 +686,7 @@ assert(
 for (const title of [
   'EL ARBITRAJE en el DERBI DE MADRID fue un DESASTRE | La Liga Al Día',
   'RUDIGER DESCUENTA para el REAL MADRID ante ATLÉTICO DE MADRID | La Liga',
+  'IVÁN AZÓN MARCÓ para GETAFE ante MÁLAGA | La Liga',
   'GETAFE vuelve a la victoria | La Liga',
   'GETAFE venció a MÁLAGA y VALENCIA reaccionó | La Liga',
   'GETAFE venció 1-0 a MÁLAGA | Copa del Rey',

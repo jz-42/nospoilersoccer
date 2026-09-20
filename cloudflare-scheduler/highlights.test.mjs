@@ -365,6 +365,13 @@ test('source title screening keeps full-match highlights and drops channel noise
     ),
     false,
   )
+  assert.equal(
+    isPotentialHighlight(
+      'espndeportes',
+      'MBAPPÉ MARCÓ para el REAL MADRID ante VALENCIA | La Liga',
+    ),
+    false,
+  )
 })
 
 test('WebSub verification accepts only an exact approved channel topic', async () => {
