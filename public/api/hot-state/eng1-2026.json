@@ -941,33 +941,137 @@
     },
     "eng1-brentford-chelsea": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "brentford",
+          "player": "Jaidon Anthony",
+          "minute": "61'"
+        },
+        {
+          "team": "brentford",
+          "player": "Igor Thiago",
+          "minute": "83'"
+        },
+        {
+          "team": "brentford",
+          "player": "Fábio Carvalho",
+          "minute": "90'+4'"
+        }
+      ]
     },
     "eng1-tottenham-aston-villa": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "aston-villa",
+          "player": "Johan Manzambi",
+          "minute": "45'+4'"
+        },
+        {
+          "team": "aston-villa",
+          "player": "Nicolas Jackson",
+          "minute": "67'"
+        },
+        {
+          "team": "aston-villa",
+          "player": "Emiliano Buendía",
+          "minute": "79'"
+        },
+        {
+          "team": "tottenham",
+          "player": "Conor Gallagher",
+          "minute": "86'"
+        },
+        {
+          "team": "tottenham",
+          "player": "Jan Paul van Hecke",
+          "minute": "90'+8'"
+        }
+      ]
     },
     "eng1-brighton-arsenal": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "brighton",
+          "player": "Pascal Gross",
+          "minute": "31'"
+        },
+        {
+          "team": "brighton",
+          "player": "Charalambos Kostoulas",
+          "minute": "45'"
+        },
+        {
+          "team": "brighton",
+          "player": "Chema Andrés",
+          "minute": "57'"
+        }
+      ]
     },
     "eng1-everton-ipswich": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "everton",
+          "player": "Thierno Barry",
+          "minute": "11'"
+        }
+      ]
     },
     "eng1-newcastle-hull": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "newcastle",
+          "player": "Joe Willock",
+          "minute": "3'"
+        },
+        {
+          "team": "newcastle",
+          "player": "Lewis Hall",
+          "minute": "7'"
+        },
+        {
+          "team": "hull",
+          "player": "Mohamed-Ali Cho",
+          "minute": "67'"
+        }
+      ]
     },
     "eng1-nottingham-forest-coventry": {
       "liveStatus": null,
-      "score": null,
-      "goals": null
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "coventry",
+          "player": "Jay Da Silva",
+          "minute": "55'"
+        }
+      ]
     },
     "eng1-bournemouth-liverpool": {
       "liveStatus": null,
