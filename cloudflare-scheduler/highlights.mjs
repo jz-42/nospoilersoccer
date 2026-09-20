@@ -57,6 +57,10 @@ export function projectedDailyBaseCost(sources = HIGHLIGHT_SOURCES) {
   return deepScanPageCost(sources) * 24
 }
 
+export function candidateRetryDelayMs(attemptCount) {
+  return attemptCount < 30 ? 60 * 1000 : 5 * 60 * 1000
+}
+
 export function pacificQuotaDay(now = new Date()) {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',
@@ -252,9 +256,16 @@ export function createD1HighlightStore(db) {
     },
 
     async recordCandidateResult(videoId, contentVersion, status, error = null, now = new Date()) {
-      const nextAttempt = status === 'retry'
-        ? new Date(now.getTime() + 5 * 60 * 1000).toISOString()
-        : null
+      let nextAttempt = null
+      if (status === 'retry') {
+        const row = await db
+          .prepare('SELECT attempt_count FROM candidates WHERE video_id = ? AND content_version = ?')
+          .bind(videoId, contentVersion)
+          .first()
+        nextAttempt = new Date(
+          now.getTime() + candidateRetryDelayMs(Number(row?.attempt_count ?? 0)),
+        ).toISOString()
+      }
       await db
         .prepare(
           `UPDATE candidates SET status = ?, next_attempt_at = ?, last_error = ?
