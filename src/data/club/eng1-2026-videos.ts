@@ -47,6 +47,7 @@ export const eng1_2026_videos: Record<string, HighlightVideo[]> = {
   'eng1-liverpool-nottingham-forest': [{ youtubeId: '7JhVpSsE9Cg', kind: 'normal' }],
   'eng1-manchester-city-bournemouth': [{ youtubeId: '8bWcZxr_bKE', kind: 'normal' }],
   'eng1-manchester-city-coventry': [{ youtubeId: 'hPFyxjFj6nI', kind: 'normal' }],
+  'eng1-manchester-city-sunderland': [{ youtubeId: 'JXdEMD3NOOY', kind: 'normal' }],
   'eng1-manchester-united-ipswich': [{ youtubeId: 'o5IagQpM_kE', kind: 'normal' }],
   'eng1-manchester-united-manchester-city': [{ youtubeId: 'AIBC0fJMgLA', kind: 'normal' }],
   'eng1-newcastle-bournemouth': [{ youtubeId: 'yBbX4kzQQKE', kind: 'normal' }],
