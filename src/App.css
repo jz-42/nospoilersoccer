@@ -661,9 +661,31 @@
   overscroll-behavior-x: contain;
   scrollbar-width: none;
   touch-action: pan-x;
-  /* fade the edges so off-centre days dissolve rather than hard-clip */
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  /*
+   * Fade the edges so off-centre days dissolve rather than hard-clip. The
+   * runway is a fixed length, not a percentage of the window: 14% is ~84px on
+   * a desktop carousel and a neighbouring day melts away long before the arrow
+   * button, but the same 14% on a phone is ~39px — too short to fade a 19px
+   * bold word, so the next day arrived at the arrow still legible and cut off
+   * mid-letter ("Sund" parked on the next-day button). A constant runway fades
+   * identically at every width; it only has to stay clear of the centred
+   * active item, which is 134px wide on the narrowest layout.
+   */
+  --day-peek-fade: 84px;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 var(--day-peek-fade),
+    #000 calc(100% - var(--day-peek-fade)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 var(--day-peek-fade),
+    #000 calc(100% - var(--day-peek-fade)),
+    transparent
+  );
 }
 
 .day-carousel-window::-webkit-scrollbar {
@@ -811,18 +833,37 @@
   border-color: var(--border-strong);
 }
 
-/* Column count + width come from useBalancedColumns (inline style) so rows
-   stay balanced for any match count; here we just centre the block and let
-   each card fill its pixel-sized column. */
+/* Two elements on purpose. `.day-grid` is full width and is what the hook
+   measures; `.day-grid-rows` is pinned to exactly --day-cols cards wide and
+   wraps. Flex then centres every row, short last row included, and full rows
+   still align because every card is --day-card-w. Pinning the measured
+   element instead would feed its own width back in as the next measurement. */
 .day-grid {
   --day-flag-size: 54px;
   --day-flag-gap: 18px;
-  display: grid;
-  justify-content: center;
-  gap: 16px;
+  --day-cols: 1;
+  --day-card-w: 348px;
+  /* One source of truth for the gap: the hook reads it off this element to
+     pin the row width, so a second literal would wrap a card early. */
+  --day-gap: 16px;
+  column-gap: var(--day-gap);
+  row-gap: var(--day-gap);
 }
+
+.day-grid-rows {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--day-gap);
+  width: calc(
+    var(--day-cols) * var(--day-card-w) + (var(--day-cols) - 1) * var(--day-gap)
+  );
+  margin-inline: auto;
+}
+
 .day-grid .preview-card {
-  width: 100%;
+  width: var(--day-card-w);
+  flex: 0 0 auto;
 }
 
 .day-grid .preview-matchup {
@@ -1155,6 +1196,10 @@
     box-shadow 0.15s,
     opacity 0.15s;
   box-shadow: var(--shadow);
+  /* Keep the card on its own compositor layer at rest, so the hover lift
+     doesn't promote it mid-interaction — that re-layering is what made the
+     frosted chips inside re-sample their backdrop and flash. */
+  will-change: transform;
 }
 
 .preview-card:hover {
@@ -1466,11 +1511,14 @@
 
 /* Watch affordance: a glass circle in the center slot between the two flags —
    the Today tab is the watch surface, so this is the most important button in
-   the app. Real glass physics: backdrop blur pulls the matchup colors through
-   it, a specular top edge and lower inner shade give it curvature, and the
-   halo is tinted by the card's own team colors (not generic black) so an
-   England–Congo button glows faintly red–blue at its rim. The rectangular
-   flags beside it mean it can't read as a row of three tokens. */
+   the app. A translucent fill lets the matchup colors through, a specular top
+   edge and lower inner shade give it curvature, and the halo is tinted by the
+   card's own team colors (not generic black) so an England–Congo button glows
+   faintly red–blue at its rim. The rectangular flags beside it mean it can't
+   read as a row of three tokens.
+   No backdrop-filter: what sits behind it is a smooth field, so a blur buys
+   nothing, and on hover the card's lift re-layers it — Chromium re-samples
+   the backdrop and flashes the disc white for a frame. */
 .preview-play {
   display: inline-flex;
   align-items: center;
@@ -1481,8 +1529,6 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.17);
   border: 1.5px solid rgba(255, 255, 255, 0.7);
-  -webkit-backdrop-filter: blur(8px) saturate(1.35);
-  backdrop-filter: blur(8px) saturate(1.35);
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
@@ -1555,8 +1601,18 @@
 .preview-meta {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 2px;
   padding: 10px 13px 12px;
+  /* Most cards now carry only the team names; the few that must explain
+     themselves (FT with no highlight yet, a locked knockout slot) add a second
+     line and stand taller. Grid rows stretch to the tallest card, and the art
+     above has a fixed aspect ratio, so without this the extra height would
+     land as a strip of bare panel colour under the shorter captions. Letting
+     the caption take the slack instead — and centring inside it — keeps one
+     clean band across a mixed row, at its natural tight height when the row
+     has nothing extra to say. */
+  flex: 1;
   /* A whisper of the matchup tint bleeds under the caption so card art and
      meta read as one object, not a picture with a label stuck on. The vars
      live on the card root; unknown matchups resolve to transparent. */
@@ -1665,9 +1721,9 @@
    than the cap-height default. The negative baseline offset grows with it so
    the badge stays optically centred on the name. */
 .group-grid-single .standings .crest-badge {
-  width: 1.45em;
-  height: 1.45em;
-  vertical-align: -0.4em;
+  width: 1.7em;
+  height: 1.7em;
+  vertical-align: -0.48em;
   margin-right: 1px;
 }
 
@@ -1759,6 +1815,88 @@
 
 .standings tr.advances td:first-child {
   box-shadow: inset 2.5px 0 0 var(--accent);
+}
+
+/*
+ * League-table zones — the bar down the left edge that every table in the
+ * sport draws, and the one thing ours was missing.
+ *
+ * Deliberately not green. The green in this app has exactly one meaning,
+ * "you can watch this", and a green bar beside a team name would be the
+ * second. The bands borrow the blue already in the page's corner glow: full
+ * strength for a place secured, half for a place that still has to be played
+ * for, and the existing danger red — dimmed, because it is a standing and not
+ * an error — for the drop.
+ */
+.standings tr.zone-qualify td:first-child {
+  box-shadow: inset 2.5px 0 0 rgba(82, 140, 255, 0.85);
+}
+
+.standings tr.zone-playoff td:first-child {
+  box-shadow: inset 2.5px 0 0 rgba(82, 140, 255, 0.34);
+}
+
+.standings tr.zone-drop td:first-child {
+  box-shadow: inset 2.5px 0 0 rgba(229, 83, 75, 0.6);
+}
+
+.table-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--border);
+}
+
+.table-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.table-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* The swatch is the same bar at the same width as the one on the rows, so the
+   legend is read as a key rather than as decoration beside it. */
+.table-legend-item::before {
+  content: '';
+  width: 2.5px;
+  height: 11px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.table-legend-item.zone-qualify::before {
+  background: rgba(82, 140, 255, 0.85);
+}
+
+.table-legend-item.zone-playoff::before {
+  background: rgba(82, 140, 255, 0.34);
+}
+
+.table-legend-item.zone-drop::before {
+  background: rgba(229, 83, 75, 0.6);
+}
+
+/* The table only counts matches you have opened, so a half-revealed season
+   ranks a title contender fourteenth. Saying so is the difference between a
+   table that looks broken and one that is honestly partial. */
+.table-note {
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.85;
 }
 
 .group-matches {
@@ -3804,21 +3942,22 @@
   color: var(--text-h);
 }
 
-/* Shown in place of the bar when a match has no Polymarket market. */
-.odds-none {
-  margin: -2px 0 16px;
-  text-align: center;
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-}
-
+/* The scorer mirror runs on exactly the geometry of `.modal-teams` — same
+   three columns, same gap, same middle width — so each column's centre line
+   falls through the crest above it. That, and nothing else, is what says whose
+   goals these are. Get the template out of step and a 2–0 puts both names in
+   the middle of the sheet, attributed to neither side. */
 .modal-goals {
   display: grid;
+  width: 100%;
   grid-template-columns: 1fr auto 1fr;
-  gap: 14px;
+  gap: 16px;
   align-items: start;
-  margin: -8px 0 18px;
+  margin: -2px 0 4px;
+}
+
+.goals-mid {
+  min-width: 78px;
 }
 
 /* Scorers the way a broadcast graphic sets them: the name in near-white, the
@@ -3828,6 +3967,13 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+  /* A hat-trick is three lines under one crest and a blank column opposite;
+     balancing keeps long names from leaving one line a single orphaned word. */
+  text-wrap: balance;
   font-size: 12.5px;
   font-weight: 500;
   color: rgba(250, 252, 255, 0.95);
@@ -3841,19 +3987,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.goals-home {
-  text-align: right;
-}
-
-.goals-away {
-  text-align: left;
-}
-
-.goals-ball {
-  font-size: 11px;
-  opacity: 0.72;
-  margin-top: 2px;
-}
 
 .modal-body {
   display: flex;
@@ -4656,7 +4789,7 @@
   }
 
   .day-grid {
-    gap: 10px;
+    --day-gap: 10px;
   }
   .day-grid .preview-card {
     max-width: 420px;
@@ -4668,6 +4801,9 @@
 
   .day-carousel-window {
     height: 52px;
+    /* Window is ~282px here; 62px each side still leaves the 134px active
+       item a clear 158px in the middle. */
+    --day-peek-fade: 62px;
   }
 
   .day-item-label {

@@ -4,7 +4,7 @@ import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
 import { buildGoogleCalendarUrl } from '../calendar/google'
 import { matchTint } from '../data/team-colors'
-import type { GroupMatch, KnockoutMatch, Tournament } from '../data/types'
+import type { Goal, GroupMatch, KnockoutMatch, TeamId, Tournament } from '../data/types'
 import { tieOf } from '../data/types'
 import {
   canForceReveal,
@@ -157,6 +157,30 @@ function EntertainmentDisclosureRow({
         <p className="entertainment-disclaimer">AI generated — take with a grain of salt.</p>
       </div>
     </DisclosureRow>
+  )
+}
+
+/**
+ * One side's scorers, in the order they scored. Rendered even when the side
+ * has none: an empty column keeps the mirror's geometry, which is what holds
+ * the other side's names under their own crest in a 3–0.
+ */
+function ScorerList({ goals, team }: { goals: Goal[]; team: TeamId | null }) {
+  return (
+    <ul className="goals-side">
+      {goals
+        .filter((g) => team !== null && g.team === team)
+        .map((g, i) => (
+          <li key={i}>
+            {g.player}{' '}
+            <span className="goal-min">
+              {g.minute}
+              {g.penalty ? ' (P)' : ''}
+              {g.ownGoal ? ' (OG)' : ''}
+            </span>
+          </li>
+        ))}
+    </ul>
   )
 }
 
@@ -487,9 +511,6 @@ export function MatchModal({
             showLink={!kickedOff}
           />
         )}
-        {!mark && !m.odds && target.kind === 'group' && (
-          <p className="odds-none">No pre-match odds available</p>
-        )}
 
         <div className="modal-body">
           {locked && km ? (
@@ -513,6 +534,18 @@ export function MatchModal({
           ) : mark ? (
             <>
               {summary && <div className="modal-summary">{summary}</div>}
+              {/* Scorers sit directly under the scoreline they explain, on the
+                  same three-column geometry as the crests above, so each side's
+                  list reads as belonging to the crest it sits beneath — no
+                  labels needed, and a shutout leaves an honestly empty half
+                  rather than drifting to the middle. */}
+              {m.goals && m.goals.length > 0 && (
+                <div className="modal-goals">
+                  <ScorerList goals={m.goals} team={homeTeam} />
+                  <div className="goals-mid" aria-hidden="true" />
+                  <ScorerList goals={m.goals} team={awayTeam} />
+                </div>
+              )}
               {m.videos && m.videos.length > 0 && (
                 <HighlightPlayer
                   videos={m.videos}
@@ -524,39 +557,6 @@ export function MatchModal({
                   marked
                   onReveal={() => {}}
                 />
-              )}
-              {m.goals && m.goals.length > 0 && (
-                <div className="modal-goals">
-                  <div className="goals-side goals-home">
-                    {m.goals
-                      .filter((g) => g.team === homeTeam)
-                      .map((g, i) => (
-                        <span key={i}>
-                          {g.player}{' '}
-                          <span className="goal-min">
-                            {g.minute}
-                            {g.penalty ? ' (P)' : ''}
-                            {g.ownGoal ? ' (OG)' : ''}
-                          </span>
-                        </span>
-                      ))}
-                  </div>
-                  <span className="goals-ball">⚽</span>
-                  <div className="goals-side goals-away">
-                    {m.goals
-                      .filter((g) => g.team === awayTeam)
-                      .map((g, i) => (
-                        <span key={i}>
-                          {g.player}{' '}
-                          <span className="goal-min">
-                            {g.minute}
-                            {g.penalty ? ' (P)' : ''}
-                            {g.ownGoal ? ' (OG)' : ''}
-                          </span>
-                        </span>
-                      ))}
-                  </div>
-                </div>
               )}
               <button
                 type="button"

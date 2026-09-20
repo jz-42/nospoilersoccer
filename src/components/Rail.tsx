@@ -32,7 +32,10 @@ import {
   getCarouselVisualState,
   getCommittedDaySwipe,
   getDayCardMetrics,
+  getDayLayout,
+  COLUMN_WIDTH,
 } from './railLayout'
+import type { DayLayout } from './railLayout'
 
 function allEntries(t: Tournament): RailEntry[] {
   const out: RailEntry[] = []
@@ -55,25 +58,21 @@ function allEntries(t: Tournament): RailEntry[] {
   )
 }
 
-const GRID_GAP = 16
-const CARD_MIN = 230 // narrowest a card may get before we drop a column
-// Lighter days get gently bigger cards — an even step up from the 4/6 base.
-const CARD_MAX = 348 // 4+ matches (a 4-across card; 6 matches 4)
-const TRIO_MAX = 378 // 3 matches
-const DUO_MAX = 424 // 2 matches
-const HERO_MAX = 470 // a lone match — the biggest "hero" card
-
 /**
- * Lay the day's cards out in *balanced* rows. CSS can pack cards but can't
- * balance them — only we know the match count — so a six-match day that only
- * fits five across becomes a tidy 3 + 3 instead of an ugly 5 + 1, two matches
- * sit together rather than drifting to opposite edges, and a single match
- * blooms into one hero card. Columns are sized in pixels and the whole block
- * is centred, so cards never stretch to fill a half-empty row.
+ * Size the day's cards and pick a row width.
+ *
+ * The shapes themselves live in `getDayLayout` — see the table there. What
+ * this owns is measuring, and the one structural trick that makes a short
+ * last row centre: the *outer* element is full width and is what we measure,
+ * while the inner one is pinned to exactly `cols` cards wide and wraps. Flex
+ * then does the rest, centring every row including the short one, and full
+ * rows still line up because every card is the same width. Measuring the
+ * outer element is what keeps that from feeding back on itself — pinning the
+ * element you measure makes its own width the next input.
  */
-function useBalancedColumns(count: number) {
+function useDayColumns(count: number) {
   const ref = useRef<HTMLDivElement>(null)
-  const [layout, setLayout] = useState({ cols: 1, width: CARD_MAX })
+  const [layout, setLayout] = useState<DayLayout>({ cols: 1, width: COLUMN_WIDTH[1] })
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -81,12 +80,10 @@ function useBalancedColumns(count: number) {
     const measure = () => {
       const avail = el.clientWidth
       if (!avail) return
-      const maxCols = Math.max(1, Math.floor((avail + GRID_GAP) / (CARD_MIN + GRID_GAP)))
-      const rows = Math.ceil(count / maxCols)
-      const cols = Math.ceil(count / rows)
-      const cap = { 1: HERO_MAX, 2: DUO_MAX, 3: TRIO_MAX }[count] ?? CARD_MAX
-      const width = Math.min(cap, Math.floor((avail - (cols - 1) * GRID_GAP) / cols))
-      setLayout({ cols, width })
+      // Read the gap from CSS rather than hard-coding it: it tightens on
+      // mobile, and a row pinned to the wrong gap wraps a card early.
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0
+      setLayout(getDayLayout(count, avail, gap))
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -96,7 +93,8 @@ function useBalancedColumns(count: number) {
 
   const { flagSize, flagGap } = getDayCardMetrics(layout.width)
   const style: CSSProperties = {
-    gridTemplateColumns: `repeat(${layout.cols}, ${layout.width}px)`,
+    ['--day-cols' as string]: layout.cols,
+    ['--day-card-w' as string]: `${layout.width}px`,
     ['--day-flag-size' as string]: `${flagSize}px`,
     ['--day-flag-gap' as string]: `${flagGap}px`,
   }
@@ -385,7 +383,7 @@ function DaySwitcher({
 
   const date = dates[idx]
   const dayEntries = entries.filter((e) => e.date === date)
-  const [gridRef, gridStyle] = useBalancedColumns(dayEntries.length)
+  const [gridRef, gridStyle] = useDayColumns(dayEntries.length)
 
   const yesterday = addLocalDays(today, -1)
   const tomorrow = addLocalDays(today, 1)
@@ -570,9 +568,17 @@ function DaySwitcher({
 
       {!isRestDay ? (
         <div className="day-grid" ref={gridRef} style={gridStyle}>
-          {dayEntries.map((e) => (
-            <PreviewCard key={e.target.match.id} t={t} entry={e} progress={progress} onOpen={onOpen} />
-          ))}
+          <div className="day-grid-rows">
+            {dayEntries.map((e) => (
+              <PreviewCard
+                key={e.target.match.id}
+                t={t}
+                entry={e}
+                progress={progress}
+                onOpen={onOpen}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <RestDay date={date} />

@@ -87,8 +87,16 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+  /* Gradients paint under the border but are sized to the padding box by
+     default, so they tile: a translucent border shows a 1px sliver of the
+     *far* end of the gradient — the away colour down the home edge of every
+     match sheet. Sizing to the border box makes the tile cover what it
+     paints. */
+  background-origin: border-box;
 }
 
 body {
