@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "tournamentId": "eng1-2026",
-  "version": 234154406894858,
-  "generatedAt": "2026-09-19T23:00:39.183Z",
+  "version": 211275110982639,
+  "generatedAt": "2026-09-20T07:35:34.479Z",
   "matches": {
     "eng1-arsenal-coventry": [
       {
@@ -241,6 +241,42 @@
     "eng1-leeds-newcastle": [
       {
         "youtubeId": "3o5LJWz8euw",
+        "kind": "normal"
+      }
+    ],
+    "eng1-brentford-chelsea": [
+      {
+        "youtubeId": "DGRzyNh7mFQ",
+        "kind": "normal"
+      }
+    ],
+    "eng1-tottenham-aston-villa": [
+      {
+        "youtubeId": "Yo2o43dM_VM",
+        "kind": "normal"
+      }
+    ],
+    "eng1-brighton-arsenal": [
+      {
+        "youtubeId": "_dfxDY74ChQ",
+        "kind": "normal"
+      }
+    ],
+    "eng1-everton-ipswich": [
+      {
+        "youtubeId": "k_LmgAJILnQ",
+        "kind": "normal"
+      }
+    ],
+    "eng1-newcastle-hull": [
+      {
+        "youtubeId": "DjQjGiUZ4_U",
+        "kind": "normal"
+      }
+    ],
+    "eng1-nottingham-forest-coventry": [
+      {
+        "youtubeId": "HOyQlCRPcEo",
         "kind": "normal"
       }
     ]
