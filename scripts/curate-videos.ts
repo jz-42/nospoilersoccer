@@ -30,7 +30,7 @@ import { isPlayed } from '../src/logic/spoilers'
 import { checkEmbeddable, FOX_CHANNEL_ID, getVideoMeta, getVideoMetaFromFeed, listFoxUploads, parseHighlightTitle } from './youtube'
 import { checkFoxEmbed, listFoxQuickRecaps } from './fox'
 import type { FoxVideoMeta } from './fox'
-import { loadTargetedMetadata, loadTargetedUploads } from './highlight-candidate'
+import { loadTargetedMetadata, loadTargetedUploads, parseTargetedMetadata } from './highlight-candidate'
 
 const VIDEOS_FILE = 'src/data/wc2026-videos.ts'
 const SKIP_FILE = 'scripts/curate-skip.json'
@@ -49,6 +49,13 @@ const targetVideoId = (() => {
   if (!id || !/^[A-Za-z0-9_-]{11}$/.test(id)) throw new Error('--video-id requires an 11-character YouTube id')
   return id
 })()
+const providedTargetMetadata = targetVideoId
+  ? parseTargetedMetadata(targetVideoId, {
+      title: process.env.HIGHLIGHT_CANDIDATE_TITLE,
+      channelId: process.env.HIGHLIGHT_CANDIDATE_CHANNEL_ID,
+      publishedAt: process.env.HIGHLIGHT_CANDIDATE_PUBLISHED_AT,
+    })
+  : null
 
 // ---- team-name resolution --------------------------------------------------
 
@@ -386,7 +393,7 @@ async function runCurate() {
   const targeted = await loadTargetedUploads(
     targetVideoId,
     () => listFoxUploads(100),
-    (id) => loadTargetedMetadata(id, FOX_CHANNEL_ID, getVideoMetaFromFeed, getVideoMeta),
+    (id) => loadTargetedMetadata(id, FOX_CHANNEL_ID, providedTargetMetadata, getVideoMetaFromFeed, getVideoMeta),
   )
   const uploads = targeted.uploads
   console.log(`Scanning ${uploads.length} FOX YouTube uploads${dryRun ? ' (dry-run)' : ''}…`)

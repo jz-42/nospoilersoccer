@@ -233,7 +233,7 @@ export function createD1HighlightStore(db) {
     async dueCandidates(now = new Date(), limit = 20) {
       const rows = await db
         .prepare(
-          `SELECT video_id, source_id, content_version FROM candidates
+          `SELECT video_id, source_id, content_version, channel_id, title, published_at FROM candidates
            WHERE attempt_count < 288 AND (
              status = 'pending' OR
              (status IN ('queued', 'dispatched', 'retry') AND next_attempt_at <= ?)
@@ -245,6 +245,9 @@ export function createD1HighlightStore(db) {
         videoId: row.video_id,
         sourceId: row.source_id,
         contentVersion: row.content_version,
+        channelId: row.channel_id,
+        title: row.title,
+        publishedAt: row.published_at,
       }))
     },
 
@@ -314,7 +317,18 @@ function channelFromTopic(topic) {
   }
 }
 
-export async function handleWebSubRequest(request, { store, queue }) {
+function queueCandidate(candidate) {
+  return {
+    videoId: candidate.videoId,
+    sourceId: candidate.sourceId,
+    contentVersion: candidate.contentVersion,
+    channelId: candidate.channelId,
+    title: candidate.title,
+    publishedAt: candidate.publishedAt,
+  }
+}
+
+export async function handleWebSubRequest(request, { store, queue, fetchImpl = fetch }) {
   if (request.method === 'GET') {
     const url = new URL(request.url)
     const mode = url.searchParams.get('hub.mode')
@@ -336,13 +350,24 @@ export async function handleWebSubRequest(request, { store, queue }) {
   await store.recordNotification?.(parsed.channelId)
   if (!isPotentialHighlight(source.id, parsed.title)) return new Response(null, { status: 204 })
 
-  const contentVersion = await sha256Hex(
-    JSON.stringify([parsed.title, parsed.publishedAt, parsed.updatedAt]),
+  const feedResponse = await fetchImpl(
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`,
   )
-  const candidate = { ...parsed, sourceId: source.id, contentVersion, discoveredBy: 'websub' }
+  if (!feedResponse.ok) return new Response('feed verification unavailable', { status: 503 })
+  const verified = parseYouTubeFeed(await feedResponse.text()).find(
+    (entry) => entry.videoId === parsed.videoId && entry.channelId === source.channelId,
+  )
+  if (!verified || !isPotentialHighlight(source.id, verified.title)) {
+    return new Response(null, { status: 204 })
+  }
+
+  const contentVersion = await sha256Hex(
+    JSON.stringify([verified.title, verified.publishedAt, verified.updatedAt]),
+  )
+  const candidate = { ...verified, sourceId: source.id, contentVersion, discoveredBy: 'websub' }
   const result = await store.upsertCandidate(candidate)
   if (result !== 'unchanged') {
-    await queue.send({ videoId: candidate.videoId, sourceId: source.id, contentVersion })
+    await queue.send(queueCandidate(candidate))
     await store.markQueued?.(candidate.videoId, contentVersion)
   }
   return new Response(null, { status: 204 })
@@ -400,7 +425,7 @@ export async function runHighlightRecovery({
           }
           const changed = await store.upsertCandidate(candidate)
           if (changed === 'unchanged') continue
-          await queue.send({ videoId, sourceId: source.id, contentVersion })
+          await queue.send(queueCandidate(candidate))
           await store.markQueued?.(videoId, contentVersion, now)
           result.candidatesChanged += 1
         }
@@ -440,7 +465,7 @@ export async function runFeedRecovery({ now = new Date(), store, queue, fetchImp
         }
         const changed = await store.upsertCandidate(candidate)
         if (changed === 'unchanged') continue
-        await queue.send({ videoId: parsed.videoId, sourceId: source.id, contentVersion })
+        await queue.send(queueCandidate(candidate))
         await store.markQueued?.(parsed.videoId, contentVersion, now)
         result.candidatesChanged += 1
       }
@@ -548,6 +573,9 @@ export function createHighlightDispatchClient({
             video_id: candidate.videoId,
             source_id: candidate.sourceId,
             content_version: candidate.contentVersion,
+            channel_id: candidate.channelId,
+            candidate_title: candidate.title,
+            published_at: candidate.publishedAt,
           },
         }),
       })

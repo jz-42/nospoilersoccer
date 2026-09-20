@@ -59,7 +59,7 @@ import { clubIdByName, clubs } from '../src/data/club/clubs'
 import { isPlayed } from '../src/logic/spoilers'
 import { CLUB_COMPETITIONS, SEASON_YEAR, pairKey, videosExportName, videosModulePath } from './espn-club'
 import type { ClubCompetitionConfig } from './espn-club'
-import { loadTargetedMetadata } from './highlight-candidate'
+import { loadTargetedMetadata, parseTargetedMetadata } from './highlight-candidate'
 import { checkEmbeddable, getVideoMeta, getVideoMetaFromFeed } from './youtube'
 
 const API_KEY = process.env.YOUTUBE_API_KEY
@@ -75,6 +75,13 @@ const targetVideoId = (() => {
   if (!id || !/^[A-Za-z0-9_-]{11}$/.test(id)) throw new Error('--video-id requires an 11-character YouTube id')
   return id
 })()
+const providedTargetMetadata = targetVideoId
+  ? parseTargetedMetadata(targetVideoId, {
+      title: process.env.HIGHLIGHT_CANDIDATE_TITLE,
+      channelId: process.env.HIGHLIGHT_CANDIDATE_CHANNEL_ID,
+      publishedAt: process.env.HIGHLIGHT_CANDIDATE_PUBLISHED_AT,
+    })
+  : null
 const onlyCompetition = (() => {
   const i = process.argv.indexOf('--competition')
   return i === -1 ? null : process.argv[i + 1]
@@ -772,6 +779,7 @@ async function run() {
     ? await loadTargetedMetadata(
         targetVideoId,
         targetSources[0].channelId,
+        providedTargetMetadata,
         getVideoMetaFromFeed,
         getVideoMeta,
       ).then(async (metadata) => ({

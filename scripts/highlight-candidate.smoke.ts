@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 
-import { loadTargetedMetadata, loadTargetedUploads } from './highlight-candidate'
+import { loadTargetedMetadata, loadTargetedUploads, parseTargetedMetadata } from './highlight-candidate'
 import { getVideoMetaFromFeed } from './youtube'
 
 let listed = 0
@@ -75,9 +75,16 @@ await assert.rejects(
 )
 
 let apiFallbackCalls = 0
+const provided = parseTargetedMetadata('target00001', {
+  title: 'Provided title',
+  channelId: 'UCexpectedChannel0000000',
+  publishedAt: '2026-09-19T20:00:00Z',
+})
+assert.equal(provided?.title, 'Provided title')
 const feedFirst = await loadTargetedMetadata(
   'target00001',
   'UCexpectedChannel0000000',
+  null,
   async () => feedMeta,
   async () => {
     apiFallbackCalls += 1
@@ -90,13 +97,33 @@ assert.equal(apiFallbackCalls, 0, 'a successful public feed lookup uses no Data 
 const fallback = await loadTargetedMetadata(
   'target00001',
   'UCexpectedChannel0000000',
+  null,
   async () => { throw new Error('feed temporarily unavailable') },
   async (id) => {
     apiFallbackCalls += 1
-    return metadata(id)
+    return { ...(await metadata(id)), channelId: 'UCexpectedChannel0000000' }
   },
 )
 assert.equal(fallback.title, 'Target title')
 assert.equal(apiFallbackCalls, 1, 'the Data API is retained only as a recovery fallback')
+
+const providedFirst = await loadTargetedMetadata(
+  'target00001',
+  'UCexpectedChannel0000000',
+  provided,
+  async () => { throw new Error('feed must not be called') },
+  async () => { throw new Error('fallback must not be called') },
+)
+assert.equal(providedFirst.title, 'Provided title')
+await assert.rejects(
+  loadTargetedMetadata(
+    'target00001',
+    'UCexpectedChannel0000000',
+    { ...providedFirst, channelId: 'UCwrongChannel0000000000' },
+    async () => feedMeta,
+    metadata,
+  ),
+  /does not belong to expected channel/,
+)
 
 console.log('ALL TARGETED CURATION TESTS PASS')
