@@ -1,24 +1,84 @@
 import { readFileSync } from 'node:fs'
 import {
   findNearestItemIndex,
-  getDayColumns,
   getCarouselVisualState,
   getCommittedDaySwipe,
   getDayCardMetrics,
+  getDayLayout,
+  getDayRows,
 } from './railLayout'
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
 }
 
-const cols = (count: number, fit: number) => getDayColumns(count, fit)
-assert(cols(10, 4) === 4, `expected ten across four columns, got ${cols(10, 4)}`)
-assert(cols(7, 4) === 4, `expected seven across four columns, got ${cols(7, 4)}`)
-assert(cols(5, 4) === 3, `expected five to drop a column (3 + 2), got ${cols(5, 4)}`)
-assert(cols(9, 4) === 3, `expected nine to drop a column (3 x 3), got ${cols(9, 4)}`)
-assert(cols(2, 4) === 2, `expected two matches to open two columns, got ${cols(2, 4)}`)
-assert(cols(1, 4) === 1, `expected a lone match to open one column, got ${cols(1, 4)}`)
-assert(cols(7, 3) === 3, `expected an unavoidable widow to keep the widest fit, got ${cols(7, 3)}`)
+/*
+ * The agreed shape of every day, pinned. `avail` is 1424 — what `.app-main`
+ * hands the grid on any screen from a 1512 laptop up, since it caps at
+ * 1480px wide. A day has 1-10 or 18 matches in practice (see
+ * .context/counts.ts, which checks every league in six timezones); 11-17 are
+ * here so the rule stays total.
+ */
+const WIDE = 1424
+const SHAPES: [count: number, rows: number[], width: number][] = [
+  [1, [1], 470],
+  [2, [2], 424],
+  [3, [3], 378],
+  [4, [2, 2], 424],
+  [5, [3, 2], 378],
+  [6, [3, 3], 378],
+  [7, [4, 3], 344],
+  [8, [4, 4], 344],
+  [9, [4, 4, 1], 344],
+  [10, [4, 4, 2], 344],
+  [11, [4, 4, 3], 344],
+  [12, [4, 4, 4], 344],
+  [13, [5, 5, 3], 272],
+  [18, [5, 5, 5, 3], 272],
+]
+for (const [count, rows, width] of SHAPES) {
+  const layout = getDayLayout(count, WIDE, 16)
+  const actual = getDayRows(count, layout.cols)
+  assert(
+    actual.join('+') === rows.join('+'),
+    `expected ${count} matches to lay out ${rows.join('+')}, got ${actual.join('+')}`,
+  )
+  assert(
+    layout.width === width,
+    `expected ${count} matches at ${width}px cards, got ${layout.width}px`,
+  )
+}
+
+// Every row fits the width it claims, with its gaps.
+for (const [count] of SHAPES) {
+  const { cols, width } = getDayLayout(count, WIDE, 16)
+  const rowWidth = cols * width + (cols - 1) * 16
+  assert(rowWidth <= WIDE, `a row of ${count}'s layout overflows: ${rowWidth} > ${WIDE}`)
+}
+
+/*
+ * Narrow screens keep the same table, just fewer columns. A card never goes
+ * under CARD_MIN (230) until the viewport itself is narrower than that.
+ */
+const phone = getDayLayout(10, 358, 10)
+assert(phone.cols === 1, `expected a phone to stack the day, got ${phone.cols} columns`)
+assert(phone.width === 358, `expected a phone card to fill the width, got ${phone.width}px`)
+
+const tablet = getDayLayout(10, 712, 16)
+assert(tablet.cols === 2, `expected a tablet to open two columns, got ${tablet.cols}`)
+assert(tablet.width === 348, `expected a tablet card of 348px, got ${tablet.width}px`)
+
+const laptop = getDayLayout(10, 1224, 16)
+assert(laptop.cols === 4, `expected a 1280 laptop to keep four columns, got ${laptop.cols}`)
+assert(laptop.width === 294, `expected a 1280 laptop card of 294px, got ${laptop.width}px`)
+
+// A day never opens more columns than it has matches.
+assert(getDayLayout(2, WIDE, 16).cols === 2, 'two matches never open a third column')
+assert(getDayLayout(1, WIDE, 16).cols === 1, 'a lone match stays a lone hero card')
+
+// Degenerate inputs stay sane rather than producing NaN widths.
+assert(getDayLayout(0, WIDE, 16).width > 0, 'an empty day still resolves a positive width')
+assert(getDayLayout(9, 0, 16).width > 0, 'an unmeasured grid still resolves a positive width')
 
 const hero = getDayCardMetrics(470)
 assert(hero.flagSize === 84, `expected hero flag size 84, got ${hero.flagSize}`)

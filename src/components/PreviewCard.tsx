@@ -10,13 +10,13 @@ import { matchTint } from '../data/team-colors'
 import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
 import { resolveSlot, slotLabel } from '../logic/spoilers'
-import { hasGroups, roundLabel } from '../navigation'
+import { hasGroups } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
-import { formatDate, formatRuntimeBadge } from './format'
+import { formatRuntimeBadge } from './format'
 import { KickoffTime } from './KickoffTime'
 
 export interface RailEntry {
@@ -29,13 +29,11 @@ export function PreviewCard({
   entry,
   progress,
   onOpen,
-  showDate = false,
 }: {
   t: Tournament
   entry: RailEntry
   progress: Progress
   onOpen: (target: ModalTarget) => void
-  showDate?: boolean
 }) {
   const { target } = entry
   const m = target.match
@@ -44,17 +42,19 @@ export function PreviewCard({
 
   let homeLabel: string
   let awayLabel: string
-  let context: string
+  /** The chip on the art, or null when it would say the same on every card. */
+  let context: string | null
 
   if (target.kind === 'group') {
     const gm = m as GroupMatch
     homeLabel = t.teams[gm.home].name
     awayLabel = t.teams[gm.away].name
-    // A cup's group is a real name people use ("Group F"). A single-table
-    // competition's sole group is called 'league' in the data, and printing
-    // that gave every Premier League card a chip reading "GROUP LEAGUE" —
-    // the round it belongs to is the matchweek (or matchday, per competition).
-    context = hasGroups(t) ? `Group ${gm.group}` : `${roundLabel(t)} ${gm.matchday}`
+    // A cup's group is a real name people use ("Group F"), and a day mixes
+    // several of them, so the chip tells the cards apart. A single-table
+    // competition has only the matchweek number, which is the same on every
+    // card of the day — ten chips reading MATCHDAY 30 that distinguish
+    // nothing. The modal still carries it for the one match you opened.
+    context = hasGroups(t) ? `Group ${gm.group}` : null
   } else {
     const km = m as KnockoutMatch
     const home = resolveSlot(t, km, 'home', progress.marks, progress.revealed)
@@ -77,18 +77,23 @@ export function PreviewCard({
 
   const runtimeBadge = formatRuntimeBadge(m.videos)
 
+  /**
+   * The caption's second line, and only when the card cannot say it in
+   * pictures. 'Highlights ready' is the play button, 'Not played yet' is the
+   * kickoff time, 'Watched' is the ✓ and the score — printing those was
+   * captioning an image with its own contents. What survives are the two
+   * states with nothing to look at: a finished match whose highlights haven't
+   * landed (FT badge, no play button, and otherwise no explanation for the
+   * absence) and a knockout slot still waiting on its feeder ties.
+   */
   const sub =
     liveStatus
       ? null
-      : state === 'watch'
-      ? 'Highlights ready'
       : state === 'ft'
-        ? 'Result in · highlights soon'
-        : state === 'upcoming'
-          ? 'Not played yet'
-          : state === 'locked'
-            ? 'Finish the games that decide it'
-            : 'Watched'
+        ? 'Highlights soon'
+        : state === 'locked'
+          ? 'Finish the games that decide it'
+          : null
 
   const pinned = progress.pins.has(m.id)
   const homeId =
@@ -120,7 +125,7 @@ export function PreviewCard({
         <span className="match-fabric" aria-hidden="true">
           <span />
         </span>
-        <span className="preview-tag">{context}</span>
+        {context && <span className="preview-tag">{context}</span>}
         {liveStatus
           ? badge
           : badge && <span className={`preview-badge badge-${state}`}>{badge}</span>}
@@ -167,12 +172,7 @@ export function PreviewCard({
         <span className="preview-teams">
           {homeLabel} <span className="preview-vs-text">v</span> {awayLabel}
         </span>
-        {sub && (
-          <span className="preview-sub">
-            {showDate ? `${formatDate(entry.date)} · ` : ''}
-            {sub}
-          </span>
-        )}
+        {sub && <span className="preview-sub">{sub}</span>}
       </div>
     </button>
   )
