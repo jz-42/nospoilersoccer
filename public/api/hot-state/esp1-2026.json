@@ -1588,11 +1588,29 @@
       ]
     },
     "esp1-atletico-madrid-real-madrid": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "atletico-madrid",
+          "player": "Alejandro Grimaldo",
+          "minute": "53'",
+          "penalty": true
+        },
+        {
+          "team": "atletico-madrid",
+          "player": "Jonathan David",
+          "minute": "59'"
+        },
+        {
+          "team": "real-madrid",
+          "player": "Antonio Rüdiger",
+          "minute": "89'"
+        }
+      ]
     },
     "esp1-deportivo-real-betis": {
       "liveStatus": null,
