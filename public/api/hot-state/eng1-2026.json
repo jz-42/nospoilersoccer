@@ -1096,11 +1096,53 @@
       "goals": []
     },
     "eng1-manchester-city-sunderland": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 5,
+        "away": 3
       },
-      "score": null,
-      "goals": null
+      "goals": [
+        {
+          "team": "manchester-city",
+          "player": "Enzo Fernández",
+          "minute": "9'"
+        },
+        {
+          "team": "sunderland",
+          "player": "Brian Brobbey",
+          "minute": "12'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Rayan Cherki",
+          "minute": "29'"
+        },
+        {
+          "team": "sunderland",
+          "player": "Brian Brobbey",
+          "minute": "33'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Antoine Semenyo",
+          "minute": "43'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Antoine Semenyo",
+          "minute": "57'"
+        },
+        {
+          "team": "sunderland",
+          "player": "Brian Brobbey",
+          "minute": "59'"
+        },
+        {
+          "team": "manchester-city",
+          "player": "Erling Haaland",
+          "minute": "81'"
+        }
+      ]
     },
     "eng1-fulham-manchester-united": {
       "liveStatus": null,
