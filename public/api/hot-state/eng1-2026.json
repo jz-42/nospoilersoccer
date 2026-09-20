@@ -1145,7 +1145,9 @@
       ]
     },
     "eng1-fulham-manchester-united": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null
     },
