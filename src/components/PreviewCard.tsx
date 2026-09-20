@@ -18,6 +18,7 @@ import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
 import { formatDate, formatRuntimeBadge } from './format'
 import { KickoffTime } from './KickoffTime'
+import { FINISHED_PENDING_CARD_COPY } from './highlight-copy'
 
 export interface RailEntry {
   target: ModalTarget
@@ -83,7 +84,7 @@ export function PreviewCard({
       : state === 'watch'
       ? 'Highlights ready'
       : state === 'ft'
-        ? 'Result in · highlights soon'
+        ? FINISHED_PENDING_CARD_COPY
         : state === 'upcoming'
           ? 'Not played yet'
           : state === 'locked'

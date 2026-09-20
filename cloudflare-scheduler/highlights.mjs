@@ -29,6 +29,13 @@ export const HIGHLIGHT_SOURCES = Object.freeze([
     playlistId: 'UU6c1z7bA__85CIWZ_jpCK-Q',
     scanDepth: 400,
   },
+  {
+    id: 'espndeportes',
+    label: 'ESPN Deportes',
+    channelId: 'UC08mnbiC4FykqpHqbEWgFcg',
+    playlistId: 'UU08mnbiC4FykqpHqbEWgFcg',
+    scanDepth: 100,
+  },
 ])
 
 const POTENTIAL_HIGHLIGHT_RE = {
@@ -36,10 +43,16 @@ const POTENTIAL_HIGHLIGHT_RE = {
   golazo: /^.+?\s+vs\.?\s+.+?:\s+(?:Extended\s+)?Highlights\b.*\|\s*(?:UCL\b|UEFA\s+Champions\s+League\b|Champions\s+League\b)/i,
   nbc: /^.+?\s+vs?\.?\s+.+?\s*\|\s*PREMIER\s+LEAGUE(?:\s+EXTENDED)?\s+HIGHLIGHTS\b/i,
   espnfc: /^.+?\s+vs?\.?\s+.+?\s*\|\s*LA\s?LIGA\s+(?:EXTENDED\s+)?HIGHLIGHTS\b/i,
+  espndeportes: /\|\s*(?:Resumen\s*\|\s*)?La Liga\s*$/i,
 }
 
+const ESPN_DEPORTES_SINGLE_PLAY_RE =
+  /\b(?:marca|marc[oó]|anota|anot[oó]|ampl[ií]a|descuenta|penal|tarjeta roja|atajada|salvada)\b/i
+
 export function isPotentialHighlight(sourceId, title) {
-  return typeof title === 'string' && (POTENTIAL_HIGHLIGHT_RE[sourceId]?.test(title) ?? false)
+  if (typeof title !== 'string') return false
+  if (sourceId === 'espndeportes' && ESPN_DEPORTES_SINGLE_PLAY_RE.test(title)) return false
+  return POTENTIAL_HIGHLIGHT_RE[sourceId]?.test(title) ?? false
 }
 
 export function quotaMode(used) {

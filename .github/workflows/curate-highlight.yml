@@ -16,6 +16,7 @@ on:
           - golazo
           - nbc
           - espnfc
+          - espndeportes
       content_version:
         description: Candidate content version
         required: true
@@ -64,7 +65,9 @@ jobs:
           HIGHLIGHT_CANDIDATE_CHANNEL_ID: ${{ inputs.channel_id }}
           HIGHLIGHT_CANDIDATE_TITLE: ${{ inputs.candidate_title }}
           HIGHLIGHT_CANDIDATE_PUBLISHED_AT: ${{ inputs.published_at }}
+          HIGHLIGHT_RESULT_FILE: /tmp/highlight-result
         run: |
+          rm -f "$HIGHLIGHT_RESULT_FILE"
           case "$SOURCE_ID" in
             fox)
               npx tsx scripts/curate-videos.ts --video-id "$VIDEO_ID"
@@ -75,7 +78,7 @@ jobs:
             nbc)
               npx tsx scripts/curate-club-videos.ts --competition eng1 --video-id "$VIDEO_ID"
               ;;
-            espnfc)
+            espnfc|espndeportes)
               npx tsx scripts/curate-club-videos.ts --competition esp1 --video-id "$VIDEO_ID"
               ;;
             *)
@@ -97,6 +100,7 @@ jobs:
         id: persist
         env:
           VIDEO_ID: ${{ inputs.video_id }}
+          HIGHLIGHT_RESULT_FILE: /tmp/highlight-result
         run: |
           git config user.name "highlight-bot"
           git config user.email "actions@github.com"
@@ -105,6 +109,18 @@ jobs:
             if grep -Rqs --fixed-strings "youtubeId: '$VIDEO_ID'" src/data/wc2026-videos.ts src/data/club/*-videos.ts; then
               echo "candidate was already persisted; acknowledging the lost callback"
               echo "status=accepted" >> "$GITHUB_OUTPUT"
+            elif [ -f "$HIGHLIGHT_RESULT_FILE" ]; then
+              status="$(cat "$HIGHLIGHT_RESULT_FILE")"
+              case "$status" in
+                accepted|retry|quarantined)
+                  echo "candidate produced no change; curator disposition: $status"
+                  echo "status=$status" >> "$GITHUB_OUTPUT"
+                  ;;
+                *)
+                  echo "invalid curator disposition; retrying"
+                  echo "status=retry" >> "$GITHUB_OUTPUT"
+                  ;;
+              esac
             else
               echo "candidate produced no accepted change"
               echo "status=retry" >> "$GITHUB_OUTPUT"

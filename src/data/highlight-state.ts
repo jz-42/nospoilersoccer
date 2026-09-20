@@ -30,10 +30,15 @@ function isHighlightVideo(value: unknown): value is HighlightVideo {
   if (value.source === 'fox') {
     return typeof value.foxId === 'string' && value.foxId.length > 0 && value.youtubeId === undefined
   }
+  const publisherValid =
+    value.publisher === undefined ||
+    value.publisher === 'espn-fc' ||
+    value.publisher === 'espn-deportes'
   return (
     (value.source === undefined || value.source === 'youtube') &&
     typeof value.youtubeId === 'string' &&
     /^[A-Za-z0-9_-]{11}$/.test(value.youtubeId) &&
+    publisherValid &&
     value.foxId === undefined
   )
 }

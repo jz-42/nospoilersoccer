@@ -22,6 +22,7 @@ import { OddsBar } from './OddsBar'
 import { formatMatchDateLong } from './format'
 import { KickoffTime } from './KickoffTime'
 import { matchLiveStatus } from './status'
+import { FINISHED_PENDING_MODAL_COPY } from './highlight-copy'
 
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
@@ -590,7 +591,7 @@ export function MatchModal({
               ) : (
                 <div className="modal-video-placeholder">
                   <span className="modal-video-icon">🎬</span>
-                  <span>Highlights coming soon</span>
+                  <span>{FINISHED_PENDING_MODAL_COPY}</span>
                 </div>
               )}
               <div className="modal-pre-reveal-stack">
