@@ -126,6 +126,52 @@ test('candidate retries stay one-minute fast initially, then back off to five mi
   assert.equal(candidateRetryDelayMs(287), 5 * 60_000)
 })
 
+test('API and Atom timestamps produce one canonical content version', async () => {
+  const source = HIGHLIGHT_SOURCES.find((item) => item.id === 'nbc')
+  const title = 'Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | NBC Sports'
+  const apiCandidates = []
+  await runHighlightRecovery({
+    now: new Date('2026-09-19T20:17:00Z'),
+    apiKey: 'test-key',
+    store: {
+      quotaUsed: async () => 0,
+      consumeQuota: async () => true,
+      upsertCandidate: async (candidate) => {
+        apiCandidates.push(candidate)
+        return 'unchanged'
+      },
+    },
+    queue: { send: async () => {} },
+    fetchImpl: async (url) => new Response(JSON.stringify({
+      items: url.includes(source.playlistId) ? [{ snippet: {
+        title,
+        publishedAt: '2026-09-19T20:00:00Z',
+        resourceId: { videoId: 'abcdefghijk' },
+      } }] : [],
+    }), { status: 200 }),
+  })
+  const feedCandidates = []
+  await runFeedRecovery({
+    store: {
+      upsertCandidate: async (candidate) => {
+        feedCandidates.push(candidate)
+        return 'unchanged'
+      },
+    },
+    queue: { send: async () => {} },
+    fetchImpl: async (url) => new Response(url.includes(source.channelId) ? `
+      <feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"><entry>
+        <yt:videoId>abcdefghijk</yt:videoId><yt:channelId>${source.channelId}</yt:channelId>
+        <title>${title}</title><published>2026-09-19T20:00:00+00:00</published>
+        <updated>2026-09-19T20:05:00+00:00</updated>
+      </entry></feed>` : '<feed></feed>', { status: 200 }),
+  })
+
+  assert.equal(apiCandidates.length, 1)
+  assert.equal(feedCandidates.length, 1)
+  assert.equal(apiCandidates[0].contentVersion, feedCandidates[0].contentVersion)
+})
+
 test('D1 store enforces the hard quota and deduplicates candidate versions', async () => {
   const db = new FakeD1()
   const store = createD1HighlightStore(db)

@@ -316,6 +316,12 @@ async function sha256Hex(value) {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
+async function candidateContentVersion(title, publishedAt) {
+  const published = new Date(publishedAt)
+  if (!Number.isFinite(published.getTime())) throw new Error('invalid candidate publish time')
+  return sha256Hex(JSON.stringify([title, published.toISOString()]))
+}
+
 function sourceForChannel(channelId) {
   return HIGHLIGHT_SOURCES.find((source) => source.channelId === channelId) ?? null
 }
@@ -374,9 +380,7 @@ export async function handleWebSubRequest(request, { store, queue, fetchImpl = f
     return new Response(null, { status: 204 })
   }
 
-  const contentVersion = await sha256Hex(
-    JSON.stringify([verified.title, verified.publishedAt, verified.updatedAt]),
-  )
+  const contentVersion = await candidateContentVersion(verified.title, verified.publishedAt)
   const candidate = { ...verified, sourceId: source.id, contentVersion, discoveredBy: 'websub' }
   const result = await store.upsertCandidate(candidate)
   if (result !== 'unchanged') {
@@ -425,7 +429,7 @@ export async function runHighlightRecovery({
           const publishedAt = item.snippet?.publishedAt
           if (!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId) || !title || !publishedAt) continue
           if (!isPotentialHighlight(source.id, title)) continue
-          const contentVersion = await sha256Hex(JSON.stringify([title, publishedAt, publishedAt]))
+          const contentVersion = await candidateContentVersion(title, publishedAt)
           const candidate = {
             videoId,
             channelId: source.channelId,
@@ -467,9 +471,7 @@ export async function runFeedRecovery({ now = new Date(), store, queue, fetchImp
       for (const parsed of parseYouTubeFeed(await response.text())) {
         if (parsed.channelId !== source.channelId) continue
         if (!isPotentialHighlight(source.id, parsed.title)) continue
-        const contentVersion = await sha256Hex(
-          JSON.stringify([parsed.title, parsed.publishedAt, parsed.updatedAt]),
-        )
+        const contentVersion = await candidateContentVersion(parsed.title, parsed.publishedAt)
         const candidate = {
           ...parsed,
           sourceId: source.id,
