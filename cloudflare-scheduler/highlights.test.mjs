@@ -158,6 +158,19 @@ test('WebSub verification creates its lease row even when the hub callback wins 
   assert.equal(db.subscriptions.get(HIGHLIGHT_SOURCES[0].channelId)?.status, 'verified')
 })
 
+test('failed WebSub requests retry after a short cooldown instead of waiting six hours', async () => {
+  const db = new FakeD1()
+  const store = createD1HighlightStore(db)
+  const now = new Date('2026-09-19T20:10:00Z')
+  db.subscriptions.set(HIGHLIGHT_SOURCES[0].channelId, {
+    status: 'error',
+    requested_at: '2026-09-19T20:04:59Z',
+    expires_at: null,
+  })
+
+  assert.equal(await store.subscriptionDue(HIGHLIGHT_SOURCES[0].channelId, now), true)
+})
+
 test('the four configured sources fit hourly authenticated recovery under budget', () => {
   assert.equal(HIGHLIGHT_SOURCES.length, 4)
   assert.equal(new Set(HIGHLIGHT_SOURCES.map((source) => source.channelId)).size, 4)
@@ -287,6 +300,28 @@ test('WebSub renewal requests only channels whose leases are due', async () => {
   assert.equal(recorded.length, 1)
 })
 
+test('WebSub renewals run in parallel so a slow hub cannot consume the whole cron window', async () => {
+  let active = 0
+  let maxActive = 0
+  const result = await renewWebSubSubscriptions({
+    callbackUrl: 'https://worker.test/websub/youtube',
+    store: {
+      subscriptionDue: async () => true,
+      recordSubscriptionRequest: async () => {},
+    },
+    fetchImpl: async () => {
+      active += 1
+      maxActive = Math.max(maxActive, active)
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      active -= 1
+      return new Response(null, { status: 202 })
+    },
+  })
+
+  assert.equal(result.requested, HIGHLIGHT_SOURCES.length)
+  assert.equal(maxActive, HIGHLIGHT_SOURCES.length)
+})
+
 test('WebSub notification persists before enqueue and deduplicates unchanged versions', async () => {
   const order = []
   let result = 'inserted'
@@ -412,6 +447,24 @@ test('feed recovery checks all channels without quota and queues only likely hig
   assert.equal(quotaCalls, 0)
 })
 
+test('feed recovery fetches every channel in parallel', async () => {
+  let active = 0
+  let maxActive = 0
+  await runFeedRecovery({
+    store: { upsertCandidate: async () => 'unchanged' },
+    queue: { send: async () => {} },
+    fetchImpl: async () => {
+      active += 1
+      maxActive = Math.max(maxActive, active)
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      active -= 1
+      return new Response('<feed></feed>', { status: 200 })
+    },
+  })
+
+  assert.equal(maxActive, HIGHLIGHT_SOURCES.length)
+})
+
 test('highlight ingestion always uses quota-free feeds and requeues due work without an API key', async () => {
   const fetched = []
   const queued = []
@@ -440,6 +493,34 @@ test('highlight ingestion always uses quota-free feeds and requeues due work wit
   assert.deepEqual(queued, [
     { videoId: 'abcdefghijk', sourceId: 'nbc', contentVersion: 'v1' },
   ])
+})
+
+test('slow WebSub renewal does not delay the quota-free feed recovery path', async () => {
+  let renewalsCompleted = 0
+  let feedStartedBeforeRenewalsCompleted = false
+  await runHighlightIngestion({
+    webSubCallbackUrl: 'https://worker.test/websub/youtube',
+    store: {
+      subscriptionDue: async () => true,
+      recordSubscriptionRequest: async () => {},
+      upsertCandidate: async () => 'unchanged',
+      dueCandidates: async () => [],
+    },
+    queue: { send: async () => {} },
+    fetchImpl: async (url) => {
+      if (url === 'https://pubsubhubbub.appspot.com/subscribe') {
+        await new Promise((resolve) => setTimeout(resolve, 5))
+        renewalsCompleted += 1
+        return new Response(null, { status: 202 })
+      }
+      if (renewalsCompleted < HIGHLIGHT_SOURCES.length) {
+        feedStartedBeforeRenewalsCompleted = true
+      }
+      return new Response('<feed></feed>', { status: 200 })
+    },
+  })
+
+  assert.equal(feedStartedBeforeRenewalsCompleted, true)
 })
 
 test('quota ceiling disables recovery requests without disabling WebSub receipt', async () => {
