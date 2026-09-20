@@ -8,6 +8,8 @@
 
 **Tech Stack:** TypeScript 6, React 19, Node/tsx smoke tests, Cloudflare Workers, D1, Cloudflare Queues, YouTube Data API v3, YouTube WebSub, GitHub Actions.
 
+> **Implementation note (2026-09-19):** During implementation the runtime matcher/outbox portion was simplified. Public Atom feeds provide the zero-quota one-minute recovery path, WebSub remains the immediate path, and the narrow exact-ID GitHub workflow reuses the existing authoritative curators. Runtime JSON is generated from the validated committed video maps. This removes duplicate Worker/CI matchers while preserving the latency, correctness, and quota goals. The design spec records the final architecture.
+
 ---
 
 ## File map

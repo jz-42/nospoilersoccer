@@ -33,7 +33,7 @@ export const HIGHLIGHT_SOURCES = Object.freeze([
 
 const POTENTIAL_HIGHLIGHT_RE = {
   fox: /^.+?\s+vs\.?\s+.+?\s+(?:Extended\s+)?Highlights\b.*World Cup/i,
-  golazo: /^.+?\s+vs\.?\s+.+?:\s+(?:Extended\s+)?Highlights\b/i,
+  golazo: /^.+?\s+vs\.?\s+.+?:\s+(?:Extended\s+)?Highlights\b.*\|\s*(?:UCL\b|UEFA\s+Champions\s+League\b|Champions\s+League\b)/i,
   nbc: /^.+?\s+vs?\.?\s+.+?\s*\|\s*PREMIER\s+LEAGUE(?:\s+EXTENDED)?\s+HIGHLIGHTS\b/i,
   espnfc: /^.+?\s+vs?\.?\s+.+?\s*\|\s*LA\s?LIGA\s+(?:EXTENDED\s+)?HIGHLIGHTS\b/i,
 }
@@ -54,9 +54,7 @@ export function deepScanPageCost(sources = HIGHLIGHT_SOURCES) {
 }
 
 export function projectedDailyBaseCost(sources = HIGHLIGHT_SOURCES) {
-  const shallow = sources.length * 24 * 60
-  const deep = deepScanPageCost(sources) * 24
-  return shallow + deep
+  return deepScanPageCost(sources) * 24
 }
 
 export function pacificQuotaDay(now = new Date()) {
@@ -72,6 +70,74 @@ export function pacificQuotaDay(now = new Date()) {
 
 export function createD1HighlightStore(db) {
   return {
+    async subscriptionDue(channelId, now = new Date()) {
+      const row = await db
+        .prepare('SELECT status, requested_at, expires_at FROM subscriptions WHERE channel_id = ?')
+        .bind(channelId)
+        .first()
+      if (!row) return true
+
+      const requestedAt = row.requested_at ? new Date(row.requested_at) : null
+      if (requestedAt && now.getTime() - requestedAt.getTime() < 6 * 60 * 60 * 1000) return false
+
+      const expiresAt = row.expires_at ? new Date(row.expires_at) : null
+      return !expiresAt || expiresAt.getTime() <= now.getTime() + 48 * 60 * 60 * 1000
+    },
+
+    async recordSubscriptionRequest(channelId, topicUrl, error = null, now = new Date()) {
+      await db
+        .prepare(
+          `INSERT INTO subscriptions (
+            channel_id, topic_url, status, requested_at, last_error
+          ) VALUES (?, ?, ?, ?, ?)
+          ON CONFLICT(channel_id) DO UPDATE SET
+            topic_url = excluded.topic_url,
+            status = CASE
+              WHEN subscriptions.status = 'verified' AND excluded.last_error IS NULL
+                THEN subscriptions.status
+              ELSE excluded.status
+            END,
+            requested_at = excluded.requested_at,
+            last_error = excluded.last_error`,
+        )
+        .bind(channelId, topicUrl, error ? 'error' : 'pending', now.toISOString(), error)
+        .run()
+    },
+
+    async recordSubscriptionVerification(channelId, mode, leaseSeconds, now = new Date()) {
+      const expiresAt = mode === 'subscribe' && Number.isFinite(leaseSeconds) && leaseSeconds > 0
+        ? new Date(now.getTime() + leaseSeconds * 1000).toISOString()
+        : null
+      const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`
+      await db
+        .prepare(
+          `INSERT INTO subscriptions (
+            channel_id, topic_url, status, verified_at, expires_at, last_error
+          ) VALUES (?, ?, ?, ?, ?, NULL)
+          ON CONFLICT(channel_id) DO UPDATE SET
+            topic_url = excluded.topic_url,
+            status = excluded.status,
+            verified_at = excluded.verified_at,
+            expires_at = excluded.expires_at,
+            last_error = NULL`,
+        )
+        .bind(
+          channelId,
+          topicUrl,
+          mode === 'subscribe' ? 'verified' : 'unsubscribed',
+          now.toISOString(),
+          expiresAt,
+        )
+        .run()
+    },
+
+    async recordNotification(channelId, now = new Date()) {
+      await db
+        .prepare('UPDATE subscriptions SET last_notification_at = ? WHERE channel_id = ?')
+        .bind(now.toISOString(), channelId)
+        .run()
+    },
+
     async quotaUsed(day) {
       const row = await db
         .prepare('SELECT used_units FROM quota_days WHERE day = ?')
@@ -221,6 +287,12 @@ export function parseYouTubeNotification(xml) {
   return { videoId, channelId, title, publishedAt, updatedAt }
 }
 
+export function parseYouTubeFeed(xml) {
+  return [...xml.matchAll(/<entry\b[^>]*>([\s\S]*?)<\/entry>/g)]
+    .map((match) => parseYouTubeNotification(match[1]))
+    .filter(Boolean)
+}
+
 async function sha256Hex(value) {
   const bytes = new TextEncoder().encode(value)
   const digest = await crypto.subtle.digest('SHA-256', bytes)
@@ -250,6 +322,8 @@ export async function handleWebSubRequest(request, { store, queue }) {
     if ((mode !== 'subscribe' && mode !== 'unsubscribe') || !challenge || !sourceForChannel(channelId)) {
       return new Response('unknown topic', { status: 404 })
     }
+    const leaseSeconds = Number(url.searchParams.get('hub.lease_seconds'))
+    await store?.recordSubscriptionVerification?.(channelId, mode, leaseSeconds)
     return new Response(challenge, { status: 200, headers: { 'content-type': 'text/plain' } })
   }
 
@@ -258,6 +332,7 @@ export async function handleWebSubRequest(request, { store, queue }) {
   const source = parsed ? sourceForChannel(parsed.channelId) : null
   if (!parsed) return new Response('invalid notification', { status: 400 })
   if (!source) return new Response('unknown channel', { status: 404 })
+  await store.recordNotification?.(parsed.channelId)
   if (!isPotentialHighlight(source.id, parsed.title)) return new Response(null, { status: 204 })
 
   const contentVersion = await sha256Hex(
@@ -337,6 +412,100 @@ export async function runHighlightRecovery({
     }
   }
   return result
+}
+
+export async function runFeedRecovery({ now = new Date(), store, queue, fetchImpl = fetch }) {
+  const result = { feedsFetched: 0, candidatesChanged: 0, errors: [] }
+  for (const source of HIGHLIGHT_SOURCES) {
+    const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`
+    try {
+      const response = await fetchImpl(url)
+      result.feedsFetched += 1
+      if (!response.ok) {
+        result.errors.push(`${source.id}:feed_${response.status}`)
+        continue
+      }
+      for (const parsed of parseYouTubeFeed(await response.text())) {
+        if (parsed.channelId !== source.channelId) continue
+        if (!isPotentialHighlight(source.id, parsed.title)) continue
+        const contentVersion = await sha256Hex(
+          JSON.stringify([parsed.title, parsed.publishedAt, parsed.updatedAt]),
+        )
+        const candidate = {
+          ...parsed,
+          sourceId: source.id,
+          contentVersion,
+          discoveredBy: 'feed_poll',
+        }
+        const changed = await store.upsertCandidate(candidate)
+        if (changed === 'unchanged') continue
+        await queue.send({ videoId: parsed.videoId, sourceId: source.id, contentVersion })
+        await store.markQueued?.(parsed.videoId, contentVersion, now)
+        result.candidatesChanged += 1
+      }
+    } catch (error) {
+      result.errors.push(`${source.id}:${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+  return result
+}
+
+export async function renewWebSubSubscriptions({
+  now = new Date(),
+  callbackUrl,
+  store,
+  fetchImpl = fetch,
+}) {
+  const result = { requested: 0, skipped: 0, errors: [] }
+  for (const source of HIGHLIGHT_SOURCES) {
+    if (!(await store.subscriptionDue(source.channelId, now))) {
+      result.skipped += 1
+      continue
+    }
+
+    const topicUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`
+    const body = new URLSearchParams({
+      'hub.callback': callbackUrl,
+      'hub.mode': 'subscribe',
+      'hub.topic': topicUrl,
+      'hub.verify': 'async',
+      'hub.lease_seconds': '864000',
+    })
+    let error = null
+    try {
+      const response = await fetchImpl('https://pubsubhubbub.appspot.com/subscribe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      })
+      if (!response.ok) error = `hub_${response.status}`
+    } catch (caught) {
+      error = caught instanceof Error ? caught.message : String(caught)
+    }
+    await store.recordSubscriptionRequest(source.channelId, topicUrl, error, now)
+    if (error) result.errors.push(`${source.id}:${error}`)
+    else result.requested += 1
+  }
+  return result
+}
+
+export async function runHighlightIngestion({
+  now = new Date(),
+  apiKey,
+  webSubCallbackUrl,
+  store,
+  queue,
+  fetchImpl = fetch,
+}) {
+  const subscriptions = webSubCallbackUrl
+    ? await renewWebSubSubscriptions({ now, callbackUrl: webSubCallbackUrl, store, fetchImpl })
+    : null
+  const feed = await runFeedRecovery({ now, store, queue, fetchImpl })
+  const api = apiKey && now.getUTCMinutes() === 0
+    ? await runHighlightRecovery({ now, apiKey, store, queue, fetchImpl })
+    : null
+  const requeued = await enqueueDueCandidates(store, queue, now)
+  return { subscriptions, feed, api, requeued }
 }
 
 export function createHighlightDispatchClient({

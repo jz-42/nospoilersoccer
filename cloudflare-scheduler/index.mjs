@@ -1,11 +1,10 @@
 import {
   createD1HighlightStore,
   createHighlightDispatchClient,
-  enqueueDueCandidates,
   handleCandidateResultRequest,
   handleWebSubRequest,
   processHighlightQueue,
-  runHighlightRecovery,
+  runHighlightIngestion,
 } from './highlights.mjs'
 
 const DEFAULT_SCHEDULE_URL =
@@ -312,7 +311,7 @@ function corsHeaders(extraHeaders = {}) {
   return {
     'access-control-allow-origin': '*',
     'access-control-allow-methods': 'GET, OPTIONS',
-    'access-control-allow-headers': 'content-type',
+    'access-control-allow-headers': 'content-type, if-none-match',
     ...extraHeaders,
   }
 }
@@ -495,19 +494,16 @@ export default {
         throwOnError: true,
       }),
     ]
-    if (env.HIGHLIGHT_DB && env.HIGHLIGHT_QUEUE && env.YOUTUBE_API_KEY) {
+    if (env.HIGHLIGHT_DB && env.HIGHLIGHT_QUEUE) {
       const store = createD1HighlightStore(env.HIGHLIGHT_DB)
       jobs.push(
-        (async () => {
-          const recovery = await runHighlightRecovery({
-            now,
-            apiKey: env.YOUTUBE_API_KEY,
-            store,
-            queue: env.HIGHLIGHT_QUEUE,
-          })
-          await enqueueDueCandidates(store, env.HIGHLIGHT_QUEUE, now)
-          return recovery
-        })(),
+        runHighlightIngestion({
+          now,
+          apiKey: env.YOUTUBE_API_KEY,
+          webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
+          store,
+          queue: env.HIGHLIGHT_QUEUE,
+        }),
       )
     }
     const results = await Promise.allSettled(jobs)

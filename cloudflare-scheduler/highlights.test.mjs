@@ -11,10 +11,14 @@ import {
   handleCandidateResultRequest,
   isPotentialHighlight,
   parseYouTubeNotification,
+  parseYouTubeFeed,
   pacificQuotaDay,
   projectedDailyBaseCost,
   quotaMode,
+  renewWebSubSubscriptions,
   runHighlightRecovery,
+  runHighlightIngestion,
+  runFeedRecovery,
   processHighlightQueue,
   enqueueDueCandidates,
 } from './highlights.mjs'
@@ -22,6 +26,7 @@ import {
 class FakeD1 {
   quota = new Map()
   candidates = new Map()
+  subscriptions = new Map()
 
   prepare(sql) {
     return {
@@ -41,6 +46,9 @@ class FakeD1 {
             const existing = this.candidates.get(args[0])
             return existing ? { content_version: existing.contentVersion } : null
           }
+          if (sql.includes('SELECT status, requested_at, expires_at')) {
+            return this.subscriptions.get(args[0]) ?? null
+          }
           throw new Error(`unexpected first SQL: ${sql}`)
         },
         run: async () => {
@@ -54,6 +62,37 @@ class FakeD1 {
               contentVersion: args[1],
               title: args[4],
             })
+            return { success: true }
+          }
+          if (sql.includes('INSERT INTO subscriptions') && sql.includes('verified_at')) {
+            this.subscriptions.set(args[0], {
+              status: args[2],
+              requested_at: null,
+              expires_at: args[4],
+            })
+            return { success: true }
+          }
+          if (sql.includes('INSERT INTO subscriptions')) {
+            const existing = this.subscriptions.get(args[0])
+            this.subscriptions.set(args[0], {
+              ...existing,
+              status:
+                sql.includes("subscriptions.status = 'verified'") && existing?.status === 'verified'
+                  ? 'verified'
+                  : args[2],
+              requested_at: args[3],
+            })
+            return { success: true }
+          }
+          if (sql.includes('UPDATE subscriptions SET status')) {
+            const existing = this.subscriptions.get(args[3])
+            if (existing) {
+              this.subscriptions.set(args[3], {
+                ...existing,
+                status: args[0],
+                expires_at: args[2],
+              })
+            }
             return { success: true }
           }
           throw new Error(`unexpected run SQL: ${sql}`)
@@ -100,11 +139,30 @@ test('D1 store enforces the hard quota and deduplicates candidate versions', asy
   )
 })
 
-test('the four configured sources fit one-page minute polling under budget', () => {
+test('WebSub verification creates its lease row even when the hub callback wins the request race', async () => {
+  const db = new FakeD1()
+  const store = createD1HighlightStore(db)
+  const now = new Date('2026-09-19T20:00:00Z')
+
+  await store.recordSubscriptionVerification(HIGHLIGHT_SOURCES[0].channelId, 'subscribe', 864000, now)
+
+  assert.equal(await store.subscriptionDue(HIGHLIGHT_SOURCES[0].channelId, now), false)
+  assert.equal(db.subscriptions.get(HIGHLIGHT_SOURCES[0].channelId)?.status, 'verified')
+
+  await store.recordSubscriptionRequest(
+    HIGHLIGHT_SOURCES[0].channelId,
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${HIGHLIGHT_SOURCES[0].channelId}`,
+    null,
+    now,
+  )
+  assert.equal(db.subscriptions.get(HIGHLIGHT_SOURCES[0].channelId)?.status, 'verified')
+})
+
+test('the four configured sources fit hourly authenticated recovery under budget', () => {
   assert.equal(HIGHLIGHT_SOURCES.length, 4)
   assert.equal(new Set(HIGHLIGHT_SOURCES.map((source) => source.channelId)).size, 4)
   assert.equal(deepScanPageCost(HIGHLIGHT_SOURCES), 25)
-  assert.equal(projectedDailyBaseCost(HIGHLIGHT_SOURCES), 6_360)
+  assert.equal(projectedDailyBaseCost(HIGHLIGHT_SOURCES), 600)
   assert.ok(projectedDailyBaseCost(HIGHLIGHT_SOURCES) < DAILY_QUOTA_LIMIT)
 })
 
@@ -134,6 +192,20 @@ test('parseYouTubeNotification extracts the approved-channel candidate', () => {
   })
 })
 
+test('parseYouTubeFeed extracts every complete entry', () => {
+  const feed = NOTIFICATION_XML.replace(
+    '</feed>',
+    `<entry>
+      <yt:videoId>12345678901</yt:videoId>
+      <yt:channelId>UCqZQlzSHbVJrwrn5XvzrzcA</yt:channelId>
+      <title>Chiefs v. Bills | NFL HIGHLIGHTS | NBC Sports</title>
+      <published>2026-09-19T19:00:00Z</published>
+      <updated>2026-09-19T19:00:00Z</updated>
+    </entry></feed>`,
+  )
+  assert.equal(parseYouTubeFeed(feed).length, 2)
+})
+
 test('source title screening keeps full-match highlights and drops channel noise', () => {
   assert.equal(
     isPotentialHighlight('fox', 'Canada vs Japan Extended Highlights | 2026 FIFA World Cup'),
@@ -152,18 +224,31 @@ test('source title screening keeps full-match highlights and drops channel noise
     true,
   )
   assert.equal(isPotentialHighlight('nbc', 'Chiefs v. Bills | NFL HIGHLIGHTS | NBC Sports'), false)
+  assert.equal(
+    isPotentialHighlight('golazo', 'Venezia vs. Lazio: Extended Highlights | Serie A | CBS Sports Golazo'),
+    false,
+  )
   assert.equal(isPotentialHighlight('golazo', 'UCL Today BEST BITS'), false)
 })
 
 test('WebSub verification accepts only an exact approved channel topic', async () => {
+  const verifications = []
   const approved = await handleWebSubRequest(
     new Request(
       'https://worker.test/websub/youtube?hub.mode=subscribe&hub.challenge=ok-123&hub.topic=https%3A%2F%2Fwww.youtube.com%2Ffeeds%2Fvideos.xml%3Fchannel_id%3DUCqZQlzSHbVJrwrn5XvzrzcA&hub.lease_seconds=864000',
     ),
-    { store: {}, queue: {} },
+    {
+      store: {
+        recordSubscriptionVerification: async (...args) => verifications.push(args),
+      },
+      queue: {},
+    },
   )
   assert.equal(approved.status, 200)
   assert.equal(await approved.text(), 'ok-123')
+  assert.deepEqual(verifications, [
+    ['UCqZQlzSHbVJrwrn5XvzrzcA', 'subscribe', 864000],
+  ])
 
   const rejected = await handleWebSubRequest(
     new Request(
@@ -172,6 +257,34 @@ test('WebSub verification accepts only an exact approved channel topic', async (
     { store: {}, queue: {} },
   )
   assert.equal(rejected.status, 404)
+})
+
+test('WebSub renewal requests only channels whose leases are due', async () => {
+  const calls = []
+  const recorded = []
+  const result = await renewWebSubSubscriptions({
+    now: new Date('2026-09-19T20:00:00Z'),
+    callbackUrl: 'https://worker.test/websub/youtube',
+    store: {
+      subscriptionDue: async (channelId) => channelId === HIGHLIGHT_SOURCES[0].channelId,
+      recordSubscriptionRequest: async (...args) => recorded.push(args),
+    },
+    fetchImpl: async (url, init) => {
+      calls.push({ url, init })
+      return new Response(null, { status: 202 })
+    },
+  })
+
+  assert.deepEqual(result, { requested: 1, skipped: 3, errors: [] })
+  assert.equal(calls[0].url, 'https://pubsubhubbub.appspot.com/subscribe')
+  const body = new URLSearchParams(calls[0].init.body)
+  assert.equal(body.get('hub.mode'), 'subscribe')
+  assert.equal(body.get('hub.callback'), 'https://worker.test/websub/youtube')
+  assert.equal(
+    body.get('hub.topic'),
+    `https://www.youtube.com/feeds/videos.xml?channel_id=${HIGHLIGHT_SOURCES[0].channelId}`,
+  )
+  assert.equal(recorded.length, 1)
 })
 
 test('WebSub notification persists before enqueue and deduplicates unchanged versions', async () => {
@@ -260,6 +373,73 @@ test('normal recovery polls one newest page per source and enqueues only changed
   assert.equal(fetched.length, 4)
   assert.equal(consumed, 4)
   assert.equal(queued.length, 3)
+})
+
+test('feed recovery checks all channels without quota and queues only likely highlights', async () => {
+  const queued = []
+  let quotaCalls = 0
+  const result = await runFeedRecovery({
+    store: {
+      consumeQuota: async () => {
+        quotaCalls += 1
+        return true
+      },
+      upsertCandidate: async () => 'inserted',
+    },
+    queue: { send: async (candidate) => queued.push(candidate) },
+    fetchImpl: async (url) => {
+      const source = HIGHLIGHT_SOURCES.find((item) => url.includes(item.channelId))
+      const titles = {
+        fox: 'Alpha vs Beta Highlights | 2026 FIFA World Cup',
+        golazo: 'Arsenal vs. Napoli: Extended Highlights | UCL | CBS Sports Golazo',
+        nbc: 'Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | NBC Sports',
+        espnfc: 'Athletic Club vs. Sevilla | LALIGA Highlights | ESPN FC',
+      }
+      return new Response(
+        `<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns="http://www.w3.org/2005/Atom"><entry>
+          <yt:videoId>${`${source.id}00000000`.slice(0, 11)}</yt:videoId>
+          <yt:channelId>${source.channelId}</yt:channelId>
+          <title>${titles[source.id]}</title>
+          <published>2026-09-19T20:00:00Z</published>
+          <updated>2026-09-19T20:00:00Z</updated>
+        </entry></feed>`,
+        { status: 200, headers: { 'content-type': 'application/atom+xml' } },
+      )
+    },
+  })
+  assert.equal(result.feedsFetched, 4)
+  assert.equal(queued.length, 4)
+  assert.equal(quotaCalls, 0)
+})
+
+test('highlight ingestion always uses quota-free feeds and requeues due work without an API key', async () => {
+  const fetched = []
+  const queued = []
+  const store = {
+    upsertCandidate: async () => 'unchanged',
+    dueCandidates: async () => [
+      { videoId: 'abcdefghijk', sourceId: 'nbc', contentVersion: 'v1' },
+    ],
+    markQueued: async () => {},
+  }
+
+  const result = await runHighlightIngestion({
+    now: new Date('2026-09-19T20:17:00Z'),
+    store,
+    queue: { send: async (candidate) => queued.push(candidate) },
+    fetchImpl: async (url) => {
+      fetched.push(url)
+      return new Response('<feed></feed>', { status: 200 })
+    },
+  })
+
+  assert.equal(result.feed.feedsFetched, HIGHLIGHT_SOURCES.length)
+  assert.equal(result.api, null)
+  assert.equal(result.requeued, 1)
+  assert.ok(fetched.every((url) => url.startsWith('https://www.youtube.com/feeds/videos.xml')))
+  assert.deepEqual(queued, [
+    { videoId: 'abcdefghijk', sourceId: 'nbc', contentVersion: 'v1' },
+  ])
 })
 
 test('quota ceiling disables recovery requests without disabling WebSub receipt', async () => {

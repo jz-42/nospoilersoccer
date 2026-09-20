@@ -87,8 +87,13 @@ jobs:
           git config user.email "actions@github.com"
           git add src/data/wc2026-videos.ts src/data/club/*-videos.ts public/api/highlights scripts/curate-skip.json
           if git diff --cached --quiet; then
-            echo "candidate produced no accepted change"
-            echo "status=retry" >> "$GITHUB_OUTPUT"
+            if grep -Rqs --fixed-strings "youtubeId: '$VIDEO_ID'" src/data/wc2026-videos.ts src/data/club/*-videos.ts; then
+              echo "candidate was already persisted; acknowledging the lost callback"
+              echo "status=accepted" >> "$GITHUB_OUTPUT"
+            else
+              echo "candidate produced no accepted change"
+              echo "status=retry" >> "$GITHUB_OUTPUT"
+            fi
             exit 0
           fi
           git commit -m "Auto-curate highlight ${VIDEO_ID}"

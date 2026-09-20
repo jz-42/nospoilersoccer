@@ -389,6 +389,16 @@ test('highlight-state route accepts known seasons and rejects unknown ones', asy
   }
 })
 
+test('highlight-state preflight permits browser conditional requests', async () => {
+  const response = await worker.fetch(
+    new Request('https://w.dev/api/highlights/wc2026', { method: 'OPTIONS' }),
+    {},
+  )
+
+  assert.equal(response.status, 204)
+  assert.match(response.headers.get('access-control-allow-headers') ?? '', /if-none-match/i)
+})
+
 test('worker exposes the YouTube WebSub verification callback', async () => {
   const topic = encodeURIComponent(
     'https://www.youtube.com/feeds/videos.xml?channel_id=UCwNqHDsnBCKT-olwJwIFyfg',
