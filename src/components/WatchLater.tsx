@@ -224,6 +224,9 @@ function QueueOverlay({
 
   const onPointerDown = (e: ReactPointerEvent<HTMLLIElement>, index: number) => {
     if (e.button !== 0 || ids.length < 2 || pressRef.current) return
+    // The remove button is a button, not a handle: a slow tap on it must
+    // remove, never lift the card (and have its click swallowed as a drop).
+    if ((e.target as Element).closest('.queue-remove')) return
     const touch = e.pointerType !== 'mouse'
     const press: Press = {
       pointerId: e.pointerId,
@@ -292,11 +295,13 @@ function QueueOverlay({
       }, 0)
     }
 
-    function onUp() {
-      finish(true)
+    // Only the finger that started the press ends it — a second one lifting
+    // mid-drag must not drop the card.
+    function onUp(up: PointerEvent) {
+      if (up.pointerId === press.pointerId) finish(true)
     }
-    function onCancel() {
-      finish(false)
+    function onCancel(cancel: PointerEvent) {
+      if (cancel.pointerId === press.pointerId) finish(false)
     }
 
     window.addEventListener('pointermove', onMove)
