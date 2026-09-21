@@ -1816,11 +1816,6 @@
       "score": null,
       "goals": null
     },
-    "esp1-barcelona-real-madrid": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
     "esp1-celta-vigo-real-betis": {
       "liveStatus": null,
       "score": null,
@@ -1847,6 +1842,11 @@
       "goals": null
     },
     "esp1-valencia-villarreal": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-barcelona-real-madrid": {
       "liveStatus": null,
       "score": null,
       "goals": null
