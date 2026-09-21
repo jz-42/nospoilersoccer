@@ -1036,6 +1036,10 @@
      no-scroll budget below is untouched; it scales in from nothing at 700px
      tall, where there is no spare room to lift into, to 32px on a desktop. */
   translate: 0 calc(-1 * clamp(0px, (100vh - 700px) * 0.16, 32px));
+  /* The lift lays this box over the bottom few px of the day nav, and a
+     translated box paints — and hit-tests — above it. Nothing in here is
+     interactive, so clicks fall through to the day items. */
+  pointer-events: none;
   /* A pool of light under the mascot, so it reads as placed on a surface
      rather than pasted on a void — the same pale blue the body canvas uses,
      centred on the art rather than the box so it doesn't halo the caption.
