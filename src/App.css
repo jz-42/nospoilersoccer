@@ -3708,6 +3708,14 @@
   .fav-add {
     padding-left: 28px;
   }
+
+  .fav-auto:first-child {
+    padding-left: calc(28px + (19px * 1.05 - 13px) / 2);
+  }
+
+  .fav-panel:has(.fav-crest.flag-badge) .fav-auto:first-child {
+    padding-left: calc(28px + (19px * 4 / 3 - 13px) / 2);
+  }
 }
 
 .fav-options {
@@ -3732,6 +3740,20 @@
   color: var(--muted);
   cursor: pointer;
   padding: 2px 4px 2px 2px;
+  /* One line each, side by side, even in a panel narrowed by a scrollbar. */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* "Highlight matches" puts its box in the crest column — centred under the
+   crests, whose column starts 24px in (row padding, grip, gap) and is wider
+   for 4:3 national flags than for square club crests. */
+.fav-auto:first-child {
+  padding-left: calc(24px + (19px * 1.05 - 13px) / 2);
+}
+
+.fav-panel:has(.fav-crest.flag-badge) .fav-auto:first-child {
+  padding-left: calc(24px + (19px * 4 / 3 - 13px) / 2);
 }
 
 /* A muted rose, not brand pink: the hearts are the subject of this panel and
