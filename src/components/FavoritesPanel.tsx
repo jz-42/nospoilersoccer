@@ -238,13 +238,13 @@ function FavPanel({ t, progress }: { t: Tournament; progress: Progress }) {
               />
               <span>Highlight matches</span>
             </label>
-            <label className="fav-auto is-end">
-              <span>Spotlight</span>
+            <label className="fav-auto">
               <input
                 type="checkbox"
                 checked={progress.spotlight}
                 onChange={(e) => progress.setSpotlight(e.target.checked)}
               />
+              <span>Spotlight</span>
             </label>
           </div>
 

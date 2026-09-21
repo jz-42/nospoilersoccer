@@ -1770,32 +1770,49 @@
 /* ---- spotlight (its own setting) ---- */
 
 /*
- * On a day one of your teams plays, every other match steps back a little —
- * enough that yours leads, not so much that the rest stop being readable.
- * Relative contrast rather than ornament, so it composes with the plate or
- * with none. It keys off `.is-followed`, not `.is-fav`, because it has its
- * own switch and must work with the decoration off.
- * `:has()` means a day with none of your teams is left exactly as it was.
+ * On a day one of your teams plays, every other match steps back half a
+ * stop. Relative contrast rather than ornament, so it composes with the plate
+ * or with none. It keys off `.is-followed`, not `.is-fav`, because it has its
+ * own switch and must work with the decoration off. `:has()` means a day with
+ * none of your teams is left exactly as it was.
+ *
+ * The fade is set on the parts rather than the card so the team names can
+ * keep a little more of themselves than the art does: the card steps back,
+ * but you can still read what it is without leaning in. The card's own
+ * opacity is pinned to 1 so a watched card's 0.8 doesn't stack on top.
  *
  * Hovering a dimmed card restores it in full — stepping back must never
  * become "you can't have this one".
  */
 .day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) {
-  filter: saturate(0.55) brightness(0.8);
-  opacity: 0.85;
+  filter: saturate(0.32) brightness(0.68);
+  opacity: 1;
   transition:
     filter 0.2s ease,
-    opacity 0.2s ease,
     transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) :is(.preview-media, .preview-sub) {
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
+}
+
+.day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) .preview-teams {
+  opacity: 0.86;
+  transition: opacity 0.2s ease;
 }
 
 .day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed):hover {
   filter: none;
+}
+
+.day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed):hover :is(.preview-media, .preview-teams, .preview-sub) {
   opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) {
+  .day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed),
+  .day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) * {
     transition: none;
   }
 }
@@ -3691,44 +3708,20 @@
   .fav-add {
     padding-left: 28px;
   }
-
-  .fav-options {
-    --fav-lead: 26px;
-    --fav-heart-w: 36px;
-    min-height: 34px;
-    margin-bottom: 15px;
-  }
 }
 
-/*
- * The two switches sit on the list's own columns, so the row reads as part of
- * the list rather than two loose controls: "Highlight matches" puts its box in
- * the crest column and its words where the team names start; "Spotlight" is
- * the mirror, words first and its box centred under the hearts.
- *
- * The column measures below restate the row's (padding, grip, gap, crest,
- * heart). The crest column is wider when the panel holds national flags
- * (4:3) than club crests (square), hence the `:has()`.
- */
 .fav-options {
-  --fav-lead: 22px;
-  --fav-crest-w: calc(19px * 1.05);
-  --fav-heart-w: 30px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  /* Shorter than a team row — it's a footnote to the list, not an entry in
-     it — and pulled up over the list's bottom margin. The bottom margin
-     (which collapses into the divider's own) centres the divider between
-     these and the first team under it. */
-  min-height: 30px;
-  margin: -4px 0 14px;
-  padding: 0 4px 0 2px;
-}
-
-.fav-panel:has(.fav-crest.flag-badge) .fav-options {
-  --fav-crest-w: calc(19px * 4 / 3);
+  /* A full list row tall, pulled up over the list's bottom margin: the
+     checkboxes sit exactly one row pitch under the last team, and the divider
+     below lands the same distance from them as from the first team under it.
+     Spotlight's label ends under the column of hearts. */
+  min-height: 38px;
+  margin-top: -4px;
+  padding-right: 8px;
 }
 
 .fav-auto {
@@ -3738,26 +3731,17 @@
   font-size: 12.5px;
   color: var(--muted);
   cursor: pointer;
-  padding-left: var(--fav-lead);
-}
-
-.fav-auto.is-end {
-  padding-left: 0;
+  padding: 2px 4px 2px 2px;
 }
 
 /* A muted rose, not brand pink: the hearts are the subject of this panel and
    a solid saturated box next to them out-shouts every one of them. */
 .fav-auto input {
   accent-color: #7c4361;
-  flex-shrink: 0;
   width: 13px;
   height: 13px;
-  margin: 0 calc((var(--fav-crest-w) - 13px) / 2);
+  margin: 0;
   cursor: pointer;
-}
-
-.fav-auto.is-end input {
-  margin: 0 calc((var(--fav-heart-w) - 13px) / 2);
 }
 
 .fav-auto:hover {
