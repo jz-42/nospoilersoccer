@@ -21,6 +21,14 @@ const SEARCH_THRESHOLD = 14
 function useDragOrder(ids: readonly TeamId[], commit: (order: readonly TeamId[]) => void) {
   const listRef = useRef<HTMLUListElement>(null)
   const [drag, setDrag] = useState<{ from: number; to: number; dy: number } | null>(null)
+  /*
+   * A drop reorders the DOM and clears every transform in the same render, so
+   * each row is already drawn where it lands. Left to the transform transition,
+   * rows React didn't move would slide back in from their old offsets — jump a
+   * slot, then glide home. So transitions stay off from a drop until the next
+   * drag begins; at rest there are no transforms for them to animate anyway.
+   */
+  const [settling, setSettling] = useState(false)
   const pitchRef = useRef(0)
   const startRef = useRef<{ index: number; y: number; pointerId: number } | null>(null)
 
@@ -36,6 +44,7 @@ function useDragOrder(ids: readonly TeamId[], commit: (order: readonly TeamId[])
     if (!rows || rows.length < 2) return
     pitchRef.current = rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top
     startRef.current = { index, y: e.clientY, pointerId: e.pointerId }
+    setSettling(false)
     e.currentTarget.setPointerCapture(e.pointerId)
   }
 
@@ -66,6 +75,7 @@ function useDragOrder(ids: readonly TeamId[], commit: (order: readonly TeamId[])
       const next = [...ids]
       next.splice(drag.to, 0, ...next.splice(drag.from, 1))
       commit(next)
+      setSettling(true)
     }
     setDrag(null)
   }
@@ -93,7 +103,7 @@ function useDragOrder(ids: readonly TeamId[], commit: (order: readonly TeamId[])
         transform: offset(i) === 0 ? undefined : `translateY(${offset(i)}px)`,
         // The lifted row must track the finger exactly; the rows it displaces
         // glide out of its way, which is the whole feel of the thing.
-        transition: drag?.from === i ? 'none' : undefined,
+        transition: drag?.from === i || settling ? 'none' : undefined,
       },
     }),
   }
