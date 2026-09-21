@@ -9,6 +9,7 @@ import type { GroupMatch, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
 import { ClockIcon } from './ClockIcon'
+import { Heart } from './Heart'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
@@ -33,9 +34,11 @@ export function MatchTile({
   const homeWon = mark && m.score && m.score.home > m.score.away
   const awayWon = mark && m.score && m.score.away > m.score.home
   const pinned = progress.pins.has(m.id)
-  const fav =
-    progress.favAuto &&
-    (progress.favorites.includes(m.home) || progress.favorites.includes(m.away))
+  // Per side, as on the preview card. `.tile-team.won` already brightens a
+  // winner's name, so the mark here has to be the heart itself, not weight.
+  const favHome = progress.favAuto && progress.favorites.includes(m.home)
+  const favAway = progress.favAuto && progress.favorites.includes(m.away)
+  const fav = favHome || favAway
 
   const badge =
     liveStatus ? (
@@ -70,9 +73,15 @@ export function MatchTile({
         )}
       </span>
       <span className="tile-teams">
-        <span className={`tile-team ${homeWon ? 'won' : ''}`}>{home.name}</span>
+        <span className={`tile-team ${homeWon ? 'won' : ''}`}>
+          {favHome && <Heart size={10} className="tile-team-heart" />}
+          {home.name}
+        </span>
         <span className="tile-sep">v</span>
-        <span className={`tile-team ${awayWon ? 'won' : ''}`}>{away.name}</span>
+        <span className={`tile-team ${awayWon ? 'won' : ''}`}>
+          {favAway && <Heart size={10} className="tile-team-heart" />}
+          {away.name}
+        </span>
       </span>
       {pinned && (
         <span className="tile-saved" aria-label="Watch later" title="Watch later">

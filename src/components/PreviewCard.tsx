@@ -14,6 +14,7 @@ import { hasGroups } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
 import { ClockIcon } from './ClockIcon'
+import { Heart } from './Heart'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
@@ -106,10 +107,17 @@ export function PreviewCard({
     target.kind === 'group'
       ? (m as GroupMatch).away
       : resolveSlot(t, m as KnockoutMatch, 'away', progress.marks, progress.revealed)
-  const fav =
-    progress.favAuto &&
-    ((homeId !== null && progress.favorites.includes(homeId)) ||
-      (awayId !== null && progress.favorites.includes(awayId)))
+  // Tracked per side, not just per match: the card's whole job here is to
+  // answer "is one of mine in this?" — and when the answer is yes, "which
+  // one?". A ring around the card could only ever answer the first.
+  const followsHome = homeId !== null && progress.favorites.includes(homeId)
+  const followsAway = awayId !== null && progress.favorites.includes(awayId)
+  const favHome = progress.favAuto && followsHome
+  const favAway = progress.favAuto && followsAway
+  const fav = favHome || favAway
+  // Spotlight has its own switch, so it keys off following alone: dimming the
+  // rest of the day must still work with the card decoration turned off.
+  const followed = followsHome || followsAway
 
   // Same flag tint as the match modal, dialed down for the thumbnail. The vars
   // land on the .preview-media art via CSS; unknown (locked) slots set nothing
@@ -119,7 +127,9 @@ export function PreviewCard({
   return (
     <button
       type="button"
-      className={`preview-card state-${state} ${fav ? 'is-fav' : ''}`}
+      className={`preview-card state-${state} ${fav ? 'is-fav' : ''} ${
+        followed ? 'is-followed' : ''
+      }`}
       style={tintStyle}
       onClick={() => onOpen(target)}
     >
@@ -172,7 +182,15 @@ export function PreviewCard({
       </div>
       <div className="preview-meta">
         <span className="preview-teams">
-          {homeLabel} <span className="preview-vs-text">v</span> {awayLabel}
+          <span className={`preview-team ${favHome ? 'is-fav' : ''}`.trim()}>
+            {favHome && <Heart size={14} className="preview-team-heart" />}
+            {homeLabel}
+          </span>{' '}
+          <span className="preview-vs-text">v</span>{' '}
+          <span className={`preview-team ${favAway ? 'is-fav' : ''}`.trim()}>
+            {awayLabel}
+            {favAway && <Heart size={14} className="preview-team-heart is-trailing" />}
+          </span>
         </span>
         {sub && <span className="preview-sub">{sub}</span>}
       </div>

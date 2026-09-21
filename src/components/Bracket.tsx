@@ -8,6 +8,7 @@ import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
 import { ClockIcon } from './ClockIcon'
 import { Flag } from './Flag'
+import { Heart } from './Heart'
 import { FlowLayer } from './FlowLayer'
 import type { FeedLink } from './FlowLayer'
 import { LiveStatusBadge } from './live-status'
@@ -246,6 +247,10 @@ function KnockoutCard({
               <ClockIcon />
             </span>
           )}
+          {/* The bracket draws its team names in a separate SlotRow, so the
+              heart can't sit beside the name the way it does on a card. The
+              meta line is the one place shared by every ko-card. */}
+          {fav && <Heart size={10} className="ko-fav" />}
           {formatMatchDate(m.date, m.kickoff)}
         </span>
         {status}

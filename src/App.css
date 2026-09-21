@@ -333,6 +333,13 @@
   background: var(--control-press);
 }
 
+/* Drawn, not typed — see Heart.tsx. Block display so a heart inside a
+   flex button can't pick up a baseline gap and sit low in its circle. */
+.heart {
+  display: block;
+  flex-shrink: 0;
+}
+
 .clock-btn:hover {
   color: var(--text-h);
   border-color: var(--border-strong);
@@ -907,6 +914,22 @@
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+}
+
+/*
+ * "One of yours plays this day."
+ *
+ * It goes on the date line, not the headline: the headline is the day's name
+ * and it already carries the fresh-results dot. One small heart is the whole
+ * treatment — the strip is a row of a dozen days and anything with a
+ * background or a rule would turn it into a chart. It rides the same
+ * distance-fade as the date it sits beside, so far-off days keep their quiet.
+ */
+.day-item-heart {
+  display: inline-block;
+  vertical-align: -0.05em;
+  margin-right: 4px;
+  color: var(--fav-ink);
 }
 
 .day-arrow {
@@ -1775,6 +1798,22 @@
   );
 }
 
+/* ============ favourite-team highlight ============ */
+
+/*
+ * Why this is not a coloured outline round the card.
+ *
+ * The art is edge-to-edge team colour, and it is different colour on every
+ * card. A ring that reads loud against Napoli blue vanishes against Liverpool
+ * red — a highlight whose strength depends on who you support isn't a system.
+ * An outline also says "selected" or "invalid", not "mine".
+ *
+ * The caption band is the one surface that is identical on every card in the
+ * grid whatever the teams are. Restyle that and the signal is exactly as
+ * strong for every fanbase. It also has room for the thing a ring could never
+ * tell you: which of the two is yours.
+ */
+
 .preview-teams {
   font-size: 12.5px;
   font-weight: 620;
@@ -1782,6 +1821,27 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Inline, not a flex item: the caption must still ellipsize as one string
+   when two long names don't fit, and a flex container can't do that. */
+.preview-team {
+  display: inline;
+}
+
+/* The heart sits on the outside of its name — before the home team, after
+   the away team — so it never lands between "v" and a name and interrupts
+   the matchup as it's read. */
+.preview-team-heart {
+  display: inline-block;
+  vertical-align: -0.14em;
+  margin-right: 3px;
+  color: var(--pink);
+}
+
+.preview-team-heart.is-trailing {
+  margin-right: 0;
+  margin-left: 3px;
 }
 
 .preview-vs-text {
@@ -1797,37 +1857,89 @@
   text-overflow: ellipsis;
 }
 
-/* favorite-team match. Watch later is not this — it is only the clock badge.
-   Symmetric: full-perimeter border + faint even wash + soft outer ring.
-   The edges (border + ring) carry the signal; the inside stays gentle. */
-.preview-card.is-fav {
-  border-color: color-mix(in srgb, var(--saved) 78%, var(--border));
-  background:
-    linear-gradient(rgba(233, 184, 90, 0.04), rgba(233, 184, 90, 0.04)),
-    var(--panel);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--saved) 16%, transparent),
-    var(--shadow);
+/* ---- spotlight (its own setting) ---- */
+
+/*
+ * On a day one of your teams plays, every other match steps back half a
+ * stop. Relative contrast rather than ornament, so it composes with the plate
+ * or with none. It keys off `.is-followed`, not `.is-fav`, because it has its
+ * own switch and must work with the decoration off. `:has()` means a day with
+ * none of your teams is left exactly as it was.
+ *
+ * The fade is set on the parts rather than the card so the team names can
+ * keep a little more of themselves than the art does: the card steps back,
+ * but you can still read what it is without leaning in. The card's own
+ * opacity is pinned to 1 so a watched card's 0.8 doesn't stack on top.
+ *
+ * Hovering a dimmed card restores it in full — stepping back must never
+ * become "you can't have this one".
+ */
+.day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) {
+  filter: saturate(0.32) brightness(0.68);
+  opacity: 1;
+  transition:
+    filter 0.2s ease,
+    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.preview-card.is-fav:hover {
-  border-color: color-mix(in srgb, var(--saved) 82%, var(--border));
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--saved) 22%, transparent),
-    0 2px 4px rgba(0, 0, 0, 0.35),
-    0 14px 36px rgba(0, 0, 0, 0.35);
+.day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) :is(.preview-media, .preview-sub) {
+  opacity: 0.72;
+  transition: opacity 0.2s ease;
 }
 
-/* Carry a faint wash into the media area too (which has its own opaque
-   pitch gradient), so the amber tint stays balanced top-to-bottom
-   without making the inside feel loud. */
-.preview-card.is-fav .preview-media::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(233, 184, 90, 0.04);
-  pointer-events: none;
-  z-index: 0;
+.day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) .preview-teams {
+  opacity: 0.86;
+  transition: opacity 0.2s ease;
+}
+
+.day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed):hover {
+  filter: none;
+}
+
+.day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed):hover :is(.preview-media, .preview-teams, .preview-sub) {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed),
+  .day-grid.is-spotlight:has(.preview-card.is-followed) .preview-card:not(.is-followed) * {
+    transition: none;
+  }
+}
+
+/*
+ * The plate. An opaque rose band with dark plum ink: the lightest caption in
+ * the row, so it reads as an object from across the grid, but held about a
+ * tenth darker than brand pink (OKLCH L 0.73 → 0.68) so it's never brighter
+ * than the crests above it. Flat, with the barest top-to-bottom fall.
+ *
+ * The art's 1px bottom rule is a dark hairline on every other card; above a
+ * light plate it reads as a crack between the two, so here it takes the
+ * plate's own colour and the art sits straight on it.
+ */
+.preview-card.is-fav .preview-media {
+  border-bottom-color: #cb7ba2;
+}
+
+.preview-card.is-fav .preview-meta {
+  background: linear-gradient(#cb7ba2, #c47299);
+}
+
+.preview-card.is-fav .preview-teams {
+  color: #1b0c14;
+  font-weight: 680;
+}
+
+.preview-card.is-fav .preview-team-heart {
+  color: #6e1a42;
+}
+
+.preview-card.is-fav .preview-vs-text {
+  color: rgba(27, 12, 20, 0.5);
+}
+
+.preview-card.is-fav .preview-sub {
+  color: rgba(27, 12, 20, 0.64);
 }
 
 /* ============ group stage ============ */
@@ -2123,17 +2235,24 @@
   opacity: 0.85;
 }
 
-/* favorite-team match — warm-amber accent. Symmetric perimeter treatment,
-   no off-center bar fighting the row's geometry. Watch later is the clock
-   badge alone. */
+/* A followed team, in pink. The edge works here in a way it never did on a
+   preview card: a tile has no team-colour art, so the border always lands on
+   the same panel colour and reads the same strength for every club. */
 .tile.is-fav {
-  border-color: color-mix(in srgb, var(--saved) 78%, var(--border));
-  background: var(--saved-wash);
+  border-color: var(--fav-edge);
+  background: var(--fav-wash);
 }
 
 .tile.is-fav:hover {
-  border-color: color-mix(in srgb, var(--saved) 82%, var(--border));
-  background: color-mix(in srgb, var(--saved) 11%, var(--panel-hover));
+  border-color: color-mix(in srgb, var(--pink) 82%, var(--border));
+  background: color-mix(in srgb, var(--pink) 11%, var(--panel-hover));
+}
+
+.tile-team-heart {
+  display: inline-block;
+  vertical-align: -0.12em;
+  margin-right: 3px;
+  color: var(--fav-ink);
 }
 
 /* Saved-match marker for group-stage tile — inline before the badge so
@@ -3002,25 +3121,24 @@
   opacity: 1;
 }
 
-/* favorite-team match — warm-amber accent. Symmetric: full-perimeter border
-   + even wash, no side-only bar. Watch later is the clock badge alone. */
+/* A followed team, in pink — same reasoning as the group tile. */
 .ko-card.is-fav {
-  border-color: color-mix(in srgb, var(--saved) 78%, var(--border));
+  border-color: var(--fav-edge);
   background:
-    linear-gradient(var(--saved-wash), var(--saved-wash)),
+    linear-gradient(var(--fav-wash), var(--fav-wash)),
     var(--panel);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--saved) 15%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--pink) 15%, transparent),
     var(--shadow);
 }
 
 .ko-card.is-fav:hover {
-  border-color: color-mix(in srgb, var(--saved) 82%, var(--border));
+  border-color: color-mix(in srgb, var(--pink) 82%, var(--border));
   background:
-    linear-gradient(var(--saved-wash), var(--saved-wash)),
+    linear-gradient(var(--fav-wash), var(--fav-wash)),
     var(--panel-hover);
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--saved) 20%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--pink) 20%, transparent),
     var(--shadow);
 }
 
@@ -3031,6 +3149,13 @@
   color: var(--saved-ink);
   font-size: 10.5px;
   margin-right: 5px;
+}
+
+.ko-fav {
+  display: inline-block;
+  vertical-align: -0.1em;
+  margin-right: 5px;
+  color: var(--fav-ink);
 }
 
 .ko-meta {
@@ -3365,7 +3490,15 @@
   color: var(--saved);
 }
 
-/* favorites panel */
+/* ============ favorites panel ============ */
+
+/*
+ * The panel is a two-part list: the teams you follow, then everything else.
+ * Both halves share one geometry — a grip gutter, a crest, a name, and a heart
+ * in the right-hand column — so the crests line up across the divider and the
+ * heart is always in the same place. That is what makes "tap a heart to follow
+ * a team" a literal instruction rather than a hint.
+ */
 .fav-root {
   position: relative;
 }
@@ -3385,129 +3518,172 @@
   top: 42px;
   right: 0;
   z-index: 40;
-  width: 280px;
-  max-height: 430px;
+  width: 296px;
+  max-height: 440px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--panel);
   border: 1px solid var(--border-strong);
   border-radius: 14px;
-  padding: 14px;
+  padding: 12px;
   box-shadow: var(--shadow-lg);
 }
 
+/* A drag must not scroll the list under the row you are holding. */
+.fav-panel.is-reordering {
+  overflow-y: hidden;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.fav-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+
 .fav-panel-title {
+  flex-shrink: 0;
   font-size: 12px;
   font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--muted);
-  margin-bottom: 10px;
+}
+
+/* Search sits on the title line rather than below it: the panel is already a
+   tall stack, and a full-width field would read as a second header. */
+.fav-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  min-width: 0;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--control);
+  color: var(--muted);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+/* Focus is a quiet lift, not a colour: pink in this panel means "followed",
+   and a field lighting up in it every time you type pulls the eye off the
+   hearts it is there to help you find. */
+.fav-search:focus-within {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--control-hover);
+  color: var(--text);
+}
+
+.fav-search-icon {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  margin-left: 9px;
+  opacity: 0.8;
+}
+
+.fav-search-input {
+  flex-grow: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 12.5px;
+  padding: 0 9px 0 6px;
+  outline: none;
+}
+
+.fav-search-input::placeholder {
+  color: var(--muted);
+}
+
+/* The OS clear affordance is a grey box that fights the pill. */
+.fav-search-input::-webkit-search-cancel-button {
+  appearance: none;
 }
 
 .fav-list {
   list-style: none;
-  margin: 0 0 10px;
+  margin: 0 0 4px;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
-.fav-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--text-h);
-  padding: 4px 2px;
-}
-
-.fav-name {
-  flex-grow: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.fav-actions {
-  display: inline-flex;
-  gap: 2px;
-}
-
-.fav-move,
-.fav-remove {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 2px 5px;
-  border-radius: 6px;
-}
-
-.fav-move:hover:not(:disabled) {
-  color: var(--text-h);
-  background: var(--panel-hover);
-}
-
-.fav-move:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
-.fav-remove {
-  color: var(--pink);
-}
-
-.fav-remove:hover {
-  background: rgba(231, 134, 179, 0.12);
-}
-
-.fav-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  color: var(--text);
-  cursor: pointer;
-  margin-bottom: 4px;
-}
-
-.fav-toggle input {
-  accent-color: var(--saved);
-}
-
-.fav-empty {
-  font-size: 12.5px;
-  color: var(--muted);
-  line-height: 1.5;
-  margin-bottom: 6px;
-}
-
-.fav-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 10px 0;
-}
-
-.fav-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
+/*
+ * A row must never change height, because drag-to-reorder measures the pitch
+ * between the first two rows once and then trusts it for the whole gesture.
+ * No padding that depends on content, no wrapping name.
+ */
+.fav-item,
 .fav-add {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
+  height: 38px;
+  padding: 0 4px 0 2px;
   border: none;
+  border-radius: 9px;
   background: transparent;
-  color: var(--text);
-  font-size: 13px;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13.5px;
   text-align: left;
-  padding: 5px 6px;
-  border-radius: 8px;
+}
+
+.fav-item {
+  position: relative;
+  cursor: grab;
+  transition: transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.fav-item:hover {
+  background: var(--panel-hover);
+}
+
+/* Lifted: it leaves the list's plane, so it gets the elevation and sits above
+   the rows sliding out from under it. */
+.fav-item.is-dragging {
+  z-index: 2;
+  cursor: grabbing;
+  background: var(--control-hover);
+  box-shadow:
+    0 10px 22px -8px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(231, 134, 179, 0.28);
+}
+
+.fav-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 14px;
+  color: var(--muted);
+  opacity: 0.45;
+  /* The one element that opts out of panning, so a finger can drag here
+     while the rest of the row still scrolls the panel. */
+  touch-action: none;
+  transition: opacity 0.15s ease;
+}
+
+.fav-item:hover .fav-grip,
+.fav-item.is-dragging .fav-grip {
+  opacity: 0.9;
+}
+
+/* The add rows have no grip, but they reserve its gutter so every crest in
+   the panel sits in one column. */
+.fav-add {
+  padding-left: 24px;
+  color: var(--text);
   cursor: pointer;
 }
 
@@ -3516,13 +3692,164 @@
   color: var(--text-h);
 }
 
-.fav-add-heart {
-  color: var(--muted);
-  font-size: 12px;
+.fav-crest {
+  font-size: 19px;
 }
 
-.fav-add:hover .fav-add-heart {
+.fav-name {
+  flex-grow: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * The heart. Bigger than the old 12px glyph in both ink and hit area — 18px
+ * of mark inside a 30px target — but it stays quiet until you are on the row,
+ * so a list of thirty unfollowed teams doesn't turn into thirty pink marks.
+ */
+.fav-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--border-strong);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.fav-add:hover .fav-toggle-btn {
   color: var(--pink);
+}
+
+.fav-toggle-btn.is-on {
+  color: var(--pink);
+}
+
+.fav-toggle-btn.is-on:hover {
+  background: rgba(231, 134, 179, 0.14);
+}
+
+.fav-toggle-btn.is-on:active {
+  transform: scale(0.88);
+}
+
+/* Fingers get the full 44px target; pointers don't need the extra row
+   height, and on desktop it would make the panel a scroll for no reason. */
+@media (pointer: coarse) {
+  .fav-item,
+  .fav-add {
+    height: 44px;
+  }
+
+  .fav-toggle-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .fav-grip {
+    width: 18px;
+    opacity: 0.8;
+  }
+
+  .fav-add {
+    padding-left: 28px;
+  }
+
+  .fav-auto:first-child {
+    padding-left: calc(28px + (19px * 1.05 - 13px) / 2);
+  }
+
+  .fav-panel:has(.fav-crest.flag-badge) .fav-auto:first-child {
+    padding-left: calc(28px + (19px * 4 / 3 - 13px) / 2);
+  }
+}
+
+.fav-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  /* A full list row tall, pulled up over the list's bottom margin: the
+     checkboxes sit exactly one row pitch under the last team, and the divider
+     below lands the same distance from them as from the first team under it.
+     Spotlight's label ends under the column of hearts. */
+  min-height: 38px;
+  margin-top: -4px;
+  padding-right: 8px;
+}
+
+.fav-auto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 2px 4px 2px 2px;
+  /* One line each, side by side, even in a panel narrowed by a scrollbar. */
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* "Highlight matches" puts its box in the crest column — centred under the
+   crests, whose column starts 24px in (row padding, grip, gap) and is wider
+   for 4:3 national flags than for square club crests. */
+.fav-auto:first-child {
+  padding-left: calc(24px + (19px * 1.05 - 13px) / 2);
+}
+
+.fav-panel:has(.fav-crest.flag-badge) .fav-auto:first-child {
+  padding-left: calc(24px + (19px * 4 / 3 - 13px) / 2);
+}
+
+/* A muted rose, not brand pink: the hearts are the subject of this panel and
+   a solid saturated box next to them out-shouts every one of them. */
+.fav-auto input {
+  accent-color: #7c4361;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.fav-auto:hover {
+  color: var(--text);
+}
+
+.fav-empty {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 2px 0 6px;
+  padding: 0 4px;
+}
+
+.fav-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 2px;
+}
+
+.fav-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fav-item {
+    transition: none;
+  }
 }
 
 /* ============ modal ============ */
