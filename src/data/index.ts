@@ -74,6 +74,13 @@ export interface Competition {
   /** Compact label for the picker pill, e.g. 'PL'. */
   shortName: string
   seasons: Season[]
+  /**
+   * Lives under Archive in the header menu instead of in the season picker.
+   * Set by hand rather than derived from dates: a competition moves there
+   * because we chose to retire it from the everyday list, not because its
+   * last match happened to pass.
+   */
+  archived?: boolean
 }
 
 /**
@@ -166,9 +173,9 @@ function clubSeasons(competitionId: string): Season[] {
 }
 
 /**
- * Picker order: the club competitions people follow week to week first, the
- * World Cup last. It runs every four years, so it is the occasional visit
- * rather than the habit — being at the bottom of the menu costs it nothing.
+ * Picker order: the club competitions people follow week to week. The World
+ * Cup is finished and archived — it is reached from Archive in the header
+ * menu, not the picker (see `pickerCompetitions` / `archivedCompetitions`).
  */
 export const competitions: Competition[] = [
   ...CLUB_COMPETITIONS.map((c) => ({ ...c, seasons: clubSeasons(c.id) })),
@@ -177,9 +184,16 @@ export const competitions: Competition[] = [
     name: 'World Cup',
     shortName: 'World Cup',
     seasons: [{ id: 'wc2026', label: '2026', year: 2026, tournament: wc2026 }],
+    archived: true,
   },
   // A competition with no season files yet would render an empty picker entry.
 ].filter((c) => c.seasons.length > 0)
+
+/** What the season picker lists: everything still in season. */
+export const pickerCompetitions = competitions.filter((c) => !c.archived)
+
+/** What Archive in the header menu lists. */
+export const archivedCompetitions = competitions.filter((c) => c.archived)
 
 /**
  * The competition the app opens on for a first-time visitor. It is the one

@@ -5,14 +5,15 @@ import { analytics } from './analytics'
 import { Bracket } from './components/Bracket'
 import { ConfirmDialog, Onboarding } from './components/Dialogs'
 import { FavoritesPanel } from './components/FavoritesPanel'
+import { formatDate } from './components/format'
 import { GroupStage } from './components/GroupStage'
 import { Logo } from './components/Logo'
 import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
 import { Rail } from './components/Rail'
-import { SettingsMenu } from './components/SettingsMenu'
+import { SettingsMenu, type ArchiveEntry } from './components/SettingsMenu'
 import { WatchLater } from './components/WatchLater'
-import { competitions, defaultSeasonId, findSeason } from './data'
+import { archivedCompetitions, defaultSeasonId, findSeason, pickerCompetitions } from './data'
 import type { Competition, Season } from './data'
 import type { Tournament } from './data/types'
 import {
@@ -32,6 +33,7 @@ import {
   dayTabLabel,
   defaultTournamentView,
   tableTabLabel,
+  tournamentMatchDates,
   type View,
 } from './navigation'
 import { useProgress } from './state/progress'
@@ -76,6 +78,10 @@ function hotStateUrl(seasonId: string): string {
  * A competition with a single season collapses to one row under its own name;
  * one with several lists its seasons under a heading, so the menu never
  * mentions a season count that doesn't exist.
+ *
+ * Archived competitions are not listed — they live under Archive in the header
+ * menu. While you are in one, the trigger says so with a tag, and the menu is
+ * the way back to the live competitions.
  */
 function SeasonPicker({
   seasonId,
@@ -111,7 +117,12 @@ function SeasonPicker({
   // Opening with the keyboard should land you *in* the menu, not behind it.
   useEffect(() => {
     if (!open) return
-    menuRef.current?.querySelector<HTMLButtonElement>('.picker-item.is-active')?.focus()
+    // In an archived competition nothing here is active; start at the top.
+    const menu = menuRef.current
+    const item =
+      menu?.querySelector<HTMLButtonElement>('.picker-item.is-active') ??
+      menu?.querySelector<HTMLButtonElement>('.picker-item')
+    item?.focus()
   }, [open])
 
   const choose = (id: string) => {
@@ -133,6 +144,7 @@ function SeasonPicker({
       >
         <span className="picker-trigger-label">{label}</span>
         {multiSeason && current && <span className="picker-trigger-season">{current.season.label}</span>}
+        {competition?.archived && <span className="picker-trigger-tag">Archive</span>}
         <svg className="picker-chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
           <path
             d="M3 4.6 6 7.6l3-3"
@@ -147,7 +159,7 @@ function SeasonPicker({
 
       {open && (
         <div className="picker-menu" role="menu" aria-label="Competition" ref={menuRef}>
-          {competitions.map((c) =>
+          {pickerCompetitions.map((c) =>
             c.seasons.length === 1 ? (
               <PickerItem
                 key={c.id}
@@ -207,6 +219,16 @@ function PickerItem({
   )
 }
 
+const trophyUrl = new URL('./assets/world-cup-trophy.png', import.meta.url).href
+
+/** 'Jun 11 – Jul 19': the span an archived season ran over. */
+function archiveDates(t: Tournament): string | undefined {
+  const dates = tournamentMatchDates(t)
+  const first = dates[0]
+  const last = dates.at(-1)
+  return first && last ? `${formatDate(first)} – ${formatDate(last)}` : undefined
+}
+
 /**
  * Owns which season is selected and resolving it to a tournament. Club seasons
  * are lazy chunks, so this is the one place that can be without a tournament;
@@ -252,6 +274,17 @@ function App() {
   }
 
   const picker = <SeasonPicker seasonId={seasonId} onSelect={selectSeason} />
+  const archive: ArchiveEntry[] = archivedCompetitions.flatMap((c) =>
+    c.seasons.map((s) => ({
+      id: s.id,
+      label: c.name,
+      season: s.label,
+      dates: s.tournament ? archiveDates(s.tournament) : undefined,
+      art: c.id === 'wc' ? trophyUrl : undefined,
+      active: s.id === seasonId,
+      onSelect: () => selectSeason(s.id),
+    })),
+  )
 
   if (!tournament) {
     return (
@@ -276,6 +309,7 @@ function App() {
       seasonId={seasonId}
       baseTournament={tournament}
       picker={picker}
+      archive={archive}
       showProgress={showProgress}
     />
   )
@@ -285,11 +319,13 @@ function TournamentApp({
   seasonId,
   baseTournament,
   picker,
+  archive,
   showProgress,
 }: {
   seasonId: string
   baseTournament: Tournament
   picker: ReactNode
+  archive: ArchiveEntry[]
   /**
    * The meter counts matches you've revealed out of the whole competition.
    * That is a real, finishable goal for a 104-match World Cup and a
@@ -464,6 +500,7 @@ function TournamentApp({
           <FavoritesPanel t={t} progress={progress} />
 
           <SettingsMenu
+            archive={archive}
             onHowThisWorks={() => setShowOnboarding(true)}
             onReset={() => setConfirmReset(true)}
           />
