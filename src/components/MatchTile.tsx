@@ -75,7 +75,7 @@ export function MatchTile({
         <span className={`tile-team ${awayWon ? 'won' : ''}`}>{away.name}</span>
       </span>
       {pinned && (
-        <span className="tile-saved" aria-label="Watch later" title="Watch later">
+        <span className="tile-saved" aria-label="Watch Later" title="Watch Later">
           <ClockIcon />
         </span>
       )}

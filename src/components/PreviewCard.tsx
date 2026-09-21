@@ -165,7 +165,7 @@ export function PreviewCard({
           <span className="preview-duration">{runtimeBadge}</span>
         )}
         {pinned && (
-          <span className="preview-saved" aria-label="Watch later" title="Watch later">
+          <span className="preview-saved" aria-label="Watch Later" title="Watch Later">
             <ClockIcon />
           </span>
         )}

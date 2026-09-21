@@ -44,3 +44,13 @@ and both need honouring if the art is ever re-exported:
   the *ball* the same size in all three; bottom-aligning puts the sleeping
   mascot on the same resting line. Normalising on height or area would do
   neither.
+
+## Watch Later pose (empty queue)
+
+Full-size source, 1254px square, never bundled:
+[`mascot-watch-later.png`](mascot-watch-later.png) — the standing mascot
+holding up a gold stopwatch, the same clock the Watch Later button uses.
+
+The app ships [`src/assets/mascot-watch-later.webp`](../../src/assets/mascot-watch-later.webp),
+600×473: cropped on alpha > 10 (same halo rule as the sleeping poses) and sized for 2x at the
+300px the empty queue draws it.
