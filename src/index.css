@@ -31,6 +31,13 @@
   --saved-bar: rgba(233, 184, 90, 0.85);
   --saved-wash: rgba(233, 184, 90, 0.09);
   --saved-ink: #f1c97a;
+
+  /* Following a team is a different statement from pinning a match, so it
+     gets a different colour. Pink was already the favourites colour in the
+     header; these extend it to the surfaces the highlight touches. */
+  --fav-edge: rgba(231, 134, 179, 0.62);
+  --fav-wash: rgba(231, 134, 179, 0.09);
+  --fav-ink: #f0a4c8;
   /* Controls — one flat opaque surface, three states, no ornament.
      Opaque because every control in this app can end up over match artwork
      (the sticky header, the footer above a lit card grid); flat because a

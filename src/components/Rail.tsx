@@ -18,10 +18,11 @@ import type {
   WheelEvent as ReactWheelEvent,
 } from 'react'
 import type { Tournament } from '../data/types'
-import { isPlayed, knockoutReady } from '../logic/spoilers'
+import { isPlayed, knockoutReady, resolveSlot } from '../logic/spoilers'
 import { dayRailInitialDate, isTournamentArchived } from '../navigation'
 import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
+import { Heart } from './Heart'
 import { PreviewCard } from './PreviewCard'
 import type { RailEntry } from './PreviewCard'
 import { formatDate, formatWeekday, formatWeekdayLong } from './format'
@@ -407,6 +408,31 @@ function DaySwitcher({
           knockoutReady(t, e.target.match, progress.marks, progress.revealed)),
     )
 
+  /*
+   * "One of mine plays that day."
+   *
+   * Deliberately the same answer the cards give — favAuto off means the whole
+   * feature is off, and a knockout slot whose teams aren't known yet resolves
+   * to null, so the strip never leaks who made it through.
+   */
+  const favOnDay = (d: string) => {
+    if (!progress.favAuto || progress.favorites.length === 0) return false
+    return entries.some((e) => {
+      if (e.date !== d) return false
+      if (e.target.kind === 'group') {
+        const gm = e.target.match
+        return progress.favorites.includes(gm.home) || progress.favorites.includes(gm.away)
+      }
+      const km = e.target.match
+      const home = resolveSlot(t, km, 'home', progress.marks, progress.revealed)
+      const away = resolveSlot(t, km, 'away', progress.marks, progress.revealed)
+      return (
+        (home !== null && progress.favorites.includes(home)) ||
+        (away !== null && progress.favorites.includes(away))
+      )
+    })
+  }
+
   const isMobileViewport = () =>
     typeof window !== 'undefined' && window.matchMedia('(max-width: 760px)').matches
 
@@ -549,7 +575,10 @@ function DaySwitcher({
                   {headlineFor(d)}
                   {hasFresh(d) && <span className="day-tab-dot" aria-label="New results" />}
                 </span>
-                <span className="day-item-date">{subFor(d)}</span>
+                <span className="day-item-date">
+                  {favOnDay(d) && <Heart size={12} className="day-item-heart" />}
+                  {subFor(d)}
+                </span>
               </button>
             ))}
             <span className="day-track-spacer" aria-hidden="true" />
@@ -567,7 +596,11 @@ function DaySwitcher({
       </div>
 
       {!isRestDay ? (
-        <div className="day-grid" ref={gridRef} style={gridStyle}>
+        <div
+          className={`day-grid ${progress.spotlight ? 'is-spotlight' : ''}`.trim()}
+          ref={gridRef}
+          style={gridStyle}
+        >
           <div className="day-grid-rows">
             {dayEntries.map((e) => (
               <PreviewCard

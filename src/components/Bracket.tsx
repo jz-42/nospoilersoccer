@@ -7,6 +7,7 @@ import { bestThirdSlotGroups, groupComplete, resolveSlot, slotLabel } from '../l
 import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
 import { Flag } from './Flag'
+import { Heart } from './Heart'
 import { FlowLayer } from './FlowLayer'
 import type { FeedLink } from './FlowLayer'
 import { LiveStatusBadge } from './live-status'
@@ -228,8 +229,8 @@ function KnockoutCard({
     <button
       type="button"
       className={`ko-card state-${state} ${champion ? 'ko-champ' : ''} ${
-        pinned ? 'is-pinned' : fav ? 'is-fav' : ''
-      }`}
+        pinned ? 'is-pinned' : ''
+      } ${fav ? 'is-fav' : ''}`}
       aria-label={watchAriaLabel}
       onClick={(e) => {
         // Keep any pinned paths when opening a match (the board's clear-on-click
@@ -240,11 +241,15 @@ function KnockoutCard({
     >
       <div className="ko-meta">
         <span>
-          {(pinned || fav) && (
+          {pinned && (
             <span className="ko-saved" aria-label="Saved" title="Saved">
               ★
             </span>
           )}
+          {/* The bracket draws its team names in a separate SlotRow, so the
+              heart can't sit beside the name the way it does on a card. The
+              meta line is the one place shared by every ko-card. */}
+          {fav && <Heart size={10} className="ko-fav" />}
           {formatMatchDate(m.date, m.kickoff)}
         </span>
         {status}
