@@ -16,6 +16,7 @@ import {
 import { hasGroups, roundLabel } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
+import { ClockIcon } from './ClockIcon'
 import { HighlightPlayer } from './HighlightPlayer'
 import { LiveStatusBadge } from './live-status'
 import { OddsBar } from './OddsBar'
@@ -443,11 +444,12 @@ export function MatchModal({
         <button
           type="button"
           className={`modal-pin ${progress.pins.has(m.id) ? 'pinned' : ''}`}
-          aria-label={progress.pins.has(m.id) ? 'Unpin this match' : 'Pin this match'}
-          title={progress.pins.has(m.id) ? 'Unpin this match' : 'Pin this match'}
+          aria-label={progress.pins.has(m.id) ? 'Remove from watch later' : 'Watch later'}
+          aria-pressed={progress.pins.has(m.id)}
+          title={progress.pins.has(m.id) ? 'Remove from watch later' : 'Watch later'}
           onClick={() => progress.togglePin(m.id)}
         >
-          {progress.pins.has(m.id) ? '★' : '☆'}
+          <ClockIcon size={22} filled={progress.pins.has(m.id)} />
         </button>
 
         <div className="modal-context">

@@ -13,6 +13,7 @@ import { resolveSlot, slotLabel } from '../logic/spoilers'
 import { hasGroups } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
+import { ClockIcon } from './ClockIcon'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
@@ -118,7 +119,7 @@ export function PreviewCard({
   return (
     <button
       type="button"
-      className={`preview-card state-${state} ${pinned ? 'is-pinned' : fav ? 'is-fav' : ''}`}
+      className={`preview-card state-${state} ${fav ? 'is-fav' : ''}`}
       style={tintStyle}
       onClick={() => onOpen(target)}
     >
@@ -163,9 +164,9 @@ export function PreviewCard({
         {!liveStatus && state === 'watch' && runtimeBadge && (
           <span className="preview-duration">{runtimeBadge}</span>
         )}
-        {(pinned || fav) && (
-          <span className="preview-saved" aria-label="Saved" title="Saved">
-            ★
+        {pinned && (
+          <span className="preview-saved" aria-label="Watch later" title="Watch later">
+            <ClockIcon />
           </span>
         )}
       </div>

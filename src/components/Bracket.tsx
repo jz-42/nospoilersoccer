@@ -6,6 +6,7 @@ import type { StandingRow } from '../data/standings'
 import { bestThirdSlotGroups, groupComplete, resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
+import { ClockIcon } from './ClockIcon'
 import { Flag } from './Flag'
 import { FlowLayer } from './FlowLayer'
 import type { FeedLink } from './FlowLayer'
@@ -228,7 +229,7 @@ function KnockoutCard({
     <button
       type="button"
       className={`ko-card state-${state} ${champion ? 'ko-champ' : ''} ${
-        pinned ? 'is-pinned' : fav ? 'is-fav' : ''
+        fav ? 'is-fav' : ''
       }`}
       aria-label={watchAriaLabel}
       onClick={(e) => {
@@ -240,9 +241,9 @@ function KnockoutCard({
     >
       <div className="ko-meta">
         <span>
-          {(pinned || fav) && (
-            <span className="ko-saved" aria-label="Saved" title="Saved">
-              ★
+          {pinned && (
+            <span className="ko-saved" aria-label="Watch later" title="Watch later">
+              <ClockIcon />
             </span>
           )}
           {formatMatchDate(m.date, m.kickoff)}

@@ -10,6 +10,8 @@ import { Logo } from './components/Logo'
 import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
 import { Rail } from './components/Rail'
+import { SettingsMenu } from './components/SettingsMenu'
+import { WatchLater } from './components/WatchLater'
 import { competitions, defaultSeasonId, findSeason } from './data'
 import type { Competition, Season } from './data'
 import type { Tournament } from './data/types'
@@ -430,7 +432,10 @@ function TournamentApp({
         </nav>
 
         {/* Everything from here right is the utility cluster, pushed to the far
-            edge as a group so removing the meter can't reflow the rest. */}
+            edge as a group so removing the meter can't reflow the rest. Its
+            order is a ramp from the tournament to the app: how far along you
+            are, the one thing to do next, your saved matches, your teams, and
+            the menu for everything that isn't football. */}
         <div className="app-header-end">
           {showProgress && (
             <div className="app-progress" title="Matches you've revealed">
@@ -454,17 +459,14 @@ function TournamentApp({
             </button>
           )}
 
+          <WatchLater t={t} progress={progress} onOpen={setModal} covered={modal !== null} />
+
           <FavoritesPanel t={t} progress={progress} />
 
-          <button
-            type="button"
-            className="help-btn"
-            aria-label="How this works"
-            title="How this works"
-            onClick={() => setShowOnboarding(true)}
-          >
-            ?
-          </button>
+          <SettingsMenu
+            onHowThisWorks={() => setShowOnboarding(true)}
+            onReset={() => setConfirmReset(true)}
+          />
         </div>
       </header>
 
@@ -474,17 +476,12 @@ function TournamentApp({
         {view === 'bracket' && <Bracket t={t} progress={progress} onOpen={setModal} />}
       </main>
 
-      <footer className="app-footer">
-        <button type="button" className="btn-ghost btn-danger btn-small" onClick={() => setConfirmReset(true)}>
-          Reset progress
-        </button>
-      </footer>
 
       {modal && <MatchModal t={t} target={modal} progress={progress} onClose={() => setModal(null)} />}
       {confirmReset && (
         <ConfirmDialog
           title="Start over?"
-          body={`Every revealed score in ${t.name} will be hidden again. Saved matches and favorite teams stay put.`}
+          body={`Every revealed score in ${t.name} will be hidden again. Your watch-later queue and favorite teams stay put.`}
           confirmLabel="Hide everything"
           danger
           onConfirm={() => {
