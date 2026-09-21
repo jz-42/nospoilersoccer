@@ -444,9 +444,9 @@ export function MatchModal({
         <button
           type="button"
           className={`modal-pin ${progress.pins.has(m.id) ? 'pinned' : ''}`}
-          aria-label={progress.pins.has(m.id) ? 'Remove from watch later' : 'Watch later'}
+          aria-label={progress.pins.has(m.id) ? 'Remove from Watch Later' : 'Watch Later'}
           aria-pressed={progress.pins.has(m.id)}
-          title={progress.pins.has(m.id) ? 'Remove from watch later' : 'Watch later'}
+          title={progress.pins.has(m.id) ? 'Remove from Watch Later' : 'Watch Later'}
           onClick={() => progress.togglePin(m.id)}
         >
           <ClockIcon size={22} filled={progress.pins.has(m.id)} />

@@ -243,7 +243,7 @@ function KnockoutCard({
       <div className="ko-meta">
         <span>
           {pinned && (
-            <span className="ko-saved" aria-label="Watch later" title="Watch later">
+            <span className="ko-saved" aria-label="Watch Later" title="Watch Later">
               <ClockIcon />
             </span>
           )}

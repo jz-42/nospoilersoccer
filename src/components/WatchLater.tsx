@@ -36,7 +36,7 @@ import type { RailEntry } from './PreviewCard'
 import { matchLocalDate } from './schedule'
 import { dropIndex, reorder, slotDuringDrag, slotOffset, type SlotRect } from './queue'
 
-const mascotUrl = new URL('../assets/mascot.webp', import.meta.url).href
+const mascotUrl = new URL('../assets/mascot-watch-later.webp', import.meta.url).href
 
 /** How far a mouse travels before a press becomes a drag rather than a click. */
 const DRAG_SLOP = 6
@@ -119,8 +119,8 @@ export function WatchLater({
       <button
         type="button"
         className={`clock-btn ${ids.length > 0 ? 'has-queue' : ''}`}
-        aria-label={ids.length > 0 ? `Watch later (${ids.length})` : 'Watch later'}
-        title="Watch later"
+        aria-label={ids.length > 0 ? `Watch Later (${ids.length})` : 'Watch Later'}
+        title="Watch Later"
         onClick={() => setOpen(true)}
       >
         <ClockIcon size={17} />
@@ -329,15 +329,15 @@ function QueueOverlay({
   }
 
   return (
-    <div className="queue-overlay" role="dialog" aria-modal="true" aria-label="Watch later">
+    <div className="queue-overlay" role="dialog" aria-modal="true" aria-label="Watch Later">
       <header className="queue-bar">
         <div className="queue-bar-inner">
           <span className="queue-mark" aria-hidden="true">
             <ClockIcon size={20} />
           </span>
-          <h2 className="queue-title">Watch later</h2>
+          <h2 className="queue-title">Watch Later</h2>
           {ids.length > 0 && <span className="queue-count">{ids.length}</span>}
-          <button type="button" className="queue-close" aria-label="Close watch later" onClick={onClose}>
+          <button type="button" className="queue-close" aria-label="Close Watch Later" onClick={onClose}>
             <svg className="modal-close-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
               <path d="M5 5l10 10M15 5L5 15" />
             </svg>
@@ -348,7 +348,7 @@ function QueueOverlay({
       <div className="queue-body" ref={scrollRef}>
         {ids.length === 0 ? (
           <div className="queue-empty">
-            <img className="queue-empty-art" src={mascotUrl} alt="" width={96} height={96} draggable={false} />
+            <img className="queue-empty-art" src={mascotUrl} alt="" width={600} height={473} draggable={false} />
             <p className="queue-empty-title">Nothing saved yet!</p>
             <p className="queue-empty-sub">
               Open a match and tap the top left{' '}
@@ -392,8 +392,8 @@ function QueueOverlay({
                   <button
                     type="button"
                     className="queue-remove"
-                    aria-label="Remove from watch later"
-                    title="Remove from watch later"
+                    aria-label="Remove from Watch Later"
+                    title="Remove from Watch Later"
                     onClick={() => progress.togglePin(id)}
                   >
                     <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
