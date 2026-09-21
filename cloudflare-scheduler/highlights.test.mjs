@@ -262,11 +262,14 @@ test('failed WebSub requests retry after a short cooldown instead of waiting six
   assert.equal(await store.subscriptionDue(HIGHLIGHT_SOURCES[0].channelId, now), true)
 })
 
-test('the four configured sources fit hourly authenticated recovery under budget', () => {
-  assert.equal(HIGHLIGHT_SOURCES.length, 4)
-  assert.equal(new Set(HIGHLIGHT_SOURCES.map((source) => source.channelId)).size, 4)
-  assert.equal(deepScanPageCost(HIGHLIGHT_SOURCES), 25)
-  assert.equal(projectedDailyBaseCost(HIGHLIGHT_SOURCES), 600)
+test('the five configured sources fit hourly authenticated recovery under budget', () => {
+  const deportes = HIGHLIGHT_SOURCES.find((source) => source.id === 'espndeportes')
+  assert.equal(deportes.channelId, 'UC08mnbiC4FykqpHqbEWgFcg')
+  assert.equal(deportes.scanDepth, 100)
+  assert.equal(HIGHLIGHT_SOURCES.length, 5)
+  assert.equal(new Set(HIGHLIGHT_SOURCES.map((source) => source.channelId)).size, 5)
+  assert.equal(deepScanPageCost(HIGHLIGHT_SOURCES), 27)
+  assert.equal(projectedDailyBaseCost(HIGHLIGHT_SOURCES), 648)
   assert.ok(projectedDailyBaseCost(HIGHLIGHT_SOURCES) < DAILY_QUOTA_LIMIT)
 })
 
@@ -333,6 +336,42 @@ test('source title screening keeps full-match highlights and drops channel noise
     false,
   )
   assert.equal(isPotentialHighlight('golazo', 'UCL Today BEST BITS'), false)
+  assert.equal(
+    isPotentialHighlight(
+      'espndeportes',
+      'GETAFE VUELVE A LA VICTORIA tras imponerse 1-0 ante MÁLAGA con gol agónico de IVÁN AZÓN | La Liga',
+    ),
+    true,
+  )
+  assert.equal(
+    isPotentialHighlight(
+      'espndeportes',
+      'VILLARREAL firmó SEGUNDA VICTORIA al vencer 3-1 al LEVANTE con goles de AYOZE y MOLEIRO | La Liga',
+    ),
+    true,
+  )
+  assert.equal(
+    isPotentialHighlight(
+      'espndeportes',
+      'LA REAL SOCIEDAD se quedó con la VICTORIA vs VALENCIA. Goles de Sucic, Soler y Barrenetxea | La Liga',
+    ),
+    true,
+  )
+  assert.equal(isPotentialHighlight('espndeportes', 'La Liga Al Día: debate'), false)
+  assert.equal(
+    isPotentialHighlight(
+      'espndeportes',
+      'RUDIGER DESCUENTA para el REAL MADRID ante ATLÉTICO DE MADRID | La Liga',
+    ),
+    false,
+  )
+  assert.equal(
+    isPotentialHighlight(
+      'espndeportes',
+      'MBAPPÉ MARCÓ para el REAL MADRID ante VALENCIA | La Liga',
+    ),
+    false,
+  )
 })
 
 test('WebSub verification accepts only an exact approved channel topic', async () => {
@@ -379,7 +418,7 @@ test('WebSub renewal requests only channels whose leases are due', async () => {
     },
   })
 
-  assert.deepEqual(result, { requested: 1, skipped: 3, errors: [] })
+  assert.deepEqual(result, { requested: 1, skipped: HIGHLIGHT_SOURCES.length - 1, errors: [] })
   assert.equal(calls[0].url, 'https://pubsubhubbub.appspot.com/subscribe')
   const body = new URLSearchParams(calls[0].init.body)
   assert.equal(body.get('hub.mode'), 'subscribe')
@@ -491,6 +530,7 @@ test('normal recovery polls one newest page per source and enqueues only changed
         golazo: 'Arsenal vs. Napoli: Extended Highlights | UCL | CBS Sports Golazo',
         nbc: 'Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | NBC Sports',
         espnfc: 'Athletic Club vs. Sevilla | LALIGA Highlights | ESPN FC',
+        espndeportes: 'GETAFE VUELVE A LA VICTORIA ante MÁLAGA | La Liga',
       }
       return new Response(
         JSON.stringify({
@@ -510,10 +550,10 @@ test('normal recovery polls one newest page per source and enqueues only changed
   })
 
   assert.equal(result.mode, 'normal')
-  assert.equal(result.pagesFetched, 4)
-  assert.equal(fetched.length, 4)
-  assert.equal(consumed, 4)
-  assert.equal(queued.length, 3)
+  assert.equal(result.pagesFetched, HIGHLIGHT_SOURCES.length)
+  assert.equal(fetched.length, HIGHLIGHT_SOURCES.length)
+  assert.equal(consumed, HIGHLIGHT_SOURCES.length)
+  assert.equal(queued.length, HIGHLIGHT_SOURCES.length - 1)
 })
 
 test('feed recovery checks all channels without quota and queues only likely highlights', async () => {
@@ -548,7 +588,7 @@ test('feed recovery checks all channels without quota and queues only likely hig
       )
     },
   })
-  assert.equal(result.feedsFetched, 4)
+  assert.equal(result.feedsFetched, HIGHLIGHT_SOURCES.length)
   assert.equal(queued.length, 4)
   assert.equal(quotaCalls, 0)
 })
@@ -743,9 +783,9 @@ test('hourly recovery scans each source to its bounded depth', async () => {
       )
     },
   })
-  assert.equal(result.pagesFetched, 25)
-  assert.equal(consumed, 25)
-  assert.deepEqual([...pageBySource.values()], [2, 3, 12, 8])
+  assert.equal(result.pagesFetched, 27)
+  assert.equal(consumed, 27)
+  assert.deepEqual([...pageBySource.values()], [2, 3, 12, 8, 2])
 })
 
 test('highlight dispatch client starts the narrow workflow with candidate inputs', async () => {

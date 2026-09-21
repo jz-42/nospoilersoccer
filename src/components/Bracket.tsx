@@ -6,6 +6,7 @@ import type { StandingRow } from '../data/standings'
 import { bestThirdSlotGroups, groupComplete, resolveSlot, slotLabel } from '../logic/spoilers'
 import type { Progress } from '../state/progress'
 import { ChampionMoment } from './Champion'
+import { ClockIcon } from './ClockIcon'
 import { Flag } from './Flag'
 import { Heart } from './Heart'
 import { FlowLayer } from './FlowLayer'
@@ -229,8 +230,8 @@ function KnockoutCard({
     <button
       type="button"
       className={`ko-card state-${state} ${champion ? 'ko-champ' : ''} ${
-        pinned ? 'is-pinned' : ''
-      } ${fav ? 'is-fav' : ''}`}
+        fav ? 'is-fav' : ''
+      }`}
       aria-label={watchAriaLabel}
       onClick={(e) => {
         // Keep any pinned paths when opening a match (the board's clear-on-click
@@ -242,8 +243,8 @@ function KnockoutCard({
       <div className="ko-meta">
         <span>
           {pinned && (
-            <span className="ko-saved" aria-label="Saved" title="Saved">
-              ★
+            <span className="ko-saved" aria-label="Watch later" title="Watch later">
+              <ClockIcon />
             </span>
           )}
           {/* The bracket draws its team names in a separate SlotRow, so the

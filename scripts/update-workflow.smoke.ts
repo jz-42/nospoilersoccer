@@ -21,9 +21,24 @@ assert.match(
   'club deep highlight scans must run only once per updater hour',
 )
 assert.match(
+  workflow,
+  /if \[ "\$cycle" -eq 1 \]; then[\s\S]*?curate-club-videos\.ts --competition "\$competition"[\s\S]*?elif \[ "\$competition" = "esp1" \]; then[\s\S]*?--competition esp1[\s\S]*?--source espndeportes[\s\S]*?--scan-depth 50/,
+  'later cycles run only the bounded one-page La Liga fallback scan',
+)
+assert.match(
   curateWorkflow,
   /grep -Rqs --fixed-strings "youtubeId: '\$VIDEO_ID'" src\/data\/wc2026-videos\.ts src\/data\/club\/\*-videos\.ts[\s\S]*?status=accepted/,
   'an already-persisted candidate must acknowledge accepted after a lost callback',
+)
+assert.match(
+  curateWorkflow,
+  /- espndeportes[\s\S]*?espnfc\|espndeportes\)[\s\S]*?--competition esp1 --video-id "\$VIDEO_ID"/,
+  'targeted ESPN Deportes candidates route through the La Liga curator',
+)
+assert.match(
+  curateWorkflow,
+  /HIGHLIGHT_RESULT_FILE:[\s\S]*?status="\$\(cat "\$HIGHLIGHT_RESULT_FILE"\)"[\s\S]*?accepted\|retry\|quarantined/,
+  'targeted curation persists an explicit accepted, retry, or quarantined disposition',
 )
 
 console.log('update workflow smoke tests passed')

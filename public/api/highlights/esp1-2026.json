@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "tournamentId": "esp1-2026",
-  "version": 56166343194328,
-  "generatedAt": "2026-09-20T21:13:21.666Z",
+  "version": 174348344456835,
+  "generatedAt": "2026-09-20T22:53:02.083Z",
   "matches": {
     "esp1-real-betis-real-sociedad": [
       {
@@ -214,16 +214,37 @@
         "kind": "normal"
       }
     ],
+    "esp1-osasuna-rayo-vallecano": [
+      {
+        "youtubeId": "dDF68xJW-Mk",
+        "kind": "normal",
+        "publisher": "espn-deportes"
+      }
+    ],
     "esp1-athletic-club-alaves": [
       {
         "youtubeId": "jjDZU_NpYIQ",
         "kind": "normal"
       }
     ],
+    "esp1-celta-vigo-racing-santander": [
+      {
+        "youtubeId": "9gwBByzkNZE",
+        "kind": "normal",
+        "publisher": "espn-deportes"
+      }
+    ],
     "esp1-sevilla-barcelona": [
       {
         "youtubeId": "ujkBRg-upZY",
         "kind": "normal"
+      }
+    ],
+    "esp1-getafe-malaga": [
+      {
+        "youtubeId": "VTqhYR74sHY",
+        "kind": "normal",
+        "publisher": "espn-deportes"
       }
     ],
     "esp1-atletico-madrid-real-madrid": [
@@ -236,6 +257,13 @@
       {
         "youtubeId": "UD3hrcbpcWM",
         "kind": "normal"
+      }
+    ],
+    "esp1-villarreal-levante": [
+      {
+        "youtubeId": "LAR13_KP79g",
+        "kind": "normal",
+        "publisher": "espn-deportes"
       }
     ],
     "esp1-valencia-real-sociedad": [

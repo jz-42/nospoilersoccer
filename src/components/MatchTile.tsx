@@ -8,6 +8,7 @@
 import type { GroupMatch, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
+import { ClockIcon } from './ClockIcon'
 import { Heart } from './Heart'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
@@ -57,7 +58,7 @@ export function MatchTile({
   return (
     <button
       type="button"
-      className={`tile state-${state} ${pinned ? 'is-pinned' : ''} ${fav ? 'is-fav' : ''}`}
+      className={`tile state-${state} ${fav ? 'is-fav' : ''}`}
       onClick={() => onOpen({ kind: 'group', match: m })}
     >
       <span className="tile-thumb" aria-hidden="true">
@@ -83,8 +84,8 @@ export function MatchTile({
         </span>
       </span>
       {pinned && (
-        <span className="tile-saved" aria-label="Saved" title="Saved">
-          ★
+        <span className="tile-saved" aria-label="Watch later" title="Watch later">
+          <ClockIcon />
         </span>
       )}
       {badge}

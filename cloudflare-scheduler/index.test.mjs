@@ -338,11 +338,14 @@ test('worker serves highlight state with a stable etag and honors conditional re
     generatedAt: '2026-09-19T20:00:00Z',
     matches: {},
   }
-  const fetchImpl = async () =>
-    new Response(JSON.stringify(body), {
+  const fetches = []
+  const fetchImpl = async (url, init) => {
+    fetches.push({ url, init })
+    return new Response(JSON.stringify(body), {
       status: 200,
       headers: { 'content-type': 'application/json' },
     })
+  }
 
   const first = await handleHighlightStateRequest(
     {},
@@ -353,6 +356,12 @@ test('worker serves highlight state with a stable etag and honors conditional re
   assert.equal(first.status, 200)
   assert.equal(first.headers.get('etag'), '"42"')
   assert.equal(first.headers.get('access-control-allow-origin'), '*')
+  assert.match(
+    String(fetches[0].url),
+    /\/eng1-2026\.json\?refresh=\d+$/,
+    'the upstream URL changes every short cache bucket instead of inheriting GitHub raw cache staleness',
+  )
+  assert.equal(fetches[0].init.cf.cacheTtl, 15)
 
   const second = await handleHighlightStateRequest(
     {},

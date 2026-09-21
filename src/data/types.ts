@@ -30,6 +30,7 @@ export interface Team {
 
 export type VideoKind = 'normal' | 'extended'
 export type HighlightSource = 'youtube' | 'fox'
+export type YouTubeHighlightPublisher = 'espn-fc' | 'espn-deportes'
 
 interface HighlightVideoBase {
   kind: VideoKind
@@ -48,6 +49,8 @@ export interface YouTubeHighlightVideo extends HighlightVideoBase {
   source?: 'youtube'
   /** YouTube video id (the part after `v=`). */
   youtubeId: string
+  /** Exact ESPN channel when La Liga has more than one trusted provider. */
+  publisher?: YouTubeHighlightPublisher
   foxId?: never
 }
 

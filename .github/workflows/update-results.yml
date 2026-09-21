@@ -254,6 +254,15 @@ jobs:
               if [ "$cycle" -eq 1 ]; then
                 club_step "$season videos" "$season" "$CLUB_BACKUP_ROOT/$season-videos" \
                   npx tsx scripts/curate-club-videos.ts --competition "$competition"
+              elif [ "$competition" = "esp1" ]; then
+                # One bounded page closes the gap when Atom/WebSub is delayed.
+                # The curator itself skips this request when no finished La Liga
+                # fixture is missing a cut.
+                club_step "$season fallback videos" "$season" "$CLUB_BACKUP_ROOT/$season-fallback-videos" \
+                  npx tsx scripts/curate-club-videos.ts \
+                    --competition esp1 \
+                    --source espndeportes \
+                    --scan-depth 50
               fi
             done
             unset CLUB_SEASON CLUB_COMPETITION CLUB_LEAGUE_SLUG

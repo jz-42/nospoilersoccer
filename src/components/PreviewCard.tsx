@@ -13,12 +13,14 @@ import { resolveSlot, slotLabel } from '../logic/spoilers'
 import { hasGroups } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
+import { ClockIcon } from './ClockIcon'
 import { Heart } from './Heart'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
 import { formatRuntimeBadge } from './format'
 import { KickoffTime } from './KickoffTime'
+import { FINISHED_PENDING_CARD_COPY } from './highlight-copy'
 
 export interface RailEntry {
   target: ModalTarget
@@ -91,7 +93,7 @@ export function PreviewCard({
     liveStatus
       ? null
       : state === 'ft'
-        ? 'Highlights soon'
+        ? FINISHED_PENDING_CARD_COPY
         : state === 'locked'
           ? 'Finish the games that decide it'
           : null
@@ -125,9 +127,9 @@ export function PreviewCard({
   return (
     <button
       type="button"
-      className={`preview-card state-${state} ${pinned ? 'is-pinned' : ''} ${
-        fav ? 'is-fav' : ''
-      } ${followed ? 'is-followed' : ''}`}
+      className={`preview-card state-${state} ${fav ? 'is-fav' : ''} ${
+        followed ? 'is-followed' : ''
+      }`}
       style={tintStyle}
       onClick={() => onOpen(target)}
     >
@@ -173,8 +175,8 @@ export function PreviewCard({
           <span className="preview-duration">{runtimeBadge}</span>
         )}
         {pinned && (
-          <span className="preview-saved" aria-label="Saved" title="Saved">
-            ★
+          <span className="preview-saved" aria-label="Watch later" title="Watch later">
+            <ClockIcon />
           </span>
         )}
       </div>

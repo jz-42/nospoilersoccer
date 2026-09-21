@@ -112,10 +112,18 @@ const CLUB_PROVIDER_BY_MATCH_PREFIX = {
   'ucl-': 'CBS',
 } as const
 
-export function highlightLabel(matchId: string, kind: HighlightVideo['kind']): string {
+const PUBLISHER_LABEL = {
+  'espn-fc': 'ESPN FC',
+  'espn-deportes': 'ESPN Deportes',
+} as const
+
+function highlightLabel(matchId: string, video: HighlightVideo): string {
+  if ('publisher' in video && video.publisher) {
+    return `Highlights (${PUBLISHER_LABEL[video.publisher]})`
+  }
   const provider = Object.entries(CLUB_PROVIDER_BY_MATCH_PREFIX)
     .find(([prefix]) => matchId.startsWith(prefix))?.[1]
-  return provider ? `Highlights (${provider})` : KIND_LABEL[kind]
+  return provider ? `Highlights (${provider})` : KIND_LABEL[video.kind]
 }
 
 export function HighlightPlayer({
@@ -307,7 +315,7 @@ export function HighlightPlayer({
             className={`kind-chip ${highlightKey(selected) === highlightKey(v) ? 'active' : ''}`}
             onClick={() => play(v)}
           >
-            {highlightLabel(matchId, v.kind)}
+            {highlightLabel(matchId, v)}
             {dur && <span className="kind-chip-time">{dur}</span>}
           </button>
         )
@@ -338,7 +346,7 @@ export function HighlightPlayer({
                   </svg>
                 </span>
                 <span className="poster-label">
-                  {highlightLabel(matchId, v.kind)}
+                  {highlightLabel(matchId, v)}
                   {dur && <span className="poster-time"> · {dur}</span>}
                 </span>
                 {v.community && <span className="poster-note">Community upload</span>}
@@ -359,7 +367,7 @@ export function HighlightPlayer({
           <iframe
             className="player-host player-host-fox"
             src={highlightEmbedUrl(active)}
-            title={highlightLabel(matchId, active.kind)}
+            title={highlightLabel(matchId, active)}
             scrolling="no"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
@@ -371,7 +379,7 @@ export function HighlightPlayer({
                 header. It stops before the player's top-right control cluster
                 and stays out of the pointer path. */}
             <div className="player-titlebar">
-              <span className="player-titlebar-label">{highlightLabel(matchId, active.kind)}</span>
+              <span className="player-titlebar-label">{highlightLabel(matchId, active)}</span>
             </div>
             <button
               type="button"

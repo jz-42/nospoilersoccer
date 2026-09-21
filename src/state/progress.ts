@@ -116,6 +116,8 @@ export interface Progress {
   marks: Marks
   revealed: ReadonlySet<string>
   pins: ReadonlySet<string>
+  /** The saved matches in queue order — what the watch-later grid renders. */
+  pinOrder: readonly string[]
   /** Global: the same list in every competition. Test with `includes`. */
   favorites: readonly TeamId[]
   favAuto: boolean
@@ -124,6 +126,8 @@ export interface Progress {
   unmark: (matchId: string) => void
   reveal: (matchId: string) => void
   togglePin: (matchId: string) => void
+  /** Replace the whole queue: reorder and drop in one write. */
+  setPinOrder: (matchIds: readonly string[]) => void
   toggleFavorite: (teamId: TeamId) => void
   setFavorites: (order: readonly TeamId[]) => void
   setFavAuto: (on: boolean) => void
@@ -177,6 +181,15 @@ export function useProgress(t: Tournament): Progress {
           ? tp.pins.filter((x) => x !== matchId)
           : [...tp.pins, matchId],
       })),
+    [update],
+  )
+  /**
+   * One setter for both jobs the queue needs — a drag reorders the list, and
+   * closing it drops the matches you watched. Sending the whole array keeps
+   * those from racing each other through two separate writes.
+   */
+  const setPinOrder = useCallback(
+    (matchIds: readonly string[]) => update((tp) => ({ ...tp, pins: [...new Set(matchIds)] })),
     [update],
   )
   const toggleFavorite = useCallback(
@@ -239,6 +252,7 @@ export function useProgress(t: Tournament): Progress {
     marks: tp.marks,
     revealed,
     pins,
+    pinOrder: tp.pins,
     favorites: state.favorites,
     favAuto: state.favAuto,
     spotlight: state.spotlight,
@@ -246,6 +260,7 @@ export function useProgress(t: Tournament): Progress {
     unmark,
     reveal,
     togglePin,
+    setPinOrder,
     toggleFavorite,
     setFavorites,
     setFavAuto,

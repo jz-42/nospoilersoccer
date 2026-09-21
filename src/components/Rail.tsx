@@ -268,6 +268,8 @@ function DaySwitcher({
       pointerId: e.pointerId,
       startX: e.clientX,
       lastX: e.clientX,
+      // Event-handler timestamp, not a rendered value.
+      // eslint-disable-next-line react-hooks/purity
       lastT: performance.now(),
       startScroll: w.scrollLeft,
       moved: false,
@@ -288,6 +290,8 @@ function DaySwitcher({
       if (!w.hasPointerCapture(e.pointerId)) w.setPointerCapture(e.pointerId)
     }
     if (!drag.moved) return
+    // Event-handler timestamp, not a rendered value.
+    // eslint-disable-next-line react-hooks/purity
     const now = performance.now()
     const dt = Math.max(1, now - drag.lastT)
     drag.velocity = (e.clientX - drag.lastX) / dt
@@ -301,6 +305,8 @@ function DaySwitcher({
     const w = windowRef.current
     if (!w) return
     let v = Math.max(-2.4, Math.min(2.4, velocity))
+    // Animation bookkeeping, not a rendered value.
+    // eslint-disable-next-line react-hooks/purity
     let last = performance.now()
 
     const tick = (now: number) => {
@@ -328,6 +334,8 @@ function DaySwitcher({
     dragRef.current = null
     if (!drag.moved) return
     setIsDragging(false)
+    // Event-handler timestamp, not a rendered value.
+    // eslint-disable-next-line react-hooks/purity
     suppressClickUntilRef.current = performance.now() + 180
     if (Math.abs(drag.velocity) > 0.02) {
       startMomentum(-drag.velocity)
@@ -497,6 +505,8 @@ function DaySwitcher({
     if (!canSwipeToDirection(direction, swipeSourceIndex)) return
     if (!swipeToIndex(swipeSourceIndex + direction)) return
 
+    // Event-handler timestamp, not a rendered value.
+    // eslint-disable-next-line react-hooks/purity
     suppressClickUntilRef.current = performance.now() + 320
   }
 
