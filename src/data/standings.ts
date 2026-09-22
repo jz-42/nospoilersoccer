@@ -8,6 +8,8 @@ export interface StandingRow {
   lost: number
   goalsFor: number
   goalsAgainst: number
+  awayGoals: number
+  awayWins: number
   points: number
 }
 
@@ -53,6 +55,118 @@ function headToHead(
 }
 
 /**
+ * UEFA treats its three head-to-head measurements as a bundle. If that bundle
+ * separates one team but leaves two or more level, it is recalculated using
+ * only those teams before the table moves on to overall goal difference.
+ */
+function headToHeadPartitions(
+  t: Tournament,
+  group: GroupId,
+  block: StandingRow[],
+  include?: (matchId: string) => boolean,
+): StandingRow[][] {
+  const mini = headToHead(t, group, block.map((row) => row.team), include)
+  const ordered = [...block].sort((a, b) => {
+    const ma = mini.get(a.team)!
+    const mb = mini.get(b.team)!
+    return mb.points - ma.points || mb.gd - ma.gd || mb.gf - ma.gf
+  })
+  const partitions: StandingRow[][] = []
+  for (const row of ordered) {
+    const current = partitions.at(-1)
+    if (!current) {
+      partitions.push([row])
+      continue
+    }
+    const first = mini.get(current[0].team)!
+    const value = mini.get(row.team)!
+    if (first.points === value.points && first.gd === value.gd && first.gf === value.gf) current.push(row)
+    else partitions.push([row])
+  }
+
+  return partitions.flatMap((partition) =>
+    partition.length > 1 && partition.length < block.length
+      ? headToHeadPartitions(t, group, partition, include)
+      : [partition],
+  )
+}
+
+function groupFullyIncluded(
+  t: Tournament,
+  group: GroupId,
+  include?: (matchId: string) => boolean,
+): boolean {
+  const matches = t.groupMatches.filter((match) => match.group === group)
+  if (matches.length === 0) return include === undefined
+  return matches.every((match) => match.score !== undefined && (!include || include(match.id)))
+}
+
+function rankLevelBlock(
+  t: Tournament,
+  group: GroupId,
+  block: StandingRow[],
+  chain: readonly Tiebreak[],
+  include?: (matchId: string) => boolean,
+  ruleIndex = 0,
+): StandingRow[] {
+  if (block.length < 2) return block
+  if (ruleIndex >= chain.length) {
+    if (!groupFullyIncluded(t, group, include)) return block
+    const official = t.groups.find((candidate) => candidate.id === group)?.officialOrder
+    if (!official) return block
+    return [...block].sort((a, b) => official.indexOf(a.team) - official.indexOf(b.team))
+  }
+
+  const rule = chain[ruleIndex]
+  if (rule === 'head-to-head') {
+    return headToHeadPartitions(t, group, block, include).flatMap((partition) =>
+      partition.length > 1
+        ? rankLevelBlock(t, group, partition, chain, include, ruleIndex + 1)
+        : partition,
+    )
+  }
+
+  const groupDef = t.groups.find((candidate) => candidate.id === group)
+  const full = groupFullyIncluded(t, group, include)
+  const value = (row: StandingRow): number | null => {
+    switch (rule) {
+      case 'goal-difference':
+        return goalDiff(row)
+      case 'goals-for':
+        return row.goalsFor
+      case 'away-goals':
+        return row.awayGoals
+      case 'wins':
+        return row.won
+      case 'away-wins':
+        return row.awayWins
+      case 'disciplinary':
+        return full ? (groupDef?.disciplinary?.[row.team] ?? null) : null
+      case 'access-list':
+        return t.teams[row.team].accessRank ?? null
+    }
+  }
+  const ascending = rule === 'disciplinary' || rule === 'access-list'
+  const ordered = [...block].sort((a, b) => {
+    const av = value(a)
+    const bv = value(b)
+    if (av === null || bv === null) return 0
+    return ascending ? av - bv : bv - av
+  })
+  const partitions: StandingRow[][] = []
+  for (const row of ordered) {
+    const current = partitions.at(-1)
+    if (!current || value(current[0]) !== value(row)) partitions.push([row])
+    else current.push(row)
+  }
+  return partitions.flatMap((partition) =>
+    partition.length > 1
+      ? rankLevelBlock(t, group, partition, chain, include, ruleIndex + 1)
+      : partition,
+  )
+}
+
+/**
  * Standings from group results, ordered by points then the competition's
  * tiebreakers (default goal difference → goals scored, which is FIFA's and the
  * Premier League's; La Liga settles level teams head-to-head first). The data
@@ -73,7 +187,18 @@ export function groupStandings(
   const rows = new Map<TeamId, StandingRow>(
     groupDef.teams.map((team) => [
       team,
-      { team, played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, points: 0 },
+      {
+        team,
+        played: 0,
+        won: 0,
+        drawn: 0,
+        lost: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        awayGoals: 0,
+        awayWins: 0,
+        points: 0,
+      },
     ]),
   )
   for (const m of t.groupMatches) {
@@ -88,12 +213,14 @@ export function groupStandings(
     home.goalsAgainst += m.score.away
     away.goalsFor += m.score.away
     away.goalsAgainst += m.score.home
+    away.awayGoals += m.score.away
     if (m.score.home > m.score.away) {
       home.won++
       away.lost++
       home.points += 3
     } else if (m.score.home < m.score.away) {
       away.won++
+      away.awayWins++
       home.lost++
       away.points += 3
     } else {
@@ -113,35 +240,8 @@ export function groupStandings(
     let end = start + 1
     while (end < ordered.length && ordered[end].points === ordered[start].points) end++
     if (end - start > 1) {
-      const block = ordered.slice(start, end)
-      const mini = chain.includes('head-to-head')
-        ? headToHead(t, group, block.map((r) => r.team), include)
-        : null
-      block.sort((a, b) => {
-        for (const rule of chain) {
-          let d = 0
-          switch (rule) {
-            case 'head-to-head': {
-              const ma = mini!.get(a.team)!
-              const mb = mini!.get(b.team)!
-              d = mb.points - ma.points || mb.gd - ma.gd || mb.gf - ma.gf
-              break
-            }
-            case 'goal-difference':
-              d = goalDiff(b) - goalDiff(a)
-              break
-            case 'goals-for':
-              d = b.goalsFor - a.goalsFor
-              break
-            case 'wins':
-              d = b.won - a.won
-              break
-          }
-          if (d !== 0) return d
-        }
-        return 0
-      })
-      ordered.splice(start, block.length, ...block)
+      const ranked = rankLevelBlock(t, group, ordered.slice(start, end), chain, include)
+      ordered.splice(start, ranked.length, ...ranked)
     }
     start = end
   }
