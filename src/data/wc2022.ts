@@ -1,4 +1,5 @@
 import type { Tournament } from './types'
+import { pickNationalTeams } from './national-teams'
 
 /**
  * FIFA World Cup Qatar 2022 — complete results.
@@ -11,40 +12,12 @@ export const wc2022: Tournament = {
   year: 2022,
   advancingRanks: [1, 2],
 
-  teams: {
-    QAT: { id: 'QAT', name: 'Qatar', flag: '🇶🇦' },
-    ECU: { id: 'ECU', name: 'Ecuador', flag: '🇪🇨' },
-    SEN: { id: 'SEN', name: 'Senegal', flag: '🇸🇳' },
-    NED: { id: 'NED', name: 'Netherlands', flag: '🇳🇱' },
-    ENG: { id: 'ENG', name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-    IRN: { id: 'IRN', name: 'Iran', flag: '🇮🇷' },
-    USA: { id: 'USA', name: 'United States', flag: '🇺🇸' },
-    WAL: { id: 'WAL', name: 'Wales', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
-    ARG: { id: 'ARG', name: 'Argentina', flag: '🇦🇷' },
-    KSA: { id: 'KSA', name: 'Saudi Arabia', flag: '🇸🇦' },
-    MEX: { id: 'MEX', name: 'Mexico', flag: '🇲🇽' },
-    POL: { id: 'POL', name: 'Poland', flag: '🇵🇱' },
-    FRA: { id: 'FRA', name: 'France', flag: '🇫🇷' },
-    AUS: { id: 'AUS', name: 'Australia', flag: '🇦🇺' },
-    DEN: { id: 'DEN', name: 'Denmark', flag: '🇩🇰' },
-    TUN: { id: 'TUN', name: 'Tunisia', flag: '🇹🇳' },
-    ESP: { id: 'ESP', name: 'Spain', flag: '🇪🇸' },
-    CRC: { id: 'CRC', name: 'Costa Rica', flag: '🇨🇷' },
-    GER: { id: 'GER', name: 'Germany', flag: '🇩🇪' },
-    JPN: { id: 'JPN', name: 'Japan', flag: '🇯🇵' },
-    BEL: { id: 'BEL', name: 'Belgium', flag: '🇧🇪' },
-    CAN: { id: 'CAN', name: 'Canada', flag: '🇨🇦' },
-    MAR: { id: 'MAR', name: 'Morocco', flag: '🇲🇦' },
-    CRO: { id: 'CRO', name: 'Croatia', flag: '🇭🇷' },
-    BRA: { id: 'BRA', name: 'Brazil', flag: '🇧🇷' },
-    SRB: { id: 'SRB', name: 'Serbia', flag: '🇷🇸' },
-    SUI: { id: 'SUI', name: 'Switzerland', flag: '🇨🇭' },
-    CMR: { id: 'CMR', name: 'Cameroon', flag: '🇨🇲' },
-    POR: { id: 'POR', name: 'Portugal', flag: '🇵🇹' },
-    GHA: { id: 'GHA', name: 'Ghana', flag: '🇬🇭' },
-    URU: { id: 'URU', name: 'Uruguay', flag: '🇺🇾' },
-    KOR: { id: 'KOR', name: 'South Korea', flag: '🇰🇷' },
-  },
+  teams: pickNationalTeams([
+    'QAT', 'ECU', 'SEN', 'NED', 'ENG', 'IRN', 'USA', 'WAL',
+    'ARG', 'KSA', 'MEX', 'POL', 'FRA', 'AUS', 'DEN', 'TUN',
+    'ESP', 'CRC', 'GER', 'JPN', 'BEL', 'CAN', 'MAR', 'CRO',
+    'BRA', 'SRB', 'SUI', 'CMR', 'POR', 'GHA', 'URU', 'KOR',
+  ]),
 
   groups: [
     { id: 'A', teams: ['QAT', 'ECU', 'SEN', 'NED'] },
