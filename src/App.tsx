@@ -502,7 +502,7 @@ function TournamentApp({
             </div>
           )}
 
-          {catchUpIds.length > 0 && (
+          {catchUpIds.length > 0 ? (
             <button
               type="button"
               className="btn-ghost btn-small btn-catch-up"
@@ -510,7 +510,15 @@ function TournamentApp({
             >
               Catch up
             </button>
-          )}
+          ) : marked > 0 ? (
+            <button
+              type="button"
+              className="btn-ghost btn-danger btn-small"
+              onClick={() => setConfirmReset(true)}
+            >
+              Reset progress
+            </button>
+          ) : null}
 
           <WatchLater t={t} progress={progress} onOpen={setModal} covered={modal !== null} />
 
@@ -519,7 +527,6 @@ function TournamentApp({
           <SettingsMenu
             archive={archive}
             onHowThisWorks={() => setShowOnboarding(true)}
-            onReset={() => setConfirmReset(true)}
           />
         </div>
       </header>

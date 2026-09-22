@@ -1,11 +1,6 @@
 /**
  * The header's one menu — everything about the app rather than the football.
  *
- * It exists as a consolidation, not as a drawer with room to grow: the help
- * button and the lone "Reset progress" in the page footer were two separate
- * pieces of chrome for the same kind of thing. One trigger now, two items,
- * and the footer is gone.
- *
  * Archive is the one exception to "about the app": finished competitions,
  * retired from the season picker so it only lists what is in season. It is a
  * second page the panel slides over to, not a flyout — a flyout off a panel
@@ -13,10 +8,10 @@
  * and not an inline list, which would grow the menu with every season
  * archived. A dot on the row says when you are in one.
  *
- * Deliberately not a gear. A gear promises preferences; this is a guide and
- * one destructive action, so the mark is three rules — a list, which is what
- * opens. The last rule is short at rest and runs out to full width on hover,
- * which is the whole animation budget.
+ * Deliberately not a gear. A gear promises preferences; this is a guide, so
+ * the mark is three rules — a list, which is what opens. The last rule is
+ * short at rest and runs out to full width on hover, which is the whole
+ * animation budget.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
@@ -37,11 +32,9 @@ export interface ArchiveEntry {
 export function SettingsMenu({
   archive,
   onHowThisWorks,
-  onReset,
 }: {
   archive: ArchiveEntry[]
   onHowThisWorks: () => void
-  onReset: () => void
 }) {
   const [open, setOpen] = useState(false)
   const inArchive = archive.some((a) => a.active)
@@ -108,12 +101,6 @@ export function SettingsMenu({
       <span className="menu-item-label">How this works</span>
     </button>
   )
-  const resetItem = (
-    <button type="button" role="menuitem" className="menu-item is-danger" onClick={() => choose(onReset)}>
-      <ResetIcon />
-      <span className="menu-item-label">Reset progress</span>
-    </button>
-  )
   const entries = archive.map((a) => <ArchiveRow key={a.id} entry={a} onSelect={() => choose(a.onSelect)} />)
 
   return (
@@ -154,8 +141,6 @@ export function SettingsMenu({
                   <Chevron />
                 </button>
               )}
-              <div className="menu-divider" />
-              {resetItem}
             </div>
             <div className="menu-page" data-page="archive" inert={page !== 'archive'}>
               <button
@@ -230,15 +215,6 @@ function ArchiveIcon() {
       <rect x="2.2" y="3" width="11.6" height="3.3" rx="1" />
       <path d="M3.3 6.3v5.7a1.4 1.4 0 0 0 1.4 1.4h6.6a1.4 1.4 0 0 0 1.4-1.4V6.3" />
       <path d="M6.6 9h2.8" />
-    </svg>
-  )
-}
-
-function ResetIcon() {
-  return (
-    <svg className="menu-icon" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-      <path d="M3.1 8.6a4.95 4.95 0 1 0 1.3-4.1L2.8 6.1" />
-      <path d="M2.8 2.9v3.2H6" />
     </svg>
   )
 }
