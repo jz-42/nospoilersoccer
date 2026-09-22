@@ -4,6 +4,13 @@ import { localDateKey } from './time/local'
 
 export type View = 'day' | 'groups' | 'bracket'
 
+/** The two league-phase windows in which Nations League is the top competition. */
+export function isNationsLeaguePriorityWindow(now: Date = new Date()): boolean {
+  const date = localDateKey(now)
+  return (date >= '2026-09-24' && date <= '2026-10-06')
+    || (date >= '2026-11-12' && date <= '2026-11-17')
+}
+
 function tournamentMatches(t: Tournament) {
   return [
     ...t.groupMatches,

@@ -1,9 +1,11 @@
 import { ucl_2026 } from './club/ucl-2026'
+import { unl2026 } from './nations/unl-2026'
 import type { HighlightVideo, Tournament } from './types'
 import { highlightKey, preferredHighlightVideos } from './videos'
 import { wc2026Entertainment } from './wc2026-entertainment'
 import { wc2026 as wc2026Base } from './wc2026'
 import { wc2026Videos } from './wc2026-videos'
+import { isNationsLeaguePriorityWindow } from '../navigation'
 
 /**
  * Fold the auto-curated highlight cuts (scripts/curate-videos.ts writes them
@@ -178,6 +180,12 @@ function clubSeasons(competitionId: string): Season[] {
  * menu, not the picker (see `pickerCompetitions` / `archivedCompetitions`).
  */
 export const competitions: Competition[] = [
+  {
+    id: 'unl',
+    name: 'UEFA Nations League',
+    shortName: 'Nations League',
+    seasons: [{ id: 'unl-2026', label: '26/27', year: 2026, tournament: unl2026 }],
+  },
   ...CLUB_COMPETITIONS.map((c) => ({ ...c, seasons: clubSeasons(c.id) })),
   {
     id: 'wc',
@@ -189,8 +197,14 @@ export const competitions: Competition[] = [
   // A competition with no season files yet would render an empty picker entry.
 ].filter((c) => c.seasons.length > 0)
 
-/** What the season picker lists: everything still in season. */
-export const pickerCompetitions = competitions.filter((c) => !c.archived)
+/** What the season picker lists, with the currently active competition first. */
+export function pickerCompetitionsAt(now: Date = new Date()): Competition[] {
+  const live = competitions.filter((competition) => !competition.archived)
+  const priority = isNationsLeaguePriorityWindow(now)
+    ? ['unl', 'ucl', 'eng1', 'esp1']
+    : ['ucl', 'unl', 'eng1', 'esp1']
+  return [...live].sort((a, b) => priority.indexOf(a.id) - priority.indexOf(b.id))
+}
 
 /** What Archive in the header menu lists. */
 export const archivedCompetitions = competitions.filter((c) => c.archived)
@@ -200,7 +214,16 @@ export const archivedCompetitions = competitions.filter((c) => c.archived)
  * people follow week to week, and the one bundled eagerly above so it paints
  * with no spinner.
  */
-export const defaultSeasonId = 'ucl-2026'
+export function defaultSeasonIdAt(now: Date = new Date()): string {
+  return isNationsLeaguePriorityWindow(now) ? 'unl-2026' : 'ucl-2026'
+}
+
+export const defaultSeasonId = defaultSeasonIdAt()
+
+/** A valid explicit user choice always outranks date-driven merchandising. */
+export function resolveInitialSeason(saved: string | null, now: Date = new Date()): string {
+  return saved && findSeason(saved) ? saved : defaultSeasonIdAt(now)
+}
 
 export function findSeason(id: string): { competition: Competition; season: Season } | null {
   for (const competition of competitions) {

@@ -13,7 +13,13 @@ import type { ModalTarget } from './components/MatchModal'
 import { Rail } from './components/Rail'
 import { SettingsMenu, type ArchiveEntry } from './components/SettingsMenu'
 import { WatchLater } from './components/WatchLater'
-import { archivedCompetitions, defaultSeasonId, findSeason, pickerCompetitions } from './data'
+import {
+  archivedCompetitions,
+  defaultSeasonIdAt,
+  findSeason,
+  pickerCompetitionsAt,
+  resolveInitialSeason,
+} from './data'
 import type { Competition, Season } from './data'
 import type { Tournament } from './data/types'
 import {
@@ -86,9 +92,11 @@ function hotStateUrl(seasonId: string): string {
 function SeasonPicker({
   seasonId,
   onSelect,
+  competitions,
 }: {
   seasonId: string
   onSelect: (id: string) => void
+  competitions: Competition[]
 }) {
   const current = findSeason(seasonId)
   const competition: Competition | undefined = current?.competition
@@ -159,7 +167,7 @@ function SeasonPicker({
 
       {open && (
         <div className="picker-menu" role="menu" aria-label="Competition" ref={menuRef}>
-          {pickerCompetitions.map((c) =>
+          {competitions.map((c) =>
             c.seasons.length === 1 ? (
               <PickerItem
                 key={c.id}
@@ -236,15 +244,17 @@ function archiveDates(t: Tournament): string | undefined {
  * tournament-dependent hook unconditional.
  */
 function App() {
+  const [now] = useState(() => new Date())
+  const pickerCompetitions = useMemo(() => pickerCompetitionsAt(now), [now])
   const [seasonId, setSeasonId] = useState<string>(() => {
     try {
       const saved = localStorage.getItem(TOURNAMENT_KEY)
-      return saved && findSeason(saved) ? saved : defaultSeasonId
+      return resolveInitialSeason(saved, now)
     } catch {
-      return defaultSeasonId
+      return defaultSeasonIdAt(now)
     }
   })
-  const found = findSeason(seasonId) ?? findSeason(defaultSeasonId)
+  const found = findSeason(seasonId) ?? findSeason(defaultSeasonIdAt(now))
   const season = found?.season
   // Only the World Cup gets a completion meter (see `showProgress` below).
   const showProgress = found?.competition.id === 'wc'
@@ -273,7 +283,13 @@ function App() {
     }
   }
 
-  const picker = <SeasonPicker seasonId={seasonId} onSelect={selectSeason} />
+  const picker = (
+    <SeasonPicker
+      seasonId={seasonId}
+      onSelect={selectSeason}
+      competitions={pickerCompetitions}
+    />
+  )
   const archive: ArchiveEntry[] = archivedCompetitions.flatMap((c) =>
     c.seasons.map((s) => ({
       id: s.id,
