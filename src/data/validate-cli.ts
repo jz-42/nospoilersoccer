@@ -10,6 +10,7 @@
 import { eng1_2026 } from './club/eng1-2026'
 import { esp1_2026 } from './club/esp1-2026'
 import { ucl_2026 } from './club/ucl-2026'
+import { unl2026 } from './nations/unl-2026'
 import { tournaments } from './index'
 import type { Tournament } from './types'
 import { validateTournament } from './validate'
@@ -21,6 +22,7 @@ const datasets: Tournament[] = [
   ucl_2026,
   eng1_2026,
   esp1_2026,
+  unl2026,
 ]
 
 let failures = 0

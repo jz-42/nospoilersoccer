@@ -2,6 +2,7 @@ import type { GroupId, KnockoutMatch, Tournament } from './types'
 import { findTie, matchLoser, matchWinner, tieLoser, tieWinner } from './types'
 import { groupStandings } from './standings'
 import { FIFA_WC2026_KICKOFFS } from './wc2026-official-schedule'
+import { UNL_2026_OFFICIAL_FIXTURES } from './nations/unl-2026-official'
 import { localDateKey } from '../time/local'
 
 /** Returns a list of problems; an empty list means the dataset is consistent. */
@@ -28,6 +29,66 @@ export function validateTournament(t: Tournament): string[] {
   }
   for (const team of teamIds) {
     if (!groupedTeams.has(team)) err(`team ${team} is not in any group`)
+  }
+
+  if (t.groupSections) {
+    const sectionIds = new Set<string>()
+    const sectionGroups = new Set<GroupId>()
+    for (const section of t.groupSections) {
+      if (sectionIds.has(section.id)) err(`duplicate group section ${section.id}`)
+      sectionIds.add(section.id)
+      for (const groupId of section.groupIds) {
+        if (!groupIds.has(groupId)) err(`section ${section.id} lists unknown group ${groupId}`)
+        if (sectionGroups.has(groupId)) err(`group ${groupId} appears in multiple sections`)
+        sectionGroups.add(groupId)
+        const group = t.groups.find((candidate) => candidate.id === groupId)
+        if (group?.sectionId && group.sectionId !== section.id) {
+          err(`group ${groupId} says section ${group.sectionId}, listed under ${section.id}`)
+        }
+      }
+    }
+    for (const group of t.groups) {
+      if (!sectionGroups.has(group.id)) err(`group ${group.id} is not in a group section`)
+    }
+    for (const section of t.qualificationSections ?? []) {
+      if (!sectionIds.has(section.sectionId)) err(`qualification rules reference unknown section ${section.sectionId}`)
+      const ranks = new Set<number>()
+      for (const rule of section.rules) {
+        if (ranks.has(rule.groupRank)) err(`section ${section.sectionId} repeats qualification rank ${rule.groupRank}`)
+        ranks.add(rule.groupRank)
+      }
+    }
+  }
+
+  for (const group of t.groups) {
+    if (group.officialOrder) {
+      if (group.officialOrder.length !== group.teams.length ||
+        new Set(group.officialOrder).size !== group.teams.length ||
+        group.officialOrder.some((team) => !group.teams.includes(team))) {
+        err(`group ${group.id} officialOrder is not a permutation of its teams`)
+      }
+    }
+  }
+
+  if (t.knockoutTracks) {
+    const roundIds = new Set(t.knockoutRounds.map((round) => round.id))
+    const trackIds = new Set<string>()
+    const pendingIds = new Set<string>()
+    for (const track of t.knockoutTracks) {
+      if (trackIds.has(track.id)) err(`duplicate knockout track ${track.id}`)
+      trackIds.add(track.id)
+      for (const roundId of track.roundIds) {
+        if (!roundIds.has(roundId) && !track.pendingStages?.some((stage) => stage.id === roundId)) {
+          err(`track ${track.id} references neither materialized nor pending round ${roundId}`)
+        }
+      }
+      for (const stage of track.pendingStages ?? []) {
+        if (pendingIds.has(stage.id)) err(`duplicate pending stage ${stage.id}`)
+        pendingIds.add(stage.id)
+        if (!track.roundIds.includes(stage.id)) err(`pending stage ${stage.id} is outside track ${track.id}`)
+        if (roundIds.has(stage.id)) err(`stage ${stage.id} is both pending and materialized`)
+      }
+    }
   }
 
   for (const m of t.groupMatches) {
@@ -100,6 +161,59 @@ export function validateTournament(t: Tournament): string[] {
     for (const id of Object.keys(FIFA_WC2026_KICKOFFS)) {
       if (!actualIds.has(id)) err(`official FIFA schedule match ${id} is missing`)
     }
+  }
+
+  if (t.id === 'unl-2026') {
+    const expectedGroups = [
+      'A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4',
+      'C1', 'C2', 'C3', 'C4', 'D1', 'D2',
+    ]
+    if (teamIds.size !== 54) err(`expected 54 teams, found ${teamIds.size}`)
+    if (t.groups.length !== 14 || expectedGroups.some((id) => !groupIds.has(id))) {
+      err(`expected exact groups ${expectedGroups.join(', ')}`)
+    }
+    if (t.groupMatches.length !== 156) err(`expected 156 league fixtures, found ${t.groupMatches.length}`)
+
+    for (const group of t.groups) {
+      const expectedTeams = group.id.startsWith('D') ? 3 : 4
+      const expectedFixtures = group.id.startsWith('D') ? 6 : 12
+      if (group.teams.length !== expectedTeams) err(`group ${group.id} has ${group.teams.length} teams; expected ${expectedTeams}`)
+      const fixtures = t.groupMatches.filter((match) => match.group === group.id)
+      if (fixtures.length !== expectedFixtures) err(`group ${group.id} has ${fixtures.length} fixtures; expected ${expectedFixtures}`)
+      for (const home of group.teams) for (const away of group.teams) {
+        if (home === away) continue
+        const meetings = fixtures.filter((match) => match.home === home && match.away === away)
+        if (meetings.length !== 1) err(`group ${group.id} requires one ${home} home meeting with ${away}; found ${meetings.length}`)
+      }
+    }
+
+    const officialById = new Map(UNL_2026_OFFICIAL_FIXTURES.map((fixture) => [`unl-${fixture.espnEventId}`, fixture]))
+    for (const match of t.groupMatches) {
+      const official = officialById.get(match.id)
+      if (!official) {
+        err(`match ${match.id} is absent from the official UEFA manifest`)
+        continue
+      }
+      if (match.group !== official.group || match.home !== official.home || match.away !== official.away ||
+        match.kickoff !== official.kickoff || match.matchday !== official.matchday) {
+        err(`match ${match.id} disagrees with the official UEFA manifest`)
+      }
+    }
+    for (const fixture of UNL_2026_OFFICIAL_FIXTURES) {
+      if (!seenMatchIds.has(`unl-${fixture.espnEventId}`)) err(`official UEFA fixture ${fixture.espnEventId} is missing`)
+    }
+
+    const sectionSignature = (t.groupSections ?? []).map((section) => `${section.id}:${section.groupIds.join(',')}`).join('|')
+    const expectedSections = 'A:A1,A2,A3,A4|B:B1,B2,B3,B4|C:C1,C2,C3,C4|D:D1,D2'
+    if (sectionSignature !== expectedSections) err(`group sections disagree with the official league structure`)
+    const qualificationRanks = new Map((t.qualificationSections ?? []).map((section) => [section.sectionId, section.rules.map((rule) => rule.groupRank).join(',')]))
+    for (const section of ['A', 'B', 'C']) {
+      if (qualificationRanks.get(section) !== '1,2,3,4') err(`section ${section} must define outcomes for ranks 1–4`)
+    }
+    if (qualificationRanks.get('D') !== '1,2,3') err(`section D must define promotion for ranks 1–3`)
+    const tracks = new Map((t.knockoutTracks ?? []).map((track) => [track.id, track.roundIds.join(',')]))
+    if (tracks.get('championship') !== 'qf,sf,third-place,final') err(`championship track has the wrong rounds`)
+    if (tracks.get('promotion') !== 'ab-playoff,bc-playoff') err(`promotion track has the wrong rounds`)
   }
 
   // Goal lists must reconcile with scores.
