@@ -3,6 +3,7 @@ import test from 'node:test'
 
 import {
   DAILY_QUOTA_LIMIT,
+  NATIONS_DAILY_QUOTA_LIMIT,
   HIGHLIGHT_SOURCES,
   createD1HighlightStore,
   createHighlightDispatchClient,
@@ -16,6 +17,7 @@ import {
   pacificQuotaDay,
   projectedDailyBaseCost,
   quotaMode,
+  nationsHighlightRecoveryNeeded,
   renewWebSubSubscriptions,
   runHighlightRecovery,
   runHighlightIngestion,
@@ -23,6 +25,37 @@ import {
   processHighlightQueue,
   enqueueDueCandidates,
 } from './highlights.mjs'
+
+test('FOX Soccer source is exact and its authenticated recovery is capped at two pages', () => {
+  const source = HIGHLIGHT_SOURCES.find((item) => item.id === 'foxsoccer')
+  assert.deepEqual(source, {
+    id: 'foxsoccer',
+    label: 'FOX Soccer',
+    channelId: 'UCooTLkxcpnTNx6vfOovfBFA',
+    playlistId: 'UUooTLkxcpnTNx6vfOovfBFA',
+    scanDepth: 100,
+  })
+  assert.equal(NATIONS_DAILY_QUOTA_LIMIT, 48)
+  assert.equal(isPotentialHighlight('foxsoccer', 'Italy vs. France UEFA Nations League Highlights | FOX Soccer'), true)
+  assert.equal(isPotentialHighlight('foxsoccer', 'France scores late winner vs Italy | FOX Soccer'), false)
+})
+
+test('Nations recovery opens only for a completed fixture missing a cut inside its horizon', () => {
+  const kickoff = '2026-09-24T18:45Z'
+  const state = (score, videos = {}) => nationsHighlightRecoveryNeeded({
+    now: new Date('2026-09-24T21:00Z'),
+    hotState: { tournamentId: 'unl-2026', matches: { 'unl-1': { kickoff, score, liveStatus: null, goals: null } } },
+    highlightState: { tournamentId: 'unl-2026', matches: videos },
+  })
+  assert.equal(state(null), false)
+  assert.equal(state({ home: 1, away: 0 }), true)
+  assert.equal(state({ home: 1, away: 0 }, { 'unl-1': [{ youtubeId: 'abcdefghijk', kind: 'normal' }] }), false)
+  assert.equal(nationsHighlightRecoveryNeeded({
+    now: new Date('2026-09-28T21:00Z'),
+    hotState: { tournamentId: 'unl-2026', matches: { 'unl-1': { kickoff, score: { home: 1, away: 0 } } } },
+    highlightState: { tournamentId: 'unl-2026', matches: {} },
+  }), false)
+})
 
 class FakeD1 {
   quota = new Map()
@@ -262,14 +295,14 @@ test('failed WebSub requests retry after a short cooldown instead of waiting six
   assert.equal(await store.subscriptionDue(HIGHLIGHT_SOURCES[0].channelId, now), true)
 })
 
-test('the five configured sources fit hourly authenticated recovery under budget', () => {
+test('the six configured sources fit bounded authenticated recovery under budget', () => {
   const deportes = HIGHLIGHT_SOURCES.find((source) => source.id === 'espndeportes')
   assert.equal(deportes.channelId, 'UC08mnbiC4FykqpHqbEWgFcg')
   assert.equal(deportes.scanDepth, 100)
-  assert.equal(HIGHLIGHT_SOURCES.length, 5)
-  assert.equal(new Set(HIGHLIGHT_SOURCES.map((source) => source.channelId)).size, 5)
-  assert.equal(deepScanPageCost(HIGHLIGHT_SOURCES), 27)
-  assert.equal(projectedDailyBaseCost(HIGHLIGHT_SOURCES), 648)
+  assert.equal(HIGHLIGHT_SOURCES.length, 6)
+  assert.equal(new Set(HIGHLIGHT_SOURCES.map((source) => source.channelId)).size, 6)
+  assert.equal(deepScanPageCost(HIGHLIGHT_SOURCES), 29)
+  assert.equal(projectedDailyBaseCost(HIGHLIGHT_SOURCES), 696)
   assert.ok(projectedDailyBaseCost(HIGHLIGHT_SOURCES) < DAILY_QUOTA_LIMIT)
 })
 
@@ -550,10 +583,10 @@ test('normal recovery polls one newest page per source and enqueues only changed
   })
 
   assert.equal(result.mode, 'normal')
-  assert.equal(result.pagesFetched, HIGHLIGHT_SOURCES.length)
-  assert.equal(fetched.length, HIGHLIGHT_SOURCES.length)
-  assert.equal(consumed, HIGHLIGHT_SOURCES.length)
-  assert.equal(queued.length, HIGHLIGHT_SOURCES.length - 1)
+  assert.equal(result.pagesFetched, HIGHLIGHT_SOURCES.length - 1)
+  assert.equal(fetched.length, HIGHLIGHT_SOURCES.length - 1)
+  assert.equal(consumed, HIGHLIGHT_SOURCES.length - 1)
+  assert.equal(queued.length, HIGHLIGHT_SOURCES.length - 2)
 })
 
 test('feed recovery checks all channels without quota and queues only likely highlights', async () => {
@@ -674,11 +707,11 @@ test('feed failures trigger shallow API recovery outside the hourly sweep', asyn
 
   assert.equal(result.feed.errors.length, HIGHLIGHT_SOURCES.length)
   assert.equal(result.api.mode, 'normal')
-  assert.equal(result.api.pagesFetched, HIGHLIGHT_SOURCES.length)
-  assert.equal(consumed, HIGHLIGHT_SOURCES.length)
+  assert.equal(result.api.pagesFetched, HIGHLIGHT_SOURCES.length - 1)
+  assert.equal(consumed, HIGHLIGHT_SOURCES.length - 1)
   assert.equal(
     fetched.filter((url) => url.startsWith('https://www.googleapis.com/youtube/v3/')).length,
-    HIGHLIGHT_SOURCES.length,
+    HIGHLIGHT_SOURCES.length - 1,
   )
 })
 
@@ -752,6 +785,36 @@ test('quota ceiling disables recovery requests without disabling WebSub receipt'
   assert.equal(result.mode, 'websub_only')
   assert.equal(result.pagesFetched, 0)
   assert.equal(fetched, 0)
+})
+
+test('FOX Soccer API recovery runs only for a Nations gap and respects its 48-unit ledger', async () => {
+  const source = HIGHLIGHT_SOURCES.find((item) => item.id === 'foxsoccer')
+  let sourceUsed = 47
+  let consumed = 0
+  const result = await runHighlightRecovery({
+    now: new Date('2026-09-24T21:00:00Z'),
+    apiKey: 'test-key',
+    nationsRecovery: true,
+    store: {
+      quotaUsed: async () => consumed,
+      sourceQuotaUsed: async () => sourceUsed,
+      consumeQuota: async (_day, method, units) => {
+        if (method.startsWith('foxsoccer:')) assert.equal(method, 'foxsoccer:playlistItems.list')
+        consumed += units
+        if (method.startsWith('foxsoccer:')) sourceUsed += units
+        return true
+      },
+      upsertCandidate: async () => 'unchanged',
+    },
+    queue: { send: async () => {} },
+    fetchImpl: async (url) => new Response(JSON.stringify({
+      items: [],
+      ...(url.includes(source.playlistId) ? { nextPageToken: 'page-2' } : {}),
+    }), { status: 200 }),
+  })
+  assert.equal(result.pagesFetched, HIGHLIGHT_SOURCES.length)
+  assert.equal(sourceUsed, NATIONS_DAILY_QUOTA_LIMIT)
+  assert.equal(consumed, HIGHLIGHT_SOURCES.length)
 })
 
 test('hourly recovery scans each source to its bounded depth', async () => {

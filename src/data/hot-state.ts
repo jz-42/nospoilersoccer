@@ -1,6 +1,7 @@
 import type { Goal, GroupMatch, KnockoutMatch, MatchLiveStatus, Score, TeamId, Tournament } from './types'
 
 export interface HotStateMatch {
+  kickoff?: string | null
   liveStatus: MatchLiveStatus | null
   score: Score | null
   goals: Goal[] | null
@@ -67,6 +68,10 @@ function isHotStateMatch(matchId: string, value: unknown): value is HotStateMatc
   if (!isNullableField((value as { liveStatus?: unknown }).liveStatus, isLiveStatus)) return false
   if (!isNullableField((value as { score?: unknown }).score, isScore)) return false
   if (!isNullableField((value as { goals?: unknown }).goals, isGoals)) return false
+  if (hasOwn(value, 'kickoff')) {
+    const kickoff = (value as { kickoff?: unknown }).kickoff
+    if (kickoff !== null && typeof kickoff !== 'string') return false
+  }
 
   if (!matchId.startsWith('m')) return true
 
@@ -139,11 +144,15 @@ export function buildTournamentHotState(tournament: Tournament): TournamentHotSt
   const matches: Record<string, HotStateMatch> = {}
 
   for (const match of tournament.groupMatches) {
-    matches[match.id] = groupMatchHotState(match)
+    const hot = groupMatchHotState(match)
+    if (tournament.id === 'unl-2026') hot.kickoff = match.kickoff ?? null
+    matches[match.id] = hot
   }
   for (const round of tournament.knockoutRounds) {
     for (const match of round.matches) {
-      matches[match.id] = knockoutMatchHotState(match)
+      const hot = knockoutMatchHotState(match)
+      if (tournament.id === 'unl-2026') hot.kickoff = match.kickoff ?? null
+      matches[match.id] = hot
     }
   }
 

@@ -531,6 +531,8 @@ export default {
           now,
           apiKey: env.YOUTUBE_API_KEY,
           webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
+          nationsHotStateUrl: hotStateSourceUrl(env, 'unl-2026'),
+          nationsHighlightStateUrl: highlightStateSourceUrl(env, 'unl-2026'),
           store,
           queue: env.HIGHLIGHT_QUEUE,
         }),

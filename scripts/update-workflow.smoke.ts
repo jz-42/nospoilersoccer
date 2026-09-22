@@ -37,8 +37,13 @@ assert.match(
 )
 assert.match(
   curateWorkflow,
-  /grep -Rqs --fixed-strings "youtubeId: '\$VIDEO_ID'" src\/data\/wc2026-videos\.ts src\/data\/club\/\*-videos\.ts[\s\S]*?status=accepted/,
+  /grep -Rqs --fixed-strings "youtubeId: '\$VIDEO_ID'" src\/data\/wc2026-videos\.ts src\/data\/club\/\*-videos\.ts src\/data\/nations\/unl-2026-videos\.ts[\s\S]*?status=accepted/,
   'an already-persisted candidate must acknowledge accepted after a lost callback',
+)
+assert.match(
+  curateWorkflow,
+  /- foxsoccer[\s\S]*?foxsoccer\)[\s\S]*?curate-nations-videos\.ts --video-id "\$VIDEO_ID"/,
+  'targeted FOX Soccer candidates route through the Nations League curator',
 )
 assert.match(
   curateWorkflow,
