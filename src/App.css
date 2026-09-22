@@ -1724,6 +1724,10 @@
   border-radius: 6px;
   padding: 2.5px 7px;
   backdrop-filter: blur(6px);
+  max-width: calc(100% - 88px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .preview-badge {

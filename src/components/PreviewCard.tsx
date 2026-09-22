@@ -10,7 +10,7 @@ import { matchTint } from '../data/team-colors'
 import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
 import { resolveSlot, slotLabel } from '../logic/spoilers'
-import { hasGroups } from '../navigation'
+import { groupContextLabel } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
 import { ClockIcon } from './ClockIcon'
@@ -57,7 +57,7 @@ export function PreviewCard({
     // competition has only the matchweek number, which is the same on every
     // card of the day — ten chips reading MATCHDAY 30 that distinguish
     // nothing. The modal still carries it for the one match you opened.
-    context = hasGroups(t) ? `Group ${gm.group}` : null
+    context = groupContextLabel(t, gm.group)
   } else {
     const km = m as KnockoutMatch
     const home = resolveSlot(t, km, 'home', progress.marks, progress.revealed)

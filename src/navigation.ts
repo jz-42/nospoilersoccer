@@ -46,6 +46,17 @@ export function hasGroups(t: Tournament): boolean {
   return t.groups.length > 1
 }
 
+/** Compact context for a group-phase match card. */
+export function groupContextLabel(t: Tournament, groupId: string): string | null {
+  if (!hasGroups(t)) return null
+  const group = t.groups.find((candidate) => candidate.id === groupId)
+  if (!group) return null
+  const section = t.groupSections?.find((candidate) =>
+    candidate.id === group.sectionId || candidate.groupIds.includes(groupId),
+  )
+  return section ? `${section.label} · ${group.id}` : `Group ${group.id}`
+}
+
 /** 'Group stage' for a cup, 'Table' or 'League phase' for a single-table competition. */
 export function tableTabLabel(t: Tournament): string {
   return t.tableLabel ?? 'Group stage'
