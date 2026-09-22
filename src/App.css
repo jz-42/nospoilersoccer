@@ -282,24 +282,6 @@
   transition: width 0.4s ease;
 }
 
-/* The header's one green invitation. Same flat surface as every other
-   control, tinted — the green is in the text and the hairline, never a glow. */
-.btn-catch-up {
-  border-color: rgba(61, 220, 132, 0.28);
-  background: #142519;
-  color: var(--accent);
-}
-
-.btn-catch-up:hover {
-  border-color: rgba(61, 220, 132, 0.5);
-  background: #1a3323;
-  color: #6ef0a5;
-}
-
-.btn-catch-up:active {
-  background: #101e15;
-}
-
 /* Same flat surface as .btn-ghost — see there for why it isn't see-through.
    The queue and teams buttons sit side by side and share every dimension,
    differing only in the glyph and the colour it lights up in. Pills rather
@@ -464,21 +446,6 @@
   color: var(--text-h);
 }
 
-.menu-item.is-danger {
-  color: var(--danger);
-}
-
-.menu-item.is-danger:hover {
-  background: rgba(229, 83, 75, 0.12);
-  color: #ff7b73;
-}
-
-.menu-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 5px 7px;
-}
-
 .app-main {
   flex-grow: 1;
   width: 100%;
@@ -540,11 +507,11 @@
 
 /*
  * Secondary control. "Ghost" is about *rank*, not about being see-through:
- * these sit over match artwork (Catch up on the sticky header, Reset progress
- * on the footer above a lit card grid), and a transparent fill let that
- * artwork glow straight through the button, which read as a bug. So: one flat
- * opaque fill, one hairline, and nothing else. It lifts on hover and presses
- * in on click — the motion is the affordance, not a bevel.
+ * these sit over match artwork (Catch up / Reset progress on the sticky
+ * header), and a transparent fill let that artwork glow straight through
+ * the button, which read as a bug. So: one flat opaque fill, one hairline,
+ * and nothing else. It lifts on hover and presses in on click — the motion
+ * is the affordance, not a bevel.
  */
 .btn-ghost {
   border: 1px solid var(--border);
@@ -574,9 +541,25 @@
   background: var(--control-press);
 }
 
+/* Quiet at rest — same ghost as every other secondary control. Colour
+   only arrives on hover: a dusty green or red of the same weight, text
+   and hairline, never a wash. Lives after .btn-ghost so the tint wins. */
+.btn-catch-up:hover {
+  border-color: rgba(74, 175, 120, 0.45);
+  color: #7ecaa2;
+}
+
+.btn-catch-up:active {
+  background: #141c18;
+}
+
 .btn-danger:hover {
   border-color: rgba(229, 83, 75, 0.45);
   color: #f08a84;
+}
+
+.btn-danger:active {
+  background: #1a1213;
 }
 
 .btn-subtle {
