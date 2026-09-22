@@ -1,7 +1,7 @@
 # UEFA Nations League 2026/27 design
 
-**Date:** 2026-09-21  
-**Status:** Approved in conversation  
+**Date:** 2026-09-21
+**Status:** Approved in conversation
 **Scope:** UEFA Nations League 2026/27, including every participating country,
 the League A championship, and the League A/B and B/C play-offs
 
@@ -444,4 +444,3 @@ International friendlies outside Europe are intentionally deferred. A later
 design should add them as a separate competition with date-based browsing and
 the shared national-team registry. They must not be inserted into Nations
 League groups, standings, or promotion logic.
-

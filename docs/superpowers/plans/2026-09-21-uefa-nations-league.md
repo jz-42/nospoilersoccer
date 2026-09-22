@@ -99,7 +99,7 @@ console.log('TOURNAMENT SHAPE TESTS PASS')
 Add `tsx src/data/tournament-shape.smoke.ts` to `test:logic` immediately after
 the standings test.
 
-Run: `npx tsx src/data/tournament-shape.smoke.ts`  
+Run: `npx tsx src/data/tournament-shape.smoke.ts`
 Expected: TypeScript errors for unknown `groupSections`, `qualificationSections`, and `knockoutTracks`.
 
 - [ ] **Step 3: Add the exact optional types**
@@ -157,7 +157,7 @@ Extend `Group` with `label?: string`, `sectionId?: string`,
 
 - [ ] **Step 4: Run schema and regression tests**
 
-Run: `npx tsx src/data/tournament-shape.smoke.ts && npm run validate:data && npx tsc -b`  
+Run: `npx tsx src/data/tournament-shape.smoke.ts && npm run validate:data && npx tsc -b`
 Expected: schema test passes; all existing datasets remain valid.
 
 - [ ] **Step 5: Commit**
@@ -199,7 +199,7 @@ official-order inputs until every match in that group is included.
 
 - [ ] **Step 2: Run the standings test to verify it fails**
 
-Run: `npx tsx src/data/standings.smoke.ts`  
+Run: `npx tsx src/data/standings.smoke.ts`
 Expected: type errors for the new tiebreak names and failed ordering assertions.
 
 - [ ] **Step 3: Extend rows and tiebreak names**
@@ -232,7 +232,7 @@ hidden result from changing a partial table.
 
 - [ ] **Step 5: Run focused and full logic tests**
 
-Run: `npx tsx src/data/standings.smoke.ts && npm run test:logic`  
+Run: `npx tsx src/data/standings.smoke.ts && npm run test:logic`
 Expected: all UEFA examples and existing FIFA/La Liga examples pass.
 
 - [ ] **Step 6: Commit**
@@ -280,7 +280,7 @@ console.log('NATIONAL TEAM REGISTRY TESTS PASS')
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx tsx src/data/national-teams.smoke.ts`  
+Run: `npx tsx src/data/national-teams.smoke.ts`
 Expected: module-not-found failure.
 
 - [ ] **Step 3: Create the registry and move existing World Cup records**
@@ -325,12 +325,12 @@ only missing MIT-licensed `flag-icons` 4x3 SVGs. The write path must be
 `src/assets/flags/${teamId}.svg`; reject non-SVG responses and do not overwrite
 existing files without `--force`.
 
-Run: `npx tsx scripts/fetch-national-flags.ts`  
+Run: `npx tsx scripts/fetch-national-flags.ts`
 Expected: 35 new SVGs and `all 54 Nations League flags present`.
 
 - [ ] **Step 6: Run identity, data, and visual-asset checks**
 
-Run: `npx tsx src/data/national-teams.smoke.ts && npm run validate:data && npm run test:logic && npx tsc -b`  
+Run: `npx tsx src/data/national-teams.smoke.ts && npm run validate:data && npm run test:logic && npx tsc -b`
 Expected: all pass; existing World Cup favourites use the same IDs and objects.
 
 - [ ] **Step 7: Commit**
@@ -365,7 +365,7 @@ assert(outcome(t, 'A1', 3, onlyA1Revealed) === null, 'cross-group outcome waits 
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx tsx src/data/qualification.smoke.ts`  
+Run: `npx tsx src/data/qualification.smoke.ts`
 Expected: module-not-found failure.
 
 - [ ] **Step 3: Implement section lookup and same-rank comparison**
@@ -389,7 +389,7 @@ Return `null` until the required revealed canon is complete.
 
 - [ ] **Step 4: Run qualification and full logic tests**
 
-Run: `npx tsx src/data/qualification.smoke.ts && npm run test:logic`  
+Run: `npx tsx src/data/qualification.smoke.ts && npm run test:logic`
 Expected: every direct and cross-group path passes with no existing regression.
 
 - [ ] **Step 5: Commit**
@@ -430,7 +430,7 @@ assert(buildWithTruncatedGroup().audit.errors.some((x) => x.includes('fixture co
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx tsx scripts/espn-nations.smoke.ts`  
+Run: `npx tsx scripts/espn-nations.smoke.ts`
 Expected: module-not-found failure.
 
 - [ ] **Step 3: Implement ID-based parsing and stable generation**
@@ -493,10 +493,10 @@ official-order permutations.
 
 - [ ] **Step 6: Generate and validate the live dataset**
 
-Run: `npx tsx scripts/espn-nations.ts`  
+Run: `npx tsx scripts/espn-nations.ts`
 Expected summary: `54 teams, 14 groups, 156 fixtures, 0 source disagreements`.
 
-Run: `npx tsx scripts/espn-nations.smoke.ts && npm run validate:data && npx tsc -b`  
+Run: `npx tsx scripts/espn-nations.smoke.ts && npm run validate:data && npx tsc -b`
 Expected: all pass and `validate-cli` prints a consistent `unl-2026` row.
 
 - [ ] **Step 7: Commit**
@@ -529,7 +529,7 @@ assert(resolveInitialSeason('ucl-2026', activeWindow) === 'ucl-2026', 'valid sav
 
 - [ ] **Step 2: Run navigation tests to verify they fail**
 
-Run: `npx tsx --tsconfig tsconfig.app.json src/navigation.smoke.ts`  
+Run: `npx tsx --tsconfig tsconfig.app.json src/navigation.smoke.ts`
 Expected: missing-helper failures.
 
 - [ ] **Step 3: Register the eager Nations League season**
@@ -557,7 +557,7 @@ localStorage until the visitor explicitly selects a competition.
 
 - [ ] **Step 5: Run focused and full tests**
 
-Run: `npx tsx --tsconfig tsconfig.app.json src/navigation.smoke.ts && npm run test:logic && npx tsc -b`  
+Run: `npx tsx --tsconfig tsconfig.app.json src/navigation.smoke.ts && npm run test:logic && npx tsc -b`
 Expected: every boundary and saved-selection test passes.
 
 - [ ] **Step 6: Commit**
@@ -589,7 +589,7 @@ assert(groupDisplayName(unl_2026.groups[0]) === 'Group A1', 'explicit group labe
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx tsx --tsconfig tsconfig.app.json src/components/group-stage.smoke.tsx`  
+Run: `npx tsx --tsconfig tsconfig.app.json src/components/group-stage.smoke.tsx`
 Expected: missing-helper failures.
 
 - [ ] **Step 3: Implement section helpers and local tab state**
@@ -622,7 +622,7 @@ not introduce a fifth page-level navigation row.
 
 - [ ] **Step 6: Run component and regression tests**
 
-Run: `npx tsx --tsconfig tsconfig.app.json src/components/group-stage.smoke.tsx && npm run test:components && npm run test:logic && npx tsc -b`  
+Run: `npx tsx --tsconfig tsconfig.app.json src/components/group-stage.smoke.tsx && npm run test:components && npm run test:logic && npx tsc -b`
 Expected: all pass.
 
 - [ ] **Step 7: Commit**
@@ -650,7 +650,7 @@ assert(groupContextLabel(eng1_2026, 'league') === null, 'single-table competitio
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx tsx --tsconfig tsconfig.app.json src/components/format.smoke.ts`  
+Run: `npx tsx --tsconfig tsconfig.app.json src/components/format.smoke.ts`
 Expected: `groupContextLabel` is missing.
 
 - [ ] **Step 3: Implement and consume the helper**
@@ -667,7 +667,7 @@ days must retain the existing grid layout.
 
 - [ ] **Step 5: Run tests and commit**
 
-Run: `npm run test:components && npx tsc -b`  
+Run: `npm run test:components && npx tsc -b`
 Expected: all pass.
 
 ```bash
@@ -702,7 +702,7 @@ assert(!pendingHtml.includes(' vs '), 'no invented pairing')
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx tsx --tsconfig tsconfig.app.json src/components/knockout-tracks.smoke.tsx`  
+Run: `npx tsx --tsconfig tsconfig.app.json src/components/knockout-tracks.smoke.tsx`
 Expected: module-not-found failure.
 
 - [ ] **Step 3: Make the connected bracket reusable**
@@ -740,7 +740,7 @@ Style the track selector like the group-section selector. Use a responsive
 two-column tie grid collapsing to one column. Pending cards must fit 320px
 without horizontal scrolling.
 
-Run: `npx tsx --tsconfig tsconfig.app.json src/components/knockout-tracks.smoke.tsx && npm run test:components && npx tsc -b`  
+Run: `npx tsx --tsconfig tsconfig.app.json src/components/knockout-tracks.smoke.tsx && npm run test:components && npx tsc -b`
 Expected: all pass; legacy brackets are unchanged.
 
 - [ ] **Step 7: Commit**
@@ -774,7 +774,7 @@ result window beginning 105 minutes after kickoff and ending eight hours after.
 
 - [ ] **Step 2: Run focused tests to verify they fail**
 
-Run: `npx tsx scripts/espn-nations.smoke.ts && node --test cloudflare-scheduler/index.test.mjs`  
+Run: `npx tsx scripts/espn-nations.smoke.ts && node --test cloudflare-scheduler/index.test.mjs`
 Expected: preservation/window/allowlist assertions fail.
 
 - [ ] **Step 3: Add update mode and audit output**
@@ -817,7 +817,7 @@ dataset, videos, audit-owned skip data, and its two runtime JSON files.
 
 - [ ] **Step 7: Run scheduler, update, and build tests**
 
-Run: `node --test cloudflare-scheduler/index.test.mjs && npx tsx scripts/update-workflow.smoke.ts && npm run check:update`  
+Run: `node --test cloudflare-scheduler/index.test.mjs && npx tsx scripts/update-workflow.smoke.ts && npm run check:update`
 Expected: all pass, including no dispatch overlap and last-known-good retention.
 
 - [ ] **Step 8: Commit**
@@ -856,7 +856,7 @@ writing the videos module, while `trustMode: 'trusted'` writes exactly once.
 
 - [ ] **Step 2: Run it to verify it fails**
 
-Run: `npx tsx scripts/curate-nations-videos.smoke.ts`  
+Run: `npx tsx scripts/curate-nations-videos.smoke.ts`
 Expected: module-not-found failure.
 
 - [ ] **Step 3: Implement conservative source parsing**
@@ -885,7 +885,7 @@ reason. Targeted mode must set `HIGHLIGHT_RESULT_FILE` to `accepted`,
 
 - [ ] **Step 5: Run tests and commit**
 
-Run: `npx tsx scripts/curate-nations-videos.smoke.ts && npx tsx src/data/videos.smoke.ts && npm run validate:data && npx tsc -b`  
+Run: `npx tsx scripts/curate-nations-videos.smoke.ts && npx tsx src/data/videos.smoke.ts && npm run validate:data && npx tsc -b`
 Expected: all pass; quarantine produces no published video.
 
 ```bash
@@ -913,7 +913,7 @@ daily ceiling of 48 units.
 
 - [ ] **Step 2: Run Worker tests to verify they fail**
 
-Run: `node --test cloudflare-scheduler/highlights.test.mjs`  
+Run: `node --test cloudflare-scheduler/highlights.test.mjs`
 Expected: `foxsoccer` source and quota-window assertions fail.
 
 - [ ] **Step 3: Add the exact source and title gate**
@@ -962,7 +962,7 @@ promotion must be separate commits.
 
 - [ ] **Step 7: Run tests and commit**
 
-Run: `node --test cloudflare-scheduler/highlights.test.mjs && npx tsx scripts/curate-nations-videos.smoke.ts && npx tsx scripts/update-workflow.smoke.ts`  
+Run: `node --test cloudflare-scheduler/highlights.test.mjs && npx tsx scripts/curate-nations-videos.smoke.ts && npx tsx scripts/update-workflow.smoke.ts`
 Expected: all pass and the quota ledger never exceeds either cap.
 
 ```bash
@@ -995,12 +995,12 @@ the regulations contain no 2026/27 C/D play-off.
 
 - [ ] **Step 3: Run the aggregate proof twice**
 
-Run: `npm run test:nations && npm run test:nations`  
+Run: `npm run test:nations && npm run test:nations`
 Expected: both runs pass identically; the second run creates no data diff.
 
 - [ ] **Step 4: Confirm generated files are idempotent**
 
-Run: `npx tsx scripts/espn-nations.ts && npm run build:hot-state && npm run build:highlight-state && git diff --exit-code -- src/data/nations public/api/hot-state/unl-2026.json public/api/highlights/unl-2026.json`  
+Run: `npx tsx scripts/espn-nations.ts && npm run build:hot-state && npm run build:highlight-state && git diff --exit-code -- src/data/nations public/api/hot-state/unl-2026.json public/api/highlights/unl-2026.json`
 Expected: exit 0 after the first reviewed generation commit.
 
 - [ ] **Step 5: Commit**
@@ -1018,7 +1018,7 @@ git commit -m "Document Nations League operations"
 
 - [ ] **Step 1: Run the full automated suite**
 
-Run: `npm run test:nations && npm run check && npm run lint && npm run build`  
+Run: `npm run test:nations && npm run check && npm run lint && npm run build`
 Expected: every command exits 0; production output includes a Nations League season chunk or eager module and no TypeScript/ESLint warnings.
 
 - [ ] **Step 2: Prove source integrity against live endpoints**

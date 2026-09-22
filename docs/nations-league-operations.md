@@ -84,7 +84,8 @@ Atom polling and WebSub notifications cost zero YouTube Data API units. FOX
 Soccer playlist recovery opens only when runtime hot-state proves a completed
 fixture lacks a cut. It scans at most two pages per run and stops at 48
 FOX-Soccer units per Pacific quota day, in addition to the global 8,000-unit
-ceiling.
+ceiling. If public feeds fail, authenticated fallback runs at most once every
+five minutes rather than on every scheduler tick.
 
 Inspect quota use, subscriptions, and quarantined candidates:
 

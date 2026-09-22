@@ -611,9 +611,11 @@ export async function runHighlightIngestion({
     : Promise.resolve(null)
   const feedPromise = runFeedRecovery({ now, store, queue, fetchImpl })
   const [subscriptions, feed] = await Promise.all([subscriptionsPromise, feedPromise])
+  const recoveryDue = now.getUTCMinutes() === 0 ||
+    (feed.errors.length > 0 && now.getUTCMinutes() % 5 === 0)
   let nationsRecovery = false
   if (apiKey && nationsHotStateUrl && nationsHighlightStateUrl &&
-      (now.getUTCMinutes() === 0 || feed.errors.length > 0)) {
+      recoveryDue) {
     try {
       const [hotResponse, highlightResponse] = await Promise.all([
         fetchImpl(nationsHotStateUrl),
@@ -630,7 +632,7 @@ export async function runHighlightIngestion({
       // Runtime-state recovery is an optional quota path. Atom/WebSub continues.
     }
   }
-  const api = apiKey && (now.getUTCMinutes() === 0 || feed.errors.length > 0)
+  const api = apiKey && recoveryDue
     ? await runHighlightRecovery({ now, apiKey, store, queue, nationsRecovery, fetchImpl })
     : null
   const requeued = await enqueueDueCandidates(store, queue, now)

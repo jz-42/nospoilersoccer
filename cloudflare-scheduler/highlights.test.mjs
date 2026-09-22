@@ -689,7 +689,7 @@ test('feed failures trigger shallow API recovery outside the hourly sweep', asyn
   }
 
   const result = await runHighlightIngestion({
-    now: new Date('2026-09-19T20:17:00Z'),
+    now: new Date('2026-09-19T20:20:00Z'),
     apiKey: 'test-key',
     store,
     queue: { send: async () => {} },
@@ -713,6 +713,34 @@ test('feed failures trigger shallow API recovery outside the hourly sweep', asyn
     fetched.filter((url) => url.startsWith('https://www.googleapis.com/youtube/v3/')).length,
     HIGHLIGHT_SOURCES.length - 1,
   )
+})
+
+test('feed failures wait for the five-minute recovery boundary before using quota', async () => {
+  let quotaCalls = 0
+  const result = await runHighlightIngestion({
+    now: new Date('2026-09-19T20:17:00Z'),
+    apiKey: 'test-key',
+    store: {
+      quotaUsed: async () => 0,
+      consumeQuota: async () => {
+        quotaCalls += 1
+        return true
+      },
+      upsertCandidate: async () => 'unchanged',
+      dueCandidates: async () => [],
+    },
+    queue: { send: async () => {} },
+    fetchImpl: async (url) => {
+      if (url.startsWith('https://www.youtube.com/feeds/videos.xml')) {
+        return new Response(null, { status: 404 })
+      }
+      throw new Error(`unexpected authenticated request: ${url}`)
+    },
+  })
+
+  assert.equal(result.feed.errors.length, HIGHLIGHT_SOURCES.length)
+  assert.equal(result.api, null)
+  assert.equal(quotaCalls, 0)
 })
 
 test('healthy feeds avoid API quota outside the hourly sweep even when a key is configured', async () => {
