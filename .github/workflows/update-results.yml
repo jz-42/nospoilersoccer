@@ -46,6 +46,8 @@ jobs:
           VIDEOS_BACKUP_DIR: /tmp/wc2026-videos-backup
           CLUB_AUDIT_FILE: /tmp/club-audit.md
           CLUB_BACKUP_ROOT: /tmp/club-backup
+          NATIONS_AUDIT_FILE: /tmp/nations-audit.md
+          NATIONS_BACKUP_ROOT: /tmp/nations-backup
         run: |
           git config user.name "results-bot"
           git config user.email "actions@github.com"
@@ -98,6 +100,39 @@ jobs:
               club_restore "$season" "$backup_dir"
             fi
             return 0
+          }
+
+          nations_restore() {
+            backup_dir="$1"
+            find src/data/nations -maxdepth 1 -name 'unl-2026*' -delete 2>/dev/null || true
+            rm -f public/api/hot-state/unl-2026.json public/api/highlights/unl-2026.json
+            if [ -d "$backup_dir/data" ]; then cp "$backup_dir/data"/* src/data/nations/ 2>/dev/null || true; fi
+            if [ -d "$backup_dir/hot" ]; then cp "$backup_dir/hot"/* public/api/hot-state/ 2>/dev/null || true; fi
+            if [ -d "$backup_dir/highlights" ]; then cp "$backup_dir/highlights"/* public/api/highlights/ 2>/dev/null || true; fi
+            return 0
+          }
+
+          nations_step() {
+            backup_dir="$NATIONS_BACKUP_ROOT/current"
+            rm -rf "$backup_dir"
+            mkdir -p "$backup_dir/data" "$backup_dir/hot" "$backup_dir/highlights"
+            find src/data/nations -maxdepth 1 -name 'unl-2026*' -exec cp {} "$backup_dir/data/" \; 2>/dev/null || true
+            cp public/api/hot-state/unl-2026.json "$backup_dir/hot/" 2>/dev/null || true
+            cp public/api/highlights/unl-2026.json "$backup_dir/highlights/" 2>/dev/null || true
+            rm -f "$NATIONS_AUDIT_FILE"
+
+            if NATIONS_AUDIT_FILE="$NATIONS_AUDIT_FILE" npx tsx scripts/espn-nations.ts \
+              && npm run validate:data \
+              && npx tsx scripts/espn-nations.smoke.ts \
+              && npx tsc -b \
+              && npm run build:hot-state \
+              && npm run build:highlight-state; then
+              return 0
+            fi
+
+            echo "::warning::Nations League step failed; restoring last-known-good files"
+            nations_restore "$backup_dir"
+            return 1
           }
 
           # Budget the run against `timeout-minutes: 58` (3480s); setup costs ~15s.
@@ -225,6 +260,44 @@ jobs:
             else
               echo "::error::validation failed — not committing this cycle"
               touch "$CURATOR_ERROR_FLAG"
+            fi
+
+            # --- UEFA Nations League --------------------------------------
+            # ESPN is queried only in a live/recent result window. The Worker
+            # still dispatches around the clock for club competitions.
+            if node --input-type=module -e '
+              import { readFileSync } from "node:fs";
+              import { parseMatchKickoffs, buildWindowReport } from "./cloudflare-scheduler/index.mjs";
+              const source = readFileSync("src/data/nations/unl-2026.ts", "utf8");
+              const due = buildWindowReport(parseMatchKickoffs(source, "unl-2026"), new Date()).insideWindow;
+              process.exit(due ? 0 : 1);
+            '; then
+              if nations_step; then
+                if [ -f "$NATIONS_AUDIT_FILE" ]; then
+                  {
+                    echo "### Nations League audit — cycle $cycle"
+                    cat "$NATIONS_AUDIT_FILE"
+                    echo
+                  } >> "$GITHUB_STEP_SUMMARY"
+                fi
+                add_if_present src/data/nations/unl-2026.ts \
+                  src/data/nations/unl-2026-videos.ts \
+                  public/api/hot-state/unl-2026.json \
+                  public/api/highlights/unl-2026.json
+                if git diff --cached --quiet; then
+                  echo "no Nations League changes this cycle"
+                else
+                  git commit -m "Auto-update: Nations League data ($(date -u '+%F %H:%MZ'))"
+                  git pull --rebase --autostash origin main || true
+                  if git push origin HEAD:main; then
+                    git push origin HEAD:dev || echo "dev has diverged; skipping"
+                  else
+                    echo "::warning::Nations League push to main failed; will retry next cycle"
+                  fi
+                fi
+              fi
+            else
+              echo "Nations League has no live or recently finishable fixture"
             fi
 
             # --- Club competitions ------------------------------------------

@@ -4,6 +4,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { eng1_2026 } from '../src/data/club/eng1-2026'
 import { esp1_2026 } from '../src/data/club/esp1-2026'
 import { ucl_2026 } from '../src/data/club/ucl-2026'
+import { unl2026 } from '../src/data/nations/unl-2026'
 import { tournaments } from '../src/data'
 import {
   buildRuntimeHighlightState,
@@ -13,7 +14,7 @@ import {
 import type { Tournament } from '../src/data/types'
 
 const outputDirectory = 'public/api/highlights'
-const tournamentList: Tournament[] = [tournaments.wc2026, eng1_2026, esp1_2026, ucl_2026]
+const tournamentList: Tournament[] = [tournaments.wc2026, unl2026, eng1_2026, esp1_2026, ucl_2026]
 
 function versionFor(tournament: Tournament): number {
   const provisional = buildRuntimeHighlightState(tournament, 0, '')

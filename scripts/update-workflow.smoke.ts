@@ -17,6 +17,16 @@ assert.match(
 )
 assert.match(
   workflow,
+  /NATIONS_BACKUP_ROOT:[\s\S]*?nations_step\(\)[\s\S]*?scripts\/espn-nations\.ts[\s\S]*?scripts\/espn-nations\.smoke\.ts[\s\S]*?nations_restore/,
+  'Nations League updates are validated atomically with last-known-good restoration',
+)
+assert.match(
+  workflow,
+  /parseMatchKickoffs\(source, "unl-2026"\)[\s\S]*?insideWindow[\s\S]*?if nations_step/,
+  'Nations League ingest runs only in a schedule-derived result window',
+)
+assert.match(
+  workflow,
   /if \[ "\$cycle" -eq 1 \]; then[\s\S]*?club_step "\$season videos"[\s\S]*?curate-club-videos\.ts --competition "\$competition"[\s\S]*?fi/,
   'club deep highlight scans must run only once per updater hour',
 )

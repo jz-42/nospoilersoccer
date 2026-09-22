@@ -294,7 +294,10 @@ export function validateTournament(t: Tournament): string[] {
               err(`match ${m.id} ${label} slot references unknown group ${side.group}`)
               break
             }
-            if (!t.advancingRanks.includes(side.rank))
+            const configuredRank = t.qualificationSections?.some((section) =>
+              section.rules.some((rule) => rule.groupRank === side.rank),
+            )
+            if (!t.advancingRanks.includes(side.rank) && !configuredRank)
               err(`match ${m.id} ${label} slot rank ${side.rank} is not an advancing rank`)
             if (!groupDecided(side.group)) {
               if (actualTeam !== undefined)

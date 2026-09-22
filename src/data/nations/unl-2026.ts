@@ -1876,4 +1876,11 @@ export const unl2026: Tournament = {
     ...match,
     ...(unl2026Videos[match.id] ? { videos: unl2026Videos[match.id] } : {}),
   })),
+  knockoutRounds: generated.knockoutRounds.map((round) => ({
+    ...round,
+    matches: round.matches.map((match) => ({
+      ...match,
+      ...(unl2026Videos[match.id] ? { videos: unl2026Videos[match.id] } : {}),
+    })),
+  })),
 }
