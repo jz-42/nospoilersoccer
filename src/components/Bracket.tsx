@@ -161,7 +161,7 @@ function SlotRow({
   )
 }
 
-function KnockoutCard({
+export function KnockoutCard({
   t,
   m,
   roundName,
@@ -545,7 +545,7 @@ function Column({
   )
 }
 
-export function Bracket({
+export function ConnectedBracket({
   t,
   progress,
   onOpen,
@@ -956,3 +956,6 @@ export function Bracket({
     </div>
   )
 }
+
+/** Backwards-compatible name used by tournaments with one connected bracket. */
+export const Bracket = ConnectedBracket

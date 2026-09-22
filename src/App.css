@@ -2835,6 +2835,138 @@
   max-width: 100%;
 }
 
+.knockout-tracks {
+  min-width: 0;
+}
+
+.knockout-track-tabs {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 3px;
+  margin: 0 auto 20px;
+  padding: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel);
+  scrollbar-width: none;
+}
+
+.knockout-track-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.knockout-track-tab {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 15px;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.knockout-track-tab:hover,
+.knockout-track-tab.active {
+  color: var(--text-h);
+  background: var(--bg-raised);
+}
+
+.knockout-track-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.pending-stage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.pending-stage-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.pending-stage-state {
+  width: fit-content;
+  margin-bottom: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--bg-raised);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pending-stage-card h3,
+.tie-round h2 {
+  color: var(--text-h);
+  font-size: 14px;
+}
+
+.pending-stage-window {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pending-stage-pools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pending-stage-pools li {
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 11px;
+}
+
+.tie-round + .tie-round {
+  margin-top: 28px;
+}
+
+.tie-round h2 {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.tie-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .knockout-track-tabs {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .tie-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .b-col {
   --bgap: 12px;
   position: relative;

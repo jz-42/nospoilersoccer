@@ -10,6 +10,7 @@ import { GroupStage } from './components/GroupStage'
 import { Logo } from './components/Logo'
 import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
+import { KnockoutTracks } from './components/KnockoutTracks'
 import { Rail } from './components/Rail'
 import { SettingsMenu, type ArchiveEntry } from './components/SettingsMenu'
 import { WatchLater } from './components/WatchLater'
@@ -526,7 +527,11 @@ function TournamentApp({
       <main className={`app-main ${view === 'bracket' ? 'app-main-wide' : ''}`}>
         {view === 'day' && <Rail t={t} progress={progress} onOpen={setModal} />}
         {view === 'groups' && <GroupStage t={t} progress={progress} onOpen={setModal} />}
-        {view === 'bracket' && <Bracket t={t} progress={progress} onOpen={setModal} />}
+        {view === 'bracket' && (
+          t.knockoutTracks?.length
+            ? <KnockoutTracks t={t} progress={progress} onOpen={setModal} />
+            : <Bracket t={t} progress={progress} onOpen={setModal} />
+        )}
       </main>
 
 

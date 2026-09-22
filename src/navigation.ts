@@ -39,7 +39,7 @@ export function isTournamentArchived(
  * A config flag could contradict the data; a derivation cannot.
  */
 export function hasKnockouts(t: Tournament): boolean {
-  return t.knockoutRounds.length > 0
+  return t.knockoutRounds.length > 0 || Boolean(t.knockoutTracks?.length)
 }
 
 export function hasGroups(t: Tournament): boolean {
