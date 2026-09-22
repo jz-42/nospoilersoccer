@@ -1,24 +1,17 @@
 /**
  * The header's one menu — everything about the app rather than the football.
  *
- * It exists as a consolidation, not as a drawer with room to grow: the help
- * button and the lone "Reset progress" in the page footer were two separate
- * pieces of chrome for the same kind of thing. One trigger now, two items,
- * and the footer is gone.
- *
- * Deliberately not a gear. A gear promises preferences; this is a guide and
- * one destructive action, so the mark is three rules — a list, which is what
- * opens. The last rule is short at rest and runs out to full width on hover,
- * which is the whole animation budget.
+ * Deliberately not a gear. A gear promises preferences; this is a guide, so
+ * the mark is three rules — a list, which is what opens. The last rule is
+ * short at rest and runs out to full width on hover, which is the whole
+ * animation budget.
  */
 import { useEffect, useRef, useState } from 'react'
 
 export function SettingsMenu({
   onHowThisWorks,
-  onReset,
 }: {
   onHowThisWorks: () => void
-  onReset: () => void
 }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -73,15 +66,6 @@ export function SettingsMenu({
         <div className="menu-panel" role="menu" aria-label="Menu" ref={menuRef}>
           <button type="button" role="menuitem" className="menu-item" onClick={() => choose(onHowThisWorks)}>
             How this works
-          </button>
-          <div className="menu-divider" />
-          <button
-            type="button"
-            role="menuitem"
-            className="menu-item is-danger"
-            onClick={() => choose(onReset)}
-          >
-            Reset progress
           </button>
         </div>
       )}
