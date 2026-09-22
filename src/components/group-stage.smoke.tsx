@@ -1,7 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { unl2026 } from '../data/nations/unl-2026'
 import type { Progress } from '../state/progress'
-import { GroupStage, groupDisplayName, sectionGroups } from './GroupStage'
+import { GroupStage } from './GroupStage'
+import { groupDisplayName, sectionGroups } from './group-stage-helpers'
 
 function assert(value: unknown, message: string) {
   if (!value) throw new Error(`FAIL: ${message}`)

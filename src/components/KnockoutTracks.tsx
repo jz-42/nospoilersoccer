@@ -3,13 +3,7 @@ import type { KnockoutRound, PendingStage, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
 import { ConnectedBracket, KnockoutCard } from './Bracket'
 import type { ModalTarget } from './MatchModal'
-
-export function roundsForTrack(t: Tournament, trackId: string): KnockoutRound[] {
-  const track = t.knockoutTracks?.find((candidate) => candidate.id === trackId)
-  if (!track) return []
-  const ids = new Set(track.roundIds)
-  return t.knockoutRounds.filter((round) => ids.has(round.id))
-}
+import { roundsForTrack } from './knockout-tracks-helpers'
 
 export function PendingStageCard({ stage }: { stage: PendingStage }) {
   return (
