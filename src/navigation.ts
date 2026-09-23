@@ -46,15 +46,16 @@ export function hasGroups(t: Tournament): boolean {
   return t.groups.length > 1
 }
 
-/** Compact context for a group-phase match card. */
+/**
+ * Compact context for a group-phase match card. Always the group's own name —
+ * "Group F", "Group A2" — the same words the match sheet and the group tables
+ * use. A sectioned competition doesn't prefix its section: a Nations League
+ * group id already carries its league, so "League A · A2" said the A twice.
+ */
 export function groupContextLabel(t: Tournament, groupId: string): string | null {
   if (!hasGroups(t)) return null
   const group = t.groups.find((candidate) => candidate.id === groupId)
-  if (!group) return null
-  const section = t.groupSections?.find((candidate) =>
-    candidate.id === group.sectionId || candidate.groupIds.includes(groupId),
-  )
-  return section ? `${section.label} · ${group.id}` : `Group ${group.id}`
+  return group ? `Group ${group.id}` : null
 }
 
 /** 'Group stage' for a cup, 'Table' or 'League phase' for a single-table competition. */

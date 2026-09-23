@@ -29,6 +29,6 @@ assert(
   formatRuntimeBadge([quick]) === '5m',
   'runtime badge keeps the quick-highlight minute count when no extended cut exists',
 )
-assert(groupContextLabel(unl2026, 'A1') === 'League A · A1', 'UNL label includes league and group')
+assert(groupContextLabel(unl2026, 'A1') === 'Group A1', 'UNL label is the group name, league not repeated')
 assert(groupContextLabel(wc2026, 'F') === 'Group F', 'World Cup group label is unchanged')
 assert(groupContextLabel(eng1_2026, 'league') === null, 'single-table competition has no repeated chip')
