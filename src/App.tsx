@@ -436,7 +436,8 @@ function TournamentApp({
   useEffect(() => {
     analytics.viewChanged({ view })
   }, [view])
-  const [modal, setModal] = useState<ModalTarget | null>(null)
+  const [modal, setModal] = useState<{ tournament: Tournament; target: ModalTarget } | null>(null)
+  const openCurrentMatch = (target: ModalTarget) => setModal({ tournament: t, target })
   const [confirmReset, setConfirmReset] = useState(false)
   const [confirmCatchUp, setConfirmCatchUp] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
@@ -521,7 +522,12 @@ function TournamentApp({
             </button>
           ) : null}
 
-          <WatchLater t={t} progress={progress} onOpen={setModal} covered={modal !== null} />
+          <WatchLater
+            t={t}
+            progress={progress}
+            onOpen={(tournament, target) => setModal({ tournament, target })}
+            covered={modal !== null}
+          />
 
           <FavoritesPanel t={t} progress={progress} />
 
@@ -533,17 +539,24 @@ function TournamentApp({
       </header>
 
       <main className={`app-main ${view === 'bracket' ? 'app-main-wide' : ''}`}>
-        {view === 'day' && <Rail t={t} progress={progress} onOpen={setModal} />}
-        {view === 'groups' && <GroupStage t={t} progress={progress} onOpen={setModal} />}
+        {view === 'day' && <Rail t={t} progress={progress} onOpen={openCurrentMatch} />}
+        {view === 'groups' && <GroupStage t={t} progress={progress} onOpen={openCurrentMatch} />}
         {view === 'bracket' && (
           t.knockoutTracks?.length
-            ? <KnockoutTracks t={t} progress={progress} onOpen={setModal} />
-            : <Bracket t={t} progress={progress} onOpen={setModal} />
+            ? <KnockoutTracks t={t} progress={progress} onOpen={openCurrentMatch} />
+            : <Bracket t={t} progress={progress} onOpen={openCurrentMatch} />
         )}
       </main>
 
 
-      {modal && <MatchModal t={t} target={modal} progress={progress} onClose={() => setModal(null)} />}
+      {modal && (
+        <MatchModal
+          t={modal.tournament}
+          target={modal.target}
+          progress={progress.forTournament(modal.tournament)}
+          onClose={() => setModal(null)}
+        />
+      )}
       {confirmReset && (
         <ConfirmDialog
           title="Start over?"
