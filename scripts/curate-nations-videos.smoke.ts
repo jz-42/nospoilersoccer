@@ -3,6 +3,7 @@ import { nationalTeams } from '../src/data/national-teams'
 import {
   acceptNationsCandidate,
   FOX_SOCCER_CHANNEL_ID,
+  NATIONS_HIGHLIGHT_TRUST,
   parseNationsHighlightTitle,
   recordNationsCandidateResult,
   serializeNationsVideos,
@@ -56,7 +57,8 @@ const base = {
   tournament,
   existing: {},
 }
-assert(acceptNationsCandidate({ ...base, trustMode: 'quarantine' }).status === 'quarantined', 'opening-day trust mode quarantines a valid cut')
+assert(NATIONS_HIGHLIGHT_TRUST === 'trusted', 'FOX Soccer publishes valid Nations League cuts without manual quarantine')
+assert(acceptNationsCandidate({ ...base, trustMode: 'quarantine' }).status === 'quarantined', 'quarantine mode holds a valid cut when configured')
 const trusted = acceptNationsCandidate({ ...base, trustMode: 'trusted' })
 assert(trusted.status === 'accepted' && trusted.matchId === 'unl-eng-fin', 'trusted mode accepts the unique completed fixture')
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', channelId: 'UCwrong' }).status === 'rejected', 'wrong channel is rejected')

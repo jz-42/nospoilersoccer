@@ -79,7 +79,7 @@ workflow snapshots every owned Nations file first and restores the
 last-known-good set if ingest, validation, typechecking, or runtime-state
 generation fails.
 
-## Highlight ingest and quarantine
+## Highlight ingest
 
 Test one exact candidate without writing:
 
@@ -90,12 +90,11 @@ HIGHLIGHT_CANDIDATE_PUBLISHED_AT='2026-09-25T22:00:00Z' \
 npx tsx scripts/curate-nations-videos.ts --dry-run --video-id VIDEO_ID_HERE
 ```
 
-Remove `--dry-run` only for the targeted workflow. The curator still writes
-nothing while `NATIONS_HIGHLIGHT_TRUST` is `quarantine`; its result file says
-`quarantined`. It accepts only the exact channel, a resolvable two-country
-highlight title, one completed fixture within the 72-hour publication horizon,
-a non-Short duration, and a working embed. Existing cuts are append-only and
-are never replaced.
+Remove `--dry-run` only for the targeted workflow. With
+`NATIONS_HIGHLIGHT_TRUST` set to `trusted`, the curator accepts an exact channel,
+a resolvable two-country highlight title, one completed fixture within the
+72-hour publication horizon, a non-Short duration, and a working embed.
+Existing cuts are append-only and are never replaced.
 
 Atom polling and WebSub notifications cost zero YouTube Data API units. FOX
 Soccer playlist recovery opens only when runtime hot-state proves a completed
@@ -107,7 +106,7 @@ requests instead of exhausting the day's allowance early. The D1 ledger covers
 this Worker, not other jobs sharing the same Google Cloud project/API key;
 check the project's YouTube Data API quota usage separately on matchdays.
 
-Inspect quota use, subscriptions, and quarantined candidates:
+Inspect quota use, subscriptions, and FOX Soccer candidates:
 
 ```sh
 cd cloudflare-scheduler
@@ -119,16 +118,12 @@ npm exec --yes wrangler d1 execute nospoilersoccer-highlights --remote --command
   "SELECT video_id, source_id, status, title, published_at FROM candidates WHERE source_id='foxsoccer' ORDER BY first_seen_at DESC;"
 ```
 
-### Matchday-1 trust promotion
+### FOX Soccer upload review
 
-Review multiple fixtures, not one upload. Confirm exact channel identity,
-country parsing, titles, post-match publication delays, durations, thumbnails,
-and successful US embeds. Confirm quarantine produced no change to
-`src/data/nations/unl-2026-videos.ts`.
-
-After that audit, make one reviewed commit changing only
-`NATIONS_HIGHLIGHT_TRUST` from `quarantine` to `trusted`. Parser changes and
-trust promotion must be separate commits.
+FOX Soccer Nations League uploads that pass the curator's channel, title,
+fixture, duration, and embed checks are published without a manual quarantine.
+Review the published videos on the site. If a bad cut appears, remove it from
+`src/data/nations/unl-2026-videos.ts` and investigate the acceptance rule.
 
 ## Proof and recovery
 

@@ -11,7 +11,7 @@ import { loadTargetedMetadata, parseTargetedMetadata } from './highlight-candida
 
 export const FOX_SOCCER_CHANNEL_ID = 'UCooTLkxcpnTNx6vfOovfBFA'
 export const FOX_SOCCER_UPLOADS_PLAYLIST = 'UUooTLkxcpnTNx6vfOovfBFA'
-export const NATIONS_HIGHLIGHT_TRUST: 'quarantine' | 'trusted' = 'quarantine'
+export const NATIONS_HIGHLIGHT_TRUST: 'quarantine' | 'trusted' = 'trusted'
 export const NATIONS_PUBLICATION_HORIZON_HOURS = 72
 
 const VIDEOS_FILE = 'src/data/nations/unl-2026-videos.ts'
