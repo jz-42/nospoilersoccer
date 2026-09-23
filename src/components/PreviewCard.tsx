@@ -20,6 +20,9 @@ import { formatRuntimeBadge } from './format'
 import { KickoffTime } from './KickoffTime'
 import { FINISHED_PENDING_CARD_COPY } from './highlight-copy'
 
+/** A play triangle with softened corners, the way Apple and YouTube draw it. */
+const PLAY_PATH = 'M8 5.2v13.6c0 .8.9 1.3 1.6.9l10.8-6.8c.6-.4.6-1.4 0-1.8L9.6 4.3C8.9 3.9 8 4.4 8 5.2z'
+
 export interface RailEntry {
   target: ModalTarget
   date: string
@@ -65,8 +68,10 @@ export function PreviewCard({
     context = target.roundName
   }
 
+  const watchable = !liveStatus && state === 'watch'
   const badge =
-    liveStatus ? (
+    // The play button already says "finished, ready": no FT beside it.
+    watchable ? null : liveStatus ? (
       <LiveStatusBadge status={liveStatus} className="preview-badge" />
     ) : state === 'watch' || state === 'ft'
       ? 'FT'
@@ -145,10 +150,10 @@ export function PreviewCard({
             <span className="preview-score">
               {m.score.home}–{m.score.away}
             </span>
-          ) : !liveStatus && state === 'watch' ? (
-            <span className="preview-play" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-                <path d="M8.3 5.5v13l11-6.5z" />
+          ) : watchable ? (
+            <span className="preview-play" role="img" aria-label="Ready to watch">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
+                <path d={PLAY_PATH} />
               </svg>
             </span>
           ) : (
