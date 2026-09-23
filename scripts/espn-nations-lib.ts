@@ -390,11 +390,18 @@ function addKnockoutStages(
     const candidates = byStage.get(stage) ?? []
     const materialized = materializeStage(tournament, stage, candidates)
     const previousRound = previous?.knockoutRounds.find((round) => round.id === stage)
-    if (materialized) {
+    const currentById = new Map(materialized?.round.matches.map((match) => [match.id, match]) ?? [])
+    const lostScores = materialized && previousRound
+      ? previousRound.matches.filter((match) => match.score && !currentById.get(match.id)?.score)
+      : []
+    for (const match of lostScores) {
+      errors.push(`${stage} event ${match.id} lost finished score from the previous snapshot`)
+    }
+    if (materialized && lostScores.length === 0) {
       tournament.knockoutRounds.push(materialized.round)
       tournament.ties = [...(tournament.ties ?? []), ...materialized.ties]
     } else if (previousRound) {
-      errors.push(`previously published ${stage} stage is incomplete or missing from the new snapshot`)
+      if (!materialized) errors.push(`previously published ${stage} stage is incomplete or missing from the new snapshot`)
       tournament.knockoutRounds.push(previousRound)
       const ids = new Set(previousRound.matches.map((match) => match.tie?.id).filter(Boolean))
       tournament.ties = [...(tournament.ties ?? []), ...(previous?.ties ?? []).filter((tie) => ids.has(tie.id))]

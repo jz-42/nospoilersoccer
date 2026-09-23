@@ -155,6 +155,36 @@ assert(completeDraw.tournament.knockoutRounds[0]?.matches.length === 8, 'a compl
 assert(completeDraw.tournament.ties?.length === 4, 'a complete quarter-final draw creates four stable ties')
 assert(!completeDraw.tournament.knockoutTracks?.[0].pendingStages?.some((stage) => stage.id === 'qf'), 'a materialized stage is removed from pending')
 
+const scoredQfEvents = qfEvents.map((raw, index) => index === 0 ? {
+  ...raw,
+  competitions: [{
+    ...raw.competitions[0],
+    status: { type: { completed: true, detail: 'FT', state: 'post' } },
+  }],
+} : raw)
+const scoredDraw = buildNationsSeason({
+  standings: fullStandings,
+  events: [...fullGroupEvents, ...scoredQfEvents],
+  official: fullOfficial,
+})
+assert(scoredDraw.audit.errors.length === 0, 'a complete scored quarter-final snapshot builds')
+const sameScoredDraw = buildNationsSeason({
+  standings: fullStandings,
+  events: [...fullGroupEvents, ...scoredQfEvents],
+  official: fullOfficial,
+  previous: scoredDraw.tournament,
+})
+assert(sameScoredDraw.audit.errors.length === 0, 'an unchanged knockout score is accepted')
+const lostKnockoutScore = buildNationsSeason({
+  standings: fullStandings,
+  events: [...fullGroupEvents, ...qfEvents],
+  official: fullOfficial,
+  previous: scoredDraw.tournament,
+})
+assert(lostKnockoutScore.audit.errors.some((message) => message.includes('lost finished score')), 'a vanished knockout score blocks publication')
+assert(lostKnockoutScore.tournament.knockoutRounds[0].matches.some((match) => match.id === 'unl-qf-0-1' && !!match.score), 'the last-known knockout score is retained in memory')
+assert(JSON.stringify(lostKnockoutScore.tournament.ties) === JSON.stringify(scoredDraw.tournament.ties), 'the prior quarter-final ties are retained')
+
 const retainedDraw = buildNationsSeason({
   standings: fullStandings,
   events: [...fullGroupEvents, ...qfEvents.slice(0, 1)],
