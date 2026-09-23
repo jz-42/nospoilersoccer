@@ -7,10 +7,10 @@
 
 The update workflow keeps its five-minute, fixture-window Nations ingest for
 active and recently finished matches. It also runs one off-window discovery
-ingest in the first cycle of an updater job that begins in the 00:00, 06:00,
-12:00, or 18:00 UTC hour while the tournament still has pending knockout
-stages. The check is
-driven by the published tournament state, not by fixtures that have yet to be
+ingest in the first cycle of an updater job that reaches its Nations gate in
+the 00:00, 06:00, 12:00, or 18:00 UTC hour while the tournament still has
+pending knockout stages. The check is driven by the published tournament
+state, not by fixtures that have yet to be
 discovered. This polls ESPN's 2026 and 2027 scoreboards and standings, but
 never calls the YouTube API. A complete draw becomes publishable without a
 previously known kickoff; partial draws remain pending under the existing

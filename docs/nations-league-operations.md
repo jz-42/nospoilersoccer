@@ -52,15 +52,25 @@ npm run build:highlight-state
 ```
 
 The generator rejects missing official fixtures, changed pairings or kickoffs,
-unknown team IDs, lost finished scores, and a previously published knockout
-stage that becomes partial. Writes use a sibling temporary file followed by an
-atomic rename. A later draw is published only when the complete stage is
-present and structurally valid; until then its UI remains “Draw pending”.
+unknown team IDs, lost finished group or knockout scores, and a previously
+published knockout stage that becomes partial. On a knockout score regression,
+it retains the previous round and ties in memory and fails the audit, so the
+workflow restores the last-known-good files. Writes use a sibling temporary
+file followed by an atomic rename. A later draw is published only when the
+complete stage is present and structurally valid; until then its UI remains
+“Draw pending”. The championship renders as a connected bracket with each
+two-leg quarter-final tie feeding one semi-final slot.
 
-The update workflow runs this ingest only in a schedule-derived result window:
-105 minutes through eight hours after kickoff. It snapshots every owned
-Nations file first and restores the last-known-good set if ingest, validation,
-typechecking, or runtime-state generation fails.
+The update workflow runs this ingest every five minutes within a
+schedule-derived result window: group matches from 105 minutes through eight
+hours after kickoff, and knockout matches from 90 minutes through 12 hours.
+It also checks for new draws in the first cycle of an updater job that reaches
+the gate during the 00:00, 06:00, 12:00, or 18:00 UTC hour while any stage is
+pending. That check can discover a complete draw before any knockout kickoff is
+in the published schedule. It uses ESPN requests, not YouTube API quota. The
+workflow snapshots every owned Nations file first and restores the
+last-known-good set if ingest, validation, typechecking, or runtime-state
+generation fails.
 
 ## Highlight ingest and quarantine
 
