@@ -22,8 +22,8 @@ assert.match(
 )
 assert.match(
   workflow,
-  /parseMatchKickoffs\(source, "unl-2026"\)[\s\S]*?insideWindow[\s\S]*?if nations_step/,
-  'Nations League ingest runs only in a schedule-derived result window',
+  /npx tsx scripts\/nations-ingest-gate\.ts "\$cycle"[\s\S]*?if nations_step/,
+  'Nations League ingest includes off-window draw discovery before the validated step',
 )
 assert.match(
   workflow,

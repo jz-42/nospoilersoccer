@@ -263,15 +263,10 @@ jobs:
             fi
 
             # --- UEFA Nations League --------------------------------------
-            # ESPN is queried only in a live/recent result window. The Worker
-            # still dispatches around the clock for club competitions.
-            if node --input-type=module -e '
-              import { readFileSync } from "node:fs";
-              import { parseMatchKickoffs, buildWindowReport } from "./cloudflare-scheduler/index.mjs";
-              const source = readFileSync("src/data/nations/unl-2026.ts", "utf8");
-              const due = buildWindowReport(parseMatchKickoffs(source, "unl-2026"), new Date()).insideWindow;
-              process.exit(due ? 0 : 1);
-            '; then
+            # Match windows update results every five minutes. A first-cycle
+            # discovery opportunity in selected UTC hours also finds new draws
+            # before those fixtures exist in the checked-in schedule.
+            if npx tsx scripts/nations-ingest-gate.ts "$cycle"; then
               if nations_step; then
                 if [ -f "$NATIONS_AUDIT_FILE" ]; then
                   {
@@ -297,7 +292,7 @@ jobs:
                 fi
               fi
             else
-              echo "Nations League has no live or recently finishable fixture"
+              echo "Nations League has no result window or pending-draw discovery opportunity"
             fi
 
             # --- Club competitions ------------------------------------------
