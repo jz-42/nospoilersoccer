@@ -149,6 +149,15 @@ export function serializeNationsVideos(map: Record<string, HighlightVideo[]>): s
   return `${header}export const unl2026Videos: Record<string, HighlightVideo[]> = {\n${body}\n}\n`
 }
 
+export function recordNationsCandidateResult(
+  map: Record<string, HighlightVideo[]>,
+  result: NationsCandidateResult,
+): boolean {
+  if (result.status !== 'accepted') return false
+  map[result.matchId] = [...(map[result.matchId] ?? []), result.video]
+  return true
+}
+
 interface FeedCandidate { id: string; title: string; publishedAt: string }
 const decodeXml = (value: string) => value
   .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
@@ -194,6 +203,7 @@ async function run() {
     : await listFoxSoccerAtom()
   const map = Object.fromEntries(Object.entries(unl2026Videos).map(([id, videos]) => [id, [...videos]]))
   let last: NationsCandidateResult = { status: 'rejected', reason: 'no matching candidate' }
+  let acceptedAny = false
 
   for (const candidate of feed) {
     if (!parseNationsHighlightTitle(candidate.title)) continue
@@ -219,7 +229,7 @@ async function run() {
     })
     last = result
     console.log(`${candidate.id}: ${result.status}${'reason' in result ? ` (${result.reason})` : ''}`)
-    if (result.status === 'accepted') map[result.matchId] = [...(map[result.matchId] ?? []), result.video]
+    acceptedAny = recordNationsCandidateResult(map, result) || acceptedAny
     if (result.status === 'rejected' && !dryRun) {
       let skip: Record<string, { source?: string; reason: string; at: string }> = {}
       try { skip = JSON.parse(readFileSync(SKIP_FILE, 'utf8')) as typeof skip } catch { /* start empty */ }
@@ -227,7 +237,7 @@ async function run() {
       writeFileSync(SKIP_FILE, `${JSON.stringify(skip, null, 2)}\n`)
     }
   }
-  if (!dryRun && last.status === 'accepted') writeFileSync(VIDEOS_FILE, serializeNationsVideos(map))
+  if (!dryRun && acceptedAny) writeFileSync(VIDEOS_FILE, serializeNationsVideos(map))
   writeTargetResult(last.status)
   if (process.env.GITHUB_STEP_SUMMARY) {
     appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## FOX Soccer Nations League curator\n\n- result: ${last.status}\n- trust: ${NATIONS_HIGHLIGHT_TRUST}\n`)

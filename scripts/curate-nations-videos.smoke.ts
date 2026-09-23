@@ -4,6 +4,7 @@ import {
   acceptNationsCandidate,
   FOX_SOCCER_CHANNEL_ID,
   parseNationsHighlightTitle,
+  recordNationsCandidateResult,
   serializeNationsVideos,
 } from './curate-nations-videos'
 
@@ -70,5 +71,13 @@ const source = serializeNationsVideos(first)
 assert((source.match(/video000001/g) ?? []).length === 1, 'trusted persistence serializes a cut exactly once')
 assert(serializeNationsVideos(first) === source, 'video serialization is idempotent')
 assert(serializeNationsVideos({}) === serializeNationsVideos({}), 'quarantine can leave the videos module unchanged')
+
+const scanMap = {}
+let acceptedAny = false
+for (const result of [trusted, { status: 'rejected', reason: 'later unrelated video' } as const]) {
+  acceptedAny = recordNationsCandidateResult(scanMap, result) || acceptedAny
+}
+assert(acceptedAny, 'a later rejection does not erase an earlier acceptance')
+assert(serializeNationsVideos(scanMap).includes('video000001'), 'multi-video scan serializes the accepted cut')
 
 console.log('NATIONS VIDEO CURATOR TESTS PASS')
