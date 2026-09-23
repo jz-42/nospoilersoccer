@@ -3,6 +3,7 @@ import type { KnockoutRound, PendingStage, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
 import { ConnectedBracket, KnockoutCard } from './Bracket'
 import type { ModalTarget } from './MatchModal'
+import { NationsPendingBracket } from './NationsPendingBracket'
 import { roundsForTrack } from './knockout-tracks-helpers'
 
 export function PendingStageCard({ stage }: { stage: PendingStage }) {
@@ -68,6 +69,9 @@ export function KnockoutTracks({
   const rounds = roundsForTrack(t, track.id)
   const filtered: Tournament = { ...t, knockoutRounds: rounds, knockoutTracks: undefined }
   const championship = track.id === 'championship'
+  const completeChampionship = ['qf', 'sf', 'third-place', 'final'].every((id) =>
+    rounds.some((round) => round.id === id),
+  )
 
   return (
     <div className="knockout-tracks">
@@ -86,11 +90,15 @@ export function KnockoutTracks({
         ))}
       </div>
 
-      {rounds.length > 0 && (championship
-        ? <ConnectedBracket t={filtered} progress={progress} onOpen={onOpen} />
-        : <TieGrid t={t} rounds={rounds} progress={progress} onOpen={onOpen} />)}
+      {championship
+        ? completeChampionship
+          ? <ConnectedBracket t={filtered} progress={progress} onOpen={onOpen} />
+          : <NationsPendingBracket t={t} progress={progress} onOpen={onOpen} />
+        : rounds.length > 0
+          ? <TieGrid t={t} rounds={rounds} progress={progress} onOpen={onOpen} />
+          : null}
 
-      {(track.pendingStages?.length ?? 0) > 0 && (
+      {!championship && (track.pendingStages?.length ?? 0) > 0 && (
         <div className="pending-stage-grid">
           {track.pendingStages!.map((stage) => <PendingStageCard key={stage.id} stage={stage} />)}
         </div>

@@ -39,6 +39,10 @@ assert(shell.includes('>Championship</button>'), 'championship track tab renders
 assert(shell.includes('>Promotion / relegation</button>'), 'promotion/relegation track tab renders')
 assert(shell.includes('Quarter-finals'), 'the selected championship renders its pending stages')
 assert(!shell.includes('League A/B play-offs'), 'the unselected track stays isolated')
+assert(shell.includes('nations-pending-bracket'), 'the championship shows its bracket before the draw')
+assert((shell.match(/data-empty-slot=/g) ?? []).length === 12, 'the empty bracket has eight leg and four later-stage placeholders')
+assert(!shell.includes('pending-stage-grid'), 'the championship bracket replaces disconnected pending-stage cards')
+assert((shell.match(/<button/g) ?? []).length === 2, 'empty bracket positions are not interactive match buttons')
 
 const emptyView = nationsBracketView(unl2026)
 assert(emptyView.quarterFinals.length === 4 && emptyView.quarterFinals.every((tie) => tie === null), 'the undrawn championship has four empty QF tie positions')
@@ -87,6 +91,9 @@ const qfOnly: Tournament = { ...championship, knockoutRounds: championship.knock
 const qfOnlyView = nationsBracketView(qfOnly)
 assert(qfOnlyView.quarterFinals.every((tie) => tie?.legs.length === 2), 'a published QF draw fills all four tie positions with both legs')
 assert(!qfOnlyView.pathsKnown, 'QF ties alone do not invent semi-final pairings')
+const qfOnlyHtml = renderToStaticMarkup(<KnockoutTracks t={qfOnly} progress={progress} onOpen={noop} />)
+assert(qfOnlyHtml.includes('nations-pending-bracket') && qfOnlyHtml.includes('Semi-final draw pending'), 'QF-only view keeps unknown paths visibly unassigned')
+assert((qfOnlyHtml.match(/class="ko-card /g) ?? []).length === 8, 'QF-only view uses eight real leg cards')
 const redrawnSemis: KnockoutMatch[] = [
   { ...sfMatches[0], home: { type: 'match-winner', match: ties[2].id }, away: { type: 'match-winner', match: ties[0].id } },
   { ...sfMatches[1], home: { type: 'match-winner', match: ties[3].id }, away: { type: 'match-winner', match: ties[1].id } },
@@ -98,7 +105,11 @@ const withSemiDraw: Tournament = {
 const semiDrawView = nationsBracketView(withSemiDraw)
 assert(semiDrawView.pathsKnown, 'published semi-final refs resolve the QF paths')
 assert(semiDrawView.quarterFinals.map((tie) => tie?.tie.id).join(',') === 'qf-tie-2,qf-tie-0,qf-tie-3,qf-tie-1', 'QF ties follow the actual semi-final draw order')
+const semiDrawHtml = renderToStaticMarkup(<KnockoutTracks t={withSemiDraw} progress={progress} onOpen={noop} />)
+assert(semiDrawHtml.includes('data-pairings="known"'), 'a published semi-final draw connects the real QF paths')
+assert(semiDrawHtml.indexOf('data-tie-id="qf-tie-2"') < semiDrawHtml.indexOf('data-tie-id="qf-tie-0"'), 'published tie positions follow the semi-final draw')
 const connected = renderToStaticMarkup(<KnockoutTracks t={championship} progress={progress} onOpen={noop} />)
+assert(!connected.includes('nations-pending-bracket'), 'a complete championship keeps the full connected bracket')
 assert(!connected.includes('bracket-simple'), 'two-leg quarter-finals render as a connected championship bracket')
 assert(connected.includes('b-col side-left') && connected.includes('b-col side-right'), 'the championship has World Cup-style halves')
 assert((connected.match(/class="ko-card /g) ?? []).length === 12, 'all eight quarter-final legs and later matches remain visible')

@@ -1,0 +1,76 @@
+.nations-pending-bracket {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.nations-pairing-note {
+  margin: 0 12px 12px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.nations-stage-bracket {
+  min-width: 680px;
+}
+
+.nations-stage-bracket .nations-qf-column {
+  flex: 1.35 1 0;
+}
+
+.nations-stage-bracket .nations-sf-column {
+  flex: 1 1 0;
+}
+
+.nations-stage-bracket .nations-center-column {
+  flex: 1 1 0;
+}
+
+.nations-tie-label {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.nations-empty-slot {
+  display: flex;
+  min-height: 76px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 9px 7px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--muted);
+  text-align: center;
+}
+
+.nations-empty-state {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nations-empty-label {
+  color: var(--text-h);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.nations-empty-window {
+  font-size: 10px;
+}
+
+.nations-pending-bracket[data-pairings='unassigned'] .nations-qf-column .b-slot.has-out::after,
+.nations-pending-bracket[data-pairings='unassigned'] .nations-sf-column .b-slot.has-in::before,
+.nations-pending-bracket[data-pairings='unassigned'] .nations-qf-column .b-pair::before,
+.nations-pending-bracket[data-pairings='unassigned'] .nations-qf-column .b-pair::after {
+  display: none;
+}

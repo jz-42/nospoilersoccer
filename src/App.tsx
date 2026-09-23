@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import './App.css'
+import './components/NationsPendingBracket.css'
 import { analytics } from './analytics'
 import { Bracket } from './components/Bracket'
 import { ConfirmDialog, Onboarding } from './components/Dialogs'
