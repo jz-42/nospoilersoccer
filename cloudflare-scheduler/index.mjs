@@ -34,42 +34,45 @@ const DATE_ONLY_KNOCKOUT_END_OFFSET_MINUTES = 36 * 60
 
 export function parseMatchKickoffs(sourceText, seasonId = 'wc2026') {
   const matchesById = new Map()
-  const matchObjectRegex = /\{\s*(?:id|["']id["'])\s*:\s*(["'])([A-Za-z0-9-]+)\1/g
-
-  for (const match of sourceText.matchAll(matchObjectRegex)) {
-    const matchId = match[2]
-    const objectText = readObjectAt(sourceText, match.index)
-    if (!objectText) continue
-
-    const kickoffValue = objectText.match(/(?:\bkickoff|["']kickoff["'])\s*:\s*["']([^"']+)["']/)?.[1]
-    if (kickoffValue) {
-      const kickoff = new Date(kickoffValue)
-      if (Number.isNaN(kickoff.getTime())) continue
-
-      matchesById.set(matchId, {
-        seasonId,
-        matchId,
-        phase: matchId.startsWith('m') || /-(?:qf|sf|final|playoff)/.test(matchId) ? 'knockout' : 'group',
-        kickoff,
-        dateOnly: false,
-      })
-      continue
+  const fixtureArrays = []
+  const groupMatches = readPropertyArray(sourceText, 'groupMatches')
+  if (groupMatches) fixtureArrays.push({ source: groupMatches, phase: 'group' })
+  const knockoutRounds = readPropertyArray(sourceText, 'knockoutRounds')
+  if (knockoutRounds) {
+    const matchesRegex = /(?:\bmatches|["']matches["'])\s*:\s*\[/g
+    for (const match of knockoutRounds.matchAll(matchesRegex)) {
+      const matches = readDelimitedAt(knockoutRounds, match.index + match[0].lastIndexOf('['), '[', ']')
+      if (matches) fixtureArrays.push({ source: matches, phase: 'knockout' })
     }
+  }
 
-    if (!matchId.startsWith('m')) continue
-    const date = objectText.match(/\bdate:\s*'(\d{4}-\d{2}-\d{2})'/)?.[1]
-    if (!date) continue
+  for (const { source, phase } of fixtureArrays) {
+    const matchObjectRegex = /\{\s*(?:id|["']id["'])\s*:\s*(["'])([A-Za-z0-9-]+)\1/g
+    let match
+    while ((match = matchObjectRegex.exec(source)) !== null) {
+      const matchId = match[2]
+      const objectText = readObjectAt(source, match.index)
+      if (!objectText) continue
+      matchObjectRegex.lastIndex = match.index + objectText.length
 
-    const dateStart = new Date(`${date}T00:00:00Z`)
-    if (Number.isNaN(dateStart.getTime())) continue
+      const kickoffValue = objectText.match(/(?:\bkickoff|["']kickoff["'])\s*:\s*["']([^"']+)["']/)?.[1]
+      if (kickoffValue) {
+        const kickoff = new Date(kickoffValue)
+        if (Number.isNaN(kickoff.getTime())) continue
 
-    matchesById.set(matchId, {
-      seasonId,
-      matchId,
-      phase: 'knockout',
-      date,
-      dateOnly: true,
-    })
+        matchesById.set(matchId, { seasonId, matchId, phase, kickoff, dateOnly: false })
+        continue
+      }
+
+      if (phase !== 'knockout') continue
+      const date = objectText.match(/\bdate:\s*'(\d{4}-\d{2}-\d{2})'/)?.[1]
+      if (!date) continue
+
+      const dateStart = new Date(`${date}T00:00:00Z`)
+      if (Number.isNaN(dateStart.getTime())) continue
+
+      matchesById.set(matchId, { seasonId, matchId, phase, date, dateOnly: true })
+    }
   }
 
   return Array.from(matchesById.values())
@@ -86,6 +89,16 @@ export function parseScheduleSources(sources) {
 }
 
 function readObjectAt(sourceText, start) {
+  return readDelimitedAt(sourceText, start, '{', '}')
+}
+
+function readPropertyArray(sourceText, property) {
+  const pattern = new RegExp(`(?:\\b${property}|["']${property}["'])\\s*:\\s*\\[`)
+  const match = pattern.exec(sourceText)
+  return match ? readDelimitedAt(sourceText, match.index + match[0].lastIndexOf('['), '[', ']') : null
+}
+
+function readDelimitedAt(sourceText, start, opening, closing) {
   let depth = 0
   let quote = null
   let escaped = false
@@ -108,8 +121,8 @@ function readObjectAt(sourceText, start) {
       quote = ch
       continue
     }
-    if (ch === '{') depth += 1
-    if (ch === '}') {
+    if (ch === opening) depth += 1
+    if (ch === closing) {
       depth -= 1
       if (depth === 0) return sourceText.slice(start, i + 1)
     }
