@@ -1,6 +1,7 @@
 import { clubColors } from './club-colors'
 import { clubs } from './club/clubs'
 import { tournaments } from './index'
+import { nationalTeams } from './national-teams'
 import { matchTint, paletteFor, teamColors } from './team-colors'
 
 function assert(condition: boolean, message: string) {
@@ -17,10 +18,13 @@ const HEX = /^#[0-9a-f]{6}$/
 // bundle, so they can't be reached the way the World Cup is. The shared club
 // registry is the roster instead — every club in it plays somewhere, and a
 // club in two competitions is one entry, so checking it covers all of them.
+// Nations League is lazy for the same reason, so every national team is
+// checked through the shared registry too.
 const rosters: [string, Record<string, { name: string }>][] = [
   ...Object.values(tournaments).map(
     (t) => [String(t.year), t.teams] as [string, Record<string, { name: string }>],
   ),
+  ['national', nationalTeams],
   ['clubs', clubs],
 ]
 for (const [label, teams] of rosters) {
