@@ -58,8 +58,15 @@ it retains the previous round and ties in memory and fails the audit, so the
 workflow restores the last-known-good files. Writes use a sibling temporary
 file followed by an atomic rename. A later draw is published only when the
 complete stage is present and structurally valid; until then its UI remains
-“Draw pending”. The championship renders as a connected bracket with each
-two-leg quarter-final tie feeding one semi-final slot.
+“Draw pending”. The championship tab always displays a bracket: before the
+draw, four quarter-final ties (two empty leg slots each), two semi-finals, the
+final, and third place appear as noninteractive placeholders. Published matches
+replace their own placeholders without inventing fixtures. Quarter-final ties
+remain visually unassigned to semi-finals until the separate semi-final draw
+provides actual tie references; only then are those feeder paths connected.
+Once all four championship stages are published, the existing connected
+World Cup-style bracket takes over. The placeholders are UI-only and do not
+change the ingest, fixture count, hot state, or YouTube quota use.
 
 The update workflow runs this ingest every five minutes within a
 schedule-derived result window: group matches from 105 minutes through eight
