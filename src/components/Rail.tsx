@@ -512,9 +512,15 @@ function DaySwitcher({
     if (dayNavFeel.glide === 'spring') springTo(clamped)
     else if (dayNavFeel.glide === 'crisp') crispScrollTo(clamped)
     else {
-      // A spring still settling from a glide release would overwrite the
-      // browser's smooth scroll every frame.
+      // A spring still settling from a glide release, or a mouse flick still
+      // coasting, would overwrite the browser's smooth scroll every frame and
+      // then snap to wherever it stopped instead.
       engineStop()
+      cancelGlide()
+      if (momentumRef.current !== null) {
+        cancelMomentum()
+        setIsFreeScrolling(false)
+      }
       clearWheelSnap()
       // Record where we're headed, so a quick second step goes one further.
       // Heading nowhere new (already there, or pressing past the last day)

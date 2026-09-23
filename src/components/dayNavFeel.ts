@@ -30,7 +30,7 @@ export const dayNavFeel: DayNavFeel = {
   cardsOut: false,
   haptics: false,
   followFinger: false,
-  keys: false,
+  keys: true,
 }
 
 let hapticLabel: HTMLLabelElement | null = null

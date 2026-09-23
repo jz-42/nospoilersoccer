@@ -94,6 +94,13 @@
   background-origin: border-box;
 }
 
+/* Days differ in height, so the page scrollbar comes and goes as you page
+   through them; each time it would re-centre the whole column ~7.5px. Reserve
+   its gutter so nothing shifts. */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   margin: 0;
   /* The two brand glows off the top corners, plus a wide whisper of light

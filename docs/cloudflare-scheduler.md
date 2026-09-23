@@ -134,17 +134,11 @@ recorded as `foxsoccer:*` quota events. GitHub's independently bounded recovery 
 playlist units/day (648 hourly deep + at most 288 five-minute fallback), before
 the small number of metadata checks for titles that pass deterministic screens.
 
-## FOX Soccer matchday-1 trust promotion
+## FOX Soccer Nations League uploads
 
-The source begins in quarantine. On the first Nations League matchday, review a
-sample spanning multiple fixtures and confirm the exact channel id, matchup
-title parsing, publish delay, duration, thumbnails, and successful US embeds.
-Quarantined candidates must not change `unl-2026-videos.ts`.
-
-After that audit passes, make one reviewed commit changing only
-`NATIONS_HIGHLIGHT_TRUST` in `scripts/curate-nations-videos.ts` from
-`'quarantine'` to `'trusted'`. Keep parser changes in a separate commit so a
-trust promotion cannot silently broaden the accepted title grammar.
+The FOX Soccer curator publishes videos that pass its channel, title, fixture,
+duration, and embed checks without manual quarantine. Review the accepted cuts
+on the site. The title grammar and other acceptance checks remain conservative.
 
 ## GitHub token permissions
 
