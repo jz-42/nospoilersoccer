@@ -187,8 +187,8 @@ assert(
   railSource.includes('onClick={() => goToIndex(getSwipeSourceIndex() - 1)}') &&
     railSource.includes('onClick={() => goToIndex(getSwipeSourceIndex() + 1)}') &&
     railSource.includes('onClick={() => goToIndex(anchorIndex)}') &&
-    /const goToIndex = [\s\S]*?if \(dayNavFeel\.glide === 'crisp'\) crispScrollTo\(clamped\)\s*else \{[^}]*?engineStop\(\)[^}]*?scrollToIndex\(clamped, true\)\s*\}/.test(railSource),
-  'carousel buttons step through goToIndex, which keeps the original smooth scroll path unless a crisp or spring glide is on',
+    /const goToIndex = [\s\S]*?if \(dayNavFeel\.glide === 'crisp'\) crispScrollTo\(clamped\)\s*else \{[\s\S]*?engineStop\(\)\s*cancelGlide\(\)[\s\S]*?cancelMomentum\(\)[\s\S]*?scrollToIndex\(clamped, true\)\s*\}\s*\}/.test(railSource),
+  'carousel buttons step through goToIndex, which keeps the original smooth scroll path unless a crisp or spring glide is on, and first stops any coast still running so the step is not lost',
 )
 assert(
   /if \(direction === 0\) return[\s\S]*?if \(!canSwipeToDirection\(direction, swipeSourceIndex\)\) return[\s\S]*?if \(!swipeToIndex\(swipeSourceIndex \+ direction\)\) return[\s\S]*?suppressClickUntilRef\.current = performance\.now\(\) \+ 320/.test(
