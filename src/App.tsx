@@ -1,18 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import './App.css'
+import './components/NationsPendingBracket.css'
 import { analytics } from './analytics'
 import { Bracket } from './components/Bracket'
 import { ConfirmDialog, Onboarding } from './components/Dialogs'
 import { FavoritesPanel } from './components/FavoritesPanel'
+import { formatDate } from './components/format'
 import { GroupStage } from './components/GroupStage'
 import { Logo } from './components/Logo'
 import { MatchModal } from './components/MatchModal'
 import type { ModalTarget } from './components/MatchModal'
+import { KnockoutTracks } from './components/KnockoutTracks'
 import { Rail } from './components/Rail'
-import { SettingsMenu } from './components/SettingsMenu'
+import { SettingsMenu, type ArchiveEntry } from './components/SettingsMenu'
 import { WatchLater } from './components/WatchLater'
-import { competitions, defaultSeasonId, findSeason } from './data'
+import {
+  archivedCompetitions,
+  defaultSeasonIdAt,
+  findSeason,
+  pickerCompetitionsAt,
+  resolveInitialSeason,
+} from './data'
 import type { Competition, Season } from './data'
 import type { Tournament } from './data/types'
 import {
@@ -32,6 +41,7 @@ import {
   dayTabLabel,
   defaultTournamentView,
   tableTabLabel,
+  tournamentMatchDates,
   type View,
 } from './navigation'
 import { useProgress } from './state/progress'
@@ -76,13 +86,19 @@ function hotStateUrl(seasonId: string): string {
  * A competition with a single season collapses to one row under its own name;
  * one with several lists its seasons under a heading, so the menu never
  * mentions a season count that doesn't exist.
+ *
+ * Archived competitions are not listed — they live under Archive in the header
+ * menu. While you are in one, the trigger says so with a tag, and the menu is
+ * the way back to the live competitions.
  */
 function SeasonPicker({
   seasonId,
   onSelect,
+  competitions,
 }: {
   seasonId: string
   onSelect: (id: string) => void
+  competitions: Competition[]
 }) {
   const current = findSeason(seasonId)
   const competition: Competition | undefined = current?.competition
@@ -111,7 +127,12 @@ function SeasonPicker({
   // Opening with the keyboard should land you *in* the menu, not behind it.
   useEffect(() => {
     if (!open) return
-    menuRef.current?.querySelector<HTMLButtonElement>('.picker-item.is-active')?.focus()
+    // In an archived competition nothing here is active; start at the top.
+    const menu = menuRef.current
+    const item =
+      menu?.querySelector<HTMLButtonElement>('.picker-item.is-active') ??
+      menu?.querySelector<HTMLButtonElement>('.picker-item')
+    item?.focus()
   }, [open])
 
   const choose = (id: string) => {
@@ -133,6 +154,7 @@ function SeasonPicker({
       >
         <span className="picker-trigger-label">{label}</span>
         {multiSeason && current && <span className="picker-trigger-season">{current.season.label}</span>}
+        {competition?.archived && <span className="picker-trigger-tag">Archive</span>}
         <svg className="picker-chevron" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
           <path
             d="M3 4.6 6 7.6l3-3"
@@ -207,6 +229,16 @@ function PickerItem({
   )
 }
 
+const trophyUrl = new URL('./assets/world-cup-trophy.png', import.meta.url).href
+
+/** 'Jun 11 – Jul 19': the span an archived season ran over. */
+function archiveDates(t: Tournament): string | undefined {
+  const dates = tournamentMatchDates(t)
+  const first = dates[0]
+  const last = dates.at(-1)
+  return first && last ? `${formatDate(first)} – ${formatDate(last)}` : undefined
+}
+
 /**
  * Owns which season is selected and resolving it to a tournament. Club seasons
  * are lazy chunks, so this is the one place that can be without a tournament;
@@ -214,15 +246,17 @@ function PickerItem({
  * tournament-dependent hook unconditional.
  */
 function App() {
+  const [now] = useState(() => new Date())
+  const pickerCompetitions = useMemo(() => pickerCompetitionsAt(now), [now])
   const [seasonId, setSeasonId] = useState<string>(() => {
     try {
       const saved = localStorage.getItem(TOURNAMENT_KEY)
-      return saved && findSeason(saved) ? saved : defaultSeasonId
+      return resolveInitialSeason(saved, now)
     } catch {
-      return defaultSeasonId
+      return defaultSeasonIdAt(now)
     }
   })
-  const found = findSeason(seasonId) ?? findSeason(defaultSeasonId)
+  const found = findSeason(seasonId) ?? findSeason(defaultSeasonIdAt(now))
   const season = found?.season
   // Only the World Cup gets a completion meter (see `showProgress` below).
   const showProgress = found?.competition.id === 'wc'
@@ -251,7 +285,24 @@ function App() {
     }
   }
 
-  const picker = <SeasonPicker seasonId={seasonId} onSelect={selectSeason} />
+  const picker = (
+    <SeasonPicker
+      seasonId={seasonId}
+      onSelect={selectSeason}
+      competitions={pickerCompetitions}
+    />
+  )
+  const archive: ArchiveEntry[] = archivedCompetitions.flatMap((c) =>
+    c.seasons.map((s) => ({
+      id: s.id,
+      label: c.name,
+      season: s.label,
+      dates: s.tournament ? archiveDates(s.tournament) : undefined,
+      art: c.id === 'wc' ? trophyUrl : undefined,
+      active: s.id === seasonId,
+      onSelect: () => selectSeason(s.id),
+    })),
+  )
 
   if (!tournament) {
     return (
@@ -276,6 +327,7 @@ function App() {
       seasonId={seasonId}
       baseTournament={tournament}
       picker={picker}
+      archive={archive}
       showProgress={showProgress}
     />
   )
@@ -285,11 +337,13 @@ function TournamentApp({
   seasonId,
   baseTournament,
   picker,
+  archive,
   showProgress,
 }: {
   seasonId: string
   baseTournament: Tournament
   picker: ReactNode
+  archive: ArchiveEntry[]
   /**
    * The meter counts matches you've revealed out of the whole competition.
    * That is a real, finishable goal for a 104-match World Cup and a
@@ -471,14 +525,21 @@ function TournamentApp({
 
           <FavoritesPanel t={t} progress={progress} />
 
-          <SettingsMenu onHowThisWorks={() => setShowOnboarding(true)} />
+          <SettingsMenu
+            archive={archive}
+            onHowThisWorks={() => setShowOnboarding(true)}
+          />
         </div>
       </header>
 
       <main className={`app-main ${view === 'bracket' ? 'app-main-wide' : ''}`}>
         {view === 'day' && <Rail t={t} progress={progress} onOpen={setModal} />}
         {view === 'groups' && <GroupStage t={t} progress={progress} onOpen={setModal} />}
-        {view === 'bracket' && <Bracket t={t} progress={progress} onOpen={setModal} />}
+        {view === 'bracket' && (
+          t.knockoutTracks?.length
+            ? <KnockoutTracks t={t} progress={progress} onOpen={setModal} />
+            : <Bracket t={t} progress={progress} onOpen={setModal} />
+        )}
       </main>
 
 

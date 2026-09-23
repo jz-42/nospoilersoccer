@@ -9,6 +9,8 @@ import {
 
 const DEFAULT_SCHEDULE_URL =
   'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/wc2026.ts'
+const DEFAULT_NATIONS_SCHEDULE_URL =
+  'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/nations/unl-2026.ts'
 const DEFAULT_HOT_STATE_BASE_URL =
   'https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/public/api/hot-state'
 const DEFAULT_HOT_STATE_URL = `${DEFAULT_HOT_STATE_BASE_URL}/wc2026.json`
@@ -18,59 +20,85 @@ const DEFAULT_HIGHLIGHT_STATE_BASE_URL =
 // Seasons the hot-state endpoint will serve. An allowlist rather than a
 // passthrough so the Worker cannot be pointed at arbitrary raw.githubusercontent
 // paths, and so an unknown season is a clean 404 instead of a 502.
-export const HOT_STATE_SEASON_IDS = ['wc2026', 'eng1-2026', 'esp1-2026', 'ucl-2026']
+export const HOT_STATE_SEASON_IDS = ['wc2026', 'unl-2026', 'eng1-2026', 'esp1-2026', 'ucl-2026']
 
 const HOT_STATE_PATH_PATTERN = /^\/api\/hot-state\/([A-Za-z0-9-]+)$/
 const HIGHLIGHT_STATE_PATH_PATTERN = /^\/api\/highlights\/([A-Za-z0-9-]+)$/
 
 const GROUP_START_OFFSET_MINUTES = 90
+const NATIONS_GROUP_START_OFFSET_MINUTES = 105
 const GROUP_END_OFFSET_MINUTES = 8 * 60
 const KNOCKOUT_START_OFFSET_MINUTES = 90
 const KNOCKOUT_END_OFFSET_MINUTES = 12 * 60
 const DATE_ONLY_KNOCKOUT_END_OFFSET_MINUTES = 36 * 60
 
-export function parseMatchKickoffs(sourceText) {
+export function parseMatchKickoffs(sourceText, seasonId = 'wc2026') {
   const matchesById = new Map()
-  const matchObjectRegex = /\{\s*id:\s*'((?:[A-L]\d+)|(?:m\d+))'/g
-
-  for (const match of sourceText.matchAll(matchObjectRegex)) {
-    const matchId = match[1]
-    const objectText = readObjectAt(sourceText, match.index)
-    if (!objectText) continue
-
-    const kickoffValue = objectText.match(/\bkickoff:\s*'([^']+)'/)?.[1]
-    if (kickoffValue) {
-      const kickoff = new Date(kickoffValue)
-      if (Number.isNaN(kickoff.getTime())) continue
-
-      matchesById.set(matchId, {
-        matchId,
-        phase: matchId.startsWith('m') ? 'knockout' : 'group',
-        kickoff,
-        dateOnly: false,
-      })
-      continue
+  const fixtureArrays = []
+  const groupMatches = readPropertyArray(sourceText, 'groupMatches')
+  if (groupMatches) fixtureArrays.push({ source: groupMatches, phase: 'group' })
+  const knockoutRounds = readPropertyArray(sourceText, 'knockoutRounds')
+  if (knockoutRounds) {
+    const matchesRegex = /(?:\bmatches|["']matches["'])\s*:\s*\[/g
+    for (const match of knockoutRounds.matchAll(matchesRegex)) {
+      const matches = readDelimitedAt(knockoutRounds, match.index + match[0].lastIndexOf('['), '[', ']')
+      if (matches) fixtureArrays.push({ source: matches, phase: 'knockout' })
     }
+  }
 
-    if (!matchId.startsWith('m')) continue
-    const date = objectText.match(/\bdate:\s*'(\d{4}-\d{2}-\d{2})'/)?.[1]
-    if (!date) continue
+  for (const { source, phase } of fixtureArrays) {
+    const matchObjectRegex = /\{\s*(?:id|["']id["'])\s*:\s*(["'])([A-Za-z0-9-]+)\1/g
+    let match
+    while ((match = matchObjectRegex.exec(source)) !== null) {
+      const matchId = match[2]
+      const objectText = readObjectAt(source, match.index)
+      if (!objectText) continue
+      matchObjectRegex.lastIndex = match.index + objectText.length
 
-    const dateStart = new Date(`${date}T00:00:00Z`)
-    if (Number.isNaN(dateStart.getTime())) continue
+      const kickoffValue = objectText.match(/(?:\bkickoff|["']kickoff["'])\s*:\s*["']([^"']+)["']/)?.[1]
+      if (kickoffValue) {
+        const kickoff = new Date(kickoffValue)
+        if (Number.isNaN(kickoff.getTime())) continue
 
-    matchesById.set(matchId, {
-      matchId,
-      phase: 'knockout',
-      date,
-      dateOnly: true,
-    })
+        matchesById.set(matchId, { seasonId, matchId, phase, kickoff, dateOnly: false })
+        continue
+      }
+
+      if (phase !== 'knockout') continue
+      const date = objectText.match(/\bdate:\s*'(\d{4}-\d{2}-\d{2})'/)?.[1]
+      if (!date) continue
+
+      const dateStart = new Date(`${date}T00:00:00Z`)
+      if (Number.isNaN(dateStart.getTime())) continue
+
+      matchesById.set(matchId, { seasonId, matchId, phase, date, dateOnly: true })
+    }
   }
 
   return Array.from(matchesById.values())
 }
 
+export function parseScheduleSources(sources) {
+  const deduplicated = new Map()
+  for (const { seasonId, sourceText } of sources) {
+    for (const match of parseMatchKickoffs(sourceText, seasonId)) {
+      deduplicated.set(`${seasonId}:${match.matchId}`, match)
+    }
+  }
+  return [...deduplicated.values()]
+}
+
 function readObjectAt(sourceText, start) {
+  return readDelimitedAt(sourceText, start, '{', '}')
+}
+
+function readPropertyArray(sourceText, property) {
+  const pattern = new RegExp(`(?:\\b${property}|["']${property}["'])\\s*:\\s*\\[`)
+  const match = pattern.exec(sourceText)
+  return match ? readDelimitedAt(sourceText, match.index + match[0].lastIndexOf('['), '[', ']') : null
+}
+
+function readDelimitedAt(sourceText, start, opening, closing) {
   let depth = 0
   let quote = null
   let escaped = false
@@ -93,8 +121,8 @@ function readObjectAt(sourceText, start) {
       quote = ch
       continue
     }
-    if (ch === '{') depth += 1
-    if (ch === '}') {
+    if (ch === opening) depth += 1
+    if (ch === closing) {
       depth -= 1
       if (depth === 0) return sourceText.slice(start, i + 1)
     }
@@ -112,6 +140,7 @@ function toWindow(match) {
     const dateStart = new Date(`${match.date}T00:00:00Z`)
     return {
       matchId: match.matchId,
+      seasonId: match.seasonId,
       phase: match.phase,
       date: match.date,
       windowStart: dateStart.toISOString(),
@@ -119,12 +148,16 @@ function toWindow(match) {
     }
   }
 
-  const startOffset =
-    match.phase === 'knockout' ? KNOCKOUT_START_OFFSET_MINUTES : GROUP_START_OFFSET_MINUTES
+  const startOffset = match.phase === 'knockout'
+    ? KNOCKOUT_START_OFFSET_MINUTES
+    : match.seasonId === 'unl-2026'
+      ? NATIONS_GROUP_START_OFFSET_MINUTES
+      : GROUP_START_OFFSET_MINUTES
   const endOffset =
     match.phase === 'knockout' ? KNOCKOUT_END_OFFSET_MINUTES : GROUP_END_OFFSET_MINUTES
 
   return {
+    seasonId: match.seasonId,
     matchId: match.matchId,
     phase: match.phase,
     kickoff: match.kickoff.toISOString(),
@@ -229,8 +262,10 @@ export async function runScheduler({
   logger = (entry) => console.log(JSON.stringify(entry)),
   throwOnError = false,
 }) {
-  const scheduleText = await fetchSchedule()
-  const matches = parseMatchKickoffs(scheduleText)
+  const schedulePayload = await fetchSchedule()
+  const matches = typeof schedulePayload === 'string'
+    ? parseMatchKickoffs(schedulePayload)
+    : parseScheduleSources(schedulePayload)
   const report = buildWindowReport(matches, now)
 
   let activeRunCount = 0
@@ -278,13 +313,16 @@ function getRequiredEnv(env, key) {
   return value
 }
 
-async function fetchScheduleText(env) {
-  const url = env.SCHEDULE_URL || DEFAULT_SCHEDULE_URL
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Schedule fetch failed: ${response.status}`)
-  }
-  return response.text()
+async function fetchScheduleSources(env) {
+  const sources = [
+    { seasonId: 'wc2026', url: env.SCHEDULE_URL || DEFAULT_SCHEDULE_URL },
+    { seasonId: 'unl-2026', url: env.NATIONS_SCHEDULE_URL || DEFAULT_NATIONS_SCHEDULE_URL },
+  ]
+  return Promise.all(sources.map(async ({ seasonId, url }) => {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`${seasonId} schedule fetch failed: ${response.status}`)
+    return { seasonId, sourceText: await response.text() }
+  }))
 }
 
 function createEnvGitHubClient(env) {
@@ -317,8 +355,8 @@ function corsHeaders(extraHeaders = {}) {
 }
 
 async function handleDiagnosticRequest(env) {
-  const scheduleText = await fetchScheduleText(env)
-  const report = buildWindowReport(parseMatchKickoffs(scheduleText), new Date())
+  const scheduleSources = await fetchScheduleSources(env)
+  const report = buildWindowReport(parseScheduleSources(scheduleSources), new Date())
   return json({
     ok: true,
     note: 'Diagnostic only. This endpoint does not trigger GitHub Actions.',
@@ -327,8 +365,8 @@ async function handleDiagnosticRequest(env) {
     activeWindowCount: report.activeWindowCount,
     activeWindows: report.activeWindows,
     parsedMatchCount: report.parsedMatchCount,
-    // Windows are parsed from wc2026.ts only; club competitions run year-round
-    // and dispatch is no longer window-gated, so they need no window source.
+    // Club competitions run year-round and dispatch is no longer window-gated,
+    // so only the two national-team schedules need explicit window sources.
     hotStateSeasons: HOT_STATE_SEASON_IDS,
   })
 }
@@ -342,7 +380,7 @@ async function handleAdminTest(url, env) {
 
   const result = await runScheduler({
     now: new Date(),
-    fetchSchedule: () => fetchScheduleText(env),
+    fetchSchedule: () => fetchScheduleSources(env),
     githubClient: createEnvGitHubClient(env),
   })
 
@@ -494,7 +532,7 @@ export default {
     const jobs = [
       runScheduler({
         now,
-        fetchSchedule: () => fetchScheduleText(env),
+        fetchSchedule: () => fetchScheduleSources(env),
         githubClient: createEnvGitHubClient(env),
         throwOnError: true,
       }),
@@ -506,6 +544,8 @@ export default {
           now,
           apiKey: env.YOUTUBE_API_KEY,
           webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
+          nationsHotStateUrl: hotStateSourceUrl(env, 'unl-2026'),
+          nationsHighlightStateUrl: highlightStateSourceUrl(env, 'unl-2026'),
           store,
           queue: env.HIGHLIGHT_QUEUE,
         }),

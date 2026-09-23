@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import { wc2022 } from './data/wc2022'
 import { wc2026 } from './data/wc2026'
+import { defaultSeasonIdAt, pickerCompetitionsAt, resolveInitialSeason } from './data'
 import {
   dayRailInitialDate,
   dayTabLabel,
@@ -42,6 +43,19 @@ assert(
   dayRailInitialDate(wc2022, archiveDayInLosAngeles, 'America/Los_Angeles') === '2022-11-20',
   'a historical tournament also opens at its first matchday',
 )
+
+const firstWindow = new Date('2026-09-24T12:00:00-07:00')
+const afterFirstWindow = new Date('2026-10-07T00:01:00-07:00')
+const secondWindow = new Date('2026-11-12T00:01:00-08:00')
+const afterSecondWindow = new Date('2026-11-18T00:01:00-08:00')
+assert(defaultSeasonIdAt(firstWindow) === 'unl-2026', 'UNL opens the first active window')
+assert(defaultSeasonIdAt(afterFirstWindow) === 'ucl-2026', 'UCL returns after the first window')
+assert(defaultSeasonIdAt(secondWindow) === 'unl-2026', 'UNL opens the second active window')
+assert(defaultSeasonIdAt(afterSecondWindow) === 'ucl-2026', 'UCL returns after the second window')
+assert(pickerCompetitionsAt(new Date('2026-09-25T12:00:00Z'))[0].id === 'unl', 'UNL ranks first in an active window')
+assert(pickerCompetitionsAt(afterFirstWindow)[0].id === 'ucl', 'UCL ranks first outside an active window')
+assert(resolveInitialSeason('ucl-2026', firstWindow) === 'ucl-2026', 'a valid saved selection wins')
+assert(resolveInitialSeason('not-a-season', firstWindow) === 'unl-2026', 'an invalid saved selection uses the dated default')
 
 const finalDayInTokyo = new Date('2026-07-20T12:00:00Z')
 assert(

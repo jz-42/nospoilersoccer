@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 import worker, {
   HOT_STATE_SEASON_IDS,
@@ -27,6 +28,15 @@ export const wc2026 = {
       ],
     },
   ],
+}
+`
+
+const SAMPLE_UNL_TS = `
+export const unl2026 = {
+  "groupMatches": [
+    { "id": "unl-401861041", "kickoff": "2026-09-24T18:45Z" }
+  ],
+  "knockoutRounds": []
 }
 `
 
@@ -90,11 +100,59 @@ test('buildWindowReport returns active windows with conservative buffers', () =>
   assert.equal(report.insideWindow, true)
   assert.equal(report.activeWindows.length, 1)
   assert.deepEqual(report.activeWindows[0], {
+    seasonId: 'wc2026',
     matchId: 'E5',
     phase: 'group',
     kickoff: '2026-06-25T20:00:00.000Z',
     windowStart: '2026-06-25T21:30:00.000Z',
     windowEnd: '2026-06-26T04:00:00.000Z',
+  })
+})
+
+test('Nations League windows begin 105 minutes after kickoff and run for eight hours', () => {
+  const matches = parseMatchKickoffs(SAMPLE_UNL_TS, 'unl-2026')
+  const report = buildWindowReport(matches, new Date('2026-09-24T21:00:00Z'))
+
+  assert.equal(matches.length, 1)
+  assert.deepEqual(report.activeWindows[0], {
+    seasonId: 'unl-2026',
+    matchId: 'unl-401861041',
+    phase: 'group',
+    kickoff: '2026-09-24T18:45:00.000Z',
+    windowStart: '2026-09-24T20:30:00.000Z',
+    windowEnd: '2026-09-25T02:45:00.000Z',
+  })
+})
+
+test('Nations League source contains exactly 156 group fixtures, not its tournament metadata', () => {
+  const source = readFileSync(new URL('../src/data/nations/unl-2026.ts', import.meta.url), 'utf8')
+  const matches = parseMatchKickoffs(source, 'unl-2026')
+
+  assert.equal(matches.filter(({ phase }) => phase === 'group').length, 156)
+  assert.equal(matches.some(({ matchId }) => matchId === 'unl-2026'), false)
+  assert.equal(new Set(matches.map(({ matchId }) => matchId)).size, matches.length)
+})
+
+test('Nations League numeric knockout IDs receive the full knockout window', () => {
+  const source = `export const unl2026 = {
+    id: 'unl-2026',
+    groupMatches: [],
+    knockoutRounds: [{ id: 'qf', matches: [
+      { id: 'unl-401999999', kickoff: '2027-03-25T18:45Z' },
+    ] }],
+  }`
+  const matches = parseMatchKickoffs(source, 'unl-2026')
+  const report = buildWindowReport(matches, new Date('2027-03-26T04:00:00Z'))
+
+  assert.equal(matches.length, 1)
+  assert.equal(report.insideWindow, true)
+  assert.deepEqual(report.activeWindows[0], {
+    seasonId: 'unl-2026',
+    matchId: 'unl-401999999',
+    phase: 'knockout',
+    kickoff: '2027-03-25T18:45:00.000Z',
+    windowStart: '2027-03-25T20:15:00.000Z',
+    windowEnd: '2027-03-26T06:45:00.000Z',
   })
 })
 
@@ -105,6 +163,7 @@ test('buildWindowReport covers date-only knockout matches for the full match dat
   assert.equal(report.insideWindow, true)
   assert.deepEqual(report.activeWindows, [
     {
+      seasonId: 'wc2026',
       matchId: 'm73',
       phase: 'knockout',
       date: '2026-06-28',
@@ -285,8 +344,8 @@ test('worker serves every club season and 404s unknown ones', async () => {
     assert.match(payload.sourcePath, new RegExp(`/${seasonId}\\.json$`))
   }
 
-  assert.deepEqual(HOT_STATE_SEASON_IDS, ['wc2026', 'eng1-2026', 'esp1-2026', 'ucl-2026'])
-  assert.equal(requested.length, 4)
+  assert.deepEqual(HOT_STATE_SEASON_IDS, ['wc2026', 'unl-2026', 'eng1-2026', 'esp1-2026', 'ucl-2026'])
+  assert.equal(requested.length, 5)
 })
 
 test('hot-state route accepts the four seasons and rejects anything else', async () => {

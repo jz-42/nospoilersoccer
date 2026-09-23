@@ -1,9 +1,11 @@
 import { ucl_2026 } from './club/ucl-2026'
+import { unl2026 } from './nations/unl-2026'
 import type { HighlightVideo, Tournament } from './types'
 import { highlightKey, preferredHighlightVideos } from './videos'
 import { wc2026Entertainment } from './wc2026-entertainment'
 import { wc2026 as wc2026Base } from './wc2026'
 import { wc2026Videos } from './wc2026-videos'
+import { isNationsLeaguePriorityWindow } from '../navigation'
 
 /**
  * Fold the auto-curated highlight cuts (scripts/curate-videos.ts writes them
@@ -74,6 +76,13 @@ export interface Competition {
   /** Compact label for the picker pill, e.g. 'PL'. */
   shortName: string
   seasons: Season[]
+  /**
+   * Lives under Archive in the header menu instead of in the season picker.
+   * Set by hand rather than derived from dates: a competition moves there
+   * because we chose to retire it from the everyday list, not because its
+   * last match happened to pass.
+   */
+  archived?: boolean
 }
 
 /**
@@ -166,27 +175,55 @@ function clubSeasons(competitionId: string): Season[] {
 }
 
 /**
- * Picker order: the club competitions people follow week to week first, the
- * World Cup last. It runs every four years, so it is the occasional visit
- * rather than the habit — being at the bottom of the menu costs it nothing.
+ * Picker order: the club competitions people follow week to week. The World
+ * Cup is finished and archived — it is reached from Archive in the header
+ * menu, not the picker (see `pickerCompetitions` / `archivedCompetitions`).
  */
 export const competitions: Competition[] = [
+  {
+    id: 'unl',
+    name: 'UEFA Nations League',
+    shortName: 'Nations League',
+    seasons: [{ id: 'unl-2026', label: '26/27', year: 2026, tournament: unl2026 }],
+  },
   ...CLUB_COMPETITIONS.map((c) => ({ ...c, seasons: clubSeasons(c.id) })),
   {
     id: 'wc',
     name: 'World Cup',
     shortName: 'World Cup',
     seasons: [{ id: 'wc2026', label: '2026', year: 2026, tournament: wc2026 }],
+    archived: true,
   },
   // A competition with no season files yet would render an empty picker entry.
 ].filter((c) => c.seasons.length > 0)
+
+/** What the season picker lists, with the currently active competition first. */
+export function pickerCompetitionsAt(now: Date = new Date()): Competition[] {
+  const live = competitions.filter((competition) => !competition.archived)
+  const priority = isNationsLeaguePriorityWindow(now)
+    ? ['unl', 'ucl', 'eng1', 'esp1']
+    : ['ucl', 'unl', 'eng1', 'esp1']
+  return [...live].sort((a, b) => priority.indexOf(a.id) - priority.indexOf(b.id))
+}
+
+/** What Archive in the header menu lists. */
+export const archivedCompetitions = competitions.filter((c) => c.archived)
 
 /**
  * The competition the app opens on for a first-time visitor. It is the one
  * people follow week to week, and the one bundled eagerly above so it paints
  * with no spinner.
  */
-export const defaultSeasonId = 'ucl-2026'
+export function defaultSeasonIdAt(now: Date = new Date()): string {
+  return isNationsLeaguePriorityWindow(now) ? 'unl-2026' : 'ucl-2026'
+}
+
+export const defaultSeasonId = defaultSeasonIdAt()
+
+/** A valid explicit user choice always outranks date-driven merchandising. */
+export function resolveInitialSeason(saved: string | null, now: Date = new Date()): string {
+  return saved && findSeason(saved) ? saved : defaultSeasonIdAt(now)
+}
 
 export function findSeason(id: string): { competition: Competition; season: Season } | null {
   for (const competition of competitions) {

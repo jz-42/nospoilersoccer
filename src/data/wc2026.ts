@@ -1,4 +1,5 @@
 import type { Tournament } from './types'
+import { pickNationalTeams } from './national-teams'
 import { WC2026_BEST_THIRD_ALLOCATION } from './wc2026-third-place'
 
 /**
@@ -18,68 +19,14 @@ export const wc2026: Tournament = {
   bestThirdCount: 8,
   bestThirdAllocation: WC2026_BEST_THIRD_ALLOCATION,
 
-  teams: {
-    // Group A
-    MEX: { id: 'MEX', name: 'Mexico', flag: '🇲🇽' },
-    RSA: { id: 'RSA', name: 'South Africa', flag: '🇿🇦' },
-    KOR: { id: 'KOR', name: 'South Korea', flag: '🇰🇷' },
-    CZE: { id: 'CZE', name: 'Czechia', flag: '🇨🇿' },
-    // Group B
-    CAN: { id: 'CAN', name: 'Canada', flag: '🇨🇦' },
-    BIH: { id: 'BIH', name: 'Bosnia and Herzegovina', flag: '🇧🇦' },
-    QAT: { id: 'QAT', name: 'Qatar', flag: '🇶🇦' },
-    SUI: { id: 'SUI', name: 'Switzerland', flag: '🇨🇭' },
-    // Group C
-    BRA: { id: 'BRA', name: 'Brazil', flag: '🇧🇷' },
-    MAR: { id: 'MAR', name: 'Morocco', flag: '🇲🇦' },
-    HAI: { id: 'HAI', name: 'Haiti', flag: '🇭🇹' },
-    SCO: { id: 'SCO', name: 'Scotland', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' },
-    // Group D
-    USA: { id: 'USA', name: 'United States', flag: '🇺🇸' },
-    PAR: { id: 'PAR', name: 'Paraguay', flag: '🇵🇾' },
-    AUS: { id: 'AUS', name: 'Australia', flag: '🇦🇺' },
-    TUR: { id: 'TUR', name: 'Türkiye', flag: '🇹🇷' },
-    // Group E
-    GER: { id: 'GER', name: 'Germany', flag: '🇩🇪' },
-    CUW: { id: 'CUW', name: 'Curaçao', flag: '🇨🇼' },
-    CIV: { id: 'CIV', name: 'Ivory Coast', flag: '🇨🇮' },
-    ECU: { id: 'ECU', name: 'Ecuador', flag: '🇪🇨' },
-    // Group F
-    NED: { id: 'NED', name: 'Netherlands', flag: '🇳🇱' },
-    JPN: { id: 'JPN', name: 'Japan', flag: '🇯🇵' },
-    SWE: { id: 'SWE', name: 'Sweden', flag: '🇸🇪' },
-    TUN: { id: 'TUN', name: 'Tunisia', flag: '🇹🇳' },
-    // Group G
-    BEL: { id: 'BEL', name: 'Belgium', flag: '🇧🇪' },
-    EGY: { id: 'EGY', name: 'Egypt', flag: '🇪🇬' },
-    IRN: { id: 'IRN', name: 'Iran', flag: '🇮🇷' },
-    NZL: { id: 'NZL', name: 'New Zealand', flag: '🇳🇿' },
-    // Group H
-    ESP: { id: 'ESP', name: 'Spain', flag: '🇪🇸' },
-    CPV: { id: 'CPV', name: 'Cape Verde', flag: '🇨🇻' },
-    KSA: { id: 'KSA', name: 'Saudi Arabia', flag: '🇸🇦' },
-    URU: { id: 'URU', name: 'Uruguay', flag: '🇺🇾' },
-    // Group I
-    FRA: { id: 'FRA', name: 'France', flag: '🇫🇷' },
-    SEN: { id: 'SEN', name: 'Senegal', flag: '🇸🇳' },
-    IRQ: { id: 'IRQ', name: 'Iraq', flag: '🇮🇶' },
-    NOR: { id: 'NOR', name: 'Norway', flag: '🇳🇴' },
-    // Group J
-    ARG: { id: 'ARG', name: 'Argentina', flag: '🇦🇷' },
-    ALG: { id: 'ALG', name: 'Algeria', flag: '🇩🇿' },
-    AUT: { id: 'AUT', name: 'Austria', flag: '🇦🇹' },
-    JOR: { id: 'JOR', name: 'Jordan', flag: '🇯🇴' },
-    // Group K
-    POR: { id: 'POR', name: 'Portugal', flag: '🇵🇹' },
-    COD: { id: 'COD', name: 'DR Congo', flag: '🇨🇩' },
-    UZB: { id: 'UZB', name: 'Uzbekistan', flag: '🇺🇿' },
-    COL: { id: 'COL', name: 'Colombia', flag: '🇨🇴' },
-    // Group L
-    ENG: { id: 'ENG', name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-    CRO: { id: 'CRO', name: 'Croatia', flag: '🇭🇷' },
-    GHA: { id: 'GHA', name: 'Ghana', flag: '🇬🇭' },
-    PAN: { id: 'PAN', name: 'Panama', flag: '🇵🇦' },
-  },
+  teams: pickNationalTeams([
+    'MEX', 'RSA', 'KOR', 'CZE', 'CAN', 'BIH', 'QAT', 'SUI',
+    'BRA', 'MAR', 'HAI', 'SCO', 'USA', 'PAR', 'AUS', 'TUR',
+    'GER', 'CUW', 'CIV', 'ECU', 'NED', 'JPN', 'SWE', 'TUN',
+    'BEL', 'EGY', 'IRN', 'NZL', 'ESP', 'CPV', 'KSA', 'URU',
+    'FRA', 'SEN', 'IRQ', 'NOR', 'ARG', 'ALG', 'AUT', 'JOR',
+    'POR', 'COD', 'UZB', 'COL', 'ENG', 'CRO', 'GHA', 'PAN',
+  ]),
 
   groups: [
     { id: 'A', teams: ['MEX', 'RSA', 'KOR', 'CZE'] },

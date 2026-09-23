@@ -1,0 +1,127 @@
+import type { Team, TeamId } from './types'
+
+export const nationsLeagueTeamIds = [
+  'FRA', 'ITA', 'BEL', 'TUR', 'GER', 'NED', 'SRB', 'GRE',
+  'ESP', 'CRO', 'ENG', 'CZE', 'POR', 'DEN', 'NOR', 'WAL',
+  'SCO', 'SUI', 'SVN', 'MKD', 'HUN', 'UKR', 'GEO', 'NIR',
+  'ISR', 'AUT', 'IRL', 'KOS', 'POL', 'BIH', 'ROU', 'SWE',
+  'ALB', 'FIN', 'BLR', 'SMR', 'MNE', 'ARM', 'CYP', 'LVA',
+  'KAZ', 'SVK', 'FRO', 'MDA', 'ISL', 'BUL', 'EST', 'LUX',
+  'GIB', 'MLT', 'AND', 'LTU', 'AZE', 'LIE',
+] as const
+
+const nationsLeagueEspnIds: Record<(typeof nationsLeagueTeamIds)[number], string> = {
+  FRA: '478', ITA: '162', BEL: '459', TUR: '465', GER: '481', NED: '449', SRB: '6757', GRE: '455',
+  ESP: '164', CRO: '477', ENG: '448', CZE: '450', POR: '482', DEN: '479', NOR: '464', WAL: '578',
+  SCO: '580', SUI: '475', SVN: '472', MKD: '463', HUN: '480', UKR: '457', GEO: '584', NIR: '586',
+  ISR: '461', AUT: '474', IRL: '476', KOS: '18272', POL: '471', BIH: '452', ROU: '473', SWE: '466',
+  ALB: '585', FIN: '458', BLR: '583', SMR: '588', MNE: '6775', ARM: '579', CYP: '445', LVA: '456',
+  KAZ: '2619', SVK: '468', FRO: '447', MDA: '483', ISL: '470', BUL: '462', EST: '444', LUX: '582',
+  GIB: '16721', MLT: '453', AND: '587', LTU: '460', AZE: '581', LIE: '589',
+}
+
+const baseTeams: Record<TeamId, Team> = {
+  MEX: { id: 'MEX', name: 'Mexico', flag: '🇲🇽' },
+  RSA: { id: 'RSA', name: 'South Africa', flag: '🇿🇦' },
+  KOR: { id: 'KOR', name: 'South Korea', flag: '🇰🇷' },
+  CZE: { id: 'CZE', name: 'Czechia', flag: '🇨🇿' },
+  CAN: { id: 'CAN', name: 'Canada', flag: '🇨🇦' },
+  BIH: { id: 'BIH', name: 'Bosnia and Herzegovina', flag: '🇧🇦' },
+  QAT: { id: 'QAT', name: 'Qatar', flag: '🇶🇦' },
+  SUI: { id: 'SUI', name: 'Switzerland', flag: '🇨🇭' },
+  BRA: { id: 'BRA', name: 'Brazil', flag: '🇧🇷' },
+  MAR: { id: 'MAR', name: 'Morocco', flag: '🇲🇦' },
+  HAI: { id: 'HAI', name: 'Haiti', flag: '🇭🇹' },
+  SCO: { id: 'SCO', name: 'Scotland', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' },
+  USA: { id: 'USA', name: 'United States', flag: '🇺🇸' },
+  PAR: { id: 'PAR', name: 'Paraguay', flag: '🇵🇾' },
+  AUS: { id: 'AUS', name: 'Australia', flag: '🇦🇺' },
+  TUR: { id: 'TUR', name: 'Türkiye', flag: '🇹🇷' },
+  GER: { id: 'GER', name: 'Germany', flag: '🇩🇪' },
+  CUW: { id: 'CUW', name: 'Curaçao', flag: '🇨🇼' },
+  CIV: { id: 'CIV', name: 'Ivory Coast', flag: '🇨🇮' },
+  ECU: { id: 'ECU', name: 'Ecuador', flag: '🇪🇨' },
+  NED: { id: 'NED', name: 'Netherlands', flag: '🇳🇱' },
+  JPN: { id: 'JPN', name: 'Japan', flag: '🇯🇵' },
+  SWE: { id: 'SWE', name: 'Sweden', flag: '🇸🇪' },
+  TUN: { id: 'TUN', name: 'Tunisia', flag: '🇹🇳' },
+  BEL: { id: 'BEL', name: 'Belgium', flag: '🇧🇪' },
+  EGY: { id: 'EGY', name: 'Egypt', flag: '🇪🇬' },
+  IRN: { id: 'IRN', name: 'Iran', flag: '🇮🇷' },
+  NZL: { id: 'NZL', name: 'New Zealand', flag: '🇳🇿' },
+  ESP: { id: 'ESP', name: 'Spain', flag: '🇪🇸' },
+  CPV: { id: 'CPV', name: 'Cape Verde', flag: '🇨🇻' },
+  KSA: { id: 'KSA', name: 'Saudi Arabia', flag: '🇸🇦' },
+  URU: { id: 'URU', name: 'Uruguay', flag: '🇺🇾' },
+  FRA: { id: 'FRA', name: 'France', flag: '🇫🇷' },
+  SEN: { id: 'SEN', name: 'Senegal', flag: '🇸🇳' },
+  IRQ: { id: 'IRQ', name: 'Iraq', flag: '🇮🇶' },
+  NOR: { id: 'NOR', name: 'Norway', flag: '🇳🇴' },
+  ARG: { id: 'ARG', name: 'Argentina', flag: '🇦🇷' },
+  ALG: { id: 'ALG', name: 'Algeria', flag: '🇩🇿' },
+  AUT: { id: 'AUT', name: 'Austria', flag: '🇦🇹' },
+  JOR: { id: 'JOR', name: 'Jordan', flag: '🇯🇴' },
+  POR: { id: 'POR', name: 'Portugal', flag: '🇵🇹' },
+  COD: { id: 'COD', name: 'DR Congo', flag: '🇨🇩' },
+  UZB: { id: 'UZB', name: 'Uzbekistan', flag: '🇺🇿' },
+  COL: { id: 'COL', name: 'Colombia', flag: '🇨🇴' },
+  ENG: { id: 'ENG', name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  CRO: { id: 'CRO', name: 'Croatia', flag: '🇭🇷' },
+  GHA: { id: 'GHA', name: 'Ghana', flag: '🇬🇭' },
+  PAN: { id: 'PAN', name: 'Panama', flag: '🇵🇦' },
+  WAL: { id: 'WAL', name: 'Wales', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
+  POL: { id: 'POL', name: 'Poland', flag: '🇵🇱' },
+  DEN: { id: 'DEN', name: 'Denmark', flag: '🇩🇰' },
+  CRC: { id: 'CRC', name: 'Costa Rica', flag: '🇨🇷' },
+  SRB: { id: 'SRB', name: 'Serbia', flag: '🇷🇸' },
+  CMR: { id: 'CMR', name: 'Cameroon', flag: '🇨🇲' },
+  ITA: { id: 'ITA', name: 'Italy', flag: '🇮🇹' },
+  GRE: { id: 'GRE', name: 'Greece', flag: '🇬🇷' },
+  SVN: { id: 'SVN', name: 'Slovenia', flag: '🇸🇮' },
+  MKD: { id: 'MKD', name: 'North Macedonia', flag: '🇲🇰' },
+  HUN: { id: 'HUN', name: 'Hungary', flag: '🇭🇺' },
+  UKR: { id: 'UKR', name: 'Ukraine', flag: '🇺🇦' },
+  GEO: { id: 'GEO', name: 'Georgia', flag: '🇬🇪' },
+  NIR: { id: 'NIR', name: 'Northern Ireland', flag: '🇬🇧' },
+  ISR: { id: 'ISR', name: 'Israel', flag: '🇮🇱' },
+  IRL: { id: 'IRL', name: 'Republic of Ireland', flag: '🇮🇪' },
+  KOS: { id: 'KOS', name: 'Kosovo', flag: '🇽🇰' },
+  ROU: { id: 'ROU', name: 'Romania', flag: '🇷🇴' },
+  ALB: { id: 'ALB', name: 'Albania', flag: '🇦🇱' },
+  FIN: { id: 'FIN', name: 'Finland', flag: '🇫🇮' },
+  BLR: { id: 'BLR', name: 'Belarus', flag: '🇧🇾' },
+  SMR: { id: 'SMR', name: 'San Marino', flag: '🇸🇲' },
+  MNE: { id: 'MNE', name: 'Montenegro', flag: '🇲🇪' },
+  ARM: { id: 'ARM', name: 'Armenia', flag: '🇦🇲' },
+  CYP: { id: 'CYP', name: 'Cyprus', flag: '🇨🇾' },
+  LVA: { id: 'LVA', name: 'Latvia', flag: '🇱🇻' },
+  KAZ: { id: 'KAZ', name: 'Kazakhstan', flag: '🇰🇿' },
+  SVK: { id: 'SVK', name: 'Slovakia', flag: '🇸🇰' },
+  FRO: { id: 'FRO', name: 'Faroe Islands', flag: '🇫🇴' },
+  MDA: { id: 'MDA', name: 'Moldova', flag: '🇲🇩' },
+  ISL: { id: 'ISL', name: 'Iceland', flag: '🇮🇸' },
+  BUL: { id: 'BUL', name: 'Bulgaria', flag: '🇧🇬' },
+  EST: { id: 'EST', name: 'Estonia', flag: '🇪🇪' },
+  LUX: { id: 'LUX', name: 'Luxembourg', flag: '🇱🇺' },
+  GIB: { id: 'GIB', name: 'Gibraltar', flag: '🇬🇮' },
+  MLT: { id: 'MLT', name: 'Malta', flag: '🇲🇹' },
+  AND: { id: 'AND', name: 'Andorra', flag: '🇦🇩' },
+  LTU: { id: 'LTU', name: 'Lithuania', flag: '🇱🇹' },
+  AZE: { id: 'AZE', name: 'Azerbaijan', flag: '🇦🇿' },
+  LIE: { id: 'LIE', name: 'Liechtenstein', flag: '🇱🇮' },
+}
+
+export const nationalTeams: Record<TeamId, Team> = Object.fromEntries(
+  Object.entries(baseTeams).map(([id, team]) => {
+    const accessRank = nationsLeagueTeamIds.indexOf(id as (typeof nationsLeagueTeamIds)[number]) + 1
+    return [id, accessRank > 0 ? { ...team, espnId: nationsLeagueEspnIds[id as keyof typeof nationsLeagueEspnIds], accessRank } : team]
+  }),
+)
+
+export function pickNationalTeams<const Id extends TeamId>(ids: readonly Id[]): Record<Id, Team> {
+  return Object.fromEntries(ids.map((id) => {
+    const team = nationalTeams[id]
+    if (!team) throw new Error(`Unknown national team id: ${id}`)
+    return [id, team]
+  })) as Record<Id, Team>
+}

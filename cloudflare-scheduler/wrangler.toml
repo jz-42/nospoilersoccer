@@ -11,6 +11,7 @@ GITHUB_OWNER = "jz-42"
 GITHUB_REPO = "nospoilersoccer"
 GITHUB_WORKFLOW = "update-results.yml"
 GITHUB_REF = "main"
+NATIONS_SCHEDULE_URL = "https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/nations/unl-2026.ts"
 WEBSUB_CALLBACK_URL = "https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/websub/youtube"
 
 [[d1_databases]]
