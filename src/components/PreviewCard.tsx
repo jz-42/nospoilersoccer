@@ -35,11 +35,13 @@ export function PreviewCard({
   entry,
   progress,
   onOpen,
+  sourceLabel,
 }: {
   t: Tournament
   entry: RailEntry
   progress: Progress
   onOpen: (target: ModalTarget) => void
+  sourceLabel?: string
 }) {
   const { target } = entry
   const m = target.match
@@ -186,6 +188,7 @@ export function PreviewCard({
         )}
       </div>
       <div className="preview-meta">
+        {sourceLabel && <span className="preview-source">{sourceLabel}</span>}
         <span className="preview-teams">
           <span className={`preview-team ${favHome ? 'is-fav' : ''}`.trim()}>
             {favHome && <Heart size={14} className="preview-team-heart" />}

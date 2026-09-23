@@ -27,8 +27,9 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { findSeason, loadSeason } from '../data'
 import type { Tournament } from '../data/types'
-import type { Progress } from '../state/progress'
+import { watchLaterParts, type Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
 import { ClockIcon } from './ClockIcon'
 import { PreviewCard } from './PreviewCard'
@@ -66,6 +67,11 @@ function matchEntries(t: Tournament): Map<string, RailEntry> {
   return out
 }
 
+interface SavedEntry {
+  tournament: Tournament
+  entry: RailEntry
+}
+
 export function WatchLater({
   t,
   progress,
@@ -74,25 +80,69 @@ export function WatchLater({
 }: {
   t: Tournament
   progress: Progress
-  onOpen: (target: ModalTarget) => void
+  onOpen: (tournament: Tournament, target: ModalTarget) => void
   /** A match opened from the queue is on top of it, and Escape is the match's. */
   covered: boolean
 }) {
   const [open, setOpen] = useState(false)
-  const entries = useMemo(() => matchEntries(t), [t])
-  // Saved ids that this competition still has a fixture for. Anything else is
-  // a leftover from an older dataset and is quietly dropped on the next write.
-  const ids = useMemo(
-    () => progress.pinOrder.filter((id) => entries.has(id)),
-    [progress.pinOrder, entries],
-  )
+  const [otherTournaments, setOtherTournaments] = useState<Record<string, Tournament | null>>({})
+  const ids = progress.allPinOrder
 
-  const { marks, pinOrder, setPinOrder } = progress
+  // Club seasons are lazy chunks. Load only seasons that actually have saved
+  // matches, when the queue opens; a missing season stays removable in place.
+  useEffect(() => {
+    if (!open) return
+    const needed = [...new Set(ids.map((key) => watchLaterParts(key)?.tournamentId).filter((id): id is string => !!id))]
+      .filter((id) => id !== t.id && !(id in otherTournaments))
+    if (needed.length === 0) return
+    let cancelled = false
+    void Promise.all(needed.map(async (id): Promise<[string, Tournament | null]> => {
+      const found = findSeason(id)
+      if (!found) return [id, null]
+      try {
+        return [id, await loadSeason(found.season)]
+      } catch {
+        return [id, null]
+      }
+    })).then((loaded) => {
+      if (cancelled) return
+      setOtherTournaments((current) => ({ ...current, ...Object.fromEntries(loaded) }))
+    })
+    return () => { cancelled = true }
+  }, [open, ids, t.id, otherTournaments])
+
+  const loading = ids.some((key) => {
+    const seasonId = watchLaterParts(key)?.tournamentId
+    return seasonId && seasonId !== t.id && !(seasonId in otherTournaments)
+  })
+  const entries = useMemo(() => {
+    const tournaments: Record<string, Tournament | null> = { ...otherTournaments, [t.id]: t }
+    const bySeason = new Map<string, Map<string, RailEntry>>()
+    const out = new Map<string, SavedEntry>()
+    for (const key of ids) {
+      const parts = watchLaterParts(key)
+      if (!parts) continue
+      const tournament = tournaments[parts.tournamentId]
+      if (!tournament) continue
+      let matches = bySeason.get(parts.tournamentId)
+      if (!matches) {
+        matches = matchEntries(tournament)
+        bySeason.set(parts.tournamentId, matches)
+      }
+      const entry = matches.get(parts.matchId)
+      if (entry) out.set(key, { tournament, entry })
+    }
+    return out
+  }, [ids, otherTournaments, t])
+
   const close = useCallback(() => {
     setOpen(false)
-    const keep = ids.filter((id) => marks[id] === undefined)
-    if (keep.length !== pinOrder.length) setPinOrder(keep)
-  }, [ids, marks, pinOrder, setPinOrder])
+    const watched = ids.filter((key) => {
+      const saved = entries.get(key)
+      return saved && progress.forTournament(saved.tournament).marks[saved.entry.target.match.id] !== undefined
+    })
+    if (watched.length > 0) progress.removePins(watched)
+  }, [ids, entries, progress])
 
   useEffect(() => {
     if (!open || covered) return
@@ -133,9 +183,9 @@ export function WatchLater({
       {open &&
         createPortal(
           <QueueOverlay
-            t={t}
             ids={ids}
             entries={entries}
+            loading={loading}
             progress={progress}
             onOpen={onOpen}
             onClose={close}
@@ -170,18 +220,18 @@ interface Press {
 }
 
 function QueueOverlay({
-  t,
   ids,
   entries,
+  loading,
   progress,
   onOpen,
   onClose,
 }: {
-  t: Tournament
   ids: readonly string[]
-  entries: Map<string, RailEntry>
+  entries: Map<string, SavedEntry>
+  loading: boolean
   progress: Progress
-  onOpen: (target: ModalTarget) => void
+  onOpen: (tournament: Tournament, target: ModalTarget) => void
   onClose: () => void
 }) {
   const [drag, setDrag] = useState<Drag | null>(null)
@@ -193,7 +243,7 @@ function QueueOverlay({
   // swallows that one click so a reorder never also opens a match.
   const draggedRef = useRef(false)
 
-  const { setPinOrder } = progress
+  const { reorderAllPins } = progress
 
   const endPress = useCallback(() => {
     const press = pressRef.current
@@ -287,7 +337,7 @@ function QueueOverlay({
       }
       setDrag(null)
       if (commit && targetRef.current !== current.index) {
-        setPinOrder(reorder(ids, current.index, targetRef.current))
+        reorderAllPins(reorder(ids, current.index, targetRef.current))
       }
       // Cleared after the click that this pointerup is about to produce.
       window.setTimeout(() => {
@@ -325,7 +375,7 @@ function QueueOverlay({
     const to = index + step
     if (step === 0 || to < 0 || to >= ids.length) return
     e.preventDefault()
-    setPinOrder(reorder(ids, index, to))
+    reorderAllPins(reorder(ids, index, to))
   }
 
   return (
@@ -357,11 +407,13 @@ function QueueOverlay({
               </span>
             </p>
           </div>
+        ) : loading ? (
+          <div className="queue-loading" role="status">Loading saved matches…</div>
         ) : (
           <ul className={`queue-grid ${drag ? 'is-dragging' : ''}`}>
             {ids.map((id, i) => {
-              const entry = entries.get(id)
-              if (!entry) return null
+              const saved = entries.get(id)
+              const itemProgress = saved ? progress.forTournament(saved.tournament) : null
               const slot = drag ? slotDuringDrag(drag.from, drag.to, i) : i
               let style: CSSProperties | undefined
               if (drag && i === drag.from) {
@@ -377,7 +429,7 @@ function QueueOverlay({
                     itemsRef.current[i] = el
                   }}
                   className={`queue-item ${drag && i === drag.from ? 'is-lifted' : ''} ${
-                    progress.marks[id] !== undefined ? 'is-done' : ''
+                    saved && itemProgress?.marks[saved.entry.target.match.id] !== undefined ? 'is-done' : ''
                   }`}
                   style={style}
                   onPointerDown={(e) => onPointerDown(e, i)}
@@ -388,13 +440,23 @@ function QueueOverlay({
                     e.stopPropagation()
                   }}
                 >
-                  <PreviewCard t={t} entry={entry} progress={progress} onOpen={onOpen} />
+                  {saved && itemProgress ? (
+                    <PreviewCard
+                      t={saved.tournament}
+                      entry={saved.entry}
+                      progress={itemProgress}
+                      sourceLabel={saved.tournament.name}
+                      onOpen={(target) => onOpen(saved.tournament, target)}
+                    />
+                  ) : (
+                    <div className="queue-unavailable">Saved match unavailable</div>
+                  )}
                   <button
                     type="button"
                     className="queue-remove"
                     aria-label="Remove from Watch Later"
                     title="Remove from Watch Later"
-                    onClick={() => progress.togglePin(id)}
+                    onClick={() => progress.removePins([id])}
                   >
                     <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
                       <path

@@ -1084,34 +1084,43 @@
 
 .day-arrow {
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 50%;
-  background: var(--bg-raised);
+  background: transparent;
   color: var(--muted);
-  font-size: 18px;
-  line-height: 1;
   cursor: pointer;
   transition:
-    color 0.15s,
-    border-color 0.15s,
-    opacity 0.15s,
+    color 0.15s ease,
+    background-color 0.15s ease,
+    opacity 0.2s ease,
+    visibility 0s linear 0s,
     transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.day-arrow:active:not(:disabled) {
-  transform: scale(0.9);
+.day-arrow .day-chevron {
+  width: 18px;
+  height: 18px;
 }
-.day-arrow:hover:not(:disabled) {
-  color: var(--text-h);
-  border-color: var(--border-strong);
+
+.day-arrow:active:not(:disabled) {
+  transform: scale(0.88);
+  background: rgba(154, 173, 203, 0.15);
+}
+@media (hover: hover) {
+  .day-arrow:hover:not(:disabled) {
+    color: var(--text-h);
+    background: rgba(154, 173, 203, 0.09);
+  }
 }
 .day-arrow:disabled {
-  opacity: 0.3;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
   cursor: default;
   /* Some browsers deliver no events at all to a disabled button, the wheel
      included, so the strip's wheel lock never saw them and the page scrolled
@@ -1122,32 +1131,60 @@
 .day-jump-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  border: 1px solid var(--border);
-  background: var(--bg-raised);
-  color: var(--muted);
-  font-size: 11.5px;
-  padding: 4px 11px;
+  gap: 2px;
+  height: 26px;
+  padding: 0 11px 0 7px;
+  border: 0;
   border-radius: 999px;
+  background: var(--control);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--border);
+  font-size: 12px;
+  font-weight: 560;
+  letter-spacing: -0.003em;
+  line-height: 1;
   cursor: pointer;
   /* nudge up so it sits centred in the gap between the header and the carousel,
      without shifting the reserved-height toolbar (so the carousel stays put) */
   transform: translateY(-12px);
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    opacity 0.18s ease,
+    transform 0.26s cubic-bezier(0.25, 1, 0.5, 1),
+    visibility 0s linear 0s,
+    color 0.15s ease,
+    background-color 0.15s ease;
 }
-.day-jump-btn::before {
-  content: '↩';
-  font-size: 12px;
+.day-jump-btn[data-dir='right'] {
+  padding: 0 7px 0 11px;
 }
-.day-jump-btn:hover {
-  color: var(--accent);
-  border-color: var(--border-strong);
+@media (hover: hover) {
+  .day-jump-btn:hover {
+    background: var(--control-hover);
+    color: var(--text-h);
+  }
+}
+.day-jump-btn.is-shown:active {
+  transform: translateY(-12px) scale(0.95);
+  background: var(--control-press);
+  transition-duration: 0.08s;
 }
 /* Always in the DOM (see Rail.tsx); hidden while you're on today. */
 .day-jump-btn:not(.is-shown) {
+  opacity: 0;
   visibility: hidden;
+  transform: translateY(-8px) scale(0.96);
+  transition:
+    opacity 0.14s ease,
+    transform 0.2s ease,
+    visibility 0s linear 0.2s;
 }
 .day-jump-btn .day-chevron {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+.day-jump-btn[data-dir='left'] .day-chevron:last-child,
+.day-jump-btn[data-dir='right'] .day-chevron:first-child {
   display: none;
 }
 
@@ -5879,6 +5916,36 @@
 .queue-item > .preview-card {
   flex: 1;
   min-width: 0;
+}
+
+.queue-grid .preview-source {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue-loading {
+  padding: 48px 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.queue-unavailable {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 195px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--muted);
+  text-align: center;
 }
 
 /* The card in hand: no transition, because it is pinned to the pointer and

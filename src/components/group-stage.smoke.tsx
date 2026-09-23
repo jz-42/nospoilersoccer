@@ -11,9 +11,10 @@ function assert(value: unknown, message: string) {
 
 const noop = () => {}
 const progress: Progress = {
-  marks: {}, revealed: new Set(), pins: new Set(), pinOrder: [], favorites: [],
+  marks: {}, revealed: new Set(), pins: new Set(), pinOrder: [], allPinOrder: [], favorites: [],
   favAuto: true, spotlight: false, setMark: noop, unmark: noop, reveal: noop,
-  togglePin: noop, setPinOrder: noop, toggleFavorite: noop, setFavorites: noop,
+  togglePin: noop, setPinOrder: noop, reorderAllPins: noop, removePins: noop,
+  forTournament: () => progress, toggleFavorite: noop, setFavorites: noop,
   setFavAuto: noop, setSpotlight: noop, catchUp: noop, reset: noop,
 }
 
