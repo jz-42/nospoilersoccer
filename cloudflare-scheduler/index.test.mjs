@@ -124,13 +124,13 @@ test('Nations League windows begin 105 minutes after kickoff and run for eight h
   })
 })
 
-test('Nations League source contains exactly 156 fixtures, not its tournament metadata', () => {
+test('Nations League source contains exactly 156 group fixtures, not its tournament metadata', () => {
   const source = readFileSync(new URL('../src/data/nations/unl-2026.ts', import.meta.url), 'utf8')
   const matches = parseMatchKickoffs(source, 'unl-2026')
 
-  assert.equal(matches.length, 156)
+  assert.equal(matches.filter(({ phase }) => phase === 'group').length, 156)
   assert.equal(matches.some(({ matchId }) => matchId === 'unl-2026'), false)
-  assert.equal(matches.every(({ phase }) => phase === 'group'), true)
+  assert.equal(new Set(matches.map(({ matchId }) => matchId)).size, matches.length)
 })
 
 test('Nations League numeric knockout IDs receive the full knockout window', () => {

@@ -83,9 +83,12 @@ are never replaced.
 Atom polling and WebSub notifications cost zero YouTube Data API units. FOX
 Soccer playlist recovery opens only when runtime hot-state proves a completed
 fixture lacks a cut. It scans at most two pages per run and stops at 48
-FOX-Soccer units per Pacific quota day, in addition to the global 8,000-unit
-ceiling. If public feeds fail, authenticated fallback runs at most once every
-five minutes rather than on every scheduler tick.
+FOX-Soccer units per Pacific quota day and two requests per rolling hour, in
+addition to the global 8,000-unit ceiling. If public feeds fail, authenticated
+fallback is eligible every five minutes but the hourly limit spaces out FOX
+requests instead of exhausting the day's allowance early. The D1 ledger covers
+this Worker, not other jobs sharing the same Google Cloud project/API key;
+check the project's YouTube Data API quota usage separately on matchdays.
 
 Inspect quota use, subscriptions, and quarantined candidates:
 

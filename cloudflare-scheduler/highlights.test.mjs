@@ -4,6 +4,7 @@ import test from 'node:test'
 import {
   DAILY_QUOTA_LIMIT,
   NATIONS_DAILY_QUOTA_LIMIT,
+  NATIONS_HOURLY_QUOTA_LIMIT,
   HIGHLIGHT_SOURCES,
   createD1HighlightStore,
   createHighlightDispatchClient,
@@ -59,6 +60,7 @@ test('Nations recovery opens only for a completed fixture missing a cut inside i
 
 class FakeD1 {
   quota = new Map()
+  quotaEvents = []
   candidates = new Map()
   subscriptions = new Map()
 
@@ -66,6 +68,15 @@ class FakeD1 {
     return {
       bind: (...args) => ({
         first: async () => {
+          if (sql.includes('FROM quota_events')) {
+            const [value, methodPattern] = args
+            const prefix = methodPattern.slice(0, -1)
+            const matching = this.quotaEvents.filter((event) => event.method.startsWith(prefix))
+            const events = sql.includes('created_at >')
+              ? matching.filter((event) => event.createdAt > value)
+              : matching.filter((event) => event.day === value)
+            return { used_units: events.reduce((total, event) => total + event.units, 0) }
+          }
           if (sql.includes('SELECT used_units')) {
             return this.quota.has(args[0]) ? { used_units: this.quota.get(args[0]) } : null
           }
@@ -90,7 +101,10 @@ class FakeD1 {
             if (!this.quota.has(args[0])) this.quota.set(args[0], 0)
             return { success: true }
           }
-          if (sql.includes('INSERT INTO quota_events')) return { success: true }
+          if (sql.includes('INSERT INTO quota_events')) {
+            this.quotaEvents.push({ day: args[0], method: args[1], units: args[2], createdAt: args[3] })
+            return { success: true }
+          }
           if (sql.includes('INSERT INTO candidates')) {
             const existing = this.candidates.get(args[0])
             this.candidates.set(args[0], {
@@ -212,6 +226,14 @@ test('D1 store enforces the hard quota and deduplicates candidate versions', asy
   assert.equal(await store.consumeQuota('2026-09-19', 'videos.list', 1), true)
   assert.equal(await store.consumeQuota('2026-09-19', 'videos.list', 1), false)
   assert.equal(await store.quotaUsed('2026-09-19'), 8_000)
+
+  const foxDb = new FakeD1()
+  const foxStore = createD1HighlightStore(foxDb)
+  assert.equal(await foxStore.consumeQuota('2026-09-24', 'foxsoccer:playlistItems.list', 1, new Date('2026-09-24T20:00Z')), true)
+  assert.equal(await foxStore.consumeQuota('2026-09-24', 'foxsoccer:playlistItems.list', 1, new Date('2026-09-24T20:30Z')), true)
+  assert.equal(await foxStore.sourceQuotaUsedSince('2026-09-24T19:59:59.000Z', 'foxsoccer'), 2)
+  assert.equal(await foxStore.sourceQuotaUsedSince('2026-09-24T20:00:00.000Z', 'foxsoccer'), 1)
+  assert.equal(await foxStore.sourceQuotaUsed('2026-09-24', 'foxsoccer'), 2)
 
   const candidate = {
     videoId: 'abcdefghijk',
@@ -843,6 +865,44 @@ test('FOX Soccer API recovery runs only for a Nations gap and respects its 48-un
   assert.equal(result.pagesFetched, HIGHLIGHT_SOURCES.length)
   assert.equal(sourceUsed, NATIONS_DAILY_QUOTA_LIMIT)
   assert.equal(consumed, HIGHLIGHT_SOURCES.length)
+})
+
+test('FOX Soccer recovery spreads requests across rolling hours during a persistent feed outage', async () => {
+  assert.equal(NATIONS_HOURLY_QUOTA_LIMIT, 2)
+  const fox = HIGHLIGHT_SOURCES.find((item) => item.id === 'foxsoccer')
+  const events = []
+  const foxRequests = []
+  let currentNow
+  const store = {
+    quotaUsed: async () => events.length,
+    sourceQuotaUsed: async () => events.length,
+    sourceQuotaUsedSince: async (since) => events.filter((time) => time > since).length,
+    consumeQuota: async (_day, method) => {
+      if (method.startsWith('foxsoccer:')) events.push(currentNow.toISOString())
+      return true
+    },
+    upsertCandidate: async () => 'unchanged',
+  }
+  for (let minute = 0; minute <= 60; minute += 5) {
+    currentNow = new Date(Date.parse('2026-09-24T20:00:00Z') + minute * 60_000)
+    await runHighlightRecovery({
+      now: currentNow,
+      apiKey: 'test-key',
+      nationsRecovery: true,
+      store,
+      queue: { send: async () => {} },
+      fetchImpl: async (url) => {
+        if (url.includes(fox.playlistId)) foxRequests.push(currentNow.toISOString())
+        return new Response(JSON.stringify({ items: [], nextPageToken: 'next' }), { status: 200 })
+      },
+    })
+  }
+  assert.deepEqual(foxRequests, [
+    '2026-09-24T20:00:00.000Z',
+    '2026-09-24T20:00:00.000Z',
+    '2026-09-24T21:00:00.000Z',
+    '2026-09-24T21:00:00.000Z',
+  ])
 })
 
 test('hourly recovery scans each source to its bounded depth', async () => {

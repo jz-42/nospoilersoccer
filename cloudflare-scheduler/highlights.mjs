@@ -1,5 +1,6 @@
 export const DAILY_QUOTA_LIMIT = 8_000
 export const NATIONS_DAILY_QUOTA_LIMIT = 48
+export const NATIONS_HOURLY_QUOTA_LIMIT = 2
 export const NATIONS_RECOVERY_HORIZON_MS = 72 * 60 * 60 * 1000
 export const NATIONS_RESULT_READY_MS = 105 * 60 * 1000
 
@@ -196,7 +197,15 @@ export function createD1HighlightStore(db) {
       return Number(row?.used_units ?? 0)
     },
 
-    async consumeQuota(day, method, units) {
+    async sourceQuotaUsedSince(since, sourceId) {
+      const row = await db
+        .prepare('SELECT COALESCE(SUM(units), 0) AS used_units FROM quota_events WHERE created_at > ? AND method LIKE ?')
+        .bind(since, `${sourceId}:%`)
+        .first()
+      return Number(row?.used_units ?? 0)
+    },
+
+    async consumeQuota(day, method, units, now = new Date()) {
       await db
         .prepare('INSERT OR IGNORE INTO quota_days (day, used_units) VALUES (?, 0)')
         .bind(day)
@@ -212,7 +221,7 @@ export function createD1HighlightStore(db) {
         .prepare(
           'INSERT INTO quota_events (day, method, units, created_at) VALUES (?, ?, ?, ?)',
         )
-        .bind(day, method, units, new Date().toISOString())
+        .bind(day, method, units, now.toISOString())
         .run()
       return true
     },
@@ -459,9 +468,12 @@ export async function runHighlightRecovery({
       if (source.id === 'foxsoccer') {
         const sourceUsed = await store.sourceQuotaUsed?.(day, source.id) ?? 0
         if (sourceUsed >= NATIONS_DAILY_QUOTA_LIMIT) break
+        const hourStart = new Date(now.getTime() - 60 * 60 * 1000).toISOString()
+        const recentUsed = await store.sourceQuotaUsedSince?.(hourStart, source.id) ?? 0
+        if (recentUsed >= NATIONS_HOURLY_QUOTA_LIMIT) break
       }
       const method = source.id === 'foxsoccer' ? `${source.id}:playlistItems.list` : 'playlistItems.list'
-      const reserved = await store.consumeQuota(day, method, 1)
+      const reserved = await store.consumeQuota(day, method, 1, now)
       if (!reserved) return result
       const url =
         'https://www.googleapis.com/youtube/v3/playlistItems' +
