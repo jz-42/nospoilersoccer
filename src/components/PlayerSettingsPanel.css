@@ -1,0 +1,163 @@
+.ps-panel {
+  width: 340px;
+  flex: none;
+  padding: 18px 18px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.ps-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.ps-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 680;
+  color: var(--text-h);
+}
+
+.ps-reset {
+  padding: 6px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-h);
+  font: 560 12.5px/1 var(--sans);
+  cursor: pointer;
+}
+
+.ps-reset:hover:not(:disabled) {
+  background: var(--control-hover);
+}
+
+.ps-reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ps-group {
+  padding: 10px 0 6px;
+  border-top: 1px solid var(--border);
+}
+
+.ps-group:first-of-type {
+  border-top: 0;
+}
+
+.ps-group-title {
+  margin: 4px 0 2px;
+  font-size: 11.5px;
+  font-weight: 640;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ps-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  cursor: pointer;
+}
+
+.ps-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ps-row-label {
+  font-size: 14px;
+  font-weight: 580;
+  color: var(--text-h);
+}
+
+.ps-row-hint {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+/* iOS-style switch on a native checkbox. */
+.ps-switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--control-hover);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.ps-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.ps-switch:checked {
+  background: var(--accent-deep);
+  box-shadow: none;
+}
+
+.ps-switch:checked::after {
+  transform: translateX(18px);
+}
+
+.ps-switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ps-segment {
+  display: inline-flex;
+  flex: none;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+  background: var(--control);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.ps-segment button {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: 580 13px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ps-segment button:hover {
+  color: var(--text-h);
+}
+
+.ps-segment button.is-active {
+  background: var(--control-hover);
+  color: var(--text-h);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--border-strong);
+}

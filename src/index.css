@@ -57,31 +57,19 @@
   /*
    * ---- Fabric ----------------------------------------------------------
    *
-   * Three texture tokens that every identity-tinted surface (match sheet,
-   * fixture card) lays over its color field, complete with position and
-   * size. They are what stops a two-color gradient from reading as a
-   * PowerPoint fill: real broadcast graphics are *photographed cloth*, and
-   * cloth has a knit and a grain.
+   * `--grain` is fractal noise, laid over every identity-tinted surface
+   * (match sheet, fixture card) with its position and size. It breaks up the
+   * banding that big soft gradients get on 8-bit panels, and gives the colour
+   * a surface without drawing one. (A knit lattice used to sit under it; at
+   * thumbnail size a regular grid of lit bumps read as perforated metal, not
+   * cloth. A flag reads as cloth because of its folds and light, which live
+   * in `.match-fabric`.)
    *
-   * `--weave` is the knit of a shirt: a brick lattice of soft bumps on 9×8px
-   * cells, each shaded the way a raised bump is under a key light from the
-   * upper left — light on the slope facing it, shade on the slope facing
-   * away — and seen through a soft radial mask, so it has relief but no
-   * outline. It is a vector tile, crisp at any DPR, and its 9×16 repeat lands
-   * on whole device pixels at 2× and 3× so the tiling never shimmers. At arm's
-   * length you should never *see* bumps, only feel that the color has a
-   * surface. `--glints` is a few specks on a 157×131 tile, the odd thread
-   * catching the light. `--grain` is fractal noise, much finer again, which
-   * breaks up the banding that big soft gradients get on 8-bit panels.
-   *
-   * All three are painted in white and black and composited with
-   * `soft-light`, so one token works over a pale side and a dark side of the
-   * same field — it lifts what is lit and barely touches what is in shadow,
-   * exactly as light on cloth does. Never paint them at full strength; the
-   * strength lives with the surface, in `--fabric-strength`.
+   * Painted in white and black and composited with `soft-light`, so one token
+   * works over a pale side and a dark side of the same field. Never paint it
+   * at full strength; the strength lives with the surface, in
+   * `--fabric-strength`.
    */
-  --weave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='16'%3E%3Cdefs%3E%3ClinearGradient id='l' x1='.2' x2='.5' y2='1'%3E%3Cstop offset='.12' stop-color='%23fff' stop-opacity='1'/%3E%3Cstop offset='.46' stop-color='%23fff' stop-opacity='0'/%3E%3Cstop offset='.56' stop-opacity='0'/%3E%3Cstop offset='.9' stop-opacity='0.85'/%3E%3C/linearGradient%3E%3CradialGradient id='f'%3E%3Cstop offset='0' stop-color='%23fff'/%3E%3Cstop offset='0.45' stop-color='%23fff' stop-opacity='.85'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cmask id='m' maskContentUnits='objectBoundingBox'%3E%3Crect width='1' height='1' fill='url(%23f)'/%3E%3C/mask%3E%3C/defs%3E%3Crect width='9' height='16' fill-opacity='0.14'/%3E%3Crect x='-0.18' y='-0.16' width='9.36' height='8.32' fill='url(%23l)' mask='url(%23m)'/%3E%3Crect x='-4.68' y='7.84' width='9.36' height='8.32' fill='url(%23l)' mask='url(%23m)'/%3E%3Crect x='4.32' y='7.84' width='9.36' height='8.32' fill='url(%23l)' mask='url(%23m)'/%3E%3Crect x='-0.18' y='15.84' width='9.36' height='8.32' fill='url(%23l)' mask='url(%23m)'/%3E%3Crect x='-0.18' y='-8.16' width='9.36' height='8.32' fill='url(%23l)' mask='url(%23m)'/%3E%3Crect x='-4.68' y='-8.16' width='9.36' height='8.32' fill='url(%23l)' mask='url(%23m)'/%3E%3Crect x='4.32' y='-8.16' width='9.36' height='8.32' fill='url(%23l)' mask='url(%23m)'/%3E%3C/svg%3E") 0 0 / 9px 16px;
-  --glints: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='157' height='131' fill='%23fff' fill-opacity='.8'%3E%3Ccircle cx='23' cy='17' r='0.55'/%3E%3Ccircle cx='97' cy='41' r='0.75'/%3E%3Ccircle cx='141' cy='88' r='0.95'/%3E%3Ccircle cx='58' cy='103' r='0.55'/%3E%3Ccircle cx='118' cy='9' r='0.75'/%3E%3Ccircle cx='12' cy='72' r='0.95'/%3E%3C/svg%3E") 0 0 / 157px 131px;
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
 
   font: 15px/1.5 var(--sans);

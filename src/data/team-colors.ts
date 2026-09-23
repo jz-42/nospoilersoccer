@@ -121,54 +121,52 @@ function chroma(hex: string): number {
 const COLLISION_DELTA_E = 0.12
 
 /**
- * Pick which of a team's two tones fills its side (`field`) and which becomes
- * the top-corner accent (`cap`). Normally primary fills — but when the two
- * primaries collide, one team drops to its secondary, the way Apple Sports
- * moves a team to its alternate kit color when the home kits clash (their
- * Scotland-goes-yellow / Haiti-is-blue behavior). Among the swap options we
- * pick the one whose two field colors are farthest apart in OKLab, preferring
- * chromatic fields (Spain moves to gold rather than Austria to silver) and
- * penalizing swaps so identity survives when possible.
+ * Pick which of a team's tones fills its side (`field`) and which becomes the
+ * top-corner accent (`cap`). Normally the lead fills — but when the two leads
+ * collide, one team moves to another of its colours, the way Apple Sports
+ * moves a team to its alternate kit colour when the home kits clash (their
+ * Scotland-goes-yellow / Haiti-is-blue behavior).
  *
- * A near-black field is penalized much harder than a pale one. The sheet is
- * painted over a near-black panel, so a black side is not a colour there, it
- * is a hole: Dortmund–Villarreal went black against yellow on lightness
- * contrast alone, where Apple (and Villarreal's own away kit) has yellow
- * against blue. A pale field still reads as lit cloth, so Atlético moving to
- * its white stripes against Liverpool keeps the light penalty.
+ * The away side changes, as the away team changes kit: it takes whichever of
+ * its colours — its curated deep tone included — stands farthest from the
+ * home lead, with a small cost for leaving its own lead so identity survives
+ * when it can. The home side only moves if none of the away team's colours
+ * can stand apart. A colourless field (white, silver, black) is penalized
+ * hard: side by side in solid halves, a silver side reads as grey rather
+ * than white, and over the near-black panel a black side is not a colour but
+ * a hole. So Atlético goes navy against Liverpool, the colour of its shorts,
+ * rather than silver.
  */
-function fieldPenalty(hex: string): number {
-  if (chroma(hex) >= 0.04) return 0
-  return hexToOklab(hex).L < 0.4 ? 0.25 : 0.05
-}
+const HOME_MOVE_COST = 0.1
 
 function resolveFields(
-  h: readonly [string, string],
-  a: readonly [string, string],
-): { home: readonly [string, string]; away: readonly [string, string] } {
-  // (deep tones are handled by the caller — the collision rule only ever
-  // trades between lead and accent)
-  if (deltaE(h[0], a[0]) >= COLLISION_DELTA_E) return { home: h, away: a }
-  const orderings = [0, 1] as const
-  let best = { home: h, away: a }
-  let bestScore = -Infinity
-  for (const hi of orderings) {
-    for (const ai of orderings) {
-      const hField = h[hi]
-      const aField = a[ai]
-      const swaps = hi + ai
-      const score =
-        deltaE(hField, aField) - 0.04 * swaps - fieldPenalty(hField) - fieldPenalty(aField)
-      if (score > bestScore) {
-        bestScore = score
-        best = {
-          home: [h[hi], h[1 - hi]],
-          away: [a[ai], a[1 - ai]],
-        }
+  hPal: readonly string[],
+  aPal: readonly string[],
+): { home: [string, string]; away: [string, string] } {
+  const pair = (pal: readonly string[], i: number): [string, string] => [
+    pal[i],
+    i === 0 ? pal[1] : pal[0],
+  ]
+  if (deltaE(hPal[0], aPal[0]) >= COLLISION_DELTA_E) return { home: pair(hPal, 0), away: pair(aPal, 0) }
+  const penalty = (hex: string) => (chroma(hex) >= 0.04 ? 0 : 0.2)
+  // The best colour for one side to move to while the other keeps its lead.
+  const pick = (fixed: string, pal: readonly string[], cost: number) => {
+    let i = 0
+    let score = -Infinity
+    pal.forEach((c, j) => {
+      const s = deltaE(fixed, c) - penalty(c) - (j > 0 ? cost : 0)
+      if (s > score) {
+        score = s
+        i = j
       }
-    }
+    })
+    return { i, score }
   }
-  return best
+  const away = pick(hPal[0], aPal, 0.04)
+  const home = pick(aPal[0], hPal, HOME_MOVE_COST)
+  return away.score >= home.score
+    ? { home: pair(hPal, 0), away: pair(aPal, away.i) }
+    : { home: pair(hPal, home.i), away: pair(aPal, 0) }
 }
 
 /**
@@ -196,31 +194,22 @@ export function paletteFor(
  * When both teams are known, their field colors go through the collision rule
  * above so a matchup never reads as one undifferentiated color.
  */
-export function matchTint(
-  home: TeamId | null,
-  away: TeamId | null,
-): Record<string, string> {
+export function matchTint(home: TeamId | null, away: TeamId | null): Record<string, string> {
   const vars: Record<string, string> = {}
   const hPal = home ? paletteFor(home) : undefined
   const aPal = away ? paletteFor(away) : undefined
-  let h: readonly [string, string] | undefined = hPal && [hPal[0], hPal[1]]
-  let a: readonly [string, string] | undefined = aPal && [aPal[0], aPal[1]]
-  if (h && a) {
-    const resolved = resolveFields(h, a)
-    h = resolved.home
-    a = resolved.away
-  }
-  if (h && hPal) {
-    vars['--home-1'] = h[0]
-    vars['--home-2'] = h[1]
-    vars['--home-glow'] = glowColor(h[0])
-    vars['--home-deep'] = deepTone(hPal, h[0])
-  }
-  if (a && aPal) {
-    vars['--away-1'] = a[0]
-    vars['--away-2'] = a[1]
-    vars['--away-glow'] = glowColor(a[0])
-    vars['--away-deep'] = deepTone(aPal, a[0])
+  const resolved = hPal && aPal ? resolveFields(hPal, aPal) : undefined
+  const sides = [
+    ['home', hPal, resolved?.home],
+    ['away', aPal, resolved?.away],
+  ] as const
+  for (const [side, pal, fields] of sides) {
+    if (!pal) continue
+    const [field, cap] = fields ?? [pal[0], pal[1]]
+    vars[`--${side}-1`] = field
+    vars[`--${side}-2`] = cap
+    vars[`--${side}-glow`] = glowColor(field)
+    vars[`--${side}-deep`] = deepTone(pal, field)
   }
   return vars
 }
@@ -228,7 +217,7 @@ export function matchTint(
 /**
  * The tone a side falls into toward the bottom of the surface. A curated deep
  * only applies while the team still leads with its curated lead — if the
- * collision rule moved it to its alternate, the curated deep was tuned for
+ * collision rule moved it to another colour, the curated deep was tuned for
  * the wrong hue, so we derive a darkened version of the resolved field
  * instead (Spain-gone-gold deepens into dark gold, not into dark red).
  */

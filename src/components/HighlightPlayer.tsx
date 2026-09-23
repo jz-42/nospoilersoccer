@@ -37,11 +37,10 @@ import {
   isYouTubeHighlight,
 } from '../data/videos'
 import { formatHighlightDuration } from './format'
+import { usePlayerSettings } from '../player-settings'
+import { PlayerControls, type ControlledPlayer } from './PlayerControls'
 
-interface YTPlayer {
-  getCurrentTime(): number
-  getDuration(): number
-  getIframe(): HTMLIFrameElement
+interface YTPlayer extends ControlledPlayer {
   destroy(): void
 }
 
@@ -135,6 +134,7 @@ export function HighlightPlayer({
   matchId,
   homeName,
   awayName,
+  customControls = false,
 }: {
   videos: HighlightVideo[]
   tournamentYear: number
@@ -144,6 +144,8 @@ export function HighlightPlayer({
   matchId: string
   homeName: string
   awayName: string
+  /** Experimental: our own controls over YouTube's bottom row (player lab only). */
+  customControls?: boolean
 }) {
   // Extended is the default experience; brief is the catch-up option.
   const defaultVideo = videos.find((v) => v.kind === 'extended') ?? videos[0]
@@ -153,6 +155,9 @@ export function HighlightPlayer({
   const [dismissed, setDismissed] = useState(false)
   const [failedCode, setFailedCode] = useState<number | null>(null)
   const [expanded, setExpanded] = useState(false)
+  const [ytPlayer, setYtPlayer] = useState<YTPlayer | null>(null)
+  const [stateChangedAt, setStateChangedAt] = useState(0)
+  const playerSettings = usePlayerSettings()
   const hostRef = useRef<HTMLDivElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -187,7 +192,10 @@ export function HighlightPlayer({
         host: 'https://www.youtube-nocookie.com',
         playerVars: { autoplay: 1, rel: 0, iv_load_policy: 3, playsinline: 1, fs: 0, disablekb: 1 },
         events: {
-          onReady: (e) => sealFrame(e.target.getIframe()),
+          onReady: (e) => {
+            sealFrame(e.target.getIframe())
+            if (!cancelled) setYtPlayer(e.target)
+          },
           onError: (e) => {
             setFailedCode(e.data)
             analytics.videoFailed({
@@ -198,6 +206,7 @@ export function HighlightPlayer({
             analytics.trackHighlightEvent('highlight_player_error', analyticsContext(active, e.data))
           },
           onStateChange: (e) => {
+            setStateChangedAt(Date.now())
             if (e.data === YT.PlayerState.ENDED) setAtEnd(true)
           },
         },
@@ -217,6 +226,7 @@ export function HighlightPlayer({
 
     return () => {
       cancelled = true
+      setYtPlayer(null)
       if (interval) clearInterval(interval)
       try {
         player?.destroy()
@@ -375,10 +385,27 @@ export function HighlightPlayer({
         ) : (
           <>
             <div ref={hostRef} className="player-host" />
-            {/* Spoiler-safe glass over YouTube's title line — see the file
+            {customControls && (
+              <PlayerControls
+                player={ytPlayer}
+                stateChangedAt={stateChangedAt}
+                settings={playerSettings}
+                onToggleExpanded={toggleExpanded}
+              />
+            )}
+            {/* Spoiler-safe frosted glass over YouTube's title line — see the file
                 header. It stops before the player's top-right control cluster
                 and stays out of the pointer path. */}
             <div className="player-titlebar">
+              <span className="player-titlebar-glass" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+                <span />
+              </span>
               <span className="player-titlebar-label">{highlightLabel(matchId, active)}</span>
             </div>
             <button
@@ -387,11 +414,25 @@ export function HighlightPlayer({
               onClick={toggleExpanded}
               aria-label={expanded ? 'Exit full screen' : 'Full screen'}
             >
-              <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="currentColor">
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 {expanded ? (
-                  <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z" />
+                  <>
+                    <path className="player-expand-arrow" d="M14 10l6-6M14 5v5h5" />
+                    <path className="player-expand-arrow" d="M10 14l-6 6M10 19v-5H5" />
+                  </>
                 ) : (
-                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
+                  <>
+                    <path className="player-expand-arrow" d="M13.5 10.5L19 5M14 5h5v5" />
+                    <path className="player-expand-arrow" d="M10.5 13.5L5 19M10 19H5v-5" />
+                  </>
                 )}
               </svg>
             </button>

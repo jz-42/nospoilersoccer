@@ -167,13 +167,14 @@ assert(
   'El Clásico is white against blaugrana, no swap needed',
 )
 
-// Stripes against stripes: two red-and-white sides can never both stay red,
-// and neither may end up wearing the other's cap.
+// Stripes against stripes: two red-and-white sides can never both stay red.
+// The away side moves, and to its navy rather than its silver — side by side
+// in solid halves, silver reads as grey.
 const stripes = matchTint('athletic-club', 'atletico-madrid')
 assert(
   stripes['--home-1'] === clubColors['athletic-club'][0] &&
-    stripes['--away-1'] === clubColors['atletico-madrid'][1],
-  'Athletic v Atlético resolves to red against white',
+    stripes['--away-1'] === clubColors['atletico-madrid'][2],
+  'Athletic v Atlético resolves to red against navy',
 )
 
 // A curated deep only survives while the side still leads with its curated
