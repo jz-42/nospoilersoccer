@@ -949,7 +949,7 @@
   overflow-y: hidden;
   cursor: grab;
   scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
+  overscroll-behavior: contain;
   scrollbar-width: none;
   touch-action: pan-x;
   /*
@@ -1113,6 +1113,10 @@
 .day-arrow:disabled {
   opacity: 0.3;
   cursor: default;
+  /* Some browsers deliver no events at all to a disabled button, the wheel
+     included, so the strip's wheel lock never saw them and the page scrolled
+     instead. Let the pointer fall through to the carousel behind it. */
+  pointer-events: none;
 }
 
 .day-jump-btn {
@@ -1138,6 +1142,13 @@
 .day-jump-btn:hover {
   color: var(--accent);
   border-color: var(--border-strong);
+}
+/* Always in the DOM (see Rail.tsx); hidden while you're on today. */
+.day-jump-btn:not(.is-shown) {
+  visibility: hidden;
+}
+.day-jump-btn .day-chevron {
+  display: none;
 }
 
 /* Two elements on purpose. `.day-grid` is full width and is what the hook
