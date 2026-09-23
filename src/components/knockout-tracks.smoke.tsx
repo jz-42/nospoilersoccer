@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { unl2026 } from '../data/nations/unl-2026'
+import type { KnockoutMatch, Tie, Tournament } from '../data/types'
 import type { Progress } from '../state/progress'
 import { KnockoutTracks, PendingStageCard } from './KnockoutTracks'
 import { roundsForTrack } from './knockout-tracks-helpers'
@@ -37,5 +38,56 @@ assert(shell.includes('>Championship</button>'), 'championship track tab renders
 assert(shell.includes('>Promotion / relegation</button>'), 'promotion/relegation track tab renders')
 assert(shell.includes('Quarter-finals'), 'the selected championship renders its pending stages')
 assert(!shell.includes('League A/B play-offs'), 'the unselected track stays isolated')
+
+const ties: Tie[] = Array.from({ length: 4 }, (_, index) => ({
+  id: `qf-tie-${index}`,
+  legs: [`qf-${index}-1`, `qf-${index}-2`],
+}))
+const qfMatches: KnockoutMatch[] = ties.flatMap((tie, index) => ([1, 2] as const).map((leg) => ({
+  id: tie.legs[leg - 1],
+  tie: { id: tie.id, leg },
+  date: leg === 1 ? '2027-03-25' : '2027-03-30',
+  kickoff: leg === 1 ? '2027-03-25T18:45Z' : '2027-03-30T18:45Z',
+  home: { type: 'group-rank' as const, group: `A${index + 1}`, rank: 1 },
+  away: { type: 'group-rank' as const, group: `A${index + 1}`, rank: 2 },
+})))
+const sfMatches: KnockoutMatch[] = [0, 1].map((index) => ({
+  id: `sf-${index}`,
+  date: '2027-06-09',
+  kickoff: '2027-06-09T18:45Z',
+  home: { type: 'match-winner', match: ties[index * 2].id },
+  away: { type: 'match-winner', match: ties[index * 2 + 1].id },
+}))
+const championship: Tournament = {
+  ...unl2026,
+  ties,
+  knockoutRounds: [
+    { id: 'qf', name: 'Quarter-finals', matches: qfMatches },
+    { id: 'sf', name: 'Semi-finals', matches: sfMatches },
+    { id: 'third-place', name: 'Third-place match', matches: [{
+      id: 'third-place', date: '2027-06-13', kickoff: '2027-06-13T15:00Z',
+      home: { type: 'match-loser', match: sfMatches[0].id },
+      away: { type: 'match-loser', match: sfMatches[1].id },
+    }] },
+    { id: 'final', name: 'Final', matches: [{
+      id: 'final', date: '2027-06-13', kickoff: '2027-06-13T19:00Z',
+      home: { type: 'match-winner', match: sfMatches[0].id },
+      away: { type: 'match-winner', match: sfMatches[1].id },
+    }] },
+  ],
+  knockoutTracks: unl2026.knockoutTracks?.map((track) => ({ ...track, pendingStages: [] })),
+}
+const connected = renderToStaticMarkup(<KnockoutTracks t={championship} progress={progress} onOpen={noop} />)
+assert(!connected.includes('bracket-simple'), 'two-leg quarter-finals render as a connected championship bracket')
+assert(connected.includes('b-col side-left') && connected.includes('b-col side-right'), 'the championship has World Cup-style halves')
+assert((connected.match(/class="ko-card /g) ?? []).length === 12, 'all eight quarter-final legs and later matches remain visible')
+assert((connected.match(/class="b-tie-legs"/g) ?? []).length === 4, 'each quarter-final tie is one bracket node containing both legs')
+assert((connected.match(/class="b-pair /g) ?? []).length === 2, 'two quarter-final ties connect to each semi-final')
+const withMarks = (marks: Progress['marks']) => renderToStaticMarkup(
+  <KnockoutTracks t={championship} progress={{ ...progress, marks }} onOpen={noop} />,
+)
+const incomingFlows = (html: string) => (html.match(/class="b-slot[^"]* flow-in"/g) ?? []).length
+assert(incomingFlows(withMarks({ 'qf-0-1': 'watched' })) === 0, 'one marked leg cannot light the semi-final feeder')
+assert(incomingFlows(withMarks({ 'qf-0-1': 'watched', 'qf-0-2': 'watched' })) === 1, 'both marked legs can light the semi-final feeder')
 
 console.log('KNOCKOUT TRACK TESTS PASS')

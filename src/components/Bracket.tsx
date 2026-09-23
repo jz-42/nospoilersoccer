@@ -53,6 +53,15 @@ function buildLayout(t: Tournament): Layout | null {
 
   const byId = new Map<string, KnockoutMatch>()
   for (const r of mainRounds) for (const m of r.matches) byId.set(m.id, m)
+  const byTieId = new Map((t.ties ?? []).map((tie) => [tie.id, tie]))
+  const feederMatches = (id: string): KnockoutMatch[] => {
+    const match = byId.get(id)
+    if (match) return [match]
+    const tie = byTieId.get(id)
+    if (!tie) return []
+    const legs = tie.legs.map((legId) => byId.get(legId))
+    return legs.every((leg) => leg !== undefined) ? legs as KnockoutMatch[] : []
+  }
 
   const feeders = new Map<string, KnockoutMatch[]>()
   const feedersOf = (m: KnockoutMatch): KnockoutMatch[] => {
@@ -60,8 +69,7 @@ function buildLayout(t: Tournament): Layout | null {
       const out: KnockoutMatch[] = []
       for (const slot of [m.home, m.away]) {
         if (slot.type === 'match-winner') {
-          const f = byId.get(slot.match)
-          if (f) out.push(f)
+          out.push(...feederMatches(slot.match))
         }
       }
       feeders.set(m.id, out)
@@ -80,9 +88,11 @@ function buildLayout(t: Tournament): Layout | null {
     return cols
   }
 
-  const [homeFeeder, awayFeeder] = [final.home, final.away].map((slot) =>
-    slot.type === 'match-winner' ? byId.get(slot.match) : undefined,
-  )
+  const [homeFeeder, awayFeeder] = [final.home, final.away].map((slot) => {
+    if (slot.type !== 'match-winner') return undefined
+    const matches = feederMatches(slot.match)
+    return matches.length === 1 ? matches[0] : undefined
+  })
   if (!homeFeeder || !awayFeeder) return null
 
   const leftCols = half(homeFeeder)
@@ -494,18 +504,47 @@ function Column({
   feeds: boolean
   activeTone: ReadonlyMap<string, HiTone>
 }) {
-  const groups: KnockoutMatch[][] = []
-  if (matches.length === 1) groups.push(matches)
-  else for (let i = 0; i < matches.length; i += 2) groups.push(matches.slice(i, i + 2))
+  // A two-leg tie advances as one bracket node, though each leg keeps its own
+  // watchable card. Pair nodes (not leg cards) to preserve the connector tree.
+  const nodes: KnockoutMatch[][] = []
+  const included = new Set<string>()
+  for (const match of matches) {
+    if (included.has(match.id)) continue
+    const tie = match.tie && t.ties?.find((candidate) => candidate.id === match.tie?.id)
+    const legs = tie?.legs.map((id) => matches.find((candidate) => candidate.id === id))
+    const node = legs?.every((leg) => leg !== undefined) ? legs as KnockoutMatch[] : [match]
+    nodes.push(node)
+    for (const leg of node) included.add(leg.id)
+  }
+  const groups: KnockoutMatch[][][] = []
+  for (let i = 0; i < nodes.length; i += 2) groups.push(nodes.slice(i, i + 2))
 
   // A box's incoming leg greens as soon as *any* feeder has flowed, so the
   // green line reaches the downstream card instead of stopping a gap short of
   // it while the other side of the matchup is still undecided. (The card itself
   // keeps showing a placeholder for the slot that isn't settled yet.)
+  const feederDecided = (m: KnockoutMatch) => {
+    if (!m.tie) return progress.marks[m.id] !== undefined
+    const tie = t.ties?.find((candidate) => candidate.id === m.tie?.id)
+    return !!tie && tie.legs.every((legId) => progress.marks[legId] !== undefined)
+  }
   const inFlow = (m: KnockoutMatch) => {
     const f = feeders.get(m.id) ?? []
-    return f.some((x) => progress.marks[x.id] !== undefined)
+    return f.some(feederDecided)
   }
+  const nodeDecided = (node: KnockoutMatch[]) => node.every(feederDecided)
+  const cardFor = (m: KnockoutMatch) => (
+    <KnockoutCard
+      key={m.id}
+      t={t}
+      m={m}
+      roundName={roundName}
+      progress={progress}
+      onOpen={onOpen}
+      feedKeys={feeds && isR32 ? { home: `tgt-${m.id}-home`, away: `tgt-${m.id}-away` } : undefined}
+      activeTone={activeTone}
+    />
+  )
 
   return (
     <div className={`b-col side-${side}`}>
@@ -513,29 +552,21 @@ function Column({
       <div className="b-col-body">
         {groups.map((pair) => (
           <div
-            key={pair[0].id}
+            key={pair[0][0].id}
             className={`${pair.length === 2 ? 'b-pair' : 'b-single'} ${
-              progress.marks[pair[0].id] ? 'flow-top' : ''
-            } ${pair[1] && progress.marks[pair[1].id] ? 'flow-bottom' : ''}`}
+              nodeDecided(pair[0]) ? 'flow-top' : ''
+            } ${pair[1] && nodeDecided(pair[1]) ? 'flow-bottom' : ''}`}
           >
-            {pair.map((m) => (
+            {pair.map((node) => (
               <div
-                key={m.id}
+                key={node[0].id}
                 className={`b-slot has-out ${isFirst ? '' : 'has-in'} ${
-                  progress.marks[m.id] ? 'flow-out' : ''
-                } ${inFlow(m) ? 'flow-in' : ''}`}
+                  nodeDecided(node) ? 'flow-out' : ''
+                } ${node.some(inFlow) ? 'flow-in' : ''}`}
               >
-                <KnockoutCard
-                  t={t}
-                  m={m}
-                  roundName={roundName}
-                  progress={progress}
-                  onOpen={onOpen}
-                  feedKeys={
-                    feeds && isR32 ? { home: `tgt-${m.id}-home`, away: `tgt-${m.id}-away` } : undefined
-                  }
-                  activeTone={activeTone}
-                />
+                {node.length === 1 ? cardFor(node[0]) : (
+                  <div className="b-tie-legs">{node.map(cardFor)}</div>
+                )}
               </div>
             ))}
           </div>

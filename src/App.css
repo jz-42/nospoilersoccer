@@ -3046,6 +3046,12 @@
   padding: 6px 0;
 }
 
+.b-tie-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 /* connector lines — state-aware: marked games "flow" green toward the final */
 .side-left .b-slot.has-out::after,
 .b-center .b-slot.has-in-right::after {
