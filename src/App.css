@@ -1053,6 +1053,21 @@
 .day-item.is-active .day-item-label {
   color: var(--text-h);
 }
+/* The spring updates each day's fade every frame, so its label brightens
+   continuously as it approaches the centre rather than changing all at once. */
+.day-rail .day-item .day-item-label {
+  color: color-mix(
+    in oklab,
+    var(--text-h) calc(clamp(0, (var(--day-fade, 0) - 0.72) / 0.28, 1) * 100%),
+    var(--muted)
+  );
+  transition: none;
+}
+@media (hover: hover) {
+  .day-item:not(.is-active):hover .day-item-label {
+    color: var(--text-h);
+  }
+}
 .day-item:not(.is-active):hover {
   opacity: 0.9;
   color: var(--text-h);
@@ -6145,6 +6160,9 @@
 
   .app-main {
     padding: 18px 16px 32px;
+    /* Leaning cards can extend past the viewport during a phone swipe.
+       clip avoids horizontal panning without creating a scroll container. */
+    overflow-x: clip;
   }
 
   .app-header-end {

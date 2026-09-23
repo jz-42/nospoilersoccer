@@ -25,11 +25,11 @@ export interface DayNavFeel {
 }
 
 export const dayNavFeel: DayNavFeel = {
-  wheel: 'free',
-  glide: 'smooth',
+  wheel: 'glide',
+  glide: 'spring',
   cardsOut: false,
-  haptics: false,
-  followFinger: false,
+  haptics: true,
+  followFinger: true,
   keys: true,
 }
 
