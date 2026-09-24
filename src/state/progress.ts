@@ -16,6 +16,8 @@
  *            local pins so existing match cards and saves retain their state.
  *   v5 → v6: add a write revision and keep a last-good copy so stale tabs and
  *            interrupted writes cannot replace the newest saved progress.
+ * Older tabs can still add data after an upgrade; a legacy baseline lets us
+ * bring those additions forward without restoring unchanged stale entries.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { TeamId, Tournament } from '../data/types'
@@ -29,6 +31,7 @@ import {
 
 const STORAGE_KEY = 'nss-progress'
 const BACKUP_KEY = 'nss-progress-last-good'
+const LEGACY_BASE_KEY = 'nss-progress-legacy-base'
 const CURRENT_VERSION = 6
 
 /** Include the season in a saved match's identity; match ids can overlap. */
@@ -181,15 +184,108 @@ function decode(raw: string | null): StoredProgress | null {
   }
 }
 
-/** Prefer the newest intact copy if a stale tab overwrites the legacy key. */
-function readStored(): ProgressState | null {
+/** Carry forward edits made in an older tab after a newer build took its backup.
+ * Absence in a legacy snapshot is not treated as a deletion: that tab may
+ * simply predate the newer save.
+ */
+function mergeLegacy(newer: ProgressState, legacy: ProgressState, baseline: ProgressState): ProgressState {
+  const addedPins = legacy.pinOrder.filter((key) =>
+    !baseline.pinOrder.includes(key) && !newer.pinOrder.includes(key),
+  )
+  const addedFavorites = legacy.favorites.filter((id) =>
+    !baseline.favorites.includes(id) && !newer.favorites.includes(id),
+  )
+  const tournaments = { ...newer.tournaments }
+  for (const key of addedPins) {
+    const tournamentId = watchLaterParts(key)!.tournamentId
+    tournaments[tournamentId] ??= { ...EMPTY }
+  }
+  let changed = addedPins.length > 0 || addedFavorites.length > 0
+  for (const [id, old] of Object.entries(legacy.tournaments)) {
+    const before = baseline.tournaments[id] ?? EMPTY
+    const latest = tournaments[id] ?? EMPTY
+    const marks = { ...latest.marks }
+    let entryChanged = false
+    for (const [matchId, mark] of Object.entries(old.marks)) {
+      if (mark !== before.marks[matchId] && latest.marks[matchId] === before.marks[matchId]) {
+        marks[matchId] = mark
+        entryChanged = true
+      }
+    }
+    const revealed = [...latest.revealed]
+    for (const matchId of old.revealed) {
+      if (!before.revealed.includes(matchId) && !revealed.includes(matchId)) {
+        revealed.push(matchId)
+        entryChanged = true
+      }
+    }
+    if (entryChanged) {
+      tournaments[id] = { ...latest, marks, revealed }
+      changed = true
+    }
+  }
+  const favAuto = legacy.favAuto !== baseline.favAuto && newer.favAuto === baseline.favAuto
+    ? legacy.favAuto : newer.favAuto
+  const spotlight = legacy.spotlight !== baseline.spotlight && newer.spotlight === baseline.spotlight
+    ? legacy.spotlight : newer.spotlight
+  if (favAuto !== newer.favAuto || spotlight !== newer.spotlight) changed = true
+  if (!changed) return newer
+  return withGlobalPinOrder({
+    ...newer,
+    revision: newer.revision + 1,
+    tournaments,
+    favorites: [...newer.favorites, ...addedFavorites],
+    favAuto,
+    spotlight,
+  }, [...newer.pinOrder, ...addedPins])
+}
+
+/** Reconcile old-tab edits with the newest intact copy after a deploy. */
+export function readStored(): ProgressState | null {
   try {
-    const primary = decode(localStorage.getItem(STORAGE_KEY))
+    const primaryRaw = localStorage.getItem(STORAGE_KEY)
+    const primary = decode(primaryRaw)
     const backup = decode(localStorage.getItem(BACKUP_KEY))
+    let baseline = decode(localStorage.getItem(LEGACY_BASE_KEY))
+    if (primary && primary.sourceVersion < CURRENT_VERSION && !baseline) {
+      // With no earlier baseline, a difference from the backup is ambiguous:
+      // it may be a new old-tab edit or a save deliberately removed in v6.
+      // Record the old snapshot as the starting point for future edits.
+      baseline = primary
+      try {
+        localStorage.setItem(LEGACY_BASE_KEY, JSON.stringify(baseline.state))
+      } catch {
+        // The two main copies still work when an extra recovery key cannot be written.
+      }
+    }
     if (!primary) return backup?.state ?? null
     if (!backup) return primary.state
     if (primary.state.version > CURRENT_VERSION) return primary.state
     if (backup.state.version > CURRENT_VERSION) return backup.state
+    if (primary.sourceVersion < CURRENT_VERSION && backup.sourceVersion >= CURRENT_VERSION) {
+      const before = baseline?.state ?? backup.state
+      const merged = mergeLegacy(backup.state, primary.state, before)
+      let durable = merged === backup.state
+      if (!durable) {
+        try {
+          localStorage.setItem(BACKUP_KEY, JSON.stringify(merged))
+          durable = true
+        } catch {
+          // Keep the old baseline so this edit is retried on the next read.
+        }
+      }
+      if (durable) {
+        const nextBaseline = mergeLegacy(before, primary.state, before)
+        if (nextBaseline !== before) {
+          try {
+            localStorage.setItem(LEGACY_BASE_KEY, JSON.stringify(nextBaseline))
+          } catch {
+            // The durable backup still holds the merged save.
+          }
+        }
+      }
+      return merged
+    }
     if (backup.state.revision > primary.state.revision) return backup.state
     if (backup.state.revision === primary.state.revision && backup.sourceVersion > primary.sourceVersion) {
       return backup.state
