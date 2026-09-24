@@ -2,7 +2,9 @@
   "tournamentId": "unl-2026",
   "matches": {
     "unl-401861047": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-24T16:00Z"
