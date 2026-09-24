@@ -30,25 +30,40 @@ export function reorder<T>(list: readonly T[], from: number, to: number): T[] {
 }
 
 /**
- * Which slot the pointer is asking for: the one whose centre it is nearest.
+ * Which slot a point is asking for: the one whose centre it is nearest.
  *
  * Nearest-centre rather than "the rectangle under the pointer" because the
  * grid has gaps and edges — over a gap, or dragged past the last card, a
  * containment test has no answer and the row would freeze mid-drag.
+ *
+ * The caller passes the dragged card's centre, not the pointer: a card held by
+ * its edge would otherwise claim the neighbour after half a gap's travel.
+ *
+ * `hold` is hysteresis. The slot the card already has (`current`) keeps it
+ * until another slot's centre is nearer by more than `hold` pixels, so a card
+ * resting on the boundary between two slots doesn't flicker the row between
+ * them with every pixel of hand tremor.
  */
-export function dropIndex(rects: readonly SlotRect[], x: number, y: number, fallback: number): number {
-  let best = fallback
+export function dropIndex(
+  rects: readonly SlotRect[],
+  x: number,
+  y: number,
+  current: number,
+  hold = 0,
+): number {
+  const distanceTo = (r: SlotRect) =>
+    Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2))
+  let best = current
   let bestDistance = Infinity
   for (let i = 0; i < rects.length; i++) {
-    const r = rects[i]
-    const dx = x - (r.left + r.width / 2)
-    const dy = y - (r.top + r.height / 2)
-    const distance = dx * dx + dy * dy
+    const distance = distanceTo(rects[i])
     if (distance < bestDistance) {
       bestDistance = distance
       best = i
     }
   }
+  const held = rects[current]
+  if (held && best !== current && distanceTo(held) - bestDistance <= hold) return current
   return best
 }
 
@@ -75,4 +90,37 @@ export function slotOffset(
   const to = rects[slot]
   if (!from || !to) return { x: 0, y: 0 }
   return { x: to.left - from.left, y: to.top - from.top }
+}
+
+/**
+ * The queue on screen: what you can watch now, then what you can't yet, each
+ * in your order.
+ *
+ * There is one order — newest save first, then whatever dragging made of it —
+ * and availability only ever decides which section a match sits in, never its
+ * rank. So a match whose highlights land rises into "ready" exactly where
+ * your order puts it among the others, rather than jumping the lot of them,
+ * and it is never shuffled by anything but you.
+ */
+export function splitQueue(
+  order: readonly string[],
+  isReady: (id: string) => boolean,
+): { ready: string[]; waiting: string[] } {
+  const ready: string[] = []
+  const waiting: string[] = []
+  for (const id of order) (isReady(id) ? ready : waiting).push(id)
+  return { ready, waiting }
+}
+
+/**
+ * Write one section's new order back into the whole queue.
+ *
+ * The section's matches keep the positions they held in the full order and
+ * are dealt back into them in their new sequence, so a drag among the ready
+ * matches never changes where any of them ranks against a waiting one.
+ */
+export function reorderSection(order: readonly string[], section: readonly string[]): string[] {
+  const members = new Set(section)
+  let next = 0
+  return order.map((id) => (members.has(id) && next < section.length ? section[next++] : id))
 }

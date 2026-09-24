@@ -173,13 +173,15 @@ export function useProgress(t: Tournament): Progress {
       ),
     [update],
   )
+  // A match you just saved goes to the front: newest first is the order the
+  // queue starts from, before any dragging.
   const togglePin = useCallback(
     (matchId: string) =>
       update((tp) => ({
         ...tp,
         pins: tp.pins.includes(matchId)
           ? tp.pins.filter((x) => x !== matchId)
-          : [...tp.pins, matchId],
+          : [matchId, ...tp.pins],
       })),
     [update],
   )

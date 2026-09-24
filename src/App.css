@@ -5354,6 +5354,49 @@
   gap: 24px;
 }
 
+/* Ready, then Waiting. The headings only exist while there are both (see
+   WatchLater.tsx), and only the second is drawn — Things' "This Evening"
+   move. The top of the queue needs no label: the play buttons already say
+   what those are, and leaving it bare means the split appearing or going
+   never pushes the cards you are looking at up or down. What is worth
+   marking is where the watchable run ends, so that gets a plain white title,
+   a size under the header's and at medium weight so it doesn't outshout the
+   cards. Ready keeps its heading for screen readers. */
+.queue-section + .queue-section {
+  margin-top: 40px;
+}
+
+.queue-heading {
+  max-width: 1880px;
+  margin: 0 auto 14px;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--text-h);
+  animation: queue-heading-in 0.32s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.is-ready > .queue-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@keyframes queue-heading-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .queue-heading {
+    animation: none;
+  }
+}
+
 /* Every card in the queue is a watch-later card, so its clock says nothing. */
 .queue-grid .preview-saved {
   display: none;
@@ -5385,6 +5428,22 @@
   cursor: grabbing;
 }
 
+/* A card cutting to the front, so it paints above the ones sliding out of its
+   way — and the card just dropped above them all, as it was while in hand. */
+.queue-item.is-settling {
+  z-index: 4;
+}
+
+.queue-item.is-landing {
+  z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .queue-item {
+    transition: none;
+  }
+}
+
 .queue-item.is-lifted .preview-card {
   transform: scale(1.025);
   border-color: var(--saved-edge);
@@ -5411,10 +5470,12 @@
 }
 
 /* Remove, on hover: hung half off the card's top-right corner, where the eye
-   already goes for "close", in the same glass as the queue's own close button
-   and big enough to hit without aiming. The part that overlaps the art takes
-   the corner from the status chip, which fades out while the pointer is on
-   the card. On touch there is no hover to reveal it, so it is always there. */
+   already goes for "close", and big enough to hit without aiming. Smoked
+   glass rather than the close button's clear glass: this one sits on card
+   art, and a clear disc over a bright crest or a pale gradient vanishes. The
+   part that overlaps the art takes the corner from the status chip, which
+   fades out while the pointer is on the card. On touch there is no hover to
+   reveal it, so it is always there. */
 .queue-remove {
   position: absolute;
   top: -11px;
@@ -5427,15 +5488,15 @@
   height: 34px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(14, 16, 21, 0.78);
+  color: rgba(255, 255, 255, 0.92);
   cursor: pointer;
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
   backdrop-filter: blur(16px) saturate(1.4);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 4px 14px rgba(0, 0, 0, 0.22);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 14px rgba(0, 0, 0, 0.45);
   opacity: 0;
   transform: scale(0.86);
   transition:
@@ -5454,8 +5515,8 @@
 
 .queue-remove:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(30, 33, 40, 0.92);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .queue-remove:active {
@@ -5507,11 +5568,12 @@
 /* The stopwatch pose (docs/assets/mascot-watch-later.png), drawn at the rest
    day's scale rather than badge size: an empty queue is a whole page, and the
    art is what makes it one. Bounded by height too, so a short window still
-   fits art, title and caption without scrolling. */
+   fits art, title and caption without scrolling — down to a 120px floor, below
+   which a landscape phone would get a bullet point rather than a mascot. */
 .queue-empty-art {
-  width: min(300px, 64vw, calc((100dvh - 330px) * 1.268));
+  width: max(120px, min(264px, 58vw, calc((100dvh - 320px) * 1.268)));
   height: auto;
-  margin-bottom: 26px;
+  margin-bottom: 24px;
   pointer-events: none;
   user-select: none;
   filter: drop-shadow(0 22px 36px rgba(0, 0, 0, 0.45));
@@ -5564,6 +5626,14 @@
 
   .queue-body {
     padding: 16px 16px 32px;
+  }
+
+  .queue-section + .queue-section {
+    margin-top: 30px;
+  }
+
+  .queue-heading {
+    margin-bottom: 12px;
   }
 
   .queue-grid {
