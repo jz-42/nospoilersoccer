@@ -353,13 +353,15 @@ export function useProgress(t: Tournament): Progress {
       ),
     [update],
   )
+  // A match you just saved goes to the front: newest first is the order the
+  // queue starts from, before any dragging.
   const togglePinFor = useCallback(
     (tournamentId: string, matchId: string) =>
       updateState((prev) => {
         const key = watchLaterKey(tournamentId, matchId)
         const nextOrder = prev.pinOrder.includes(key)
           ? prev.pinOrder.filter((saved) => saved !== key)
-          : [...prev.pinOrder, key]
+          : [key, ...prev.pinOrder]
         const tournaments = {
           ...prev.tournaments,
           [tournamentId]: { ...EMPTY, ...prev.tournaments[tournamentId] },

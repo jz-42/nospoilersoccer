@@ -9,13 +9,19 @@
  *   locked   — played, but the games that decide this matchup are still unseen
  */
 import type { MatchLiveStatus, Tournament } from '../data/types'
+import type { Marks } from '../logic/spoilers'
 import { isPlayed, knockoutReady } from '../logic/spoilers'
-import type { Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
+
+/** The two fields of progress that decide whether a result may be shown. */
+export interface MatchView {
+  marks: Marks
+  revealed: ReadonlySet<string>
+}
 
 export type MatchState = 'seen' | 'watch' | 'ft' | 'upcoming' | 'locked'
 
-export function matchState(t: Tournament, target: ModalTarget, progress: Progress): MatchState {
+export function matchState(t: Tournament, target: ModalTarget, progress: MatchView): MatchState {
   const m = target.match
   if (progress.marks[m.id] !== undefined) return 'seen'
   if (!isPlayed(m)) return 'upcoming'
@@ -57,11 +63,31 @@ function devForcedLiveStatus(matchId: string): MatchLiveStatus | undefined {
   return undefined
 }
 
-export function matchLiveStatus(target: ModalTarget, progress: Progress): MatchLiveStatus | undefined {
+export function matchLiveStatus(target: ModalTarget, progress: MatchView): MatchLiveStatus | undefined {
   const m = target.match
   if (progress.marks[m.id] !== undefined) return undefined
   const forced = devForcedLiveStatus(m.id)
   if (forced) return forced
   if (m.score !== undefined) return undefined
   return m.liveStatus
+}
+
+function targetFor(t: Tournament, matchId: string): ModalTarget | null {
+  const group = t.groupMatches.find((m) => m.id === matchId)
+  if (group) return { kind: 'group', match: group }
+  for (const round of t.knockoutRounds) {
+    const match = round.matches.find((m) => m.id === matchId)
+    if (match) return { kind: 'knockout', match, roundName: round.name }
+  }
+  return null
+}
+
+/**
+ * The same test as the white play button on a card: played, unwatched,
+ * unlocked, highlights attached, and not currently live.
+ */
+export function showsPlayButton(t: Tournament, matchId: string, view: MatchView): boolean {
+  const target = targetFor(t, matchId)
+  if (!target) return false
+  return matchState(t, target, view) === 'watch' && matchLiveStatus(target, view) === undefined
 }
