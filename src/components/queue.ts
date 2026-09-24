@@ -111,16 +111,3 @@ export function splitQueue(
   for (const id of order) (isReady(id) ? ready : waiting).push(id)
   return { ready, waiting }
 }
-
-/**
- * Write one section's new order back into the whole queue.
- *
- * The section's matches keep the positions they held in the full order and
- * are dealt back into them in their new sequence, so a drag among the ready
- * matches never changes where any of them ranks against a waiting one.
- */
-export function reorderSection(order: readonly string[], section: readonly string[]): string[] {
-  const members = new Set(section)
-  let next = 0
-  return order.map((id) => (members.has(id) && next < section.length ? section[next++] : id))
-}

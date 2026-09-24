@@ -26,6 +26,8 @@ export interface Team {
   shortName?: string
   /** ESPN's numeric team id. Ingest-only; nothing in the UI reads it. */
   espnId?: string
+  /** Stable seed used only after every footballing tiebreak remains level. */
+  accessRank?: number
 }
 
 export type VideoKind = 'normal' | 'extended'
@@ -201,11 +203,69 @@ export interface KnockoutRound {
 }
 
 /** Ordered comparisons applied after points to separate level teams. */
-export type Tiebreak = 'head-to-head' | 'goal-difference' | 'goals-for' | 'wins'
+export type Tiebreak =
+  | 'head-to-head'
+  | 'goal-difference'
+  | 'goals-for'
+  | 'away-goals'
+  | 'wins'
+  | 'away-wins'
+  | 'disciplinary'
+  | 'access-list'
+
+export type StandingOutcomeKind = 'qualify' | 'promote' | 'playoff' | 'stay' | 'relegate'
+
+export interface StandingOutcome {
+  kind: StandingOutcomeKind
+  label: string
+}
+
+export interface GroupSection {
+  id: string
+  label: string
+  groupIds: GroupId[]
+}
+
+export interface QualificationRule {
+  groupRank: number
+  outcome: StandingOutcome
+  crossGroup?: {
+    top: number
+    topOutcome: StandingOutcome
+    bottomOutcome: StandingOutcome
+  }
+}
+
+export interface QualificationSection {
+  sectionId: string
+  rules: QualificationRule[]
+}
+
+export interface PendingStage {
+  id: string
+  label: string
+  window: string
+  pools: { label: string }[]
+}
+
+export interface KnockoutTrack {
+  id: string
+  label: string
+  roundIds: string[]
+  pendingStages?: PendingStage[]
+}
 
 export interface Group {
   id: GroupId
   teams: TeamId[]
+  /** Explicit display name for formats whose ids already carry a league. */
+  label?: string
+  /** Parent `groupSections` id, e.g. A for group A1. */
+  sectionId?: string
+  /** Lower is better. Used only after all match-result criteria remain level. */
+  disciplinary?: Partial<Record<TeamId, number>>
+  /** Authoritative final order; never consulted for a partially revealed table. */
+  officialOrder?: TeamId[]
 }
 
 export interface Tournament {
@@ -225,9 +285,15 @@ export interface Tournament {
   bestThirdAllocation?: Record<string, Record<string, GroupId>>
   teams: Record<TeamId, Team>
   groups: Group[]
+  /** Optional navigation sections for multi-league group phases. */
+  groupSections?: GroupSection[]
+  /** Competition-specific meanings for positions within each section. */
+  qualificationSections?: QualificationSection[]
   groupMatches: GroupMatch[]
   /** Ordered first round → final (third-place playoff before the final). */
   knockoutRounds: KnockoutRound[]
+  /** Independent championship/play-off surfaces sharing `knockoutRounds`. */
+  knockoutTracks?: KnockoutTrack[]
   /** Two-legged ties, flat across all rounds. Single-leg rounds don't appear. */
   ties?: Tie[]
   /**

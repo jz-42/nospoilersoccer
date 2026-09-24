@@ -2,9 +2,9 @@
 
 **[nospoilersoccer.com](https://nospoilersoccer.com)**
 
-Catch up on the World Cup at your own pace — spoiler-free highlights laid out on
-the tournament bracket. Watch (or skip) a match, mark it done, and only then does
-the score reveal and the winner advance to the next round. Miss a week of games?
+Catch up on international and club football at your own pace — spoiler-free
+highlights laid out by competition. Watch (or skip) a match, mark it done, and
+only then does the score reveal and the winner advance. Miss a week of games?
 The drama is still intact when you come back.
 
 ## How it works
@@ -50,6 +50,12 @@ cards, and match modal. The browser override is what matters for the running
 site; changing `TZ` on the Vite process alone does not change browser output.
 
 ## Highlights: automatic curation
+
+UEFA Nations League 2026/27 is supported across all four leagues and all 54
+countries. Its ESPN result ingest, FOX Soccer highlight curation, schedule
+windows, quota controls, and recovery procedures are documented in
+[Nations League operations](docs/nations-league-operations.md). Run the focused
+proof suite with `npm run test:nations`.
 
 Highlights and optional AI entertainment summaries are added automatically by
 the [Update World Cup data](.github/workflows/update-results.yml) Action.

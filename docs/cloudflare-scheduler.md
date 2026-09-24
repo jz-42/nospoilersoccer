@@ -30,15 +30,17 @@ The Worker still parses and reports conservative match windows for diagnostics:
 
 These windows no longer gate dispatch. They remain useful for checking whether the scheduler is running during expected result/highlight periods.
 
-Windows are parsed from `wc2026.ts` only. Club competitions run roughly year-round
-rather than in one burst, and dispatch is not window-gated, so they need no
-window source.
+Windows are parsed from both `wc2026.ts` and `src/data/nations/unl-2026.ts`.
+The Nations result window begins 105 minutes after kickoff and ends eight hours
+after kickoff. Club competitions run roughly year-round rather than in one
+burst, and dispatch is not window-gated, so they need no window source.
 
 ## Schedule source
 
 The Worker fetches and parses:
 
 - `https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/wc2026.ts`
+- `https://raw.githubusercontent.com/jz-42/nospoilersoccer/main/src/data/nations/unl-2026.ts`
 
 Expected parsed match count follows whatever is currently on `main`. For the full 2026 World Cup schedule, `104` is expected.
 
@@ -109,22 +111,34 @@ leaving it unset avoids duplicating the hourly authenticated CI recovery.
 
 ## Highlight quota bounds
 
-The fast path checks five public Atom feeds every minute and receives WebSub
-notifications for the same five channels. Both paths use zero YouTube Data API
-units. ESPN Deportes is the fifth source and is limited to its newest 100
+The fast path checks six public Atom feeds every minute and receives WebSub
+notifications for the same six channels. Both paths use zero YouTube Data API
+units. The sixth source is FOX Soccer (`UCooTLkxcpnTNx6vfOovfBFA`, uploads
+playlist `UUooTLkxcpnTNx6vfOovfBFA`) for UEFA Nations League highlights. ESPN
+Deportes is limited to its newest 100
 uploads during a deep scan; its strict prefilter forwards only La Liga summary
 titles and rejects known single-play goal/card/save titles.
 
-When `YOUTUBE_API_KEY` is configured, a complete hourly deep sweep costs at
-most 27 playlist requests, or 648 units across 24 hours. The updater's
+When `YOUTUBE_API_KEY` is configured, the ordinary five-source hourly deep
+sweep costs at most 27 playlist requests, or 648 units across 24 hours. The updater's
 five-minute ESPN Deportes recovery uses only the newest page, adding at most
 288 playlist units per day plus the second page of each hourly deep scan.
 Candidate metadata checks add a small bounded amount. Every Worker Data API
 call reserves quota in D1 first, and the Worker hard-stops authenticated
 recovery at 8,000 units per Pacific quota day; Atom/WebSub discovery remains
-active at that cap. GitHub's independently bounded recovery stays below 936
+active at that cap. FOX Soccer is excluded from routine recovery: it opens only
+when `unl-2026` hot-state contains a completed fixture without a corresponding
+highlight, from 105 minutes through 72 hours after kickoff. It reads at most two
+playlist pages per run and has an independent 48-unit Pacific-day ceiling,
+recorded as `foxsoccer:*` quota events. GitHub's independently bounded recovery stays below 936
 playlist units/day (648 hourly deep + at most 288 five-minute fallback), before
 the small number of metadata checks for titles that pass deterministic screens.
+
+## FOX Soccer Nations League uploads
+
+The FOX Soccer curator publishes videos that pass its channel, title, fixture,
+duration, and embed checks without manual quarantine. Review the accepted cuts
+on the site. The title grammar and other acceptance checks remain conservative.
 
 ## GitHub token permissions
 
@@ -202,6 +216,7 @@ site can poll it directly without waiting for a full redeploy.
 at arbitrary `raw.githubusercontent.com` paths:
 
 - `wc2026` — World Cup
+- `unl-2026` — UEFA Nations League
 - `eng1-2026` — Premier League
 - `esp1-2026` — La Liga
 - `ucl-2026` — Champions League

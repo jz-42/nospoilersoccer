@@ -1,4 +1,8 @@
 export const DAILY_QUOTA_LIMIT = 8_000
+export const NATIONS_DAILY_QUOTA_LIMIT = 48
+export const NATIONS_HOURLY_QUOTA_LIMIT = 2
+export const NATIONS_RECOVERY_HORIZON_MS = 72 * 60 * 60 * 1000
+export const NATIONS_RESULT_READY_MS = 105 * 60 * 1000
 
 export const HIGHLIGHT_SOURCES = Object.freeze([
   {
@@ -6,6 +10,13 @@ export const HIGHLIGHT_SOURCES = Object.freeze([
     label: 'FOX Sports',
     channelId: 'UCwNqHDsnBCKT-olwJwIFyfg',
     playlistId: 'UUwNqHDsnBCKT-olwJwIFyfg',
+    scanDepth: 100,
+  },
+  {
+    id: 'foxsoccer',
+    label: 'FOX Soccer',
+    channelId: 'UCooTLkxcpnTNx6vfOovfBFA',
+    playlistId: 'UUooTLkxcpnTNx6vfOovfBFA',
     scanDepth: 100,
   },
   {
@@ -40,6 +51,7 @@ export const HIGHLIGHT_SOURCES = Object.freeze([
 
 const POTENTIAL_HIGHLIGHT_RE = {
   fox: /^.+?\s+vs\.?\s+.+?\s+(?:Extended\s+)?Highlights\b.*World Cup/i,
+  foxsoccer: /^.+?\s+vs?\.?\s+.+?\s+(?:UEFA\s+Nations\s+League\s+)?(?:Extended\s+)?Highlights\b.*(?:UEFA\s+Nations\s+League|\|\s*FOX\s+Soccer\s*$)/i,
   golazo: /^.+?\s+vs\.?\s+.+?:\s+(?:Extended\s+)?Highlights\b.*\|\s*(?:UCL\b|UEFA\s+Champions\s+League\b|Champions\s+League\b)/i,
   nbc: /^.+?\s+vs?\.?\s+.+?\s*\|\s*PREMIER\s+LEAGUE(?:\s+EXTENDED)?\s+HIGHLIGHTS\b/i,
   espnfc: /^.+?\s+vs?\.?\s+.+?\s*\|\s*LA\s?LIGA\s+(?:EXTENDED\s+)?HIGHLIGHTS\b/i,
@@ -68,6 +80,19 @@ export function deepScanPageCost(sources = HIGHLIGHT_SOURCES) {
 
 export function projectedDailyBaseCost(sources = HIGHLIGHT_SOURCES) {
   return deepScanPageCost(sources) * 24
+}
+
+export function nationsHighlightRecoveryNeeded({ now = new Date(), hotState, highlightState }) {
+  if (hotState?.tournamentId !== 'unl-2026' || highlightState?.tournamentId !== 'unl-2026') return false
+  for (const [matchId, match] of Object.entries(hotState.matches ?? {})) {
+    if (!match?.score || typeof match.kickoff !== 'string') continue
+    const kickoff = Date.parse(match.kickoff)
+    if (!Number.isFinite(kickoff)) continue
+    const age = now.getTime() - kickoff
+    if (age < NATIONS_RESULT_READY_MS || age > NATIONS_RECOVERY_HORIZON_MS) continue
+    if (!Array.isArray(highlightState.matches?.[matchId]) || highlightState.matches[matchId].length === 0) return true
+  }
+  return false
 }
 
 export function candidateRetryDelayMs(attemptCount) {
@@ -164,7 +189,23 @@ export function createD1HighlightStore(db) {
       return Number(row?.used_units ?? 0)
     },
 
-    async consumeQuota(day, method, units) {
+    async sourceQuotaUsed(day, sourceId) {
+      const row = await db
+        .prepare('SELECT COALESCE(SUM(units), 0) AS used_units FROM quota_events WHERE day = ? AND method LIKE ?')
+        .bind(day, `${sourceId}:%`)
+        .first()
+      return Number(row?.used_units ?? 0)
+    },
+
+    async sourceQuotaUsedSince(since, sourceId) {
+      const row = await db
+        .prepare('SELECT COALESCE(SUM(units), 0) AS used_units FROM quota_events WHERE created_at > ? AND method LIKE ?')
+        .bind(since, `${sourceId}:%`)
+        .first()
+      return Number(row?.used_units ?? 0)
+    },
+
+    async consumeQuota(day, method, units, now = new Date()) {
       await db
         .prepare('INSERT OR IGNORE INTO quota_days (day, used_units) VALUES (?, 0)')
         .bind(day)
@@ -180,7 +221,7 @@ export function createD1HighlightStore(db) {
         .prepare(
           'INSERT INTO quota_events (day, method, units, created_at) VALUES (?, ?, ?, ?)',
         )
-        .bind(day, method, units, new Date().toISOString())
+        .bind(day, method, units, now.toISOString())
         .run()
       return true
     },
@@ -408,6 +449,7 @@ export async function runHighlightRecovery({
   apiKey,
   store,
   queue,
+  nationsRecovery = false,
   fetchImpl = fetch,
 }) {
   const day = pacificQuotaDay(now)
@@ -419,10 +461,19 @@ export async function runHighlightRecovery({
 
   const deep = mode === 'normal' && now.getUTCMinutes() === 0
   for (const source of HIGHLIGHT_SOURCES) {
+    if (source.id === 'foxsoccer' && !nationsRecovery) continue
     const pageLimit = deep ? Math.ceil(source.scanDepth / 50) : 1
     let pageToken = ''
     for (let page = 0; page < pageLimit; page += 1) {
-      const reserved = await store.consumeQuota(day, 'playlistItems.list', 1)
+      if (source.id === 'foxsoccer') {
+        const sourceUsed = await store.sourceQuotaUsed?.(day, source.id) ?? 0
+        if (sourceUsed >= NATIONS_DAILY_QUOTA_LIMIT) break
+        const hourStart = new Date(now.getTime() - 60 * 60 * 1000).toISOString()
+        const recentUsed = await store.sourceQuotaUsedSince?.(hourStart, source.id) ?? 0
+        if (recentUsed >= NATIONS_HOURLY_QUOTA_LIMIT) break
+      }
+      const method = source.id === 'foxsoccer' ? `${source.id}:playlistItems.list` : 'playlistItems.list'
+      const reserved = await store.consumeQuota(day, method, 1, now)
       if (!reserved) return result
       const url =
         'https://www.googleapis.com/youtube/v3/playlistItems' +
@@ -563,6 +614,8 @@ export async function runHighlightIngestion({
   webSubCallbackUrl,
   store,
   queue,
+  nationsHotStateUrl,
+  nationsHighlightStateUrl,
   fetchImpl = fetch,
 }) {
   const subscriptionsPromise = webSubCallbackUrl
@@ -570,8 +623,29 @@ export async function runHighlightIngestion({
     : Promise.resolve(null)
   const feedPromise = runFeedRecovery({ now, store, queue, fetchImpl })
   const [subscriptions, feed] = await Promise.all([subscriptionsPromise, feedPromise])
-  const api = apiKey && (now.getUTCMinutes() === 0 || feed.errors.length > 0)
-    ? await runHighlightRecovery({ now, apiKey, store, queue, fetchImpl })
+  const recoveryDue = now.getUTCMinutes() === 0 ||
+    (feed.errors.length > 0 && now.getUTCMinutes() % 5 === 0)
+  let nationsRecovery = false
+  if (apiKey && nationsHotStateUrl && nationsHighlightStateUrl &&
+      recoveryDue) {
+    try {
+      const [hotResponse, highlightResponse] = await Promise.all([
+        fetchImpl(nationsHotStateUrl),
+        fetchImpl(nationsHighlightStateUrl),
+      ])
+      if (hotResponse.ok && highlightResponse.ok) {
+        nationsRecovery = nationsHighlightRecoveryNeeded({
+          now,
+          hotState: await hotResponse.json(),
+          highlightState: await highlightResponse.json(),
+        })
+      }
+    } catch {
+      // Runtime-state recovery is an optional quota path. Atom/WebSub continues.
+    }
+  }
+  const api = apiKey && recoveryDue
+    ? await runHighlightRecovery({ now, apiKey, store, queue, nationsRecovery, fetchImpl })
     : null
   const requeued = await enqueueDueCandidates(store, queue, now)
   return { subscriptions, feed, api, requeued }

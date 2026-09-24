@@ -4,14 +4,29 @@ const DATE_KEY_FORMAT: Intl.DateTimeFormatOptions = {
   day: '2-digit',
 }
 
+/*
+ * Building an Intl.DateTimeFormat is expensive (a tenth of a millisecond or
+ * more) and formatting with one is cheap. Every render of the day strip keys
+ * a few hundred kickoffs by local date, so a fresh formatter per call was a
+ * 60ms stall each time the day changed. There are only a handful of distinct
+ * option sets, so they're kept.
+ */
+const formatters = new Map<string, Intl.DateTimeFormat>()
+
 function dateTimeFormat(
   options: Intl.DateTimeFormatOptions,
   timeZone?: string,
 ): Intl.DateTimeFormat {
-  return new Intl.DateTimeFormat('en-US', {
-    ...options,
-    ...(timeZone ? { timeZone } : {}),
-  })
+  const key = `${timeZone ?? ''}|${JSON.stringify(options)}`
+  let format = formatters.get(key)
+  if (!format) {
+    format = new Intl.DateTimeFormat('en-US', {
+      ...options,
+      ...(timeZone ? { timeZone } : {}),
+    })
+    formatters.set(key, format)
+  }
+  return format
 }
 
 function asDate(instant: string | Date): Date {

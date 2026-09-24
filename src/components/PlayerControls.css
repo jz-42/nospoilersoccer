@@ -1,0 +1,538 @@
+/* Our controls over YouTube's bottom row — see PlayerControls.tsx.
+
+   Geometry is YouTube's, measured in the live player (Sep 2026). Its bottom
+   row is fixed-size UI: identical from 396px to a 1920px fullscreen, with one
+   compact layout below 396px (the same breakpoint as its title). Distances are
+   from the player's bottom edge:
+                        >= 396px        < 396px
+     time pill          left 28, 92-116  left 16, 68-92
+     chapter name       same row as the pill, to its right
+     progress line      inset 30, 73-76  inset 12, 54-57
+     playhead dot       68-80            50-62
+     action row         12-60            2-50   (uncovered, but for:)
+     "More videos" thumbnail 64x36, right 184, 15.5-51.5 (< 396px: right 154, 5.5-41.5)
+   Each cover hugs one of these, and is up only while YouTube's chrome may be
+   ("is-guarded"): no cover ever sits over bare video. */
+.yt-controls {
+  --yt-pill-left: 28px;
+  --yt-pill-bottom: 92px;
+  --yt-bar-inset: 30px;
+  --yt-bar-bottom: 73px;
+  --yt-top-strip: 56px;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@container (max-width: 395px) {
+  .yt-controls {
+    --yt-pill-left: 16px;
+    --yt-pill-bottom: 68px;
+    --yt-bar-inset: 12px;
+    --yt-bar-bottom: 54px;
+  }
+}
+
+/* Everything below YouTube's top strip: clicks, moves and focus land here,
+   not in the iframe. The strip stays YouTube's so its cluster works. */
+.yt-stage {
+  position: absolute;
+  top: var(--yt-top-strip);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: auto;
+  outline: none;
+}
+
+.yt-controls:not(.is-up):not(.is-shown) .yt-stage {
+  cursor: none;
+}
+
+.yt-controls.is-frame-focused .yt-stage {
+  pointer-events: none;
+}
+
+/* ---- Covers. Up instantly (they must beat YouTube's own fade-in), down
+   gently. A fade must never sit on an ancestor of a backdrop filter: below
+   opacity 1 it becomes a Backdrop Root and the blur drops out mid-fade, so
+   every glass layer fades itself. */
+
+/* The time row: our pill sits exactly over YouTube's, 1px proud of it on
+   every side, and the chapter cover trails off to its right. */
+.yt-time-row {
+  position: absolute;
+  left: calc(var(--yt-pill-left) - 1px);
+  bottom: calc(var(--yt-pill-bottom) - 1px);
+  right: 0;
+  height: 26px;
+  display: flex;
+  align-items: center;
+}
+
+.yt-time {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: grid;
+  align-items: center;
+  height: 26px;
+  padding: 0 7px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: normal;
+  text-shadow: 0 0 2px #000;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .yt-time {
+    background: rgba(0, 0, 0, 0.4);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* Sized like YouTube's `elapsed / total`, drawn with only what the viewer
+   wants: no redaction marks. The pill's glass is enough to wash out YouTube's
+   own text beneath it. */
+.yt-time-size,
+.yt-time-text {
+  grid-area: 1 / 1;
+  display: flex;
+}
+
+.yt-time-size {
+  visibility: hidden;
+}
+
+.yt-time-text {
+  justify-self: center;
+}
+
+.yt-time-sep {
+  margin: 0 4px;
+  opacity: 0.7;
+}
+
+.yt-time-total {
+  display: flex;
+  opacity: 0.7;
+}
+
+.yt-time-text > .yt-time-total:first-child .yt-time-sep {
+  margin-left: 0;
+}
+
+.yt-controls.is-shown .yt-time:not(.is-empty),
+.yt-controls.is-guarded .yt-time {
+  opacity: 1;
+  transition: none;
+}
+
+/* ---- Blank glass. The chapter name, the progress bar and the "More videos"
+   thumbnail are covered by plain blur with no tint: over video it reads as a
+   patch slightly out of focus, not as a shape laid on top. */
+.yt-chapter-cover,
+.yt-bar-cover > span,
+.yt-more-cover {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.yt-controls.is-guarded .yt-chapter-cover,
+.yt-controls.is-guarded .yt-bar-cover > span,
+.yt-controls.is-guarded .yt-more-cover {
+  opacity: 1;
+  transition: none;
+}
+
+/* Without backdrop filters, a plain dark wash. */
+.yt-chapter-cover,
+.yt-bar-cover-glass,
+.yt-more-cover {
+  background: rgba(12, 13, 16, 0.9);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .yt-chapter-cover,
+  .yt-bar-cover-glass {
+    background: none;
+    -webkit-mask-image:
+      linear-gradient(180deg, transparent, #000 var(--feather-y), #000 calc(100% - var(--feather-y)), transparent),
+      linear-gradient(90deg, transparent, #000 var(--feather-x), #000 var(--fade-x), transparent);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(180deg, transparent, #000 var(--feather-y), #000 calc(100% - var(--feather-y)), transparent),
+      linear-gradient(90deg, transparent, #000 var(--feather-x), #000 var(--fade-x), transparent);
+    mask-composite: intersect;
+  }
+}
+
+/* Chapter names run to about 28 characters (~170px) of YouTube's 14px Roboto,
+   starting 8px after its pill. The glass starts under our pill and eases out
+   over its last quarter, past where names usually end. */
+.yt-chapter-cover {
+  --feather-x: 14px;
+  --feather-y: 7px;
+  --fade-x: 75%;
+  flex: none;
+  align-self: stretch;
+  width: min(300px, 100% - 140px);
+  margin: -7px 0 -7px -20px;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+/* Over YouTube's progress line and playhead, when the viewer hides the bar:
+   a soft band out of focus, nothing drawn on it. The blur alone would smear
+   the red played part pink (and show where it ends), so a dark line first
+   blots out YouTube's; blurred, it reads as a faint shadow. The band is
+   tall enough to melt the 12px playhead that rides on the line. */
+.yt-bar-cover > span {
+  position: absolute;
+}
+
+.yt-bar-cover-mute {
+  left: var(--yt-bar-inset);
+  right: var(--yt-bar-inset);
+  bottom: calc(var(--yt-bar-bottom) - 0.5px);
+  height: 4px;
+  border-radius: 2px;
+  background: #2e3034;
+}
+
+.yt-bar-cover-glass {
+  --feather-x: 16px;
+  --feather-y: 15px;
+  --fade-x: calc(100% - 16px);
+  left: calc(var(--yt-bar-inset) - 16px);
+  right: calc(var(--yt-bar-inset) - 16px);
+  bottom: calc(var(--yt-bar-bottom) - 19px);
+  height: 40px;
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+}
+
+/* YouTube's "More videos" pill: its thumbnail is another match's
+   highlights, often with the score on it. No embed parameter removes it, so
+   the thumbnail alone goes out of focus, inside YouTube's white outline: it
+   reads as a thumbnail still loading. The words are harmless and stay. The
+   thumbnail is 64x36 with an 8px radius, 184px from the right and 15.5px up
+   (below 396px, 154px and 5.5px); the glass bleeds 1px under the outline. */
+.yt-more-cover {
+  position: absolute;
+  right: 183px;
+  bottom: 14.5px;
+  width: 66px;
+  height: 38px;
+  border-radius: 9px;
+}
+
+@container (max-width: 395px) {
+  .yt-more-cover {
+    right: 153px;
+    bottom: 4.5px;
+  }
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .yt-more-cover {
+    background: none;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* The title shield is HighlightPlayer's and stays up the whole time (YouTube
+   can show its title at moments we can't see), unless the viewer chooses to
+   see the title. */
+.player-wrap:has(> .yt-controls.is-title-shown) .player-titlebar {
+  display: none;
+}
+
+/* ---- Progress bar: YouTube's line and playhead, with a taller hit area. */
+
+.yt-bar {
+  position: absolute;
+  left: var(--yt-bar-inset);
+  right: var(--yt-bar-inset);
+  bottom: calc(var(--yt-bar-bottom) - 10px);
+  height: 23px;
+  cursor: pointer;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.yt-bar-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  transition: height 0.1s ease-out, bottom 0.1s ease-out;
+}
+
+.yt-bar:hover .yt-bar-line,
+.yt-bar.is-dragging .yt-bar-line {
+  height: 5px;
+  bottom: 9px;
+}
+
+.yt-bar-loaded {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.yt-bar-played {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #ff0033 80%, #ff2791);
+}
+
+.yt-bar-head {
+  position: absolute;
+  bottom: 5.5px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: #ff0033;
+  transition: transform 0.1s ease-out;
+}
+
+.yt-bar:hover .yt-bar-head,
+.yt-bar.is-dragging .yt-bar-head {
+  transform: scale(1.25);
+}
+
+.yt-bar-tip {
+  position: absolute;
+  bottom: 26px;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(28, 28, 28, 0.9);
+  color: #fff;
+  font: 500 13px/1.4 Roboto, Arial, sans-serif;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ---- Center: bigger play/pause than YouTube's, skip either side. */
+
+.yt-center {
+  --yt-play: clamp(56px, 12.5cqi, 96px);
+  --yt-skip: clamp(44px, 8.5cqi, 68px);
+  position: absolute;
+  inset: var(--yt-top-strip) 0 calc(var(--yt-pill-bottom) - 2px) 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 6.5cqi, 72px);
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+/* On phones there is no room above the time row; center on the frame, a
+   little high, so a skip label beside the back button clears the time pill. */
+@container (max-width: 395px) {
+  .yt-center {
+    inset: 0 0 22px;
+    gap: 22px;
+  }
+}
+
+.yt-controls.is-shown .yt-bar,
+.yt-controls.is-up .yt-center {
+  opacity: 1;
+  transition-duration: 0.12s;
+}
+
+.yt-controls.is-shown:not(.is-frame-focused) .yt-bar,
+.yt-controls.is-up .yt-btn {
+  pointer-events: auto;
+}
+
+.yt-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
+    rgba(20, 22, 28, 0.62);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.24),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.07),
+    0 4px 16px rgba(0, 0, 0, 0.26),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 0.2s ease-out;
+}
+
+/* Denser glass than the fullscreen disc: the play button sits right on top
+   of YouTube's own center glyph and has to swallow it. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .yt-btn {
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
+      rgba(20, 22, 28, 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.6) brightness(0.85);
+    backdrop-filter: blur(16px) saturate(1.6) brightness(0.85);
+  }
+}
+
+.yt-btn:hover {
+  transform: scale(1.06);
+  background-color: rgba(58, 62, 72, 0.5);
+}
+
+.yt-btn:active {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
+}
+
+.yt-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+.yt-play {
+  width: var(--yt-play);
+  height: var(--yt-play);
+}
+
+.yt-play svg {
+  width: 46%;
+  height: 46%;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.yt-skip {
+  width: var(--yt-skip);
+  height: var(--yt-skip);
+}
+
+.yt-skip svg {
+  width: 62%;
+  height: 62%;
+  overflow: visible;
+  font-family: 'Inter Variable', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+/* ---- Skip feedback. The ring winds a little in its direction, and the
+   running total pops out of the button's outer side on its centre line, in
+   the buttons' glass. The label shares a box with its button (a sibling, not
+   a child: the button's blur would blind a blur inside it), so it lines up
+   at any player size. */
+
+.yt-skip-slot {
+  position: relative;
+  display: flex;
+}
+
+.yt-skip-ring {
+  transform-box: view-box;
+  transform-origin: 12px 12px;
+}
+
+.yt-skip-ring.is-spinning {
+  animation: yt-skip-wind 0.5s cubic-bezier(0.3, 0.9, 0.35, 1);
+}
+
+.yt-skip-slot:first-child .yt-skip-ring.is-spinning {
+  animation-name: yt-skip-unwind;
+}
+
+@keyframes yt-skip-wind {
+  35% {
+    transform: rotate(40deg);
+  }
+}
+
+@keyframes yt-skip-unwind {
+  35% {
+    transform: rotate(-40deg);
+  }
+}
+
+.yt-skip-label {
+  --yt-label-h: max(28px, calc(var(--yt-skip) * 0.56));
+  /* Clear of the button by about a third of its width: close enough to read
+     as its echo, far enough not to crowd it (13px on phones, 20 fullscreen). */
+  --yt-label-gap: calc(var(--yt-skip) * 0.3);
+  position: absolute;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  height: var(--yt-label-h);
+  margin-top: calc(var(--yt-label-h) / -2);
+  padding: 0 0.75em;
+  border-radius: 999px;
+  background: rgba(20, 22, 28, 0.62);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.24),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.07),
+    0 4px 16px rgba(0, 0, 0, 0.26),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+  color: #fff;
+  font: 650 max(13px, calc(var(--yt-skip) * 0.24)) / 1 'Inter Variable', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.25s ease-out;
+  animation: yt-label-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .yt-skip-label {
+    background: rgba(20, 22, 28, 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.6) brightness(0.85);
+    backdrop-filter: blur(16px) saturate(1.6) brightness(0.85);
+  }
+}
+
+.yt-skip-label-back {
+  --yt-label-from: 10px;
+  right: calc(100% + var(--yt-label-gap));
+}
+
+.yt-skip-label-fwd {
+  --yt-label-from: -10px;
+  left: calc(100% + var(--yt-label-gap));
+}
+
+.yt-skip-label.is-leaving {
+  opacity: 0;
+}
+
+@keyframes yt-label-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--yt-label-from)) scale(0.85);
+  }
+}

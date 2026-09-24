@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import type { Group, TeamId, Tournament } from '../data/types'
 import { groupStandings } from '../data/standings'
+import { positionOutcome } from '../data/qualification'
 import { groupComplete } from '../logic/spoilers'
 import { tableZones, zoneAt } from '../data/table-zones'
 import type { TableZone } from '../data/table-zones'
@@ -10,6 +12,15 @@ import type { ModalTarget } from './MatchModal'
 import { MatchTile } from './MatchTile'
 import { formatDate } from './format'
 import { groupMatchesByLocalDate } from './schedule'
+import { groupDisplayName, sectionGroups } from './group-stage-helpers'
+
+const outcomeTone = {
+  qualify: 'qualify',
+  promote: 'qualify',
+  playoff: 'playoff',
+  stay: null,
+  relegate: 'drop',
+} as const
 
 /**
  * A World Cup group is four teams in a narrow card, so it shows only what
@@ -54,12 +65,16 @@ function Standings({
       <tbody>
         {live.map((row, i) => {
           const team = t.teams[row.team]
-          const advances = complete && t.advancingRanks.includes(i + 1)
+          const advances = !t.groupSections && complete && t.advancingRanks.includes(i + 1)
           const zone = zoneAt(zones, i + 1)
+          const outcome = t.groupSections && complete
+            ? positionOutcome(t, group.id, i + 1, (id) => progress.marks[id] !== undefined)
+            : null
+          const tone = outcome ? outcomeTone[outcome.kind] : null
           return (
             <tr
               key={row.team}
-              className={`${advances ? 'advances' : ''} ${zone ? `zone-${zone.kind}` : ''}`.trim()}
+              className={`${advances ? 'advances' : ''} ${zone ? `zone-${zone.kind}` : ''} ${tone ? `zone-${tone}` : ''}`.trim()}
             >
               <td className="pos">{i + 1}</td>
               <td className="name">
@@ -121,6 +136,18 @@ function GroupCard({
     }
   }
   const zones = single && group.teams.every((id) => played.has(id)) ? tableZones(t) : []
+  const outcomes = t.groupSections && groupComplete(t, group.id, progress.marks)
+    ? group.teams.map((_, index) => positionOutcome(
+        t,
+        group.id,
+        index + 1,
+        (id) => progress.marks[id] !== undefined,
+      )).filter((outcome) => outcome && outcomeTone[outcome.kind] !== null)
+    : []
+  const legend = [...new Map(outcomes.map((outcome) => [
+    `${outcome!.kind}:${outcome!.label}`,
+    outcome!,
+  ])).values()]
 
   return (
     <section className="group-card">
@@ -129,7 +156,7 @@ function GroupCard({
           table can't say for itself: how much of the season it knows about. */}
       {!single && (
         <header className="group-card-header">
-          <h3>{`Group ${group.id}`}</h3>
+          <h3>{groupDisplayName(group)}</h3>
           {/* "4/6" is a readable goal for a World Cup group. "30/380" for a
               league season is just a number ticking in the corner of a table
               nobody is trying to clear — same call as the header meter. */}
@@ -139,6 +166,18 @@ function GroupCard({
         </header>
       )}
       <Standings t={t} group={group} progress={progress} zones={zones} />
+      {legend.length > 0 && (
+        <ul className="table-legend group-outcome-legend">
+          {legend.map((outcome) => (
+            <li
+              key={`${outcome.kind}:${outcome.label}`}
+              className={`table-legend-item zone-${outcomeTone[outcome.kind]}`}
+            >
+              {outcome.label}
+            </li>
+          ))}
+        </ul>
+      )}
       {single && (
         <footer className="table-footer">
           {zones.length > 0 && (
@@ -182,8 +221,36 @@ export function GroupStage({
   progress: Progress
   onOpen: (target: ModalTarget) => void
 }) {
+  const [sectionId, setSectionId] = useState(() => t.groupSections?.[0]?.id)
   // One table shouldn't sit in a 380px column with dead space beside it, and
   // twelve shouldn't stretch to the full page. Same grid, different track.
+  if (t.groupSections && sectionId) {
+    const visibleGroups = sectionGroups(t, sectionId)
+    return (
+      <div className="group-stage">
+        <div className="group-sections" role="tablist" aria-label="Nations League divisions">
+          {t.groupSections.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              role="tab"
+              aria-selected={section.id === sectionId}
+              className={`group-section-tab ${section.id === sectionId ? 'active' : ''}`}
+              onClick={() => setSectionId(section.id)}
+            >
+              {section.label}
+            </button>
+          ))}
+        </div>
+        <div className="group-grid">
+          {visibleGroups.map((group) => (
+            <GroupCard key={group.id} t={t} group={group} progress={progress} onOpen={onOpen} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={`group-grid ${hasGroups(t) ? '' : 'group-grid-single'}`}>
       {t.groups.map((g) => (

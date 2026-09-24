@@ -17,6 +17,16 @@ assert.match(
 )
 assert.match(
   workflow,
+  /NATIONS_BACKUP_ROOT:[\s\S]*?nations_step\(\)[\s\S]*?scripts\/espn-nations\.ts[\s\S]*?scripts\/espn-nations\.smoke\.ts[\s\S]*?nations_restore/,
+  'Nations League updates are validated atomically with last-known-good restoration',
+)
+assert.match(
+  workflow,
+  /npx tsx scripts\/nations-ingest-gate\.ts "\$cycle"[\s\S]*?if nations_step/,
+  'Nations League ingest includes off-window draw discovery before the validated step',
+)
+assert.match(
+  workflow,
   /if \[ "\$cycle" -eq 1 \]; then[\s\S]*?club_step "\$season videos"[\s\S]*?curate-club-videos\.ts --competition "\$competition"[\s\S]*?fi/,
   'club deep highlight scans must run only once per updater hour',
 )
@@ -27,8 +37,13 @@ assert.match(
 )
 assert.match(
   curateWorkflow,
-  /grep -Rqs --fixed-strings "youtubeId: '\$VIDEO_ID'" src\/data\/wc2026-videos\.ts src\/data\/club\/\*-videos\.ts[\s\S]*?status=accepted/,
+  /grep -Rqs --fixed-strings "youtubeId: '\$VIDEO_ID'" src\/data\/wc2026-videos\.ts src\/data\/club\/\*-videos\.ts src\/data\/nations\/unl-2026-videos\.ts[\s\S]*?status=accepted/,
   'an already-persisted candidate must acknowledge accepted after a lost callback',
+)
+assert.match(
+  curateWorkflow,
+  /- foxsoccer[\s\S]*?foxsoccer\)[\s\S]*?curate-nations-videos\.ts --video-id "\$VIDEO_ID"/,
+  'targeted FOX Soccer candidates route through the Nations League curator',
 )
 assert.match(
   curateWorkflow,

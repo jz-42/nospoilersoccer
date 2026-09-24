@@ -35,8 +35,9 @@ import type {
   PointerEvent as ReactPointerEvent,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { findSeason, loadSeason } from '../data'
 import type { Tournament } from '../data/types'
-import type { Progress } from '../state/progress'
+import { watchLaterParts, type Progress } from '../state/progress'
 import type { ModalTarget } from './MatchModal'
 import { ClockIcon } from './ClockIcon'
 import { PreviewCard } from './PreviewCard'
@@ -46,7 +47,6 @@ import { showsPlayButton } from './status'
 import {
   dropIndex,
   reorder,
-  reorderSection,
   slotDuringDrag,
   slotOffset,
   splitQueue,
@@ -87,6 +87,11 @@ function matchEntries(t: Tournament): Map<string, RailEntry> {
   return out
 }
 
+interface SavedEntry {
+  tournament: Tournament
+  entry: RailEntry
+}
+
 export function WatchLater({
   t,
   progress,
@@ -95,25 +100,69 @@ export function WatchLater({
 }: {
   t: Tournament
   progress: Progress
-  onOpen: (target: ModalTarget) => void
+  onOpen: (tournament: Tournament, target: ModalTarget) => void
   /** A match opened from the queue is on top of it, and Escape is the match's. */
   covered: boolean
 }) {
   const [open, setOpen] = useState(false)
-  const entries = useMemo(() => matchEntries(t), [t])
-  // Saved ids that this competition still has a fixture for. Anything else is
-  // a leftover from an older dataset and is quietly dropped on the next write.
-  const ids = useMemo(
-    () => progress.pinOrder.filter((id) => entries.has(id)),
-    [progress.pinOrder, entries],
-  )
+  const [otherTournaments, setOtherTournaments] = useState<Record<string, Tournament | null>>({})
+  const ids = progress.allPinOrder
 
-  const { marks, pinOrder, setPinOrder } = progress
+  // Club seasons are lazy chunks. Load only seasons that actually have saved
+  // matches, when the queue opens; a missing season stays removable in place.
+  useEffect(() => {
+    if (!open) return
+    const needed = [...new Set(ids.map((key) => watchLaterParts(key)?.tournamentId).filter((id): id is string => !!id))]
+      .filter((id) => id !== t.id && !(id in otherTournaments))
+    if (needed.length === 0) return
+    let cancelled = false
+    void Promise.all(needed.map(async (id): Promise<[string, Tournament | null]> => {
+      const found = findSeason(id)
+      if (!found) return [id, null]
+      try {
+        return [id, await loadSeason(found.season)]
+      } catch {
+        return [id, null]
+      }
+    })).then((loaded) => {
+      if (cancelled) return
+      setOtherTournaments((current) => ({ ...current, ...Object.fromEntries(loaded) }))
+    })
+    return () => { cancelled = true }
+  }, [open, ids, t.id, otherTournaments])
+
+  const loading = ids.some((key) => {
+    const seasonId = watchLaterParts(key)?.tournamentId
+    return seasonId && seasonId !== t.id && !(seasonId in otherTournaments)
+  })
+  const entries = useMemo(() => {
+    const tournaments: Record<string, Tournament | null> = { ...otherTournaments, [t.id]: t }
+    const bySeason = new Map<string, Map<string, RailEntry>>()
+    const out = new Map<string, SavedEntry>()
+    for (const key of ids) {
+      const parts = watchLaterParts(key)
+      if (!parts) continue
+      const tournament = tournaments[parts.tournamentId]
+      if (!tournament) continue
+      let matches = bySeason.get(parts.tournamentId)
+      if (!matches) {
+        matches = matchEntries(tournament)
+        bySeason.set(parts.tournamentId, matches)
+      }
+      const entry = matches.get(parts.matchId)
+      if (entry) out.set(key, { tournament, entry })
+    }
+    return out
+  }, [ids, otherTournaments, t])
+
   const close = useCallback(() => {
     setOpen(false)
-    const keep = ids.filter((id) => marks[id] === undefined)
-    if (keep.length !== pinOrder.length) setPinOrder(keep)
-  }, [ids, marks, pinOrder, setPinOrder])
+    const watched = ids.filter((key) => {
+      const saved = entries.get(key)
+      return saved && progress.forTournament(saved.tournament).marks[saved.entry.target.match.id] === 'watched'
+    })
+    if (watched.length > 0) progress.removePins(watched)
+  }, [ids, entries, progress])
 
   useEffect(() => {
     if (!open || covered) return
@@ -154,9 +203,9 @@ export function WatchLater({
       {open &&
         createPortal(
           <QueueOverlay
-            t={t}
             ids={ids}
             entries={entries}
+            loading={loading}
             progress={progress}
             onOpen={onOpen}
             onClose={close}
@@ -207,18 +256,18 @@ interface Press {
 type Positions = Map<string, { left: number; top: number }>
 
 function QueueOverlay({
-  t,
   ids,
   entries,
+  loading,
   progress,
   onOpen,
   onClose,
 }: {
-  t: Tournament
   ids: readonly string[]
-  entries: Map<string, RailEntry>
+  entries: Map<string, SavedEntry>
+  loading: boolean
   progress: Progress
-  onOpen: (target: ModalTarget) => void
+  onOpen: (tournament: Tournament, target: ModalTarget) => void
   onClose: () => void
 }) {
   const [drag, setDrag] = useState<Drag | null>(null)
@@ -238,23 +287,24 @@ function QueueOverlay({
   const landingRef = useRef<string | null>(null)
   const dragRef = useRef(false)
 
-  const { marks, revealed, setPinOrder } = progress
+  const { reorderAllPins } = progress
 
-  // A match's own mark is left out: a card you have just watched stays where
-  // it was, dimmed, rather than dropping into the other section under you.
+  // Ready is decided in each match's own competition. Its own mark is left
+  // out: a card you have just watched stays where it was, dimmed, rather than
+  // dropping into the other section under you.
   const readyNow = useMemo(() => {
     const out = new Set<string>()
     for (const id of ids) {
-      let view = { marks, revealed }
-      if (marks[id] !== undefined) {
-        const others = { ...marks }
-        delete others[id]
-        view = { marks: others, revealed }
-      }
-      if (showsPlayButton(t, id, view)) out.add(id)
+      const saved = entries.get(id)
+      if (!saved) continue
+      const { marks, revealed } = progress.forTournament(saved.tournament)
+      const matchId = saved.entry.target.match.id
+      const others = { ...marks }
+      delete others[matchId]
+      if (showsPlayButton(saved.tournament, matchId, { marks: others, revealed })) out.add(id)
     }
     return out
-  }, [t, ids, marks, revealed])
+  }, [ids, entries, progress])
   const readySet = drag?.ready ?? readyNow
   const sections = useMemo(() => splitQueue(ids, (id) => readySet.has(id)), [ids, readySet])
   const split = sections.ready.length > 0 && sections.waiting.length > 0
@@ -468,10 +518,8 @@ function QueueOverlay({
       landingRef.current = held.members[held.index]
       setDrag(null)
       if (commit && targetRef.current !== held.index) {
-        const current = liveRef.current.ids
-        const saved = new Set(current)
-        const moved = reorder(held.members, held.index, targetRef.current).filter((m) => saved.has(m))
-        setPinOrder(reorderSection(current, moved))
+        const saved = new Set(liveRef.current.ids)
+        reorderAllPins(reorder(held.members, held.index, targetRef.current).filter((m) => saved.has(m)))
       }
       // Cleared after the click that this pointerup is about to produce.
       window.setTimeout(() => {
@@ -538,7 +586,7 @@ function QueueOverlay({
     const to = index + step
     if (step === 0 || to < 0 || to >= members.length) return
     e.preventDefault()
-    setPinOrder(reorderSection(ids, reorder(members, index, to)))
+    reorderAllPins(reorder(members, index, to))
   }
 
   return (
@@ -577,6 +625,8 @@ function QueueOverlay({
               </span>
             </p>
           </div>
+        ) : loading ? (
+          <div className="queue-loading" role="status">Loading saved matches…</div>
         ) : (
           <div className="queue-sections">
             {(['ready', 'waiting'] as const).map((section) => {
@@ -604,8 +654,8 @@ function QueueOverlay({
                   )}
                   <ul className={`queue-grid ${dragging ? 'is-dragging' : ''}`}>
                     {members.map((id, i) => {
-                      const entry = entries.get(id)
-                      if (!entry) return null
+                      const saved = entries.get(id)
+                      const itemProgress = saved ? progress.forTournament(saved.tournament) : null
                       let style: CSSProperties | undefined
                       if (dragging && i === dragging.from) {
                         style = { transform: `translate(${dragging.dx}px, ${dragging.dy}px)` }
@@ -621,7 +671,7 @@ function QueueOverlay({
                             else itemsRef.current.delete(id)
                           }}
                           className={`queue-item ${dragging && i === dragging.from ? 'is-lifted' : ''} ${
-                            marks[id] !== undefined ? 'is-done' : ''
+                            saved && itemProgress?.marks[saved.entry.target.match.id] !== undefined ? 'is-done' : ''
                           }`}
                           style={style}
                           onPointerDown={(e) => onPointerDown(e, id, members.length)}
@@ -632,13 +682,23 @@ function QueueOverlay({
                             e.stopPropagation()
                           }}
                         >
-                          <PreviewCard t={t} entry={entry} progress={progress} onOpen={onOpen} />
+                          {saved && itemProgress ? (
+                            <PreviewCard
+                              t={saved.tournament}
+                              entry={saved.entry}
+                              progress={itemProgress}
+                              sourceLabel={saved.tournament.name}
+                              onOpen={(target) => onOpen(saved.tournament, target)}
+                            />
+                          ) : (
+                            <div className="queue-unavailable">Saved match unavailable</div>
+                          )}
                           <button
                             type="button"
                             className="queue-remove"
                             aria-label="Remove from Watch Later"
                             title="Remove from Watch Later"
-                            onClick={() => progress.togglePin(id)}
+                            onClick={() => progress.removePins([id])}
                           >
                             <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">
                               <path

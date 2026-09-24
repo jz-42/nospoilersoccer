@@ -23,13 +23,20 @@ export const teamColors: Record<
   TeamId,
   readonly [string, string] | readonly [string, string, string]
 > = {
+  // Red falling into the eagle's black, the way Germany falls into flag-black.
+  ALB: ['#d6454f', '#c0c6d2', '#23262c'],
   ALG: ['#2a8f5e', '#1f6f49'],
+  AND: ['#3a5fb0', '#e6c44a'],
   ARG: ['#7cb8e6', '#4f93cc'],
+  ARM: ['#d6454f', '#e0843c', '#2c4a8c'],
   AUS: ['#3a5da8', '#d8b54a'],
   AUT: ['#d6435a', '#c0c6d2'],
+  AZE: ['#3aa0d6', '#d6454f'],
   BEL: ['#e0b53e', '#c43a3a'],
   BIH: ['#3f6fb5', '#e6c352'],
+  BLR: ['#d6454f', '#2a9e5e'],
   BRA: ['#e6c84a', '#2f9e63', '#1e6f47'],
+  BUL: ['#2a9e5e', '#d6454f'],
   CAN: ['#e0544e', '#c0c6d2'],
   CIV: ['#e08a3c', '#2a9e6a'],
   CMR: ['#2a9e5e', '#d9b441'],
@@ -39,25 +46,48 @@ export const teamColors: Record<
   CRC: ['#3a5fb0', '#d6454f'],
   CRO: ['#d6454f', '#3a5fb0'],
   CUW: ['#2f57a0', '#e6c44a'],
+  CYP: ['#3a6fc0', '#e0843c'],
   CZE: ['#3a5fa8', '#d6454f'],
   DEN: ['#d6454f', '#c0c6d2'],
   ECU: ['#e6c44a', '#3a5fa8'],
   EGY: ['#d6454f', '#d4b04a'],
   ENG: ['#e0544e', '#c0c6d2'],
   ESP: ['#d6454f', '#e6c44a'],
+  EST: ['#3a7fc8', '#c0c6d2', '#23262c'],
+  FIN: ['#2f5fb0', '#c0c6d2'],
   FRA: ['#3a5fb0', '#d6454f'],
+  FRO: ['#3a6fc0', '#d6454f'],
+  GEO: ['#d6454f', '#c0c6d2'],
   GER: ['#d6454f', '#e0b53e', '#23262c'],
   GHA: ['#2a9e5e', '#d6454f'],
+  GIB: ['#d6454f', '#e6c44a'],
+  GRE: ['#3a74c4', '#c0c6d2'],
   HAI: ['#3a5fb0', '#d6454f'],
+  HUN: ['#d6454f', '#2a8f57'],
+  IRL: ['#2a9e5e', '#e0843c'],
   IRN: ['#2a9e5e', '#d6454f'],
   IRQ: ['#d6454f', '#2a9e5e'],
+  ISL: ['#3a5fb0', '#d6454f'],
+  ISR: ['#3a6fc0', '#c0c6d2'],
+  ITA: ['#3a6fc0', '#2a9e5e', '#243c74'],
   JOR: ['#2a9e5e', '#d6454f'],
   JPN: ['#dc4b50', '#c0c6d2'],
+  KAZ: ['#4ab0d6', '#e6c44a'],
   KOR: ['#d6454f', '#3a5fb0'],
+  KOS: ['#3a5fb0', '#e6c44a'],
   KSA: ['#2a9e5e', '#1f7a48'],
+  LIE: ['#2f4fa0', '#d6454f'],
+  LTU: ['#e6c44a', '#2a8f57', '#8a2e34'],
+  LUX: ['#d6454f', '#6fb3e0'],
+  LVA: ['#9e2f3f', '#c0c6d2'],
   MAR: ['#c43a3f', '#2a8f57'],
+  MDA: ['#3a5fb0', '#e6c44a', '#8a2e34'],
   MEX: ['#2a9e5e', '#d6454f'],
+  MKD: ['#d6454f', '#e6c44a'],
+  MLT: ['#d6454f', '#c0c6d2'],
+  MNE: ['#c43a3f', '#d9b441'],
   NED: ['#e0843c', '#3a5fb0', '#243c74'],
+  NIR: ['#2a9e5e', '#c0c6d2'],
   NOR: ['#d6454f', '#3a5fb0'],
   NZL: ['#3a5fb0', '#d6454f'],
   PAN: ['#d6454f', '#3a5fb0'],
@@ -65,14 +95,19 @@ export const teamColors: Record<
   POL: ['#d6454f', '#c0c6d2'],
   POR: ['#2a8f57', '#d6454f'],
   QAT: ['#8a2e44', '#6e2236'],
+  ROU: ['#e6c44a', '#3a5fb0'],
   RSA: ['#2a9e5e', '#d6b441'],
   SCO: ['#3a6fc0', '#2f5aa0'],
   SEN: ['#2a9e5e', '#e6c44a'],
+  SMR: ['#6fb3e0', '#c0c6d2'],
   SRB: ['#d6454f', '#3a5fa8'],
   SUI: ['#d6454f', '#c0c6d2'],
+  SVK: ['#3a5fb0', '#d6454f'],
+  SVN: ['#2f9e6a', '#3a6fc0'],
   SWE: ['#3a6fb5', '#e6c44a'],
   TUN: ['#d6454f', '#c0c6d2'],
   TUR: ['#d6454f', '#c0c6d2'],
+  UKR: ['#e6c44a', '#3a6fc0'],
   URU: ['#5a9fd6', '#e6c44a'],
   // Red-led with navy at depth (plus the white of the glow layer): the
   // red-white-blue read, not "generic blue team".
@@ -121,54 +156,52 @@ function chroma(hex: string): number {
 const COLLISION_DELTA_E = 0.12
 
 /**
- * Pick which of a team's two tones fills its side (`field`) and which becomes
- * the top-corner accent (`cap`). Normally primary fills — but when the two
- * primaries collide, one team drops to its secondary, the way Apple Sports
- * moves a team to its alternate kit color when the home kits clash (their
- * Scotland-goes-yellow / Haiti-is-blue behavior). Among the swap options we
- * pick the one whose two field colors are farthest apart in OKLab, preferring
- * chromatic fields (Spain moves to gold rather than Austria to silver) and
- * penalizing swaps so identity survives when possible.
+ * Pick which of a team's tones fills its side (`field`) and which becomes the
+ * top-corner accent (`cap`). Normally the lead fills — but when the two leads
+ * collide, one team moves to another of its colours, the way Apple Sports
+ * moves a team to its alternate kit colour when the home kits clash (their
+ * Scotland-goes-yellow / Haiti-is-blue behavior).
  *
- * A near-black field is penalized much harder than a pale one. The sheet is
- * painted over a near-black panel, so a black side is not a colour there, it
- * is a hole: Dortmund–Villarreal went black against yellow on lightness
- * contrast alone, where Apple (and Villarreal's own away kit) has yellow
- * against blue. A pale field still reads as lit cloth, so Atlético moving to
- * its white stripes against Liverpool keeps the light penalty.
+ * The away side changes, as the away team changes kit: it takes whichever of
+ * its colours — its curated deep tone included — stands farthest from the
+ * home lead, with a small cost for leaving its own lead so identity survives
+ * when it can. The home side only moves if none of the away team's colours
+ * can stand apart. A colourless field (white, silver, black) is penalized
+ * hard: side by side in solid halves, a silver side reads as grey rather
+ * than white, and over the near-black panel a black side is not a colour but
+ * a hole. So Atlético goes navy against Liverpool, the colour of its shorts,
+ * rather than silver.
  */
-function fieldPenalty(hex: string): number {
-  if (chroma(hex) >= 0.04) return 0
-  return hexToOklab(hex).L < 0.4 ? 0.25 : 0.05
-}
+const HOME_MOVE_COST = 0.1
 
 function resolveFields(
-  h: readonly [string, string],
-  a: readonly [string, string],
-): { home: readonly [string, string]; away: readonly [string, string] } {
-  // (deep tones are handled by the caller — the collision rule only ever
-  // trades between lead and accent)
-  if (deltaE(h[0], a[0]) >= COLLISION_DELTA_E) return { home: h, away: a }
-  const orderings = [0, 1] as const
-  let best = { home: h, away: a }
-  let bestScore = -Infinity
-  for (const hi of orderings) {
-    for (const ai of orderings) {
-      const hField = h[hi]
-      const aField = a[ai]
-      const swaps = hi + ai
-      const score =
-        deltaE(hField, aField) - 0.04 * swaps - fieldPenalty(hField) - fieldPenalty(aField)
-      if (score > bestScore) {
-        bestScore = score
-        best = {
-          home: [h[hi], h[1 - hi]],
-          away: [a[ai], a[1 - ai]],
-        }
+  hPal: readonly string[],
+  aPal: readonly string[],
+): { home: [string, string]; away: [string, string] } {
+  const pair = (pal: readonly string[], i: number): [string, string] => [
+    pal[i],
+    i === 0 ? pal[1] : pal[0],
+  ]
+  if (deltaE(hPal[0], aPal[0]) >= COLLISION_DELTA_E) return { home: pair(hPal, 0), away: pair(aPal, 0) }
+  const penalty = (hex: string) => (chroma(hex) >= 0.04 ? 0 : 0.2)
+  // The best colour for one side to move to while the other keeps its lead.
+  const pick = (fixed: string, pal: readonly string[], cost: number) => {
+    let i = 0
+    let score = -Infinity
+    pal.forEach((c, j) => {
+      const s = deltaE(fixed, c) - penalty(c) - (j > 0 ? cost : 0)
+      if (s > score) {
+        score = s
+        i = j
       }
-    }
+    })
+    return { i, score }
   }
-  return best
+  const away = pick(hPal[0], aPal, 0.04)
+  const home = pick(aPal[0], hPal, HOME_MOVE_COST)
+  return away.score >= home.score
+    ? { home: pair(hPal, 0), away: pair(aPal, away.i) }
+    : { home: pair(hPal, home.i), away: pair(aPal, 0) }
 }
 
 /**
@@ -196,31 +229,22 @@ export function paletteFor(
  * When both teams are known, their field colors go through the collision rule
  * above so a matchup never reads as one undifferentiated color.
  */
-export function matchTint(
-  home: TeamId | null,
-  away: TeamId | null,
-): Record<string, string> {
+export function matchTint(home: TeamId | null, away: TeamId | null): Record<string, string> {
   const vars: Record<string, string> = {}
   const hPal = home ? paletteFor(home) : undefined
   const aPal = away ? paletteFor(away) : undefined
-  let h: readonly [string, string] | undefined = hPal && [hPal[0], hPal[1]]
-  let a: readonly [string, string] | undefined = aPal && [aPal[0], aPal[1]]
-  if (h && a) {
-    const resolved = resolveFields(h, a)
-    h = resolved.home
-    a = resolved.away
-  }
-  if (h && hPal) {
-    vars['--home-1'] = h[0]
-    vars['--home-2'] = h[1]
-    vars['--home-glow'] = glowColor(h[0])
-    vars['--home-deep'] = deepTone(hPal, h[0])
-  }
-  if (a && aPal) {
-    vars['--away-1'] = a[0]
-    vars['--away-2'] = a[1]
-    vars['--away-glow'] = glowColor(a[0])
-    vars['--away-deep'] = deepTone(aPal, a[0])
+  const resolved = hPal && aPal ? resolveFields(hPal, aPal) : undefined
+  const sides = [
+    ['home', hPal, resolved?.home],
+    ['away', aPal, resolved?.away],
+  ] as const
+  for (const [side, pal, fields] of sides) {
+    if (!pal) continue
+    const [field, cap] = fields ?? [pal[0], pal[1]]
+    vars[`--${side}-1`] = field
+    vars[`--${side}-2`] = cap
+    vars[`--${side}-glow`] = glowColor(field)
+    vars[`--${side}-deep`] = deepTone(pal, field)
   }
   return vars
 }
@@ -228,7 +252,7 @@ export function matchTint(
 /**
  * The tone a side falls into toward the bottom of the surface. A curated deep
  * only applies while the team still leads with its curated lead — if the
- * collision rule moved it to its alternate, the curated deep was tuned for
+ * collision rule moved it to another colour, the curated deep was tuned for
  * the wrong hue, so we derive a darkened version of the resolved field
  * instead (Spain-gone-gold deepens into dark gold, not into dark red).
  */

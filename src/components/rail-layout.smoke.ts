@@ -7,6 +7,7 @@ import {
   getDayLayout,
   getDayRows,
 } from './railLayout'
+import { pickFlickStop, rubberBand, settleOmega, SPRING_OMEGA, stepSpring } from './stripPhysics'
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
@@ -140,7 +141,8 @@ assert(
 )
 assert(
   railSource.includes('const swipeTargetIndexRef = useRef<number | null>(null)') &&
-    railSource.includes('const getSwipeSourceIndex = () => swipeTargetIndexRef.current ?? idx') &&
+    // Falls back to the day committed right now (activeRef), not the last render's idx.
+    /const getSwipeSourceIndex = \(\) =>\s*swipeTargetIndexRef\.current \?\? Math\.min\(Math\.max\(activeRef\.current, 0\), dates\.length - 1\)/.test(railSource) &&
     /const swipeToIndex = \(i: number\) => \{[\s\S]*?const swipeSourceIndex = getSwipeSourceIndex\(\)[\s\S]*?if \(clamped === swipeSourceIndex\) return false[\s\S]*?swipeTargetIndexRef\.current = clamped[\s\S]*?scrollToIndex\(clamped, true\)[\s\S]*?return true/.test(
       railSource,
     ) &&
@@ -182,10 +184,11 @@ assert(
   'mobile Today day swipes start from the document below the header while preserving carousel and modal gestures',
 )
 assert(
-  railSource.includes('onClick={() => scrollToIndex(idx - 1, true)}') &&
-    railSource.includes('onClick={() => scrollToIndex(idx + 1, true)}') &&
-    railSource.includes('onClick={() => scrollToIndex(anchorIndex, true)}'),
-  'existing carousel buttons keep using the original smooth scroll path',
+  railSource.includes('onClick={() => goToIndex(getSwipeSourceIndex() - 1)}') &&
+    railSource.includes('onClick={() => goToIndex(getSwipeSourceIndex() + 1)}') &&
+    railSource.includes('onClick={() => goToIndex(anchorIndex)}') &&
+    /const goToIndex = [\s\S]*?if \(dayNavFeel\.glide === 'crisp'\) crispScrollTo\(clamped\)\s*else \{[\s\S]*?engineStop\(\)\s*cancelGlide\(\)[\s\S]*?cancelMomentum\(\)[\s\S]*?scrollToIndex\(clamped, true\)\s*\}\s*\}/.test(railSource),
+  'carousel buttons step through goToIndex, which keeps the original smooth scroll path unless a crisp or spring glide is on, and first stops any coast still running so the step is not lost',
 )
 assert(
   /if \(direction === 0\) return[\s\S]*?if \(!canSwipeToDirection\(direction, swipeSourceIndex\)\) return[\s\S]*?if \(!swipeToIndex\(swipeSourceIndex \+ direction\)\) return[\s\S]*?suppressClickUntilRef\.current = performance\.now\(\) \+ 320/.test(
@@ -207,5 +210,37 @@ assert(
   ),
   'mobile Today swipe surface extends through the main area below the app header',
 )
+
+// ---- strip physics ----
+{
+  // Settles on the day without passing it, from rest or from a flick.
+  for (const v0 of [0, 1.5, 6]) {
+    const omega = settleOmega(0, v0, 190)
+    let st = { x: 0, v: v0 }
+    let maxX = 0
+    for (let t = 0; t < 1200; t += 16) {
+      st = stepSpring(st, 190, omega, 16)
+      maxX = Math.max(maxX, st.x)
+    }
+    assert(maxX <= 190.01, `spring launched at ${v0}px/ms never overshoots the day (peak ${maxX.toFixed(2)})`)
+    assert(Math.abs(st.x - 190) < 0.5 && Math.abs(st.v) < 0.01, `spring launched at ${v0}px/ms comes to rest on the day`)
+  }
+  // One 64ms step lands where four 16ms steps do (closed form, not Euler).
+  const long = stepSpring({ x: 0, v: 0 }, 190, SPRING_OMEGA, 64)
+  let short = { x: 0, v: 0 }
+  for (let i = 0; i < 4; i++) short = stepSpring(short, 190, SPRING_OMEGA, 16)
+  assert(Math.abs(long.x - short.x) < 1e-9, 'a long frame lands exactly where the curve says')
+
+  const stops = [0, 190, 380, 570, 760]
+  assert(pickFlickStop(stops, 190, 0) === 1, 'no flick settles on the nearest day')
+  assert(pickFlickStop(stops, 200, 0.2) === 1, 'a gentle flick stays on the day you slowed onto')
+  assert(pickFlickStop(stops, 190, 2) === 3, 'a flick lands where the original momentum coasted (v × 200ms)')
+  assert(pickFlickStop(stops, 760, 3) === 4, 'a flick at the end stays on the last day')
+
+  assert(rubberBand(0, 300) === 0, 'no overshoot, no rubber band')
+  assert(rubberBand(1000, 300) < 300 && rubberBand(-1000, 300) > -300, 'the rubber band never gives more than its dimension')
+  assert(rubberBand(50, 300) < 50 && rubberBand(50, 300) > 0, 'the rubber band gives less than you pull')
+
+}
 
 console.log('rail-layout smoke: ok')

@@ -50,6 +50,7 @@ const emptyProgress: Progress = {
   revealed: new Set(),
   pins: new Set(),
   pinOrder: [],
+  allPinOrder: [],
   favorites: [],
   favAuto: true,
   spotlight: false,
@@ -58,6 +59,9 @@ const emptyProgress: Progress = {
   reveal: noop,
   togglePin: noop,
   setPinOrder: noop,
+  reorderAllPins: noop,
+  removePins: noop,
+  forTournament: () => emptyProgress,
   toggleFavorite: noop,
   setFavorites: noop,
   setFavAuto: noop,
@@ -322,30 +326,29 @@ assert(
   'fullscreen cannot scale the title mask with viewport height',
 )
 assert(
-  /\.player-wrap\s*\{[\s\S]*?--player-youtube-controls-width:\s*156px;/.test(appCss) &&
-    /\.player-titlebar\s*\{[\s\S]*?right:\s*var\(--player-youtube-controls-width\);/.test(appCss),
-  'the title shield ends where YouTube reserves its top-right control cluster',
+  /\.player-wrap\s*\{[\s\S]*?--player-youtube-controls-width:\s*168px;/.test(appCss) &&
+    /\.player-titlebar\s*\{[\s\S]*?right:\s*calc\(var\(--player-youtube-controls-width\) - 8px\);/.test(appCss) &&
+    /@container \(max-width: 359px\)\s*\{\s*\.player-titlebar\s*\{\s*--player-youtube-controls-width:\s*96px;/.test(appCss),
+  'the title shield reaches YouTube\'s top-right control cluster without covering it, including the narrower touch cluster',
 )
 assert(
   /\.player-titlebar\s*\{[\s\S]*?background:\s*#05070b;/.test(appCss) &&
-    /@supports\s*\(\(backdrop-filter:\s*blur\(1px\)\)\s*or\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)\)\s*\{[\s\S]*?\.player-titlebar\s*\{[\s\S]*?background:\s*rgba\(5,\s*7,\s*11,\s*0\.78\);[\s\S]*?backdrop-filter:\s*blur\(18px\)\s+saturate\(0\.72\);/.test(
-      appCss,
-    ),
-  'the title shield uses spoiler-safe glass with an opaque fallback',
+    /@supports\s*\(\(backdrop-filter:\s*blur\(1px\)\)\s*or\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)\)\s*\{\s*\.player-titlebar\s*\{[\s\S]*?background:\s*none;/.test(appCss) &&
+    /\.player-titlebar-glass > span\s*\{[\s\S]*?backdrop-filter:\s*blur\(var\(--blur\)\);/.test(appCss) &&
+    /\.player-titlebar-glass > span:nth-child\(1\)\s*\{\s*--blur:\s*24px;/.test(appCss) &&
+    /<span className="player-titlebar-glass" aria-hidden="true">\s*(<span \/>\s*){7}<\/span>/.test(playerSource),
+  'the title shield is stepped progressive glass, strongest over the title line, with an opaque fallback',
 )
 assert(
   /\.player-expand\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?right:\s*0;[\s\S]*?bottom:\s*0;/.test(appCss),
   'the custom fullscreen control occupies the familiar lower-right position',
 )
 assert(
-  /\.player-expand\s*\{[\s\S]*?width:\s*48px;[\s\S]*?height:\s*48px;[\s\S]*?background:\s*transparent;/.test(
-    appCss,
-  ) &&
-    /\.player-expand:hover,[\s\S]*?\.player-expand:focus-visible\s*\{[\s\S]*?background:\s*rgba\(5,\s*7,\s*11,\s*0\.42\);/.test(
-      appCss,
-    ) &&
-    /className="player-expand"[\s\S]*?<svg[^>]*width="24" height="24"/.test(playerSource),
-  'the fullscreen control has a native-size hit target and glyph without a permanent box',
+  /\.player-expand\s*\{[\s\S]*?--player-expand-size:\s*clamp\(44px,/.test(appCss) &&
+    /\.player-expand::before\s*\{[\s\S]*?inset:\s*var\(--player-expand-gap\);[\s\S]*?border-radius:\s*50%;/.test(appCss) &&
+    /\.player-expand svg\s*\{[\s\S]*?width:\s*calc\(var\(--player-expand-size\) \* 0\.5\);/.test(appCss) &&
+    /className="player-expand"[\s\S]*?<svg\s+viewBox="0 0 24 24"/.test(playerSource),
+  'the fullscreen control is a round glass disc, at least 44px, inside a larger corner hit area, with a glyph sized to the disc',
 )
 assert(
   /<div className="player-titlebar">\s*<span[\s\S]*?<\/span>\s*<\/div>\s*<button[\s\S]*?className="player-expand"/.test(

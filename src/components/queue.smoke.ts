@@ -2,12 +2,12 @@ import { twoLeggedFixture } from '../logic/ties-fixture'
 import {
   dropIndex,
   reorder,
-  reorderSection,
   slotDuringDrag,
   slotOffset,
   splitQueue,
   type SlotRect,
 } from './queue'
+import { reorderSavedMatches } from '../state/progress'
 import { showsPlayButton } from './status'
 
 function assert(condition: boolean, message: string) {
@@ -91,15 +91,16 @@ assert(
 const risenLate = splitQueue(order, (id) => readyNow.has(id) || id === 'y')
 assert(risenLate.ready.join() === 'a,b,y,c', 'and never jumps ahead of a ready match you ranked above it')
 
-const dragged = reorderSection(order, ['c', 'a', 'b'])
+// A drag saves through reorderSavedMatches, which deals a subset back in place.
+const dragged = reorderSavedMatches(order, ['c', 'a', 'b'])
 assert(dragged.join() === 'c,x,a,y,b', 'a drag deals the section back into the slots it already held')
 assert(
   splitQueue(dragged, (id) => readyNow.has(id) || id === 'x').ready.join() === 'c,x,a,b',
   'a waiting match that becomes ready later lands where it ranked against the dragged ones',
 )
-assert(reorderSection(order, ['y', 'x']).join() === 'a,y,b,x,c', 'the waiting section reorders the same way')
-assert(reorderSection(order, []).join() === order.join(), 'an empty section changes nothing')
-assert(order.join() === 'a,x,b,y,c', 'reorderSection does not mutate its input')
+assert(reorderSavedMatches(order, ['y', 'x']).join() === 'a,y,b,x,c', 'the waiting section reorders the same way')
+assert(reorderSavedMatches(order, []).join() === order.join(), 'an empty section changes nothing')
+assert(order.join() === 'a,x,b,y,c', 'reordering does not mutate its input')
 
 const video = { kind: 'normal' as const, youtubeId: 'abcdefghijk' }
 const none = new Set<string>()

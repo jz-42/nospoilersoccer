@@ -90,3 +90,112 @@ assert(
 )
 
 console.log('ALL STANDINGS TESTS PASS')
+
+// --- UEFA Nations League chain ---------------------------------------------
+
+const uefa: Tiebreak[] = [
+  'head-to-head',
+  'goal-difference',
+  'goals-for',
+  'away-goals',
+  'wins',
+  'away-wins',
+  'disciplinary',
+  'access-list',
+]
+
+function uefaTournament(
+  ids: string[],
+  matches: Tournament['groupMatches'],
+  extras: Partial<Tournament> = {},
+): Tournament {
+  return {
+    id: 'uefa-test',
+    name: 'UEFA Test',
+    year: 2026,
+    advancingRanks: [],
+    tiebreakers: uefa,
+    teams: Object.fromEntries(ids.map((id, index) => [id, { ...team(id), accessRank: index + 1 }])),
+    groups: [{ id: 'U', teams: ids }],
+    groupMatches: matches,
+    knockoutRounds: [],
+    ...extras,
+  }
+}
+
+const recursive = uefaTournament(['a', 'b', 'c'], [
+  { id: 'r1', group: 'U', matchday: 1, date: '2026-01-01', home: 'a', away: 'b', score: { home: 0, away: 0 } },
+  { id: 'r2', group: 'U', matchday: 2, date: '2026-01-02', home: 'b', away: 'a', score: { home: 0, away: 1 } },
+  { id: 'r3', group: 'U', matchday: 3, date: '2026-01-03', home: 'a', away: 'c', score: { home: 0, away: 0 } },
+  { id: 'r4', group: 'U', matchday: 4, date: '2026-01-04', home: 'c', away: 'a', score: { home: 2, away: 1 } },
+  { id: 'r5', group: 'U', matchday: 5, date: '2026-01-05', home: 'b', away: 'c', score: { home: 0, away: 0 } },
+  { id: 'r6', group: 'U', matchday: 6, date: '2026-01-06', home: 'c', away: 'b', score: { home: 0, away: 1 } },
+])
+assert(
+  groupStandings(recursive, 'U').map((r) => r.team).join() === 'c,a,b',
+  'UEFA recursively reapplies head-to-head to the teams still tied',
+)
+
+const awayGoals = uefaTournament(['home', 'away'], [
+  { id: 'ag1', group: 'U', matchday: 1, date: '2026-02-01', home: 'home', away: 'away', score: { home: 1, away: 1 } },
+  { id: 'ag2', group: 'U', matchday: 2, date: '2026-02-02', home: 'away', away: 'home', score: { home: 0, away: 0 } },
+])
+assert(
+  groupStandings(awayGoals, 'U').map((r) => r.team).join() === 'away,home',
+  'away goals settle an otherwise level pair',
+)
+
+const awayWinScores: Array<[string, string, number, number]> = [
+  ['a', 'b', 0, 1], ['b', 'a', 0, 1], ['a', 'c', 1, 0], ['c', 'a', 1, 1],
+  ['a', 'd', 0, 2], ['d', 'a', 0, 0], ['b', 'c', 1, 1], ['c', 'b', 2, 0],
+  ['b', 'd', 0, 0], ['d', 'b', 0, 1], ['c', 'd', 1, 1], ['d', 'c', 1, 0],
+]
+const awayWins = uefaTournament(
+  ['a', 'b', 'c', 'd'],
+  awayWinScores.map(([home, away, h, a], index) => ({
+    id: `aw${index + 1}`,
+    group: 'U',
+    matchday: index + 1,
+    date: `2026-03-${String(index + 1).padStart(2, '0')}`,
+    home,
+    away,
+    score: { home: h, away: a },
+  })),
+  { tiebreakers: ['goal-difference', 'goals-for', 'away-goals', 'wins', 'away-wins'] },
+)
+const awayWinOrder = groupStandings(awayWins, 'U').map((r) => r.team)
+assert(
+  awayWinOrder.indexOf('b') < awayWinOrder.indexOf('a'),
+  'away wins follow total wins in the chain',
+)
+
+const disciplinary = uefaTournament(['clean', 'booked'], [], {
+  tiebreakers: ['disciplinary', 'access-list'],
+  groups: [{ id: 'U', teams: ['clean', 'booked'], disciplinary: { clean: 2, booked: 5 } }],
+})
+assert(
+  groupStandings(disciplinary, 'U').map((r) => r.team).join() === 'clean,booked',
+  'lower disciplinary score ranks first',
+)
+
+const accessList = uefaTournament(['unseeded', 'seeded'], [], {
+  tiebreakers: ['access-list'],
+  teams: {
+    unseeded: { ...team('unseeded'), accessRank: 20 },
+    seeded: { ...team('seeded'), accessRank: 4 },
+  },
+})
+assert(
+  groupStandings(accessList, 'U').map((r) => r.team).join() === 'seeded,unseeded',
+  'access list is the final fallback',
+)
+
+const officialOrder = uefaTournament(['x', 'y'], [], {
+  groups: [{ id: 'U', teams: ['x', 'y'], officialOrder: ['y', 'x'] }],
+})
+assert(
+  groupStandings(officialOrder, 'U', () => false).map((r) => r.team).join() === 'x,y',
+  'a partial revealed table does not consult official final order',
+)
+
+console.log('ALL UEFA STANDINGS TESTS PASS')

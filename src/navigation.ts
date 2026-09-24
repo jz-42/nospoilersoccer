@@ -4,6 +4,13 @@ import { localDateKey } from './time/local'
 
 export type View = 'day' | 'groups' | 'bracket'
 
+/** The two league-phase windows in which Nations League is the top competition. */
+export function isNationsLeaguePriorityWindow(now: Date = new Date()): boolean {
+  const date = localDateKey(now)
+  return (date >= '2026-09-24' && date <= '2026-10-06')
+    || (date >= '2026-11-12' && date <= '2026-11-17')
+}
+
 function tournamentMatches(t: Tournament) {
   return [
     ...t.groupMatches,
@@ -32,11 +39,23 @@ export function isTournamentArchived(
  * A config flag could contradict the data; a derivation cannot.
  */
 export function hasKnockouts(t: Tournament): boolean {
-  return t.knockoutRounds.length > 0
+  return t.knockoutRounds.length > 0 || Boolean(t.knockoutTracks?.length)
 }
 
 export function hasGroups(t: Tournament): boolean {
   return t.groups.length > 1
+}
+
+/**
+ * Compact context for a group-phase match card. Always the group's own name —
+ * "Group F", "Group A2" — the same words the match sheet and the group tables
+ * use. A sectioned competition doesn't prefix its section: a Nations League
+ * group id already carries its league, so "League A · A2" said the A twice.
+ */
+export function groupContextLabel(t: Tournament, groupId: string): string | null {
+  if (!hasGroups(t)) return null
+  const group = t.groups.find((candidate) => candidate.id === groupId)
+  return group ? `Group ${group.id}` : null
 }
 
 /** 'Group stage' for a cup, 'Table' or 'League phase' for a single-table competition. */
