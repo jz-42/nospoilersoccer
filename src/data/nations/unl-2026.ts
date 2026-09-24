@@ -566,9 +566,33 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-24T18:45Z",
       "home": "AUT",
       "away": "ISR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "AUT",
+          "player": "Romano Schmid",
+          "minute": "43'",
+          "penalty": true
+        },
+        {
+          "team": "ISR",
+          "player": "Saied Abu Farchi",
+          "minute": "55'"
+        },
+        {
+          "team": "AUT",
+          "player": "Phillipp Mwene",
+          "minute": "90'"
+        },
+        {
+          "team": "AUT",
+          "player": "Sasa Kalajdzic",
+          "minute": "90'+3'"
+        }
+      ]
     },
     {
       "id": "unl-401861049",

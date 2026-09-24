@@ -157,11 +157,34 @@
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861048": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "AUT",
+          "player": "Romano Schmid",
+          "minute": "43'",
+          "penalty": true
+        },
+        {
+          "team": "ISR",
+          "player": "Saied Abu Farchi",
+          "minute": "55'"
+        },
+        {
+          "team": "AUT",
+          "player": "Phillipp Mwene",
+          "minute": "90'"
+        },
+        {
+          "team": "AUT",
+          "player": "Sasa Kalajdzic",
+          "minute": "90'+3'"
+        }
+      ],
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861049": {
