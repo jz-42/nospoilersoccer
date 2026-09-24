@@ -139,7 +139,7 @@ export function WatchLater({
     setOpen(false)
     const watched = ids.filter((key) => {
       const saved = entries.get(key)
-      return saved && progress.forTournament(saved.tournament).marks[saved.entry.target.match.id] !== undefined
+      return saved && progress.forTournament(saved.tournament).marks[saved.entry.target.match.id] === 'watched'
     })
     if (watched.length > 0) progress.removePins(watched)
   }, [ids, entries, progress])
