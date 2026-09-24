@@ -27,7 +27,9 @@
       "kickoff": "2026-09-24T16:00Z"
     },
     "unl-401861041": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-24T18:45Z"
@@ -49,7 +51,9 @@
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861044": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-24T18:45Z"
@@ -71,7 +75,9 @@
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861048": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-24T18:45Z"
