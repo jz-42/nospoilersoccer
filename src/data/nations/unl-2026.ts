@@ -467,9 +467,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-24T18:45Z",
       "home": "KOS",
       "away": "IRL",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "KOS",
+          "player": "Vedat Muriqi",
+          "minute": "83'"
+        }
+      ]
     },
     {
       "id": "unl-401861046",

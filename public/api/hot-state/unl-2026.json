@@ -71,11 +71,18 @@
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861045": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "KOS",
+          "player": "Vedat Muriqi",
+          "minute": "83'"
+        }
+      ],
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861046": {
