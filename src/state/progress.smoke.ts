@@ -1,4 +1,4 @@
-import { migrate, reorderSavedMatches } from './progress'
+import { migrate, readStored, reorderSavedMatches } from './progress'
 import { resetTournamentProgressForViewing, type TournamentProgress } from './reset'
 
 function assert(cond: boolean, msg: string) {
@@ -114,5 +114,98 @@ assert(
     'ucl/c,wc/b,ucl/a,unl/d',
   'reordering visible saved matches preserves other tournaments in place',
 )
+
+// A tab left open through a deploy can still write the older schema. Its new
+// saves must join the newer tab's backup, without restoring unchanged old saves
+// that the newer tab deliberately removed.
+const storage = new Map<string, string>()
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => { storage.set(key, value) },
+  },
+})
+storage.set('nss-progress-last-good', JSON.stringify({
+  version: 6, revision: 4,
+  tournaments: {
+    wc2026: { marks: { A1: 'skipped' }, revealed: [], pins: ['A1'] },
+  },
+  pinOrder: ['wc2026/A1'], favorites: ['MEX'], favAuto: false, spotlight: true,
+}))
+storage.set('nss-progress-legacy-base', JSON.stringify({
+  version: 5,
+  tournaments: {
+    wc2026: { marks: {}, revealed: [], pins: ['A1', 'old-removed'] },
+  },
+  pinOrder: ['wc2026/A1', 'wc2026/old-removed'],
+  favorites: ['MEX'], favAuto: false, spotlight: true,
+}))
+storage.set('nss-progress', JSON.stringify({
+  version: 5,
+  tournaments: {
+    wc2026: { marks: {}, revealed: ['new-reveal'], pins: ['A1', 'old-removed'] },
+    'ucl-2026': { marks: {}, revealed: [], pins: ['newMatch'] },
+    'eng1-2026': { marks: { newMarked: 'watched' }, revealed: [], pins: [] },
+  },
+  pinOrder: ['wc2026/A1', 'wc2026/old-removed', 'ucl-2026/newMatch'],
+  favorites: ['MEX', 'ARS'], favAuto: true, spotlight: true,
+}))
+const crossVersion = readStored()!
+assert(crossVersion.pinOrder.includes('ucl-2026/newMatch'), 'older tab additions survive a deploy')
+assert(crossVersion.tournaments['ucl-2026']?.pins.includes('newMatch') ?? false, 'an unwatched old-tab save remains saved on its match card')
+assert(!crossVersion.pinOrder.includes('wc2026/old-removed'), 'unchanged stale saves stay removed')
+assert(crossVersion.favorites.includes('ARS'), 'newly followed teams from an older tab survive a deploy')
+assert(crossVersion.favAuto, 'older tab preference changes survive when the newer tab left that choice alone')
+assert(crossVersion.tournaments.wc2026.marks.A1 === 'skipped', 'newer viewing choices stay intact')
+assert(crossVersion.tournaments['eng1-2026'].marks.newMarked === 'watched', 'older tab new marks survive a deploy')
+assert(crossVersion.tournaments.wc2026.revealed.includes('new-reveal'), 'older tab new reveals survive a deploy')
+assert(JSON.parse(storage.get('nss-progress-last-good')!).pinOrder.includes('ucl-2026/newMatch'),
+  'reconciled saves reach durable storage before the old-tab baseline advances')
+assert(JSON.parse(storage.get('nss-progress-legacy-base')!).pinOrder.includes('ucl-2026/newMatch'),
+  'imported old-tab saves become part of the baseline')
+storage.set('nss-progress-last-good', JSON.stringify({
+  ...crossVersion,
+  revision: crossVersion.revision + 1,
+  pinOrder: ['wc2026/A1'],
+  tournaments: {
+    ...crossVersion.tournaments,
+    'ucl-2026': { ...crossVersion.tournaments['ucl-2026'], pins: [] },
+  },
+}))
+assert(!readStored()!.pinOrder.includes('ucl-2026/newMatch'),
+  'a later explicit removal is not undone by the still-open old tab')
+storage.clear()
+storage.set('nss-progress', JSON.stringify({
+  version: 5,
+  tournaments: { wc2026: { marks: {}, revealed: [], pins: ['A1'] } },
+  pinOrder: ['wc2026/A1'], favorites: [], favAuto: true, spotlight: false,
+}))
+readStored()
+assert(storage.has('nss-progress-legacy-base'), 'the first upgraded read keeps a baseline for later old-tab edits')
+storage.clear()
+storage.set('nss-progress-last-good', JSON.stringify({
+  version: 6, revision: 4,
+  tournaments: { wc2026: { marks: {}, revealed: [], pins: [] } },
+  pinOrder: [], favorites: [], favAuto: true, spotlight: false,
+}))
+storage.set('nss-progress', JSON.stringify({
+  version: 5,
+  tournaments: { wc2026: { marks: { A1: 'watched' }, revealed: [], pins: ['A1'] } },
+  pinOrder: ['wc2026/A1'], favorites: [], favAuto: true, spotlight: false,
+}))
+const withoutBaseline = readStored()!
+assert(!withoutBaseline.pinOrder.includes('wc2026/A1') && !withoutBaseline.tournaments.wc2026.marks.A1,
+  'a stale legacy save cannot restore a match or mark removed before baseline tracking')
+assert(JSON.parse(storage.get('nss-progress-legacy-base')!).pinOrder.includes('wc2026/A1'),
+  'the old snapshot becomes the baseline for later edits')
+storage.set('nss-progress', JSON.stringify({
+  version: 5,
+  tournaments: { wc2026: { marks: { A1: 'watched' }, revealed: [], pins: ['A1', 'B1'] } },
+  pinOrder: ['wc2026/A1', 'wc2026/B1'], favorites: [], favAuto: true, spotlight: false,
+}))
+assert(readStored()!.pinOrder.join() === 'wc2026/B1',
+  'an old tab addition made after baseline seeding is imported without restoring stale saves')
+delete (globalThis as { localStorage?: unknown }).localStorage
 
 console.log('ALL PASS')
