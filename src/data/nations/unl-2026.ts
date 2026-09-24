@@ -430,9 +430,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-24T18:45Z",
       "home": "LIE",
       "away": "LTU",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "LTU",
+          "player": "Lukas Michelbrink",
+          "minute": "53'"
+        },
+        {
+          "team": "LTU",
+          "player": "Artur Dolznikov",
+          "minute": "66'"
+        }
+      ]
     },
     {
       "id": "unl-401861044",

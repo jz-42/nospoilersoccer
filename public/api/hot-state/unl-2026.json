@@ -43,11 +43,23 @@
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861043": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "LTU",
+          "player": "Lukas Michelbrink",
+          "minute": "53'"
+        },
+        {
+          "team": "LTU",
+          "player": "Artur Dolznikov",
+          "minute": "66'"
+        }
+      ],
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861044": {
