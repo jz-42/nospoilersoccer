@@ -28,35 +28,50 @@ export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
 const KEY = 'nss-player-settings'
 const listeners = new Set<() => void>()
 
-function read(): PlayerSettings {
+function readStored(): PlayerSettings | null {
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<PlayerSettings>
+    const raw = localStorage.getItem(KEY)
+    if (raw === null) return null
+    const saved = JSON.parse(raw) as Partial<PlayerSettings>
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return null
     const merged = { ...DEFAULT_PLAYER_SETTINGS, ...saved }
     if (!(SKIP_CHOICES as readonly number[]).includes(merged.skipSeconds)) {
       merged.skipSeconds = DEFAULT_PLAYER_SETTINGS.skipSeconds
     }
     return merged
   } catch {
-    return DEFAULT_PLAYER_SETTINGS
+    return null
   }
 }
 
 // read() falls back to the defaults wherever storage is missing (Node) or
 // throws on access (site data blocked, sandboxed frames).
-let current: PlayerSettings = read()
+let current: PlayerSettings = readStored() ?? DEFAULT_PLAYER_SETTINGS
+let warned = false
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== KEY) return
+    current = readStored() ?? DEFAULT_PLAYER_SETTINGS
+    listeners.forEach((listener) => listener())
+  })
+}
 
 function commit(next: PlayerSettings) {
   current = next
   try {
     localStorage.setItem(KEY, JSON.stringify(next))
   } catch {
-    /* private mode: the change still holds for this page */
+    if (!warned && typeof window !== 'undefined') {
+      warned = true
+      window.alert('Your player preferences cannot be saved in this browser right now. Check browser storage before closing this tab.')
+    }
   }
   listeners.forEach((l) => l())
 }
 
 export function setPlayerSetting<K extends keyof PlayerSettings>(key: K, value: PlayerSettings[K]) {
-  commit({ ...current, [key]: value })
+  commit({ ...current, ...readStored(), [key]: value })
 }
 
 export function resetPlayerSettings() {

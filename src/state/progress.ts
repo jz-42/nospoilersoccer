@@ -14,8 +14,10 @@
  *            shared across competitions by design (see data/club/clubs.ts).
  *   v4 → v5: Watch Later gained one global order. Each tournament keeps its
  *            local pins so existing match cards and saves retain their state.
+ *   v5 → v6: add a write revision and keep a last-good copy so stale tabs and
+ *            interrupted writes cannot replace the newest saved progress.
  */
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { TeamId, Tournament } from '../data/types'
 import type { Mark, Marks } from '../logic/spoilers'
 import { withUnmarked } from '../logic/spoilers'
@@ -26,7 +28,8 @@ import {
 } from './reset'
 
 const STORAGE_KEY = 'nss-progress'
-const CURRENT_VERSION = 5
+const BACKUP_KEY = 'nss-progress-last-good'
+const CURRENT_VERSION = 6
 
 /** Include the season in a saved match's identity; match ids can overlap. */
 export const watchLaterKey = (tournamentId: string, matchId: string): string =>
@@ -57,6 +60,8 @@ export function reorderSavedMatches(current: readonly string[], visibleOrder: re
 
 interface ProgressState {
   version: number
+  /** Increases with each write so an older tab cannot displace a newer save. */
+  revision: number
   tournaments: Record<string, TournamentProgress>
   /** Saved matches from every tournament, in the user's queue order. */
   pinOrder: string[]
@@ -72,15 +77,34 @@ interface ProgressState {
 type V3TournamentProgress = TournamentProgress & { favorites?: TeamId[]; favAuto?: boolean }
 
 function emptyState(): ProgressState {
-  return { version: CURRENT_VERSION, tournaments: {}, pinOrder: [], favorites: [], favAuto: true, spotlight: false }
+  return { version: CURRENT_VERSION, revision: 0, tournaments: {}, pinOrder: [], favorites: [], favAuto: true, spotlight: false }
 }
 
 export function migrate(raw: unknown): ProgressState {
   if (typeof raw !== 'object' || raw === null) return emptyState()
-  const state = raw as ProgressState
-  if (typeof state.version !== 'number' || typeof state.tournaments !== 'object' || state.tournaments === null) {
-    return emptyState()
+  const incoming = raw as ProgressState
+  if (!Number.isInteger(incoming.version) || incoming.version < 1) return emptyState()
+  // One malformed season must never discard valid saves in the others.
+  const rawTournaments = incoming.tournaments && typeof incoming.tournaments === 'object' && !Array.isArray(incoming.tournaments)
+    ? incoming.tournaments
+    : {}
+  const tournaments: Record<string, TournamentProgress> = {}
+  for (const [id, value] of Object.entries(rawTournaments)) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue
+    const tp = value as TournamentProgress
+    tournaments[id] = {
+      ...tp,
+      marks: tp.marks && typeof tp.marks === 'object' && !Array.isArray(tp.marks) ? tp.marks : {},
+      revealed: Array.isArray(tp.revealed) ? tp.revealed.filter((x): x is string => typeof x === 'string') : [],
+      pins: Array.isArray(tp.pins) ? [...new Set(tp.pins.filter((x): x is string => typeof x === 'string'))] : [],
+      ...(incoming.version <= 3 ? {
+        favorites: Array.isArray((tp as V3TournamentProgress).favorites)
+          ? (tp as V3TournamentProgress).favorites!.filter((x): x is TeamId => typeof x === 'string')
+          : [],
+      } : {}),
+    }
   }
+  const state: ProgressState = { ...incoming, tournaments }
   if (state.version === 1) {
     for (const tp of Object.values(state.tournaments)) tp.revealed ??= []
     state.version = 2
@@ -119,37 +143,90 @@ export function migrate(raw: unknown): ProgressState {
     )
     state.version = 5
   }
+  if (state.version === 5) {
+    state.revision = 0
+    state.version = 6
+  }
   // Saved by a newer build (e.g. another tab): keep what we understand, and
   // never let a missing field crash a render.
   state.favorites = Array.isArray(state.favorites) ? state.favorites : []
   state.favAuto = typeof state.favAuto === 'boolean' ? state.favAuto : true
   state.spotlight = typeof state.spotlight === 'boolean' ? state.spotlight : false
-  state.pinOrder = Array.isArray(state.pinOrder)
+  const indexed = Array.isArray(state.pinOrder)
     ? [...new Set(state.pinOrder.filter((key): key is string => typeof key === 'string' && watchLaterParts(key) !== null))]
-    : Object.entries(state.tournaments).flatMap(([tournamentId, tp]) =>
-        (tp.pins ?? []).map((matchId) => watchLaterKey(tournamentId, matchId)),
-      )
-  if (state.version > CURRENT_VERSION) return { ...state, version: CURRENT_VERSION }
+    : []
+  const fromSeasons = Object.entries(state.tournaments).flatMap(([tournamentId, tp]) =>
+    tp.pins.map((matchId) => watchLaterKey(tournamentId, matchId)),
+  )
+  state.pinOrder = [...new Set([...indexed, ...fromSeasons])]
+  state.revision = Number.isSafeInteger(state.revision) && state.revision >= 0 ? state.revision : 0
+  // A tab running older code may read this state. Never claim it is our
+  // version and then write over fields the newer code understands.
   return state
 }
 
-function load(): ProgressState {
+interface StoredProgress {
+  state: ProgressState
+  sourceVersion: number
+}
+
+function decode(raw: string | null): StoredProgress | null {
+  if (raw === null) return null
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw === null) return emptyState()
-    return migrate(JSON.parse(raw))
+    const value = JSON.parse(raw)
+    if (!value || typeof value !== 'object' || !Number.isInteger(value.version)) return null
+    return { state: migrate(value), sourceVersion: value.version }
   } catch {
-    return emptyState()
+    return null
   }
 }
 
-function save(state: ProgressState) {
+/** Prefer the newest intact copy if a stale tab overwrites the legacy key. */
+function readStored(): ProgressState | null {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    const primary = decode(localStorage.getItem(STORAGE_KEY))
+    const backup = decode(localStorage.getItem(BACKUP_KEY))
+    if (!primary) return backup?.state ?? null
+    if (!backup) return primary.state
+    if (primary.state.version > CURRENT_VERSION) return primary.state
+    if (backup.state.version > CURRENT_VERSION) return backup.state
+    if (backup.state.revision > primary.state.revision) return backup.state
+    if (backup.state.revision === primary.state.revision && backup.sourceVersion > primary.sourceVersion) {
+      return backup.state
+    }
+    return primary.state
   } catch {
-    // Storage full or blocked (private browsing): the app still works,
-    // progress just won't survive the session.
+    return null
   }
+}
+
+function load(): ProgressState {
+  const state = readStored() ?? emptyState()
+  try {
+    const backup = decode(localStorage.getItem(BACKUP_KEY))
+    if (state.version <= CURRENT_VERSION && (!backup || backup.state.revision < state.revision)) {
+      localStorage.setItem(BACKUP_KEY, JSON.stringify(state))
+    }
+  } catch {
+    // The viewer can still use the in-memory state if storage is blocked.
+  }
+  return state
+}
+
+function save(state: ProgressState): boolean {
+  const value = JSON.stringify(state)
+  let saved = false
+  // Keep an independent last-good copy. Older deployed tabs only know the
+  // legacy key and cannot erase this one when they write a stale v4 save.
+  for (const key of [BACKUP_KEY, STORAGE_KEY]) {
+    try {
+      localStorage.setItem(key, value)
+      saved = true
+    } catch {
+      // One key can still succeed if a single write was interrupted.
+    }
+  }
+  return saved
 }
 
 const EMPTY = emptyTournamentProgress()
@@ -200,13 +277,47 @@ export interface Progress {
 
 export function useProgress(t: Tournament): Progress {
   const [state, setState] = useState<ProgressState>(load)
+  const stateRef = useRef(state)
+  const warnedRef = useRef(false)
+
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY && event.key !== BACKUP_KEY) return
+      const latest = readStored()
+      if (!latest) return
+      if (stateRef.current.version > CURRENT_VERSION && latest.version <= CURRENT_VERSION) return
+      if (latest.version <= CURRENT_VERSION && latest.revision < stateRef.current.revision) return
+      stateRef.current = latest
+      setState(latest)
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   const updateState = useCallback((updater: (prev: ProgressState) => ProgressState) => {
-    setState((prev) => {
-      const next = updater(prev)
-      if (next !== prev) save(next)
-      return next
-    })
+    const persisted = readStored()
+    const base = persisted && (persisted.version > CURRENT_VERSION ||
+      (stateRef.current.version <= CURRENT_VERSION && persisted.revision >= stateRef.current.revision))
+      ? persisted
+      : stateRef.current
+    if (base.version > CURRENT_VERSION) {
+      if (!warnedRef.current) {
+        warnedRef.current = true
+        window.alert('This tab is running an older version. Reload before changing saved matches or preferences.')
+      }
+      stateRef.current = base
+      setState(base)
+      return
+    }
+    const next = updater(base)
+    if (next === base) return
+    const revised = { ...next, revision: base.revision + 1 }
+    if (!save(revised) && !warnedRef.current) {
+      warnedRef.current = true
+      window.alert('Your changes cannot be saved in this browser right now. Check browser storage before closing this tab.')
+    }
+    stateRef.current = revised
+    setState(revised)
   }, [])
 
   const updateTournament = useCallback(
