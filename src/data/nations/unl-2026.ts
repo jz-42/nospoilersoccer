@@ -406,9 +406,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-24T18:45Z",
       "home": "NED",
       "away": "GER",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "GER",
+          "player": "Felix Nmecha",
+          "minute": "32'"
+        },
+        {
+          "team": "NED",
+          "player": "Cody Gakpo",
+          "minute": "90'+2'"
+        }
+      ]
     },
     {
       "id": "unl-401861042",
@@ -418,9 +431,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-24T18:45Z",
       "home": "SRB",
       "away": "GRE",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "SRB",
+          "player": "Andrija Zivkovic",
+          "minute": "4'"
+        },
+        {
+          "team": "GRE",
+          "player": "Christos Tzolis",
+          "minute": "74'"
+        },
+        {
+          "team": "GRE",
+          "player": "Anastasios Douvikas",
+          "minute": "90'+4'"
+        }
+      ]
     },
     {
       "id": "unl-401861043",
@@ -455,9 +486,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-24T18:45Z",
       "home": "POR",
       "away": "WAL",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "POR",
+          "player": "João Félix",
+          "minute": "22'"
+        }
+      ]
     },
     {
       "id": "unl-401861045",
@@ -487,9 +526,37 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-24T18:45Z",
       "home": "NOR",
       "away": "DEN",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 3,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Oscar Bobb",
+          "minute": "14'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "18'"
+        },
+        {
+          "team": "DEN",
+          "player": "Mikkel Damsgaard",
+          "minute": "25'"
+        },
+        {
+          "team": "DEN",
+          "player": "Rasmus Højlund",
+          "minute": "60'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "74'"
+        }
+      ]
     },
     {
       "id": "unl-401861048",
