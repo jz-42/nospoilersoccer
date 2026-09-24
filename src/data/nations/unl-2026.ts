@@ -376,9 +376,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-24T16:00Z",
       "home": "AND",
       "away": "MLT",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "AND",
+          "player": "Guillaume Lopez",
+          "minute": "17'"
+        },
+        {
+          "team": "MLT",
+          "player": "Irvin Cardona",
+          "minute": "36'"
+        },
+        {
+          "team": "MLT",
+          "player": "Teddy Teuma",
+          "minute": "81'"
+        }
+      ]
     },
     {
       "id": "unl-401861041",
