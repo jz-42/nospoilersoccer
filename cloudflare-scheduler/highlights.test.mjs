@@ -41,6 +41,35 @@ test('FOX Soccer source is exact and its authenticated recovery is capped at two
   assert.equal(isPotentialHighlight('foxsoccer', 'France scores late winner vs Italy | FOX Soccer'), false)
 })
 
+test('TUDN USA source accepts 15-minute Nations titles and excludes super extended cuts', () => {
+  const source = HIGHLIGHT_SOURCES.find((item) => item.id === 'tudn')
+  assert.equal(source.channelId, 'UCSo19KhHogXxu3sFsOpqrcQ')
+  assert.equal(source.playlistId, 'UUSo19KhHogXxu3sFsOpqrcQ')
+  assert.equal(source.scanDepth, 100)
+  assert.equal(isPotentialHighlight('tudn', 'HIGHLIGHTS - Serbia vs Grecia | UEFA Nations League - Jornada 1 2026-27 | TUDN'), true)
+  assert.equal(isPotentialHighlight('tudn', 'SUPER EXTENDED HIGHLIGHTS - Serbia vs Grecia | UEFA Nations League - Jornada 1 2026-27 | TUDN'), false)
+})
+
+test('TUDN USA 15-minute titles use the quota-free feed and super extended cuts do not', async () => {
+  const tudn = HIGHLIGHT_SOURCES.find((source) => source.id === 'tudn')
+  const queued = []
+  let quotaCalls = 0
+  await runFeedRecovery({
+    store: {
+      consumeQuota: async () => { quotaCalls += 1; return true },
+      upsertCandidate: async () => 'inserted',
+    },
+    queue: { send: async (candidate) => queued.push(candidate) },
+    fetchImpl: async (url) => new Response(url.includes(tudn.channelId)
+      ? `<feed><entry><yt:videoId>VW2NXp9RaOE</yt:videoId><yt:channelId>${tudn.channelId}</yt:channelId><title>HIGHLIGHTS - Países Bajos vs Alemania | UEFA Nations League - Jornada 1 2026-27 | TUDN</title><published>2026-09-24T21:38:16Z</published><updated>2026-09-24T21:38:16Z</updated></entry><entry><yt:videoId>rxprwWMkf0U</yt:videoId><yt:channelId>${tudn.channelId}</yt:channelId><title>SUPER EXTENDED HIGHLIGHTS - Serbia vs Grecia | UEFA Nations League - Jornada 1 2026-27 | TUDN</title><published>2026-09-24T22:30:10Z</published><updated>2026-09-24T22:30:10Z</updated></entry></feed>`
+      : '<feed></feed>'),
+  })
+  assert.equal(queued.length, 1)
+  assert.equal(queued[0].sourceId, 'tudn')
+  assert.equal(queued[0].videoId, 'VW2NXp9RaOE')
+  assert.equal(quotaCalls, 0)
+})
+
 test('FOX Sports Nations League uploads get a distinct curator route without an extra channel', () => {
   assert.equal(HIGHLIGHT_SOURCES.filter((source) => source.id === 'fox').length, 1)
   assert.equal(isPotentialHighlight('fox', 'Norway vs Denmark Highlights ⚽ UEFA Nations League'), true)
@@ -391,14 +420,14 @@ test('failed WebSub requests retry after a short cooldown instead of waiting six
   assert.equal(await store.subscriptionDue(HIGHLIGHT_SOURCES[0].channelId, now), true)
 })
 
-test('the six configured sources fit bounded authenticated recovery under budget', () => {
+test('the configured sources fit bounded authenticated recovery under budget', () => {
   const deportes = HIGHLIGHT_SOURCES.find((source) => source.id === 'espndeportes')
   assert.equal(deportes.channelId, 'UC08mnbiC4FykqpHqbEWgFcg')
   assert.equal(deportes.scanDepth, 100)
-  assert.equal(HIGHLIGHT_SOURCES.length, 6)
-  assert.equal(new Set(HIGHLIGHT_SOURCES.map((source) => source.channelId)).size, 6)
-  assert.equal(deepScanPageCost(HIGHLIGHT_SOURCES), 29)
-  assert.equal(projectedDailyBaseCost(HIGHLIGHT_SOURCES), 696)
+  assert.equal(HIGHLIGHT_SOURCES.length, 7)
+  assert.equal(new Set(HIGHLIGHT_SOURCES.map((source) => source.channelId)).size, 7)
+  assert.equal(deepScanPageCost(HIGHLIGHT_SOURCES), 31)
+  assert.equal(projectedDailyBaseCost(HIGHLIGHT_SOURCES), 744)
   assert.ok(projectedDailyBaseCost(HIGHLIGHT_SOURCES) < DAILY_QUOTA_LIMIT)
 })
 
@@ -678,11 +707,12 @@ test('normal recovery polls one newest page per source and enqueues only changed
     },
   })
 
+  const routineCount = HIGHLIGHT_SOURCES.filter((source) => source.id !== 'foxsoccer' && source.id !== 'tudn').length
   assert.equal(result.mode, 'normal')
-  assert.equal(result.pagesFetched, HIGHLIGHT_SOURCES.length - 1)
-  assert.equal(fetched.length, HIGHLIGHT_SOURCES.length - 1)
-  assert.equal(consumed, HIGHLIGHT_SOURCES.length - 1)
-  assert.equal(queued.length, HIGHLIGHT_SOURCES.length - 2)
+  assert.equal(result.pagesFetched, routineCount)
+  assert.equal(fetched.length, routineCount)
+  assert.equal(consumed, routineCount)
+  assert.equal(queued.length, routineCount - 1)
 })
 
 test('feed recovery checks all channels without quota and queues only likely highlights', async () => {
@@ -801,13 +831,14 @@ test('feed failures trigger shallow API recovery outside the hourly sweep', asyn
     },
   })
 
+  const routineCount = HIGHLIGHT_SOURCES.filter((source) => source.id !== 'foxsoccer' && source.id !== 'tudn').length
   assert.equal(result.feed.errors.length, HIGHLIGHT_SOURCES.length)
   assert.equal(result.api.mode, 'normal')
-  assert.equal(result.api.pagesFetched, HIGHLIGHT_SOURCES.length - 1)
-  assert.equal(consumed, HIGHLIGHT_SOURCES.length - 1)
+  assert.equal(result.api.pagesFetched, routineCount)
+  assert.equal(consumed, routineCount)
   assert.equal(
     fetched.filter((url) => url.startsWith('https://www.googleapis.com/youtube/v3/')).length,
-    HIGHLIGHT_SOURCES.length - 1,
+    routineCount,
   )
 })
 
@@ -921,7 +952,7 @@ test('FOX Soccer API recovery runs only for a Nations gap and respects its 48-un
     nationsRecovery: true,
     store: {
       quotaUsed: async () => consumed,
-      sourceQuotaUsed: async () => sourceUsed,
+      sourceQuotaUsed: async (_day, sourceId) => (sourceId === 'foxsoccer' ? sourceUsed : 0),
       consumeQuota: async (_day, method, units) => {
         if (method.startsWith('foxsoccer:')) assert.equal(method, 'foxsoccer:playlistItems.list')
         consumed += units
@@ -1010,6 +1041,8 @@ test('hourly recovery scans each source to its bounded depth', async () => {
   })
   assert.equal(result.pagesFetched, 27)
   assert.equal(consumed, 27)
+  assert.equal(pageBySource.has('foxsoccer'), false)
+  assert.equal(pageBySource.has('tudn'), false)
   assert.deepEqual([...pageBySource.values()], [2, 3, 12, 8, 2])
 })
 

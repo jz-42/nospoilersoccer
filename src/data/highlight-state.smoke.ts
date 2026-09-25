@@ -68,6 +68,13 @@ test('parseRuntimeHighlightState preserves known YouTube publishers', () => {
     },
   }
   assert.deepEqual(parseRuntimeHighlightState(deportesPayload), deportesPayload)
+  const tudnPayload = {
+    ...payload,
+    matches: {
+      'a-b': [{ youtubeId: 'VW2NXp9RaOE', kind: 'normal', publisher: 'tudn' }],
+    },
+  }
+  assert.deepEqual(parseRuntimeHighlightState(tudnPayload), tudnPayload)
 })
 
 test('parseRuntimeHighlightState rejects unknown YouTube publishers', () => {

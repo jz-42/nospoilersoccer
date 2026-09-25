@@ -42,13 +42,18 @@ assert.match(
 )
 assert.match(
   curateWorkflow,
-  /- foxsoccer[\s\S]*?foxsoccer\)[\s\S]*?curate-nations-videos\.ts --video-id "\$VIDEO_ID"/,
+  /- foxsoccer[\s\S]*?foxnations\|foxsoccer\|tudn\)[\s\S]*?curate-nations-videos\.ts --video-id "\$VIDEO_ID"/,
   'targeted FOX Soccer candidates route through the Nations League curator',
 )
 assert.match(
   curateWorkflow,
-  /- foxnations[\s\S]*?foxnations\|foxsoccer\)[\s\S]*?curate-nations-videos\.ts --video-id "\$VIDEO_ID"/,
+  /- foxnations[\s\S]*?foxnations\|foxsoccer\|tudn\)[\s\S]*?curate-nations-videos\.ts --video-id "\$VIDEO_ID"/,
   'targeted FOX Sports Nations League candidates route through the Nations curator',
+)
+assert.match(
+  curateWorkflow,
+  /- tudn[\s\S]*?foxnations\|foxsoccer\|tudn\)[\s\S]*?curate-nations-videos\.ts --video-id "\$VIDEO_ID"/,
+  'targeted TUDN USA candidates route through the Nations League curator',
 )
 assert.match(
   curateWorkflow,

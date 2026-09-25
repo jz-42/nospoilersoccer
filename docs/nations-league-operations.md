@@ -29,9 +29,11 @@ Authoritative references:
 
 ESPN's `uefa.nations` endpoints are the machine-readable result source. UEFA's
 fixture manifest is the independent audit boundary. Highlights use both the
-FOX Soccer channel `UCooTLkxcpnTNx6vfOovfBFA` and FOX Sports channel
-`UCwNqHDsnBCKT-olwJwIFyfg`. The latter published full-match Nations League
-cuts on the opening matchday.
+FOX Soccer channel `UCooTLkxcpnTNx6vfOovfBFA`, FOX Sports channel
+`UCwNqHDsnBCKT-olwJwIFyfg`, and TUDN USA channel `UCSo19KhHogXxu3sFsOpqrcQ`.
+FOX Sports and TUDN USA both published full-match Nations League cuts on the
+opening matchday. TUDN USA cuts are the standard 15-minute Spanish highlights;
+its super-extended packages are ignored.
 
 ## Result ingest
 
@@ -94,6 +96,7 @@ npx tsx scripts/curate-nations-videos.ts --dry-run --video-id VIDEO_ID_HERE
 For a FOX Sports candidate, set `HIGHLIGHT_CANDIDATE_CHANNEL_ID` to
 `UCwNqHDsnBCKT-olwJwIFyfg` and use its exact title. The Worker assigns those
 candidates the `foxnations` route; FOX Soccer candidates retain `foxsoccer`.
+TUDN USA candidates use channel `UCSo19KhHogXxu3sFsOpqrcQ` and the `tudn` route.
 
 Remove `--dry-run` only for the targeted workflow. With
 `NATIONS_HIGHLIGHT_TRUST` set to `trusted`, the curator accepts either exact channel,
@@ -102,14 +105,15 @@ a resolvable two-country highlight title, one completed fixture within the
 Existing cuts are append-only and are never replaced.
 
 Atom polling and WebSub notifications cost zero YouTube Data API units. FOX
-Soccer playlist recovery opens only when runtime hot-state proves a completed
-fixture lacks a cut. It scans at most two pages per run and stops at 48
-FOX-Soccer units per Pacific quota day and two requests per rolling hour, in
-addition to the global 8,000-unit ceiling. If public feeds fail, authenticated
-fallback is eligible every five minutes but the hourly limit spaces out FOX
-requests instead of exhausting the day's allowance early. The D1 ledger covers
-this Worker, not other jobs sharing the same Google Cloud project/API key;
-check the project's YouTube Data API quota usage separately on matchdays.
+Soccer and TUDN USA playlist recovery open only when runtime hot-state proves a
+completed fixture lacks a cut. Each source scans at most two pages per run and
+stops at its own 48 units per Pacific quota day and two requests per rolling
+hour, in addition to the global 8,000-unit ceiling. If public feeds fail,
+authenticated fallback is eligible every five minutes but the hourly limit
+spaces out those requests instead of exhausting the day's allowance early. The
+D1 ledger covers this Worker, not other jobs sharing the same Google Cloud
+project/API key; check the project's YouTube Data API quota usage separately
+on matchdays.
 
 FOX Sports Nations League discovery shares the existing FOX Sports WebSub,
 one-minute Atom poll, and bounded playlist scan used by World Cup highlights.
@@ -128,13 +132,14 @@ npm exec --yes wrangler d1 execute nospoilersoccer-highlights --remote --command
 npm exec --yes wrangler d1 execute nospoilersoccer-highlights --remote --command \
   "SELECT channel_id, status, expires_at, last_notification_at, last_error FROM subscriptions ORDER BY channel_id;"
 npm exec --yes wrangler d1 execute nospoilersoccer-highlights --remote --command \
-  "SELECT video_id, source_id, status, title, published_at FROM candidates WHERE source_id IN ('foxsoccer', 'foxnations') ORDER BY first_seen_at DESC;"
+  "SELECT video_id, source_id, status, title, published_at FROM candidates WHERE source_id IN ('foxsoccer', 'foxnations', 'tudn') ORDER BY first_seen_at DESC;"
 ```
 
 ### FOX upload review
 
-FOX Soccer and FOX Sports Nations League uploads that pass the curator's channel, title,
+FOX Soccer, FOX Sports, and TUDN USA Nations League uploads that pass the curator's channel, title,
 fixture, duration, and embed checks are published without a manual quarantine.
+TUDN USA must be a 12-to-18-minute cut; longer super-extended uploads stay out.
 Review the published videos on the site. If a bad cut appears, remove it from
 `src/data/nations/unl-2026-videos.ts` and investigate the acceptance rule.
 

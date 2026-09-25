@@ -1,4 +1,4 @@
-/** Conservative FOX channel highlight curator for UEFA Nations League 2026/27. */
+/** Conservative FOX and TUDN USA highlight curator for UEFA Nations League 2026/27. */
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { nationalTeams } from '../src/data/national-teams'
@@ -12,8 +12,11 @@ import { loadTargetedMetadata, parseTargetedMetadata } from './highlight-candida
 export const FOX_SOCCER_CHANNEL_ID = 'UCooTLkxcpnTNx6vfOovfBFA'
 export const FOX_SOCCER_UPLOADS_PLAYLIST = 'UUooTLkxcpnTNx6vfOovfBFA'
 export const FOX_SPORTS_CHANNEL_ID = 'UCwNqHDsnBCKT-olwJwIFyfg'
+export const TUDN_USA_CHANNEL_ID = 'UCSo19KhHogXxu3sFsOpqrcQ'
 export const NATIONS_HIGHLIGHT_TRUST: 'quarantine' | 'trusted' = 'trusted'
 export const NATIONS_PUBLICATION_HORIZON_HOURS = 72
+const TUDN_MIN_SECONDS = 12 * 60
+const TUDN_MAX_SECONDS = 18 * 60
 
 const VIDEOS_FILE = 'src/data/nations/unl-2026-videos.ts'
 const SKIP_FILE = 'scripts/curate-skip.json'
@@ -38,25 +41,49 @@ for (const team of Object.values(nationalTeams)) {
 for (const [name, id] of Object.entries({
   'Czech Republic': 'CZE', Turkey: 'TUR', 'Bosnia & Herzegovina': 'BIH',
   Ireland: 'IRL', Macedonia: 'MKD', 'North Macedonia': 'MKD',
+  'Países Bajos': 'NED', Alemania: 'GER', Grecia: 'GRE', Irlanda: 'IRL',
+  'Irlanda del Norte': 'NIR', Inglaterra: 'ENG', Escocia: 'SCO', Gales: 'WAL',
+  España: 'ESP', Francia: 'FRA', Italia: 'ITA', Bélgica: 'BEL', Dinamarca: 'DEN',
+  Noruega: 'NOR', Suecia: 'SWE', Finlandia: 'FIN', Islandia: 'ISL', 'Islas Feroe': 'FRO',
+  Polonia: 'POL', Chequia: 'CZE', 'República Checa': 'CZE', Croacia: 'CRO',
+  Eslovenia: 'SVN', Eslovaquia: 'SVK', Hungría: 'HUN', Rumanía: 'ROU', Bulgaria: 'BUL',
+  Ucrania: 'UKR', Bielorrusia: 'BLR', Suiza: 'SUI', Turquía: 'TUR',
+  'Bosnia y Herzegovina': 'BIH', 'Macedonia del Norte': 'MKD', Moldavia: 'MDA',
+  Chipre: 'CYP', Lituania: 'LTU', Letonia: 'LVA', Luxemburgo: 'LUX',
+  Kazajistán: 'KAZ', Azerbaiyán: 'AZE',
 })) aliases.set(normalize(name), id)
 
 export interface NationsTitle {
   home: TeamId
   away: TeamId
   kindHint: 'normal' | 'extended'
+  broadcaster: 'fox' | 'tudn'
+}
+
+function teamsFrom(
+  homeName: string,
+  awayName: string,
+  kindHint: 'normal' | 'extended',
+  broadcaster: NationsTitle['broadcaster'],
+): NationsTitle | null {
+  const home = aliases.get(normalize(homeName))
+  const away = aliases.get(normalize(awayName))
+  if (!home || !away || home === away) return null
+  return { home, away, kindHint, broadcaster }
 }
 
 export function parseNationsHighlightTitle(title: string): NationsTitle | null {
   if ((title.match(/\bvs?\.?\b/gi) ?? []).length !== 1) return null
   if (!/\bHighlights\b/i.test(title)) return null
-  if (!/UEFA\s+Nations\s+League/i.test(title) && !/\|\s*FOX\s+Soccer\s*$/i.test(title)) return null
   if (/\b(?:preview|goals?|winner|reaction|best of)\b/i.test(title.replace(/\bHighlights\b/i, ''))) return null
-  const match = title.match(/^(.+?)\s+vs?\.?\s+(.+?)\s+(?:(?:UEFA\s+Nations\s+League)\s+)?(Extended\s+)?Highlights\b/i)
-  if (!match) return null
-  const home = aliases.get(normalize(match[1]))
-  const away = aliases.get(normalize(match[2]))
-  if (!home || !away || home === away) return null
-  return { home, away, kindHint: match[3] ? 'extended' : 'normal' }
+  const fox = title.match(/^(.+?)\s+vs?\.?\s+(.+?)\s+(?:(?:UEFA\s+Nations\s+League)\s+)?(Extended\s+)?Highlights\b/i)
+  if (fox && (/UEFA\s+Nations\s+League/i.test(title) || /\|\s*FOX\s+Soccer\s*$/i.test(title))) {
+    return teamsFrom(fox[1], fox[2], fox[3] ? 'extended' : 'normal', 'fox')
+  }
+  if (/\b(?:SUPER\s+)?EXTENDED\s+HIGHLIGHTS\b/i.test(title)) return null
+  const tudn = title.match(/^HIGHLIGHTS\s+-\s+(.+?)\s+vs?\.?\s+(.+?)\s+\|\s+UEFA\s+Nations\s+League\b.*\|\s*TUDN\s*$/i)
+  if (!tudn) return null
+  return teamsFrom(tudn[1], tudn[2], 'normal', 'tudn')
 }
 
 type AnyMatch = (GroupMatch | KnockoutMatch) & { videos?: HighlightVideo[] }
@@ -92,7 +119,11 @@ export type NationsCandidateResult =
 export function acceptNationsCandidate(input: NationsCandidate): NationsCandidateResult {
   const parsed = parseNationsHighlightTitle(input.title)
   if (!parsed) return { status: 'rejected', reason: 'title is not an exact Nations League highlight matchup' }
-  if (input.channelId !== FOX_SOCCER_CHANNEL_ID && input.channelId !== FOX_SPORTS_CHANNEL_ID) {
+  if (parsed.broadcaster === 'tudn') {
+    if (input.channelId !== TUDN_USA_CHANNEL_ID) {
+      return { status: 'rejected', reason: 'TUDN title requires the TUDN USA channel' }
+    }
+  } else if (input.channelId !== FOX_SOCCER_CHANNEL_ID && input.channelId !== FOX_SPORTS_CHANNEL_ID) {
     return { status: 'rejected', reason: 'wrong YouTube channel' }
   }
   if (input.isShort || /(?:#shorts|youtube\.com\/shorts)/i.test(input.title)) return { status: 'rejected', reason: 'Shorts are not full-match highlights' }
@@ -101,6 +132,12 @@ export function acceptNationsCandidate(input: NationsCandidate): NationsCandidat
   if (!input.publishedAt || !Number.isFinite(Date.parse(input.publishedAt))) return { status: 'retry', reason: 'publish time is unavailable' }
   if (input.durationSeconds === null || input.durationSeconds <= 0) return { status: 'retry', reason: 'duration is unavailable' }
   if (input.durationSeconds < 90) return { status: 'rejected', reason: 'video is too short to be a full-match highlight cut' }
+  if (
+    parsed.broadcaster === 'tudn' &&
+    (input.durationSeconds < TUDN_MIN_SECONDS || input.durationSeconds > TUDN_MAX_SECONDS)
+  ) {
+    return { status: 'rejected', reason: 'TUDN cuts outside the 15-minute range are rejected' }
+  }
 
   const published = Date.parse(input.publishedAt)
   const key = pairKey(parsed.home, parsed.away)
@@ -125,7 +162,9 @@ export function acceptNationsCandidate(input: NationsCandidate): NationsCandidat
   if (matching.length !== 1) return { status: 'quarantined', reason: 'matchup resolves to multiple fixtures' }
 
   const match = matching[0]
-  const kind = parsed.kindHint === 'extended' || input.durationSeconds >= 600 ? 'extended' : 'normal'
+  const kind = parsed.broadcaster === 'tudn'
+    ? 'normal'
+    : parsed.kindHint === 'extended' || input.durationSeconds >= 600 ? 'extended' : 'normal'
   const current = [...(match.videos ?? []), ...(input.existing[match.id] ?? [])]
   if (current.some((video) => video.kind === kind)) return { status: 'duplicate', reason: 'accepted cut already exists' }
   if (input.trustMode === 'quarantine') {
@@ -134,18 +173,24 @@ export function acceptNationsCandidate(input: NationsCandidate): NationsCandidat
   return {
     status: 'accepted',
     matchId: match.id,
-    video: { youtubeId: input.id, kind, durationSeconds: input.durationSeconds },
+    video: {
+      youtubeId: input.id,
+      kind,
+      durationSeconds: input.durationSeconds,
+      ...(parsed.broadcaster === 'tudn' ? { publisher: 'tudn' as const } : {}),
+    },
   }
 }
 
 function serializeVideo(video: HighlightVideo): string {
   if (!('youtubeId' in video) || !video.youtubeId) throw new Error('Nations League curator accepts YouTube only')
   const duration = video.durationSeconds === undefined ? '' : `, durationSeconds: ${video.durationSeconds}`
-  return `{ youtubeId: '${video.youtubeId}', kind: '${video.kind}'${duration} }`
+  const publisher = video.publisher ? `, publisher: '${video.publisher}'` : ''
+  return `{ youtubeId: '${video.youtubeId}', kind: '${video.kind}'${duration}${publisher} }`
 }
 
 export function serializeNationsVideos(map: Record<string, HighlightVideo[]>): string {
-  const header = `import type { HighlightVideo } from '../types'\n\n/**\n * Auto-curated FOX Nations League cuts. Append-only; generated by\n * scripts/curate-nations-videos.ts after deterministic and trust gates pass.\n */\n`
+  const header = `import type { HighlightVideo } from '../types'\n\n/**\n * Auto-curated FOX and TUDN USA Nations League cuts. Append-only; generated by\n * scripts/curate-nations-videos.ts after deterministic and trust gates pass.\n */\n`
   const ids = Object.keys(map).sort()
   if (ids.length === 0) return `${header}export const unl2026Videos: Record<string, HighlightVideo[]> = {}\n`
   const body = ids.map((id) => `  '${id}': [${map[id].map(serializeVideo).join(', ')}],`).join('\n')
@@ -236,14 +281,17 @@ async function run() {
     if (result.status === 'rejected' && !dryRun) {
       let skip: Record<string, { source?: string; reason: string; at: string }> = {}
       try { skip = JSON.parse(readFileSync(SKIP_FILE, 'utf8')) as typeof skip } catch { /* start empty */ }
-      skip[candidate.id] = { source: 'foxsoccer', reason: result.reason, at: new Date().toISOString() }
+      const source = metadata.channelId === TUDN_USA_CHANNEL_ID
+        ? 'tudn'
+        : metadata.channelId === FOX_SPORTS_CHANNEL_ID ? 'foxnations' : 'foxsoccer'
+      skip[candidate.id] = { source, reason: result.reason, at: new Date().toISOString() }
       writeFileSync(SKIP_FILE, `${JSON.stringify(skip, null, 2)}\n`)
     }
   }
   if (!dryRun && acceptedAny) writeFileSync(VIDEOS_FILE, serializeNationsVideos(map))
   writeTargetResult(last.status)
   if (process.env.GITHUB_STEP_SUMMARY) {
-    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## FOX Nations League curator\n\n- result: ${last.status}\n- trust: ${NATIONS_HIGHLIGHT_TRUST}\n`)
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Nations League curator\n\n- result: ${last.status}\n- trust: ${NATIONS_HIGHLIGHT_TRUST}\n`)
   }
 }
 

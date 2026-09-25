@@ -47,6 +47,13 @@ export const HIGHLIGHT_SOURCES = Object.freeze([
     playlistId: 'UU08mnbiC4FykqpHqbEWgFcg',
     scanDepth: 100,
   },
+  {
+    id: 'tudn',
+    label: 'TUDN USA',
+    channelId: 'UCSo19KhHogXxu3sFsOpqrcQ',
+    playlistId: 'UUSo19KhHogXxu3sFsOpqrcQ',
+    scanDepth: 100,
+  },
 ])
 
 const POTENTIAL_HIGHLIGHT_RE = {
@@ -58,15 +65,20 @@ const POTENTIAL_HIGHLIGHT_RE = {
 }
 
 const NATIONS_HIGHLIGHT_RE = /^.+?\s+vs?\.?\s+.+?\s+(?:UEFA\s+Nations\s+League\s+)?(?:Extended\s+)?Highlights\b.*(?:UEFA\s+Nations\s+League|\|\s*FOX\s+Soccer\s*$)/i
+const TUDN_HIGHLIGHT_RE = /^HIGHLIGHTS\s+-\s+.+?\s+vs?\.?\s+.+?\s+\|\s+UEFA\s+Nations\s+League\b.*\|\s*TUDN\s*$/i
+const NATIONS_QUOTA_SOURCE_IDS = new Set(['foxsoccer', 'tudn'])
 const isNationsHighlight = (title) =>
   NATIONS_HIGHLIGHT_RE.test(title) &&
   !/\b(?:preview|goals?|winner|reaction|best of)\b/i.test(title.replace(/\bHighlights\b/i, ''))
+const isTudnHighlight = (title) =>
+  TUDN_HIGHLIGHT_RE.test(title) && !/\b(?:SUPER\s+)?EXTENDED\s+HIGHLIGHTS\b/i.test(title)
 
 const ESPN_DEPORTES_SINGLE_PLAY_RE =
   /(?:^|[^\p{L}])(?:marca|marc[oó]|anota|anot[oó]|ampl[ií]a|descuenta|penal|tarjeta roja|atajada|salvada)(?=$|[^\p{L}])/iu
 
 export function isPotentialHighlight(sourceId, title) {
   if (typeof title !== 'string') return false
+  if (sourceId === 'tudn') return isTudnHighlight(title)
   if (sourceId === 'fox' || sourceId === 'foxsoccer') {
     return (sourceId === 'fox' && POTENTIAL_HIGHLIGHT_RE.fox.test(title)) || isNationsHighlight(title)
   }
@@ -474,18 +486,18 @@ export async function runHighlightRecovery({
 
   const deep = mode === 'normal' && now.getUTCMinutes() === 0
   for (const source of HIGHLIGHT_SOURCES) {
-    if (source.id === 'foxsoccer' && !nationsRecovery) continue
+    if (NATIONS_QUOTA_SOURCE_IDS.has(source.id) && !nationsRecovery) continue
     const pageLimit = deep ? Math.ceil(source.scanDepth / 50) : 1
     let pageToken = ''
     for (let page = 0; page < pageLimit; page += 1) {
-      if (source.id === 'foxsoccer') {
+      if (NATIONS_QUOTA_SOURCE_IDS.has(source.id)) {
         const sourceUsed = await store.sourceQuotaUsed?.(day, source.id) ?? 0
         if (sourceUsed >= NATIONS_DAILY_QUOTA_LIMIT) break
         const hourStart = new Date(now.getTime() - 60 * 60 * 1000).toISOString()
         const recentUsed = await store.sourceQuotaUsedSince?.(hourStart, source.id) ?? 0
         if (recentUsed >= NATIONS_HOURLY_QUOTA_LIMIT) break
       }
-      const method = source.id === 'foxsoccer' ? `${source.id}:playlistItems.list` : 'playlistItems.list'
+      const method = NATIONS_QUOTA_SOURCE_IDS.has(source.id) ? `${source.id}:playlistItems.list` : 'playlistItems.list'
       const reserved = await store.consumeQuota(day, method, 1, now)
       if (!reserved) return result
       const url =

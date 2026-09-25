@@ -42,6 +42,11 @@ const deportes = renderPlayer('esp1-home-away', [
 ])
 assert(deportes.includes('Highlights (ESPN Deportes)'), 'ESPN Deportes publisher is explicit')
 
+const tudn = renderPlayer('unl-401861041', [
+  { youtubeId: 'VW2NXp9RaOE', kind: 'normal', publisher: 'tudn', durationSeconds: 886 },
+])
+assert(tudn.includes('Highlights (TUDN)'), 'TUDN USA publisher is explicit')
+
 const worldCup = renderPlayer('A1', [
   { youtubeId: 'quick-video', kind: 'normal', durationSeconds: 300 },
   { youtubeId: 'extended-video', kind: 'extended', durationSeconds: 900 },

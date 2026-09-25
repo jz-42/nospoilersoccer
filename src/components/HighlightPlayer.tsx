@@ -114,6 +114,7 @@ const CLUB_PROVIDER_BY_MATCH_PREFIX = {
 const PUBLISHER_LABEL = {
   'espn-fc': 'ESPN FC',
   'espn-deportes': 'ESPN Deportes',
+  tudn: 'TUDN',
 } as const
 
 function highlightLabel(matchId: string, video: HighlightVideo): string {

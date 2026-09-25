@@ -32,7 +32,7 @@ export interface Team {
 
 export type VideoKind = 'normal' | 'extended'
 export type HighlightSource = 'youtube' | 'fox'
-export type YouTubeHighlightPublisher = 'espn-fc' | 'espn-deportes'
+export type YouTubeHighlightPublisher = 'espn-fc' | 'espn-deportes' | 'tudn'
 
 interface HighlightVideoBase {
   kind: VideoKind

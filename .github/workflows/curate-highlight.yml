@@ -15,6 +15,7 @@ on:
           - fox
           - foxnations
           - foxsoccer
+          - tudn
           - golazo
           - nbc
           - espnfc
@@ -74,7 +75,7 @@ jobs:
             fox)
               npx tsx scripts/curate-videos.ts --video-id "$VIDEO_ID"
               ;;
-            foxnations|foxsoccer)
+            foxnations|foxsoccer|tudn)
               npx tsx scripts/curate-nations-videos.ts --video-id "$VIDEO_ID"
               ;;
             golazo)

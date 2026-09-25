@@ -33,7 +33,8 @@ function isHighlightVideo(value: unknown): value is HighlightVideo {
   const publisherValid =
     value.publisher === undefined ||
     value.publisher === 'espn-fc' ||
-    value.publisher === 'espn-deportes'
+    value.publisher === 'espn-deportes' ||
+    value.publisher === 'tudn'
   return (
     (value.source === undefined || value.source === 'youtube') &&
     typeof value.youtubeId === 'string' &&

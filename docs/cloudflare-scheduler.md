@@ -111,10 +111,11 @@ leaving it unset avoids duplicating the hourly authenticated CI recovery.
 
 ## Highlight quota bounds
 
-The fast path checks six public Atom feeds every minute and receives WebSub
-notifications for the same six channels. Both paths use zero YouTube Data API
-units. The sixth source is FOX Soccer (`UCooTLkxcpnTNx6vfOovfBFA`, uploads
-playlist `UUooTLkxcpnTNx6vfOovfBFA`) for UEFA Nations League highlights. ESPN
+The fast path checks seven public Atom feeds every minute and receives WebSub
+notifications for the same seven channels. Both paths use zero YouTube Data API
+units. FOX Soccer (`UCooTLkxcpnTNx6vfOovfBFA`, uploads playlist
+`UUooTLkxcpnTNx6vfOovfBFA`) and TUDN USA (`UCSo19KhHogXxu3sFsOpqrcQ`, uploads
+playlist `UUSo19KhHogXxu3sFsOpqrcQ`) supply UEFA Nations League highlights. ESPN
 Deportes is limited to its newest 100
 uploads during a deep scan; its strict prefilter forwards only La Liga summary
 titles and rejects known single-play goal/card/save titles.
@@ -126,22 +127,27 @@ five-minute ESPN Deportes recovery uses only the newest page, adding at most
 Candidate metadata checks add a small bounded amount. Every Worker Data API
 call reserves quota in D1 first, and the Worker hard-stops authenticated
 recovery at 8,000 units per Pacific quota day; Atom/WebSub discovery remains
-active at that cap. FOX Soccer is excluded from routine recovery: it opens only
-when `unl-2026` hot-state contains a completed fixture without a corresponding
-highlight, from 105 minutes through 72 hours after kickoff. It reads at most two
-playlist pages per run and has an independent 48-unit Pacific-day ceiling,
-recorded as `foxsoccer:*` quota events. GitHub's independently bounded recovery stays below 936
+active at that cap. FOX Soccer and TUDN USA are excluded from routine recovery:
+each opens only when `unl-2026` hot-state contains a completed fixture without a
+corresponding highlight, from 105 minutes through 72 hours after kickoff. Each
+reads at most two playlist pages per run and has its own 48-unit Pacific-day
+ceiling and two-request rolling hour, recorded as `foxsoccer:*` or `tudn:*`
+quota events. GitHub's independently bounded recovery stays below 936
 playlist units/day (648 hourly deep + at most 288 five-minute fallback), before
 the small number of metadata checks for titles that pass deterministic screens.
 
 ## FOX Nations League uploads
 
-The Nations curator publishes FOX Soccer and FOX Sports videos that pass its channel, title, fixture,
+The Nations curator publishes FOX Soccer, FOX Sports, and TUDN USA videos that pass its channel, title, fixture,
 duration, and embed checks without manual quarantine. Review the accepted cuts
 on the site. The title grammar and other acceptance checks remain conservative.
 FOX Sports Nations League titles use the `foxnations` workflow route and share
 the existing FOX Sports Atom, WebSub, and playlist requests. They add no Data
-API discovery cost. FOX Soccer keeps its independent quota caps.
+API discovery cost. TUDN USA uses the `tudn` route. Its Atom and WebSub checks
+are quota-free; playlist recovery uses the conditional Nations gate and its own cap above.
+Only its 12-to-18-minute `HIGHLIGHTS - Team vs Team | UEFA Nations League`
+titles are eligible. Super-extended uploads are dropped before a workflow runs.
+FOX Soccer and TUDN USA keep independent quota caps.
 
 ## GitHub token permissions
 
