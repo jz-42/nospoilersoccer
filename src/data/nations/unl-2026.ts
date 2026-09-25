@@ -602,9 +602,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-25T16:00Z",
       "home": "GEO",
       "away": "NIR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "NIR",
+          "player": "Shea Charles",
+          "minute": "90'+9'"
+        }
+      ]
     },
     {
       "id": "unl-401861050",

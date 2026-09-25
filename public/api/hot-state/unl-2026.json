@@ -188,11 +188,18 @@
       "kickoff": "2026-09-24T18:45Z"
     },
     "unl-401861049": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "NIR",
+          "player": "Shea Charles",
+          "minute": "90'+9'"
+        }
+      ],
       "kickoff": "2026-09-25T16:00Z"
     },
     "unl-401861050": {
