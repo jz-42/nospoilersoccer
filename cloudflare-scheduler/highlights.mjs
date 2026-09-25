@@ -51,20 +51,32 @@ export const HIGHLIGHT_SOURCES = Object.freeze([
 
 const POTENTIAL_HIGHLIGHT_RE = {
   fox: /^.+?\s+vs\.?\s+.+?\s+(?:Extended\s+)?Highlights\b.*World Cup/i,
-  foxsoccer: /^.+?\s+vs?\.?\s+.+?\s+(?:UEFA\s+Nations\s+League\s+)?(?:Extended\s+)?Highlights\b.*(?:UEFA\s+Nations\s+League|\|\s*FOX\s+Soccer\s*$)/i,
   golazo: /^.+?\s+vs\.?\s+.+?:\s+(?:Extended\s+)?Highlights\b.*\|\s*(?:UCL\b|UEFA\s+Champions\s+League\b|Champions\s+League\b)/i,
   nbc: /^.+?\s+vs?\.?\s+.+?\s*\|\s*PREMIER\s+LEAGUE(?:\s+EXTENDED)?\s+HIGHLIGHTS\b/i,
   espnfc: /^.+?\s+vs?\.?\s+.+?\s*\|\s*LA\s?LIGA\s+(?:EXTENDED\s+)?HIGHLIGHTS\b/i,
   espndeportes: /\|\s*(?:Resumen\s*\|\s*)?La Liga\s*$/i,
 }
 
+const NATIONS_HIGHLIGHT_RE = /^.+?\s+vs?\.?\s+.+?\s+(?:UEFA\s+Nations\s+League\s+)?(?:Extended\s+)?Highlights\b.*(?:UEFA\s+Nations\s+League|\|\s*FOX\s+Soccer\s*$)/i
+const isNationsHighlight = (title) =>
+  NATIONS_HIGHLIGHT_RE.test(title) &&
+  !/\b(?:preview|goals?|winner|reaction|best of)\b/i.test(title.replace(/\bHighlights\b/i, ''))
+
 const ESPN_DEPORTES_SINGLE_PLAY_RE =
   /(?:^|[^\p{L}])(?:marca|marc[oó]|anota|anot[oó]|ampl[ií]a|descuenta|penal|tarjeta roja|atajada|salvada)(?=$|[^\p{L}])/iu
 
 export function isPotentialHighlight(sourceId, title) {
   if (typeof title !== 'string') return false
+  if (sourceId === 'fox' || sourceId === 'foxsoccer') {
+    return (sourceId === 'fox' && POTENTIAL_HIGHLIGHT_RE.fox.test(title)) || isNationsHighlight(title)
+  }
   if (sourceId === 'espndeportes' && ESPN_DEPORTES_SINGLE_PLAY_RE.test(title)) return false
   return POTENTIAL_HIGHLIGHT_RE[sourceId]?.test(title) ?? false
+}
+
+function candidateSourceId(sourceId, title) {
+  if (!isPotentialHighlight(sourceId, title)) return null
+  return sourceId === 'fox' && isNationsHighlight(title) ? 'foxnations' : sourceId
 }
 
 export function quotaMode(used) {
@@ -421,7 +433,7 @@ export async function handleWebSubRequest(request, { store, queue, fetchImpl = f
   if (!parsed) return new Response('invalid notification', { status: 400 })
   if (!source) return new Response('unknown channel', { status: 404 })
   await store.recordNotification?.(parsed.channelId)
-  if (!isPotentialHighlight(source.id, parsed.title)) return new Response(null, { status: 204 })
+  if (!candidateSourceId(source.id, parsed.title)) return new Response(null, { status: 204 })
 
   const feedResponse = await fetchImpl(
     `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`,
@@ -430,12 +442,13 @@ export async function handleWebSubRequest(request, { store, queue, fetchImpl = f
   const verified = parseYouTubeFeed(await feedResponse.text()).find(
     (entry) => entry.videoId === parsed.videoId && entry.channelId === source.channelId,
   )
-  if (!verified || !isPotentialHighlight(source.id, verified.title)) {
+  const verifiedSourceId = verified && candidateSourceId(source.id, verified.title)
+  if (!verifiedSourceId) {
     return new Response(null, { status: 204 })
   }
 
   const contentVersion = await candidateContentVersion(verified.title, verified.publishedAt)
-  const candidate = { ...verified, sourceId: source.id, contentVersion, discoveredBy: 'websub' }
+  const candidate = { ...verified, sourceId: verifiedSourceId, contentVersion, discoveredBy: 'websub' }
   const result = await store.upsertCandidate(candidate)
   if (result !== 'unchanged') {
     await queue.send(queueCandidate(candidate))
@@ -492,12 +505,13 @@ export async function runHighlightRecovery({
           const title = item.snippet?.title
           const publishedAt = item.snippet?.publishedAt
           if (!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId) || !title || !publishedAt) continue
-          if (!isPotentialHighlight(source.id, title)) continue
+          const sourceId = candidateSourceId(source.id, title)
+          if (!sourceId) continue
           const contentVersion = await candidateContentVersion(title, publishedAt)
           const candidate = {
             videoId,
             channelId: source.channelId,
-            sourceId: source.id,
+            sourceId,
             title,
             publishedAt,
             updatedAt: publishedAt,
@@ -534,11 +548,12 @@ export async function runFeedRecovery({ now = new Date(), store, queue, fetchImp
       }
       for (const parsed of parseYouTubeFeed(await response.text())) {
         if (parsed.channelId !== source.channelId) continue
-        if (!isPotentialHighlight(source.id, parsed.title)) continue
+        const sourceId = candidateSourceId(source.id, parsed.title)
+        if (!sourceId) continue
         const contentVersion = await candidateContentVersion(parsed.title, parsed.publishedAt)
         const candidate = {
           ...parsed,
-          sourceId: source.id,
+          sourceId,
           contentVersion,
           discoveredBy: 'feed_poll',
         }

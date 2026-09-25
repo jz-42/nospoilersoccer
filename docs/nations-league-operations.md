@@ -28,9 +28,10 @@ Authoritative references:
 - [UEFA US broadcast partners](https://www.uefa.com/uefanationsleague/news/02a9-219ae5c877f5-740390ccb3e5-1000--where-to-watch-the-nations-league-tv-broadcast-partners-li/)
 
 ESPN's `uefa.nations` endpoints are the machine-readable result source. UEFA's
-fixture manifest is the independent audit boundary. Highlights use the FOX
-Soccer channel `UCooTLkxcpnTNx6vfOovfBFA` and uploads playlist
-`UUooTLkxcpnTNx6vfOovfBFA`.
+fixture manifest is the independent audit boundary. Highlights use both the
+FOX Soccer channel `UCooTLkxcpnTNx6vfOovfBFA` and FOX Sports channel
+`UCwNqHDsnBCKT-olwJwIFyfg`. The latter published full-match Nations League
+cuts on the opening matchday.
 
 ## Result ingest
 
@@ -90,8 +91,12 @@ HIGHLIGHT_CANDIDATE_PUBLISHED_AT='2026-09-25T22:00:00Z' \
 npx tsx scripts/curate-nations-videos.ts --dry-run --video-id VIDEO_ID_HERE
 ```
 
+For a FOX Sports candidate, set `HIGHLIGHT_CANDIDATE_CHANNEL_ID` to
+`UCwNqHDsnBCKT-olwJwIFyfg` and use its exact title. The Worker assigns those
+candidates the `foxnations` route; FOX Soccer candidates retain `foxsoccer`.
+
 Remove `--dry-run` only for the targeted workflow. With
-`NATIONS_HIGHLIGHT_TRUST` set to `trusted`, the curator accepts an exact channel,
+`NATIONS_HIGHLIGHT_TRUST` set to `trusted`, the curator accepts either exact channel,
 a resolvable two-country highlight title, one completed fixture within the
 72-hour publication horizon, a non-Short duration, and a working embed.
 Existing cuts are append-only and are never replaced.
@@ -106,7 +111,15 @@ requests instead of exhausting the day's allowance early. The D1 ledger covers
 this Worker, not other jobs sharing the same Google Cloud project/API key;
 check the project's YouTube Data API quota usage separately on matchdays.
 
-Inspect quota use, subscriptions, and FOX Soccer candidates:
+FOX Sports Nations League discovery shares the existing FOX Sports WebSub,
+one-minute Atom poll, and bounded playlist scan used by World Cup highlights.
+It adds no channel subscription or YouTube Data API playlist request. The
+Nations-specific `foxnations` candidate is routed to the Nations curator, not
+the World Cup curator. A successful targeted workflow commit rebuilds the
+runtime highlight snapshot, which the site can fetch without waiting for its
+next static deploy.
+
+Inspect quota use, subscriptions, and Nations candidates:
 
 ```sh
 cd cloudflare-scheduler
@@ -115,12 +128,12 @@ npm exec --yes wrangler d1 execute nospoilersoccer-highlights --remote --command
 npm exec --yes wrangler d1 execute nospoilersoccer-highlights --remote --command \
   "SELECT channel_id, status, expires_at, last_notification_at, last_error FROM subscriptions ORDER BY channel_id;"
 npm exec --yes wrangler d1 execute nospoilersoccer-highlights --remote --command \
-  "SELECT video_id, source_id, status, title, published_at FROM candidates WHERE source_id='foxsoccer' ORDER BY first_seen_at DESC;"
+  "SELECT video_id, source_id, status, title, published_at FROM candidates WHERE source_id IN ('foxsoccer', 'foxnations') ORDER BY first_seen_at DESC;"
 ```
 
-### FOX Soccer upload review
+### FOX upload review
 
-FOX Soccer Nations League uploads that pass the curator's channel, title,
+FOX Soccer and FOX Sports Nations League uploads that pass the curator's channel, title,
 fixture, duration, and embed checks are published without a manual quarantine.
 Review the published videos on the site. If a bad cut appears, remove it from
 `src/data/nations/unl-2026-videos.ts` and investigate the acceptance rule.

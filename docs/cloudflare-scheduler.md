@@ -134,11 +134,14 @@ recorded as `foxsoccer:*` quota events. GitHub's independently bounded recovery 
 playlist units/day (648 hourly deep + at most 288 five-minute fallback), before
 the small number of metadata checks for titles that pass deterministic screens.
 
-## FOX Soccer Nations League uploads
+## FOX Nations League uploads
 
-The FOX Soccer curator publishes videos that pass its channel, title, fixture,
+The Nations curator publishes FOX Soccer and FOX Sports videos that pass its channel, title, fixture,
 duration, and embed checks without manual quarantine. Review the accepted cuts
 on the site. The title grammar and other acceptance checks remain conservative.
+FOX Sports Nations League titles use the `foxnations` workflow route and share
+the existing FOX Sports Atom, WebSub, and playlist requests. They add no Data
+API discovery cost. FOX Soccer keeps its independent quota caps.
 
 ## GitHub token permissions
 

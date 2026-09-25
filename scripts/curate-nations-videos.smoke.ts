@@ -62,6 +62,7 @@ assert(acceptNationsCandidate({ ...base, trustMode: 'quarantine' }).status === '
 const trusted = acceptNationsCandidate({ ...base, trustMode: 'trusted' })
 assert(trusted.status === 'accepted' && trusted.matchId === 'unl-eng-fin', 'trusted mode accepts the unique completed fixture')
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', channelId: 'UCwrong' }).status === 'rejected', 'wrong channel is rejected')
+assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', channelId: 'UCwNqHDsnBCKT-olwJwIFyfg', title: 'England vs Finland Highlights ⚽ UEFA Nations League' }).status === 'accepted', 'exact FOX Sports channel publishes a Nations League cut')
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', publishedAt: '2026-09-24T17:00Z' }).status === 'retry', 'publication before kickoff is held')
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', title: 'England vs. Germany Highlights | UEFA Nations League' }).status === 'rejected', 'unmatched teams are rejected')
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', isShort: true }).status === 'rejected', 'Shorts are rejected')

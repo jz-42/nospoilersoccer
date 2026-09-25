@@ -47,6 +47,11 @@ assert.match(
 )
 assert.match(
   curateWorkflow,
+  /- foxnations[\s\S]*?foxnations\|foxsoccer\)[\s\S]*?curate-nations-videos\.ts --video-id "\$VIDEO_ID"/,
+  'targeted FOX Sports Nations League candidates route through the Nations curator',
+)
+assert.match(
+  curateWorkflow,
   /- espndeportes[\s\S]*?espnfc\|espndeportes\)[\s\S]*?--competition esp1 --video-id "\$VIDEO_ID"/,
   'targeted ESPN Deportes candidates route through the La Liga curator',
 )

@@ -13,6 +13,7 @@ on:
         type: choice
         options:
           - fox
+          - foxnations
           - foxsoccer
           - golazo
           - nbc
@@ -73,7 +74,7 @@ jobs:
             fox)
               npx tsx scripts/curate-videos.ts --video-id "$VIDEO_ID"
               ;;
-            foxsoccer)
+            foxnations|foxsoccer)
               npx tsx scripts/curate-nations-videos.ts --video-id "$VIDEO_ID"
               ;;
             golazo)

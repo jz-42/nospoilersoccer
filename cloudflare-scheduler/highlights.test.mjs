@@ -41,6 +41,80 @@ test('FOX Soccer source is exact and its authenticated recovery is capped at two
   assert.equal(isPotentialHighlight('foxsoccer', 'France scores late winner vs Italy | FOX Soccer'), false)
 })
 
+test('FOX Sports Nations League uploads get a distinct curator route without an extra channel', () => {
+  assert.equal(HIGHLIGHT_SOURCES.filter((source) => source.id === 'fox').length, 1)
+  assert.equal(isPotentialHighlight('fox', 'Norway vs Denmark Highlights ⚽ UEFA Nations League'), true)
+  assert.equal(isPotentialHighlight('fox', 'Portugal vs Wales Highlights ⚽️ UEFA Nations League'), true)
+  assert.equal(isPotentialHighlight('fox', 'Canada vs Japan Highlights | 2026 FIFA World Cup'), true)
+  assert.equal(isPotentialHighlight('fox', 'Haaland scores for Norway 🇳🇴 #nationsleague'), false)
+  assert.equal(isPotentialHighlight('fox', 'Norway vs Denmark Highlights ⚽ UEFA Nations League Preview'), false)
+  assert.equal(isPotentialHighlight('foxsoccer', 'Norway vs Denmark Highlights ⚽ UEFA Nations League'), true)
+})
+
+test('FOX Sports Nations League upload takes the existing quota-free Atom route', async () => {
+  const fox = HIGHLIGHT_SOURCES.find((source) => source.id === 'fox')
+  const queued = []
+  let quotaCalls = 0
+  await runFeedRecovery({
+    store: {
+      consumeQuota: async () => { quotaCalls += 1; return true },
+      upsertCandidate: async () => 'inserted',
+    },
+    queue: { send: async (candidate) => queued.push(candidate) },
+    fetchImpl: async (url) => new Response(url.includes(fox.channelId)
+      ? `<feed><entry><yt:videoId>7HyI8gieBfk</yt:videoId><yt:channelId>${fox.channelId}</yt:channelId><title>Norway vs Denmark Highlights ⚽ UEFA Nations League</title><published>2026-09-24T21:10:50Z</published><updated>2026-09-24T21:10:50Z</updated></entry></feed>`
+      : '<feed></feed>'),
+  })
+  assert.equal(queued.length, 1)
+  assert.equal(queued[0].sourceId, 'foxnations')
+  assert.equal(queued[0].channelId, fox.channelId)
+  assert.equal(quotaCalls, 0)
+})
+
+test('FOX Sports Nations League upload takes the existing verified WebSub route', async () => {
+  const fox = HIGHLIGHT_SOURCES.find((source) => source.id === 'fox')
+  const xml = `<feed><entry><yt:videoId>7HyI8gieBfk</yt:videoId><yt:channelId>${fox.channelId}</yt:channelId><title>Norway vs Denmark Highlights ⚽ UEFA Nations League</title><published>2026-09-24T21:10:50Z</published><updated>2026-09-24T21:10:50Z</updated></entry></feed>`
+  const queued = []
+  const response = await handleWebSubRequest(
+    new Request('https://worker.test/websub/youtube', { method: 'POST', body: xml }),
+    {
+      store: { upsertCandidate: async () => 'inserted' },
+      queue: { send: async (candidate) => queued.push(candidate) },
+      fetchImpl: async () => new Response(xml),
+    },
+  )
+  assert.equal(response.status, 204)
+  assert.equal(queued.length, 1)
+  assert.equal(queued[0].sourceId, 'foxnations')
+})
+
+test('FOX Sports playlist recovery finds Nations League without adding a page', async () => {
+  const fox = HIGHLIGHT_SOURCES.find((source) => source.id === 'fox')
+  const queued = []
+  const fetched = []
+  await runHighlightRecovery({
+    now: new Date('2026-09-24T21:01:00Z'),
+    apiKey: 'test-key',
+    store: {
+      quotaUsed: async () => 0,
+      consumeQuota: async () => true,
+      upsertCandidate: async () => 'inserted',
+    },
+    queue: { send: async (candidate) => queued.push(candidate) },
+    fetchImpl: async (url) => {
+      fetched.push(url)
+      return new Response(JSON.stringify({ items: url.includes(fox.playlistId) ? [{ snippet: {
+        title: 'Portugal vs Wales Highlights ⚽️ UEFA Nations League',
+        publishedAt: '2026-09-24T21:23:36Z',
+        resourceId: { videoId: 'p88LkHIdxSY' },
+      } }] : [] }))
+    },
+  })
+  assert.equal(fetched.filter((url) => url.includes(fox.playlistId)).length, 1)
+  assert.equal(queued.length, 1)
+  assert.equal(queued[0].sourceId, 'foxnations')
+})
+
 test('Nations recovery opens only for a completed fixture missing a cut inside its horizon', () => {
   const kickoff = '2026-09-24T18:45Z'
   const state = (score, videos = {}) => nationsHighlightRecoveryNeeded({

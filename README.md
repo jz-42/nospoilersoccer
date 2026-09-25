@@ -52,7 +52,7 @@ site; changing `TZ` on the Vite process alone does not change browser output.
 ## Highlights: automatic curation
 
 UEFA Nations League 2026/27 is supported across all four leagues and all 54
-countries. Its ESPN result ingest, FOX Soccer highlight curation, schedule
+countries. Its ESPN result ingest, FOX Soccer and FOX Sports highlight curation, schedule
 windows, quota controls, and recovery procedures are documented in
 [Nations League operations](docs/nations-league-operations.md). Run the focused
 proof suite with `npm run test:nations`.
