@@ -661,6 +661,43 @@ test('WebSub notification must exist on the trusted live channel feed before enq
   assert.equal(stored, 0)
 })
 
+test('feed poll and WebSub verification bypass the 15-minute feed cache', async () => {
+  const now = new Date('2026-09-25T21:11:00Z')
+  const minute = Math.floor(now.getTime() / 60_000)
+  const polled = []
+  await runFeedRecovery({
+    now,
+    store: {},
+    queue: {},
+    fetchImpl: async (url) => {
+      polled.push(url)
+      return new Response('<feed></feed>', { status: 200 })
+    },
+  })
+  assert.deepEqual(
+    polled.sort(),
+    HIGHLIGHT_SOURCES.map(
+      (source) => `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}&_=${minute}`,
+    ).sort(),
+  )
+
+  let verified = null
+  await handleWebSubRequest(
+    new Request('https://worker.test/websub/youtube', { method: 'POST', body: NOTIFICATION_XML }),
+    {
+      store: { recordNotification: async () => {} },
+      queue: {},
+      fetchImpl: async (url) => {
+        verified = new URL(url)
+        return new Response('<feed></feed>', { status: 200 })
+      },
+    },
+  )
+  assert.equal(verified.pathname, '/feeds/videos.xml')
+  assert.equal(verified.searchParams.get('channel_id'), 'UCqZQlzSHbVJrwrn5XvzrzcA')
+  assert.match(verified.searchParams.get('_'), /^\d+$/)
+})
+
 test('normal recovery polls one newest page per source and enqueues only changed uploads', async () => {
   const fetched = []
   const queued = []

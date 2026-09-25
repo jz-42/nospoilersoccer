@@ -400,6 +400,15 @@ async function candidateContentVersion(title, publishedAt) {
   return sha256Hex(JSON.stringify([title, published.toISOString()]))
 }
 
+// Google's edge caches the Atom feed for up to 15 minutes (max-age=900). A
+// per-minute cache key reaches the origin, so an upload surfaces on the next
+// tick instead of whenever the cached copy expires. The WebSub topic stays the
+// plain URL.
+function freshFeedUrl(channelId, now = new Date()) {
+  const minute = Math.floor(now.getTime() / 60_000)
+  return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}&_=${minute}`
+}
+
 function sourceForChannel(channelId) {
   return HIGHLIGHT_SOURCES.find((source) => source.channelId === channelId) ?? null
 }
@@ -447,9 +456,7 @@ export async function handleWebSubRequest(request, { store, queue, fetchImpl = f
   await store.recordNotification?.(parsed.channelId)
   if (!candidateSourceId(source.id, parsed.title)) return new Response(null, { status: 204 })
 
-  const feedResponse = await fetchImpl(
-    `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`,
-  )
+  const feedResponse = await fetchImpl(freshFeedUrl(source.channelId))
   if (!feedResponse.ok) return new Response('feed verification unavailable', { status: 503 })
   const verified = parseYouTubeFeed(await feedResponse.text()).find(
     (entry) => entry.videoId === parsed.videoId && entry.channelId === source.channelId,
@@ -550,7 +557,7 @@ export async function runHighlightRecovery({
 export async function runFeedRecovery({ now = new Date(), store, queue, fetchImpl = fetch }) {
   const sourceResults = await Promise.all(HIGHLIGHT_SOURCES.map(async (source) => {
     const result = { feedsFetched: 0, candidatesChanged: 0, errors: [] }
-    const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${source.channelId}`
+    const url = freshFeedUrl(source.channelId, now)
     try {
       const response = await fetchImpl(url)
       result.feedsFetched += 1

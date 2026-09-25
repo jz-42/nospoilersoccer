@@ -113,7 +113,11 @@ leaving it unset avoids duplicating the hourly authenticated CI recovery.
 
 The fast path checks seven public Atom feeds every minute and receives WebSub
 notifications for the same seven channels. Both paths use zero YouTube Data API
-units. FOX Soccer (`UCooTLkxcpnTNx6vfOovfBFA`, uploads playlist
+units. Google's edge caches each feed for up to 15 minutes, so the minute poll
+and WebSub verification add a per-minute `_=` cache key to read the origin.
+As of 2026-09-25 the hub reports verified subscriptions but has never received
+content from YouTube for these channels, so the minute poll is the path that
+actually lands uploads. FOX Soccer (`UCooTLkxcpnTNx6vfOovfBFA`, uploads playlist
 `UUooTLkxcpnTNx6vfOovfBFA`) and TUDN USA (`UCSo19KhHogXxu3sFsOpqrcQ`, uploads
 playlist `UUSo19KhHogXxu3sFsOpqrcQ`) supply UEFA Nations League highlights. ESPN
 Deportes is limited to its newest 100
