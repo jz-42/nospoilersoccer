@@ -56,6 +56,11 @@ assert.match(
   'targeted TUDN USA candidates route through the Nations League curator',
 )
 assert.match(
+  workflow,
+  /if \[ "\$nations_highlight_scan" = 1 \]; then[\s\S]*?curate-nations-videos\.ts --scan tudn[\s\S]*?keeping the result update[\s\S]*?nations_highlight_scan=0[\s\S]*?if \[ "\$cycle" -eq 1 \]; then nations_highlight_scan=1; fi/,
+  'TUDN playlist catch-up runs once per updater hour and a scan failure keeps the result update',
+)
+assert.match(
   curateWorkflow,
   /- espndeportes[\s\S]*?espnfc\|espndeportes\)[\s\S]*?--competition esp1 --video-id "\$VIDEO_ID"/,
   'targeted ESPN Deportes candidates route through the La Liga curator',

@@ -132,9 +132,11 @@ each opens only when `unl-2026` hot-state contains a completed fixture without a
 corresponding highlight, from 105 minutes through 72 hours after kickoff. Each
 reads at most two playlist pages per run and has its own 48-unit Pacific-day
 ceiling and two-request rolling hour, recorded as `foxsoccer:*` or `tudn:*`
-quota events. GitHub's independently bounded recovery stays below 936
-playlist units/day (648 hourly deep + at most 288 five-minute fallback), before
-the small number of metadata checks for titles that pass deterministic screens.
+quota events. GitHub's independently bounded recovery stays below 984
+playlist units/day (648 hourly deep + at most 288 five-minute fallback + 48
+for the once-per-hour TUDN catch-up of two pages), before the small number of
+metadata checks for titles that pass deterministic screens. The Worker key
+stays unset, so that TUDN catch-up is not scanned a second time.
 
 ## FOX Nations League uploads
 

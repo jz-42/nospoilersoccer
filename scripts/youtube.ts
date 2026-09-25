@@ -87,12 +87,12 @@ function isoDurationToSeconds(iso: string): number {
 
 // ---- Data API path ---------------------------------------------------------
 
-async function listUploadsApi(max: number): Promise<PlaylistVideo[]> {
+async function listUploadsApi(playlistId: string, max: number): Promise<PlaylistVideo[]> {
   const out: PlaylistVideo[] = []
   let pageToken = ''
   while (out.length < max) {
     const url =
-      `${API}/playlistItems?part=snippet&maxResults=50&playlistId=${FOX_UPLOADS_PLAYLIST}` +
+      `${API}/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}` +
       `&key=${API_KEY}${pageToken ? `&pageToken=${pageToken}` : ''}`
     const data = (await getJson(url)) as {
       nextPageToken?: string
@@ -156,8 +156,8 @@ function xmlElement(xml: string, name: string): string | null {
   return match ? decodeXml(match[1].trim()) : null
 }
 
-async function listUploadsScrape(max: number): Promise<PlaylistVideo[]> {
-  const html = await getText(`https://www.youtube.com/playlist?list=${FOX_UPLOADS_PLAYLIST}`)
+async function listUploadsScrape(playlistId: string, max: number): Promise<PlaylistVideo[]> {
+  const html = await getText(`https://www.youtube.com/playlist?list=${playlistId}`)
   const out: PlaylistVideo[] = []
   const seen = new Set<string>()
   for (const block of html.split('"lockupViewModel":').slice(1)) {
@@ -190,9 +190,14 @@ async function getMetaScrape(id: string): Promise<VideoMeta> {
 
 // ---- Public API ------------------------------------------------------------
 
+/** Recent uploads from one playlist (newest first), via the Data API or a scrape fallback. */
+export function listPlaylistUploads(playlistId: string, max = 100): Promise<PlaylistVideo[]> {
+  return API_KEY ? listUploadsApi(playlistId, max) : listUploadsScrape(playlistId, max)
+}
+
 /** Recent FOX uploads (newest first), via the Data API or a scrape fallback. */
 export function listFoxUploads(max = 100): Promise<PlaylistVideo[]> {
-  return API_KEY ? listUploadsApi(max) : listUploadsScrape(max)
+  return listPlaylistUploads(FOX_UPLOADS_PLAYLIST, max)
 }
 
 /** Full metadata for one video, via the Data API or a scrape fallback. */

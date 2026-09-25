@@ -7,6 +7,7 @@ import {
   NATIONS_HIGHLIGHT_TRUST,
   parseNationsHighlightTitle,
   recordNationsCandidateResult,
+  selectNationsScanCandidates,
   serializeNationsVideos,
 } from './curate-nations-videos'
 
@@ -49,6 +50,16 @@ for (const title of [
 ]) {
   assert(parseNationsHighlightTitle(title) === null, `reject title: ${title}`)
 }
+
+const scan = selectNationsScanCandidates([
+  { id: 'already0001', title: 'HIGHLIGHTS - Países Bajos vs Alemania | UEFA Nations League - Jornada 1 2026-27 | TUDN' },
+  { id: 'goalclip001', title: 'What a goal by Belgium! #shorts' },
+  { id: 'superextend', title: 'SUPER EXTENDED HIGHLIGHTS - Serbia vs Grecia | UEFA Nations League - Jornada 1 2026-27 | TUDN' },
+  { id: 'minihighlit', title: 'MINI HIGHLIGHTS - Italia vs Bélgica | UEFA Nations League | TUDN' },
+  { id: 'newcut00001', title: 'HIGHLIGHTS - Suecia vs Rumanía | UEFA Nations League - Jornada 1 2026-27 | TUDN' },
+  { id: 'newcut00001', title: 'HIGHLIGHTS - Suecia vs Rumanía | UEFA Nations League - Jornada 1 2026-27 | TUDN' },
+], new Set(['already0001']))
+assert(scan.length === 1 && scan[0].id === 'newcut00001', 'hourly scan keeps only a new full-highlight title')
 
 const base = {
   id: 'video000001',

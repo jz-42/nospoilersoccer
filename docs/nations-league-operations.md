@@ -104,16 +104,20 @@ a resolvable two-country highlight title, one completed fixture within the
 72-hour publication horizon, a non-Short duration, and a working embed.
 Existing cuts are append-only and are never replaced.
 
-Atom polling and WebSub notifications cost zero YouTube Data API units. FOX
-Soccer and TUDN USA playlist recovery open only when runtime hot-state proves a
-completed fixture lacks a cut. Each source scans at most two pages per run and
-stops at its own 48 units per Pacific quota day and two requests per rolling
-hour, in addition to the global 8,000-unit ceiling. If public feeds fail,
-authenticated fallback is eligible every five minutes but the hourly limit
-spaces out those requests instead of exhausting the day's allowance early. The
-D1 ledger covers this Worker, not other jobs sharing the same Google Cloud
-project/API key; check the project's YouTube Data API quota usage separately
-on matchdays.
+Atom polling and WebSub notifications cost zero YouTube Data API units. Those
+feeds only carry about 15 uploads, and TUDN's shorts can bury a full highlight
+before the next minute. While a finished fixture from the last 72 hours still
+has no cut, the results updater reads TUDN's newest 100 uploads once per hour
+(two playlist pages, 48 units per day), including after the score window
+closes. Only a new full-highlight title spends a metadata unit. FOX Soccer and TUDN USA playlist
+recovery on the Worker opens only when runtime hot-state proves a completed
+fixture lacks a cut, and only if the Worker has its own API key. Each source
+scans at most two pages per run and stops at its own 48 units per Pacific quota
+day and two requests per rolling hour, in addition to the global 8,000-unit
+ceiling. Leave that Worker key unset so the hourly updater is the only
+authenticated TUDN scan. The D1 ledger covers this Worker, not other jobs
+sharing the same Google Cloud project/API key; check the project's YouTube Data
+API quota usage separately on matchdays.
 
 FOX Sports Nations League discovery shares the existing FOX Sports WebSub,
 one-minute Atom poll, and bounded playlist scan used by World Cup highlights.

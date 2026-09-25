@@ -6,13 +6,16 @@ import { unl2026 } from '../src/data/nations/unl-2026'
 import { unl2026Videos } from '../src/data/nations/unl-2026-videos'
 import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId, Tournament } from '../src/data/types'
 import { isPlayed } from '../src/logic/spoilers'
-import { checkEmbeddable, getVideoMeta, getVideoMetaFromFeed } from './youtube'
+import { checkEmbeddable, getVideoMeta, getVideoMetaFromFeed, listPlaylistUploads } from './youtube'
 import { loadTargetedMetadata, parseTargetedMetadata } from './highlight-candidate'
 
 export const FOX_SOCCER_CHANNEL_ID = 'UCooTLkxcpnTNx6vfOovfBFA'
 export const FOX_SOCCER_UPLOADS_PLAYLIST = 'UUooTLkxcpnTNx6vfOovfBFA'
 export const FOX_SPORTS_CHANNEL_ID = 'UCwNqHDsnBCKT-olwJwIFyfg'
 export const TUDN_USA_CHANNEL_ID = 'UCSo19KhHogXxu3sFsOpqrcQ'
+export const TUDN_USA_UPLOADS_PLAYLIST = 'UUSo19KhHogXxu3sFsOpqrcQ'
+/** Two playlist pages. The hourly updater spends at most 48 of these units per day. */
+export const TUDN_SCAN_LIMIT = 100
 export const NATIONS_HIGHLIGHT_TRUST: 'quarantine' | 'trusted' = 'trusted'
 export const NATIONS_PUBLICATION_HORIZON_HOURS = 72
 const TUDN_MIN_SECONDS = 12 * 60
@@ -84,6 +87,26 @@ export function parseNationsHighlightTitle(title: string): NationsTitle | null {
   const tudn = title.match(/^HIGHLIGHTS\s+-\s+(.+?)\s+vs?\.?\s+(.+?)\s+\|\s+UEFA\s+Nations\s+League\b.*\|\s*TUDN\s*$/i)
   if (!tudn) return null
   return teamsFrom(tudn[1], tudn[2], 'normal', 'tudn')
+}
+
+/**
+ * Full-highlight titles the hourly catch-up still needs to check. Shorts, goal
+ * clips, super-extended packages, and ids already curated or skipped never
+ * spend a metadata request.
+ */
+export function selectNationsScanCandidates(
+  uploads: readonly { id: string; title: string }[],
+  existingIds: ReadonlySet<string>,
+): { id: string; title: string }[] {
+  const seen = new Set<string>()
+  const selected: { id: string; title: string }[] = []
+  for (const upload of uploads) {
+    if (!upload.id || existingIds.has(upload.id) || seen.has(upload.id)) continue
+    if (!parseNationsHighlightTitle(upload.title)) continue
+    seen.add(upload.id)
+    selected.push({ id: upload.id, title: upload.title })
+  }
+  return selected
 }
 
 type AnyMatch = (GroupMatch | KnockoutMatch) & { videos?: HighlightVideo[] }
@@ -236,20 +259,41 @@ function writeTargetResult(result: NationsCandidateResult['status']) {
   writeFileSync(targetResultFile, `${disposition}\n`)
 }
 
+function knownHighlightIds(map: Record<string, HighlightVideo[]>): Set<string> {
+  const ids = new Set<string>()
+  for (const videos of Object.values(map)) {
+    for (const video of videos) if (video.youtubeId) ids.add(video.youtubeId)
+  }
+  try {
+    const skip = JSON.parse(readFileSync(SKIP_FILE, 'utf8')) as Record<string, unknown>
+    for (const id of Object.keys(skip)) ids.add(id)
+  } catch { /* no skip file yet */ }
+  return ids
+}
+
 async function run() {
   const targetVideoId = argumentValue('--video-id')
   if (targetVideoId !== null && !/^[A-Za-z0-9_-]{11}$/.test(targetVideoId)) {
     throw new Error('--video-id requires an 11-character YouTube id')
   }
+  const scan = argumentValue('--scan')
+  if (scan !== null && scan !== 'tudn') throw new Error('--scan currently supports tudn')
+  const scanningTudn = scan === 'tudn' && targetVideoId === null
   const provided = targetVideoId ? parseTargetedMetadata(targetVideoId, {
     title: process.env.HIGHLIGHT_CANDIDATE_TITLE,
     channelId: process.env.HIGHLIGHT_CANDIDATE_CHANNEL_ID,
     publishedAt: process.env.HIGHLIGHT_CANDIDATE_PUBLISHED_AT,
   }) : null
+  const map = Object.fromEntries(Object.entries(unl2026Videos).map(([id, videos]) => [id, [...videos]]))
   const feed = targetVideoId
     ? [await loadTargetedMetadata(targetVideoId, provided?.channelId ?? FOX_SOCCER_CHANNEL_ID, provided, getVideoMetaFromFeed, getVideoMeta)]
-    : await listFoxSoccerAtom()
-  const map = Object.fromEntries(Object.entries(unl2026Videos).map(([id, videos]) => [id, [...videos]]))
+    : scanningTudn
+      ? selectNationsScanCandidates(
+          await listPlaylistUploads(TUDN_USA_UPLOADS_PLAYLIST, TUDN_SCAN_LIMIT),
+          knownHighlightIds(map),
+        ).map((item) => ({ ...item, publishedAt: null }))
+      : await listFoxSoccerAtom()
+  if (scanningTudn) console.log(`tudn scan: ${feed.length} new full-highlight titles in the newest ${TUDN_SCAN_LIMIT} uploads`)
   let last: NationsCandidateResult = { status: 'rejected', reason: 'no matching candidate' }
   let acceptedAny = false
 
@@ -278,7 +322,7 @@ async function run() {
     last = result
     console.log(`${candidate.id}: ${result.status}${'reason' in result ? ` (${result.reason})` : ''}`)
     acceptedAny = recordNationsCandidateResult(map, result) || acceptedAny
-    if (result.status === 'rejected' && !dryRun) {
+    if (!dryRun && (result.status === 'rejected' || (scanningTudn && result.status === 'duplicate'))) {
       let skip: Record<string, { source?: string; reason: string; at: string }> = {}
       try { skip = JSON.parse(readFileSync(SKIP_FILE, 'utf8')) as typeof skip } catch { /* start empty */ }
       const source = metadata.channelId === TUDN_USA_CHANNEL_ID

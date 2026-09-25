@@ -124,10 +124,19 @@ jobs:
             if NATIONS_AUDIT_FILE="$NATIONS_AUDIT_FILE" npx tsx scripts/espn-nations.ts \
               && npm run validate:data \
               && npx tsx scripts/espn-nations.smoke.ts \
-              && npx tsc -b \
-              && npm run build:hot-state \
-              && npm run build:highlight-state; then
-              return 0
+              && npx tsc -b; then
+              # TUDN posts enough shorts to push a full highlight out of the
+              # 15-item Atom feed. Once per updater hour, read the newest 100
+              # uploads (two playlist pages) and curate only new full-highlight
+              # titles. A scan failure must not discard a good score update.
+              if [ "$nations_highlight_scan" = 1 ]; then
+                if ! npx tsx scripts/curate-nations-videos.ts --scan tudn; then
+                  echo "::warning::Nations League TUDN highlight scan failed; keeping the result update"
+                fi
+              fi
+              if npm run build:hot-state && npm run build:highlight-state; then
+                return 0
+              fi
             fi
 
             echo "::warning::Nations League step failed; restoring last-known-good files"
@@ -265,7 +274,10 @@ jobs:
             # --- UEFA Nations League --------------------------------------
             # Match windows update results every five minutes. A first-cycle
             # discovery opportunity in selected UTC hours also finds new draws
-            # before those fixtures exist in the checked-in schedule.
+            # before those fixtures exist in the checked-in schedule. The TUDN
+            # playlist catch-up is the same once-per-hour cadence.
+            nations_highlight_scan=0
+            if [ "$cycle" -eq 1 ]; then nations_highlight_scan=1; fi
             if npx tsx scripts/nations-ingest-gate.ts "$cycle"; then
               if nations_step; then
                 if [ -f "$NATIONS_AUDIT_FILE" ]; then
