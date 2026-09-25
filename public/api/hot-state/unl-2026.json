@@ -223,11 +223,28 @@
       "kickoff": "2026-09-25T16:00Z"
     },
     "unl-401861051": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "SWE",
+          "player": "Alexander Isak",
+          "minute": "20'"
+        },
+        {
+          "team": "ROU",
+          "player": "Dennis Man",
+          "minute": "29'"
+        },
+        {
+          "team": "SWE",
+          "player": "Viktor Gyökeres",
+          "minute": "43'"
+        }
+      ],
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861052": {

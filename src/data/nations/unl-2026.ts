@@ -647,9 +647,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-25T18:45Z",
       "home": "SWE",
       "away": "ROU",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SWE",
+          "player": "Alexander Isak",
+          "minute": "20'"
+        },
+        {
+          "team": "ROU",
+          "player": "Dennis Man",
+          "minute": "29'"
+        },
+        {
+          "team": "SWE",
+          "player": "Viktor Gyökeres",
+          "minute": "43'"
+        }
+      ]
     },
     {
       "id": "unl-401861052",
