@@ -223,13 +223,17 @@
       "kickoff": "2026-09-25T16:00Z"
     },
     "unl-401861051": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861052": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-25T18:45Z"
@@ -247,13 +251,17 @@
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861055": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861056": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-25T18:45Z"

@@ -646,7 +646,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-25",
       "kickoff": "2026-09-25T18:45Z",
       "home": "SWE",
-      "away": "ROU"
+      "away": "ROU",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861052",
@@ -655,7 +658,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-25",
       "kickoff": "2026-09-25T18:45Z",
       "home": "ITA",
-      "away": "BEL"
+      "away": "BEL",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861053",
@@ -682,7 +688,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-25",
       "kickoff": "2026-09-25T18:45Z",
       "home": "POL",
-      "away": "BIH"
+      "away": "BIH",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861056",
@@ -691,7 +700,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-25",
       "kickoff": "2026-09-25T18:45Z",
       "home": "MNE",
-      "away": "CYP"
+      "away": "CYP",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861057",
