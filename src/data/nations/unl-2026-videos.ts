@@ -6,4 +6,5 @@ import type { HighlightVideo } from '../types'
  */
 export const unl2026Videos: Record<string, HighlightVideo[]> = {
   'unl-401861044': [{ youtubeId: 'p88LkHIdxSY', kind: 'normal', durationSeconds: 588 }],
+  'unl-401861046': [{ youtubeId: '7HyI8gieBfk', kind: 'extended', durationSeconds: 672 }],
 }
