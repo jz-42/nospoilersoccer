@@ -698,6 +698,44 @@ test('feed poll and WebSub verification bypass the 15-minute feed cache', async 
   assert.match(verified.searchParams.get('_'), /^\d+$/)
 })
 
+test('a refused fresh feed falls back to the cached feed without losing the upload', async () => {
+  const fox = HIGHLIGHT_SOURCES.find((source) => source.id === 'fox')
+  const cachedFeed = `<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015"><entry>
+    <yt:videoId>3HwX3l_ru3Q</yt:videoId>
+    <yt:channelId>${fox.channelId}</yt:channelId>
+    <title>Italy vs Belgium Highlights ⚽ UEFA Nations League</title>
+    <published>2026-09-25T21:10:38+00:00</published>
+    <updated>2026-09-25T21:10:40+00:00</updated>
+  </entry></feed>`
+  const feedFor = (url) => {
+    const parsed = new URL(url)
+    if (parsed.searchParams.has('_')) return new Response(null, { status: 429 })
+    return new Response(parsed.searchParams.get('channel_id') === fox.channelId ? cachedFeed : '<feed></feed>')
+  }
+  const queued = []
+  const result = await runFeedRecovery({
+    now: new Date('2026-09-25T21:12:00Z'),
+    store: { upsertCandidate: async () => 'inserted', markQueued: async () => {} },
+    queue: { send: async (message) => queued.push(message) },
+    fetchImpl: async (url) => feedFor(url),
+  })
+  assert.deepEqual(result.errors, [])
+  assert.equal(result.fallbacks.length, HIGHLIGHT_SOURCES.length)
+  assert.ok(result.fallbacks.includes('fox:fresh_feed_429'))
+  assert.deepEqual(queued.map((message) => [message.videoId, message.sourceId]), [['3HwX3l_ru3Q', 'foxnations']])
+
+  const pushed = []
+  await handleWebSubRequest(
+    new Request('https://worker.test/websub/youtube', { method: 'POST', body: cachedFeed }),
+    {
+      store: { recordNotification: async () => {}, upsertCandidate: async () => 'inserted', markQueued: async () => {} },
+      queue: { send: async (message) => pushed.push(message.videoId) },
+      fetchImpl: async (url) => feedFor(url),
+    },
+  )
+  assert.deepEqual(pushed, ['3HwX3l_ru3Q'])
+})
+
 test('normal recovery polls one newest page per source and enqueues only changed uploads', async () => {
   const fetched = []
   const queued = []

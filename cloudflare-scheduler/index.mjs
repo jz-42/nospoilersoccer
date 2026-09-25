@@ -548,6 +548,8 @@ export default {
           nationsHighlightStateUrl: highlightStateSourceUrl(env, 'unl-2026'),
           store,
           queue: env.HIGHLIGHT_QUEUE,
+        }).then(({ feed }) => {
+          console.log(JSON.stringify({ highlightFeed: feed }))
         }),
       )
     }

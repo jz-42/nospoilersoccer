@@ -409,6 +409,21 @@ function freshFeedUrl(channelId, now = new Date()) {
   return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}&_=${minute}`
 }
 
+// If the origin ever refuses the fresh URL, the cached feed still works, so a
+// failure costs at most the old 15-minute delay and never the upload itself.
+async function fetchChannelFeed(channelId, now, fetchImpl) {
+  let freshError
+  try {
+    const fresh = await fetchImpl(freshFeedUrl(channelId, now))
+    if (fresh.ok) return { response: fresh, fallback: null }
+    freshError = `fresh_feed_${fresh.status}`
+  } catch (error) {
+    freshError = `fresh_feed_${error instanceof Error ? error.message : String(error)}`
+  }
+  const cached = await fetchImpl(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`)
+  return { response: cached, fallback: freshError }
+}
+
 function sourceForChannel(channelId) {
   return HIGHLIGHT_SOURCES.find((source) => source.channelId === channelId) ?? null
 }
@@ -456,7 +471,7 @@ export async function handleWebSubRequest(request, { store, queue, fetchImpl = f
   await store.recordNotification?.(parsed.channelId)
   if (!candidateSourceId(source.id, parsed.title)) return new Response(null, { status: 204 })
 
-  const feedResponse = await fetchImpl(freshFeedUrl(source.channelId))
+  const { response: feedResponse } = await fetchChannelFeed(source.channelId, new Date(), fetchImpl)
   if (!feedResponse.ok) return new Response('feed verification unavailable', { status: 503 })
   const verified = parseYouTubeFeed(await feedResponse.text()).find(
     (entry) => entry.videoId === parsed.videoId && entry.channelId === source.channelId,
@@ -556,11 +571,11 @@ export async function runHighlightRecovery({
 
 export async function runFeedRecovery({ now = new Date(), store, queue, fetchImpl = fetch }) {
   const sourceResults = await Promise.all(HIGHLIGHT_SOURCES.map(async (source) => {
-    const result = { feedsFetched: 0, candidatesChanged: 0, errors: [] }
-    const url = freshFeedUrl(source.channelId, now)
+    const result = { feedsFetched: 0, candidatesChanged: 0, errors: [], fallbacks: [] }
     try {
-      const response = await fetchImpl(url)
+      const { response, fallback } = await fetchChannelFeed(source.channelId, now, fetchImpl)
       result.feedsFetched += 1
+      if (fallback) result.fallbacks.push(`${source.id}:${fallback}`)
       if (!response.ok) {
         result.errors.push(`${source.id}:feed_${response.status}`)
         return result
@@ -592,8 +607,9 @@ export async function runFeedRecovery({ now = new Date(), store, queue, fetchImp
       feedsFetched: total.feedsFetched + result.feedsFetched,
       candidatesChanged: total.candidatesChanged + result.candidatesChanged,
       errors: [...total.errors, ...result.errors],
+      fallbacks: [...total.fallbacks, ...result.fallbacks],
     }),
-    { feedsFetched: 0, candidatesChanged: 0, errors: [] },
+    { feedsFetched: 0, candidatesChanged: 0, errors: [], fallbacks: [] },
   )
 }
 
