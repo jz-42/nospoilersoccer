@@ -659,9 +659,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-25T18:45Z",
       "home": "ITA",
       "away": "BEL",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "BEL",
+          "player": "Mika Godts",
+          "minute": "20'"
+        },
+        {
+          "team": "BEL",
+          "player": "Dodi Lukébakio",
+          "minute": "69'"
+        }
+      ]
     },
     {
       "id": "unl-401861053",

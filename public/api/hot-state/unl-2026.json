@@ -231,11 +231,23 @@
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861052": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "BEL",
+          "player": "Mika Godts",
+          "minute": "20'"
+        },
+        {
+          "team": "BEL",
+          "player": "Dodi Lukébakio",
+          "minute": "69'"
+        }
+      ],
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861053": {
