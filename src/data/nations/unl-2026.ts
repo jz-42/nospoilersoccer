@@ -614,9 +614,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-25T16:00Z",
       "home": "ARM",
       "away": "LVA",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "ARM",
+          "player": "Georgii Harutyunyan",
+          "minute": "31'"
+        },
+        {
+          "team": "ARM",
+          "player": "Artur Gharibyan",
+          "minute": "75'"
+        }
+      ]
     },
     {
       "id": "unl-401861051",

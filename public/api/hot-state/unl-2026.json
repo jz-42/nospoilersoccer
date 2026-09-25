@@ -196,11 +196,23 @@
       "kickoff": "2026-09-25T16:00Z"
     },
     "unl-401861050": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ARM",
+          "player": "Georgii Harutyunyan",
+          "minute": "31'"
+        },
+        {
+          "team": "ARM",
+          "player": "Artur Gharibyan",
+          "minute": "75'"
+        }
+      ],
       "kickoff": "2026-09-25T16:00Z"
     },
     "unl-401861051": {
