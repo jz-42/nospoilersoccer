@@ -268,35 +268,68 @@
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861053": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "54'"
+        }
+      ],
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861054": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "UKR",
+          "player": "Danylo Sikan",
+          "minute": "42'"
+        }
+      ],
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861055": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [],
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861056": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "CYP",
+          "player": "Marcus Edwards",
+          "minute": "55'"
+        },
+        {
+          "team": "MNE",
+          "player": "Nikola Krstovic",
+          "minute": "66'",
+          "penalty": true
+        },
+        {
+          "team": "MNE",
+          "player": "Milutin Osmajic",
+          "minute": "86'"
+        }
+      ],
       "kickoff": "2026-09-25T18:45Z"
     },
     "unl-401861057": {

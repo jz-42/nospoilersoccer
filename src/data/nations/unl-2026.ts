@@ -702,9 +702,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-25T18:45Z",
       "home": "TUR",
       "away": "FRA",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Kylian Mbappé",
+          "minute": "54'"
+        }
+      ]
     },
     {
       "id": "unl-401861054",
@@ -714,9 +722,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-25T18:45Z",
       "home": "HUN",
       "away": "UKR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "UKR",
+          "player": "Danylo Sikan",
+          "minute": "42'"
+        }
+      ]
     },
     {
       "id": "unl-401861055",
@@ -726,9 +742,11 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-25T18:45Z",
       "home": "POL",
       "away": "BIH",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861056",
@@ -738,9 +756,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-25T18:45Z",
       "home": "MNE",
       "away": "CYP",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "CYP",
+          "player": "Marcus Edwards",
+          "minute": "55'"
+        },
+        {
+          "team": "MNE",
+          "player": "Nikola Krstovic",
+          "minute": "66'",
+          "penalty": true
+        },
+        {
+          "team": "MNE",
+          "player": "Milutin Osmajic",
+          "minute": "86'"
+        }
+      ]
     },
     {
       "id": "unl-401861057",
