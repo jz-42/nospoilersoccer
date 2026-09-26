@@ -786,7 +786,12 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T13:00Z",
       "home": "SVN",
-      "away": "SCO"
+      "away": "SCO",
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861058",
@@ -795,7 +800,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T16:00Z",
       "home": "ISL",
-      "away": "EST"
+      "away": "EST",
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ISL",
+          "player": "Andri Gudjohnsen",
+          "minute": "45'"
+        },
+        {
+          "team": "EST",
+          "player": "Maksim Paskotši",
+          "minute": "64'"
+        }
+      ]
     },
     {
       "id": "unl-401861059",
@@ -804,7 +825,49 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T16:00Z",
       "home": "SMR",
-      "away": "FIN"
+      "away": "FIN",
+      "score": {
+        "home": 0,
+        "away": 7
+      },
+      "goals": [
+        {
+          "team": "FIN",
+          "player": "Joel Pohjanpalo",
+          "minute": "5'"
+        },
+        {
+          "team": "FIN",
+          "player": "Adrian Svanbäck",
+          "minute": "14'"
+        },
+        {
+          "team": "FIN",
+          "player": "Benjamin Kallman",
+          "minute": "33'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "50'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "55'"
+        },
+        {
+          "team": "FIN",
+          "player": "Joel Pohjanpalo",
+          "minute": "79'"
+        },
+        {
+          "team": "FIN",
+          "player": "Joel Pohjanpalo",
+          "minute": "88'",
+          "penalty": true
+        }
+      ]
     },
     {
       "id": "unl-401861060",
@@ -813,7 +876,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T16:00Z",
       "home": "FRO",
-      "away": "KAZ"
+      "away": "KAZ",
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRO",
+          "player": "Áki Debes Samuelsen",
+          "minute": "14'"
+        },
+        {
+          "team": "KAZ",
+          "player": "Temirlan Erlanov",
+          "minute": "26'"
+        }
+      ]
     },
     {
       "id": "unl-401861061",
@@ -822,7 +901,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T16:00Z",
       "home": "BUL",
-      "away": "LUX"
+      "away": "LUX",
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "BUL",
+          "player": "Asen Chandarov",
+          "minute": "18'"
+        },
+        {
+          "team": "LUX",
+          "player": "Leandro Barreiro",
+          "minute": "37'"
+        },
+        {
+          "team": "LUX",
+          "player": "Vincent Thill",
+          "minute": "65'"
+        }
+      ]
     },
     {
       "id": "unl-401861062",
@@ -831,7 +931,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T18:45Z",
       "home": "ALB",
-      "away": "BLR"
+      "away": "BLR",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861063",
@@ -840,7 +943,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T18:45Z",
       "home": "CZE",
-      "away": "CRO"
+      "away": "CRO",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861064",
@@ -849,7 +955,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T18:45Z",
       "home": "SVK",
-      "away": "MDA"
+      "away": "MDA",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861065",
@@ -858,7 +967,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T18:45Z",
       "home": "MKD",
-      "away": "SUI"
+      "away": "SUI",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861066",
@@ -867,7 +979,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-26",
       "kickoff": "2026-09-26T18:45Z",
       "home": "ENG",
-      "away": "ESP"
+      "away": "ESP",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861067",

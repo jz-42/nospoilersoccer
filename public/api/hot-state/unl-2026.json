@@ -334,60 +334,160 @@
     },
     "unl-401861057": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": [],
       "kickoff": "2026-09-26T13:00Z"
     },
     "unl-401861058": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ISL",
+          "player": "Andri Gudjohnsen",
+          "minute": "45'"
+        },
+        {
+          "team": "EST",
+          "player": "Maksim Paskotši",
+          "minute": "64'"
+        }
+      ],
       "kickoff": "2026-09-26T16:00Z"
     },
     "unl-401861059": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 7
+      },
+      "goals": [
+        {
+          "team": "FIN",
+          "player": "Joel Pohjanpalo",
+          "minute": "5'"
+        },
+        {
+          "team": "FIN",
+          "player": "Adrian Svanbäck",
+          "minute": "14'"
+        },
+        {
+          "team": "FIN",
+          "player": "Benjamin Kallman",
+          "minute": "33'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "50'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "55'"
+        },
+        {
+          "team": "FIN",
+          "player": "Joel Pohjanpalo",
+          "minute": "79'"
+        },
+        {
+          "team": "FIN",
+          "player": "Joel Pohjanpalo",
+          "minute": "88'",
+          "penalty": true
+        }
+      ],
       "kickoff": "2026-09-26T16:00Z"
     },
     "unl-401861060": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRO",
+          "player": "Áki Debes Samuelsen",
+          "minute": "14'"
+        },
+        {
+          "team": "KAZ",
+          "player": "Temirlan Erlanov",
+          "minute": "26'"
+        }
+      ],
       "kickoff": "2026-09-26T16:00Z"
     },
     "unl-401861061": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "BUL",
+          "player": "Asen Chandarov",
+          "minute": "18'"
+        },
+        {
+          "team": "LUX",
+          "player": "Leandro Barreiro",
+          "minute": "37'"
+        },
+        {
+          "team": "LUX",
+          "player": "Vincent Thill",
+          "minute": "65'"
+        }
+      ],
       "kickoff": "2026-09-26T16:00Z"
     },
     "unl-401861062": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-26T18:45Z"
     },
     "unl-401861063": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-26T18:45Z"
     },
     "unl-401861064": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-26T18:45Z"
     },
     "unl-401861065": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-26T18:45Z"
     },
     "unl-401861066": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-26T18:45Z"
