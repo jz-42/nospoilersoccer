@@ -68,7 +68,7 @@ import { isNonEnglishHighlight } from '../src/data/videos'
 import { CLUB_COMPETITIONS, SEASON_YEAR, pairKey, videosExportName, videosModulePath } from './espn-club'
 import type { ClubCompetitionConfig } from './espn-club'
 import { loadTargetedMetadata, parseTargetedMetadata } from './highlight-candidate'
-import { checkEmbeddable, getVideoMeta, getVideoMetaFromFeed } from './youtube'
+import { checkEmbeddable, getVideoMeta, getVideoMetaFromFeed, playlistPageLimit } from './youtube'
 
 const API_KEY = process.env.YOUTUBE_API_KEY
 const API = 'https://www.googleapis.com/youtube/v3'
@@ -783,7 +783,8 @@ async function listUploadsApi(
 ): Promise<PlaylistVideo[]> {
   const out: PlaylistVideo[] = []
   let pageToken = ''
-  while (out.length < max) {
+  let pagesFetched = 0
+  while (out.length < max && pagesFetched < playlistPageLimit(max)) {
     const url =
       `${API}/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}` +
       `&key=${API_KEY}${pageToken ? `&pageToken=${pageToken}` : ''}`
@@ -795,6 +796,7 @@ async function listUploadsApi(
         snippet?: { title?: string; publishedAt?: string; resourceId?: { videoId?: string } }
       }[]
     }
+    pagesFetched += 1
     // An uploads playlist is strictly newest-first, so the first item past the
     // floor means every later page is too.
     let reachedFloor = false

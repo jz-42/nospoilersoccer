@@ -87,10 +87,14 @@ function isoDurationToSeconds(iso: string): number {
 
 // ---- Data API path ---------------------------------------------------------
 
+/** Never fetch more upload pages than the requested scan depth allows. */
+export const playlistPageLimit = (max: number): number => Math.ceil(max / 50)
+
 async function listUploadsApi(playlistId: string, max: number): Promise<PlaylistVideo[]> {
   const out: PlaylistVideo[] = []
   let pageToken = ''
-  while (out.length < max) {
+  let pagesFetched = 0
+  while (out.length < max && pagesFetched < playlistPageLimit(max)) {
     const url =
       `${API}/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}` +
       `&key=${API_KEY}${pageToken ? `&pageToken=${pageToken}` : ''}`
@@ -98,6 +102,7 @@ async function listUploadsApi(playlistId: string, max: number): Promise<Playlist
       nextPageToken?: string
       items?: { snippet?: { title?: string; resourceId?: { videoId?: string } } }[]
     }
+    pagesFetched += 1
     for (const it of data.items ?? []) {
       const id = it.snippet?.resourceId?.videoId
       const title = it.snippet?.title
