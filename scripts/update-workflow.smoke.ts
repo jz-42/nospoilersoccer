@@ -9,6 +9,18 @@ const curateWorkflow = readFileSync(
   new URL('../.github/workflows/curate-highlight.yml', import.meta.url),
   'utf8',
 )
+const watchdogWorkflow = readFileSync(
+  new URL('../.github/workflows/update-watchdog.yml', import.meta.url),
+  'utf8',
+)
+
+assert.match(watchdogWorkflow, /cron: ['"]2\/5 \* \* \* \*['"]/, 'an independent five-minute watchdog runs around the clock')
+assert.match(watchdogWorkflow, /actions: write/, 'the watchdog can dispatch the updater')
+assert.match(
+  watchdogWorkflow,
+  /workflow_runs[\s\S]*?status != "completed"[\s\S]*?if \[ "\$active" -eq 0 \]; then[\s\S]*?gh workflow run update-results\.yml --ref main/,
+  'the watchdog dispatches only when the updater is idle',
+)
 
 assert.match(
   workflow,

@@ -1,5 +1,5 @@
 import type { HighlightVideo, Tournament } from './types'
-import { highlightKey } from './videos'
+import { highlightKey, isNonEnglishHighlight, orderHighlightVideos } from './videos'
 
 export interface RuntimeHighlightState {
   schemaVersion: 1
@@ -67,15 +67,16 @@ function appendRuntimeVideos<M extends { id: string; videos?: HighlightVideo[] }
 
   const videos = [...(match.videos ?? [])]
   const keys = new Set(videos.map(highlightKey))
-  const kinds = new Set(videos.map((video) => video.kind))
+  const slots = new Set(videos.map((video) => `${video.kind}:${isNonEnglishHighlight(video)}`))
   for (const video of incoming) {
     const key = highlightKey(video)
-    if (keys.has(key) || kinds.has(video.kind)) continue
+    const slot = `${video.kind}:${isNonEnglishHighlight(video)}`
+    if (keys.has(key) || slots.has(slot)) continue
     videos.push(video)
     keys.add(key)
-    kinds.add(video.kind)
+    slots.add(slot)
   }
-  return videos.length === (match.videos?.length ?? 0) ? match : { ...match, videos }
+  return videos.length === (match.videos?.length ?? 0) ? match : { ...match, videos: orderHighlightVideos(videos) }
 }
 
 export function applyRuntimeHighlightState(

@@ -13,7 +13,7 @@ import type { HighlightVideo, Tournament } from '../types'
  * than the UI, so nothing here should ever add the field back.
  *
  * Append-only, like the curator that writes the map: a match that already
- * carries a video keeps it.
+ * carries videos keeps them. La Liga may carry English and Spanish cuts.
  */
 export function withClubVideos(
   t: Tournament,

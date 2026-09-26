@@ -525,6 +525,13 @@ const laliga: Tournament = {
 }
 assert(needsHighlightScan(laliga, {}) === true, 'a finished fixture without a cut needs a scan')
 assert(
+  needsHighlightScan(laliga, Object.fromEntries(laliga.groupMatches.map((match, index) => [
+    match.id,
+    [{ youtubeId: `spanish000${index}`.slice(0, 11), kind: 'normal', publisher: 'espn-deportes' }],
+  ]))) === true,
+  'La Liga recovery keeps looking for English when only Spanish backups exist',
+)
+assert(
   needsHighlightScan(
     laliga,
     Object.fromEntries(
@@ -558,6 +565,12 @@ assert(
 assert(
   plain.status === 'accept' && plain.matchId === 'esp1-espanyol-barcelona',
   'and lands on the fixture it names',
+)
+assert(
+  espnGate('Espanyol vs. Barcelona | LALIGA Highlights | ESPN FC', {
+    existing: { 'esp1-espanyol-barcelona': [{ youtubeId: 'deportes001', kind: 'normal', publisher: 'espn-deportes' }] },
+  }).status === 'accept',
+  'a later English ESPN FC cut can join an earlier Spanish backup',
 )
 
 // Editorial headlines are accepted because no reader of this site sees the

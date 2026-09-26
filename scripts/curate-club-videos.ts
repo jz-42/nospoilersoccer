@@ -5,8 +5,8 @@
  *   npx tsx scripts/curate-club-videos.ts --dry-run     # decide, write nothing
  *   npx tsx scripts/curate-club-videos.ts --competition ucl
  *
- * One cut per match, `kind: 'normal'`, from whichever rights holder publishes
- * that competition:
+ * One cut per match and language, `kind: 'normal'`, from the rights holders
+ * publishing that competition:
  *
  *   ucl   CBS Sports Golazo   "Arsenal vs. Napoli: Extended Highlights | UCL …"
  *   eng1  NBC Sports          "Everton v. Manchester United | PREMIER LEAGUE HIGHLIGHTS | 9/6/2026 | NBC Sports"
@@ -28,7 +28,7 @@
  *   2. the title matches that source's full-match highlight shape and names
  *      two clubs
  *   3. both clubs resolve to teams in *this* competition
- *   4. they map to EXACTLY ONE finished fixture still missing a cut
+ *   4. they map to EXACTLY ONE finished fixture still missing that language's cut
  *      (zero, or two or more, means skip)
  *   5. it was published after that fixture's kickoff
  *   6. it is embeddable
@@ -64,6 +64,7 @@ import type {
 } from '../src/data/types'
 import { clubIdByName, clubNameCandidates, clubs, normalizeClubName } from '../src/data/club/clubs'
 import { isPlayed } from '../src/logic/spoilers'
+import { isNonEnglishHighlight } from '../src/data/videos'
 import { CLUB_COMPETITIONS, SEASON_YEAR, pairKey, videosExportName, videosModulePath } from './espn-club'
 import type { ClubCompetitionConfig } from './espn-club'
 import { loadTargetedMetadata, parseTargetedMetadata } from './highlight-candidate'
@@ -466,12 +467,12 @@ export function needsHighlightScan(
     ...tournament.groupMatches,
     ...tournament.knockoutRounds.flatMap((round) => round.matches),
   ]
-  return matches.some(
-    (match) =>
-      isPlayed(match) &&
-      (match.videos?.length ?? 0) === 0 &&
-      (existing[match.id]?.length ?? 0) === 0,
-  )
+  return matches.some((match) => {
+    if (!isPlayed(match)) return false
+    const cuts = [...(match.videos ?? []), ...(existing[match.id] ?? [])]
+    return cuts.length === 0 ||
+      (tournament.id.startsWith('esp1-') && !cuts.some((cut) => !isNonEnglishHighlight(cut)))
+  })
 }
 
 export type FixtureResult =
@@ -519,6 +520,7 @@ export function findClubFixture(
   away: TeamId,
   publishedMs: number,
   existing: Record<string, HighlightVideo[]>,
+  sourceId?: string,
 ): FixtureResult {
   const key = pairKey(home, away)
   const all: AnyMatch[] = [
@@ -575,9 +577,14 @@ export function findClubFixture(
   // first slot is already occupied.
   if (after.length > 1) return { status: 'ambiguous' }
 
-  const need = after.filter(
-    (m) => (m.videos?.length ?? 0) === 0 && (existing[m.id]?.length ?? 0) === 0,
-  )
+  const need = after.filter((m) => {
+    const cuts = [...(m.videos ?? []), ...(existing[m.id] ?? [])]
+    if (sourceId === 'espnfc' || sourceId === 'espndeportes') {
+      const nonEnglish = sourceId === 'espndeportes'
+      return !cuts.some((cut) => isNonEnglishHighlight(cut) === nonEnglish)
+    }
+    return cuts.length === 0
+  })
   if (need.length === 0) return { status: 'have' }
   return { status: 'ok', match: need[0] }
 }
@@ -651,7 +658,7 @@ export function acceptCandidate(input: CandidateInput): GateResult {
   const publishedMs = new Date(input.publishedAt).getTime()
   if (!Number.isFinite(publishedMs)) return { status: 'skip', reason: 'unreadable publish date' }
 
-  // 4. exactly one finished fixture still missing a cut
+  // 4. exactly one finished fixture still missing this source's language
   const fixture = findClubFixture(
     input.tournament,
     screen,
@@ -659,6 +666,7 @@ export function acceptCandidate(input: CandidateInput): GateResult {
     away,
     publishedMs,
     input.existing,
+    input.source.id,
   )
   switch (fixture.status) {
     case 'none':

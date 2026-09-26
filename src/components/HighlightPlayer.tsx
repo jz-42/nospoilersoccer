@@ -35,6 +35,7 @@ import {
   highlightKey,
   isFoxHighlight,
   isYouTubeHighlight,
+  orderHighlightVideos,
 } from '../data/videos'
 import { formatHighlightDuration } from './format'
 import { usePlayerSettings } from '../player-settings'
@@ -148,8 +149,9 @@ export function HighlightPlayer({
   /** Experimental: our own controls over YouTube's bottom row (player lab only). */
   customControls?: boolean
 }) {
-  // Extended is the default experience; brief is the catch-up option.
-  const defaultVideo = videos.find((v) => v.kind === 'extended') ?? videos[0]
+  // English cuts lead; extended is preferred within a language.
+  const orderedVideos = orderHighlightVideos(videos)
+  const defaultVideo = orderedVideos[0]
   const [selected, setSelected] = useState<HighlightVideo>(defaultVideo)
   const [active, setActive] = useState<HighlightVideo | null>(null)
   const [atEnd, setAtEnd] = useState(false)
@@ -315,9 +317,9 @@ export function HighlightPlayer({
     analytics.trackHighlightEvent('highlight_play_clicked', analyticsContext(v))
   }
 
-  const kindToggle = videos.length > 1 && (
+  const kindToggle = orderedVideos.length > 1 && (
     <div className="kind-toggle" role="tablist">
-      {videos.map((v) => {
+      {orderedVideos.map((v) => {
         const dur = formatHighlightDuration(v.durationSeconds, v.kind)
         return (
           <button
@@ -335,10 +337,8 @@ export function HighlightPlayer({
   )
 
   if (!active) {
-    // Each highlight cut is its own poster — extended first, then the quick
-    // cut — so choosing what to watch is one tap, no hidden toggle.
-    const order: Record<HighlightVideo['kind'], number> = { extended: 0, normal: 1 }
-    const posters = [...videos].sort((a, b) => order[a.kind] - order[b.kind])
+    // Each highlight cut is its own poster, with English first.
+    const posters = orderedVideos
     return (
       <div className="player-block">
         <div className="poster-list">

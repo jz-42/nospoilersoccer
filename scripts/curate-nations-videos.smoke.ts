@@ -80,6 +80,14 @@ assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', channelId: 'UCwro
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', channelId: 'UCwNqHDsnBCKT-olwJwIFyfg', title: 'England vs Finland Highlights ⚽ UEFA Nations League' }).status === 'accepted', 'exact FOX Sports channel publishes a Nations League cut')
 const tudn = acceptNationsCandidate({ ...base, trustMode: 'trusted', id: 'VW2NXp9RaOE', channelId: TUDN_USA_CHANNEL_ID, title: 'HIGHLIGHTS - Países Bajos vs Alemania | UEFA Nations League - Jornada 1 2026-27 | TUDN', durationSeconds: 886, tournament: { ...tournament, groupMatches: [{ id: 'unl-ned-ger', group: 'A1', matchday: 1, date: '2026-09-24', kickoff: '2026-09-24T18:45Z', home: 'NED', away: 'GER', score: { home: 1, away: 0 } }] } })
 assert(tudn.status === 'accepted' && tudn.video.kind === 'normal' && tudn.video.publisher === 'tudn', 'trusted TUDN USA 15-minute cut uses the normal highlight slot')
+assert(
+  acceptNationsCandidate({
+    ...base,
+    trustMode: 'trusted',
+    existing: { 'unl-eng-fin': [{ youtubeId: 'VW2NXp9RaOE', kind: 'normal', publisher: 'tudn' }] },
+  }).status === 'accepted',
+  'a later English FOX cut is accepted alongside a TUDN backup',
+)
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', channelId: TUDN_USA_CHANNEL_ID, title: 'HIGHLIGHTS - England vs Finland | UEFA Nations League - Jornada 1 2026-27 | TUDN', durationSeconds: 1500 }).status === 'rejected', 'TUDN cuts outside the 15-minute range are rejected')
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', channelId: FOX_SOCCER_CHANNEL_ID, title: 'HIGHLIGHTS - England vs Finland | UEFA Nations League - Jornada 1 2026-27 | TUDN', durationSeconds: 900 }).status === 'rejected', 'TUDN title requires the TUDN USA channel')
 assert(acceptNationsCandidate({ ...base, trustMode: 'trusted', publishedAt: '2026-09-24T17:00Z' }).status === 'retry', 'publication before kickoff is held')
