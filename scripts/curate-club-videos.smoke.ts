@@ -27,6 +27,7 @@ import type { CandidateInput } from './curate-club-videos'
 import type { HighlightVideo, Tournament } from '../src/data/types'
 import { clubs } from '../src/data/club/clubs'
 import { withClubVideos } from '../src/data/club/with-videos'
+import { playlistPageLimit } from './youtube'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -121,6 +122,9 @@ const tournament: Tournament = {
     },
   ],
 }
+
+assert(playlistPageLimit(100) === 2 && playlistPageLimit(600) === 12,
+  'playlist recovery has a hard page budget even if returned entries are malformed')
 
 const unseenUploads = newClubScanUploads(
   [
