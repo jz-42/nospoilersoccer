@@ -5,6 +5,10 @@ on:
     # Independent fallback for the Cloudflare minute cron. Avoid :00, when
     # GitHub scheduled workflows are most likely to be delayed.
     - cron: '2/5 * * * *'
+  workflow_run:
+    workflows: [Update World Cup data]
+    types: [completed]
+    branches: [main]
   workflow_dispatch: {}
 
 concurrency:

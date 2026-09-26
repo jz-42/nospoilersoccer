@@ -16,6 +16,7 @@ import {
   clubNameFromTail,
   resolveTargetSource,
   needsHighlightScan,
+  newClubScanUploads,
   screenTitle,
   serializeVideoMap,
   sourcesForCompetition,
@@ -120,6 +121,24 @@ const tournament: Tournament = {
     },
   ],
 }
+
+const unseenUploads = newClubScanUploads(
+  [
+    { id: 'already0001', title: 'Arsenal vs Napoli: Extended Highlights | UCL' },
+    { id: 'newvideo001', title: 'Inter vs Napoli: Extended Highlights | UCL' },
+  ],
+  {
+    ...tournament,
+    groupMatches: tournament.groupMatches.map((match) => match.id === 'ucl-arsenal-napoli'
+      ? { ...match, videos: [{ youtubeId: 'inline00001', kind: 'normal' }] }
+      : match),
+  },
+  { 'ucl-arsenal-napoli': [{ youtubeId: 'already0001', kind: 'normal' }] },
+)
+assert(
+  unseenUploads.length === 1 && unseenUploads[0].id === 'newvideo001',
+  'hourly recovery skips already-curated uploads before spending metadata quota',
+)
 
 const base: Omit<CandidateInput, 'title' | 'id'> = {
   config: ucl,
