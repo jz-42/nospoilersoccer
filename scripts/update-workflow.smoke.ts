@@ -15,6 +15,11 @@ const watchdogWorkflow = readFileSync(
 )
 
 assert.match(watchdogWorkflow, /cron: ['"]2\/5 \* \* \* \*['"]/, 'an independent five-minute watchdog runs around the clock')
+assert.match(
+  watchdogWorkflow,
+  /workflow_run:[\s\S]*?workflows: \[Update World Cup data\][\s\S]*?types: \[completed\]/,
+  'updater completion also triggers the watchdog without waiting for a scheduled run',
+)
 assert.match(watchdogWorkflow, /actions: write/, 'the watchdog can dispatch the updater')
 assert.match(
   watchdogWorkflow,

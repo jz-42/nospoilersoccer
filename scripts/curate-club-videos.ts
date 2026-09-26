@@ -475,6 +475,21 @@ export function needsHighlightScan(
   })
 }
 
+/** Avoid re-fetching Data API metadata for cuts already in the season. */
+export function newClubScanUploads(
+  uploads: PlaylistVideo[],
+  tournament: Tournament,
+  existing: Record<string, HighlightVideo[]>,
+): PlaylistVideo[] {
+  const videos = [
+    ...Object.values(existing).flat(),
+    ...tournament.groupMatches.flatMap((match) => match.videos ?? []),
+    ...tournament.knockoutRounds.flatMap((round) => round.matches.flatMap((match) => match.videos ?? [])),
+  ]
+  const knownIds = new Set(videos.flatMap((video) => 'youtubeId' in video ? [video.youtubeId] : []))
+  return uploads.filter((upload) => !knownIds.has(upload.id))
+}
+
 export type FixtureResult =
   | { status: 'ok'; match: AnyMatch }
   /** No fixture between these two clubs in this competition. */
@@ -971,11 +986,12 @@ async function run() {
           continue // transient — retried next cycle
         }
       }
+      const candidates = targetMeta ? uploads : newClubScanUploads(uploads, tournament, map)
       console.log(
-        `Scanning ${uploads.length} ${source.label} uploads for ${config.id}${dryRun ? ' (dry-run)' : ''}…`,
+        `Scanning ${candidates.length} new ${source.label} uploads for ${config.id}${dryRun ? ' (dry-run)' : ''}…`,
       )
 
-      for (const up of uploads) {
+      for (const up of candidates) {
         // Cheap pass first: no network for the reaction shows and interviews.
         const screened = screenTitle(config, source, up.title, tournament)
         if (screened.status === 'ignore') {
