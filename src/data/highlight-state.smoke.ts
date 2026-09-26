@@ -128,6 +128,21 @@ test('runtime state cannot replace a bundled cut of the same kind', () => {
   ])
 })
 
+test('runtime English cut joins an earlier TUDN backup and takes first position', () => {
+  const bundled: Tournament = {
+    ...tournament,
+    groupMatches: tournament.groupMatches.map((match) => ({
+      ...match,
+      videos: [{ youtubeId: 'VW2NXp9RaOE', kind: 'normal', publisher: 'tudn' }],
+    })),
+  }
+  const next = applyRuntimeHighlightState(bundled, payload)
+  assert.deepEqual(next.groupMatches[0].videos?.map((video) => video.youtubeId), [
+    'abcdefghijk',
+    'VW2NXp9RaOE',
+  ])
+})
+
 test('runtime state for another tournament is ignored', () => {
   const next = applyRuntimeHighlightState(tournament, { ...payload, tournamentId: 'other' })
   assert.equal(next, tournament)

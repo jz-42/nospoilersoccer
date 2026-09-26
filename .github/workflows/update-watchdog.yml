@@ -1,0 +1,34 @@
+name: Keep match updater running
+
+on:
+  schedule:
+    # Independent fallback for the Cloudflare minute cron. Avoid :00, when
+    # GitHub scheduled workflows are most likely to be delayed.
+    - cron: '2/5 * * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: update-watchdog
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+
+jobs:
+  ensure-updater:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch updater only when idle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          active=$(gh api "repos/$GH_REPO/actions/workflows/update-results.yml/runs?per_page=20" \
+            --jq '[.workflow_runs[] | select(.status != "completed")] | length')
+          if [ "$active" -eq 0 ]; then
+            gh workflow run update-results.yml --ref main
+            echo "Started the updater after it went idle."
+          else
+            echo "Updater already active ($active run); no dispatch needed."
+          fi

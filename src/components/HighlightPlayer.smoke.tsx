@@ -47,6 +47,15 @@ const tudn = renderPlayer('unl-401861041', [
 ])
 assert(tudn.includes('Highlights (TUDN)'), 'TUDN USA publisher is explicit')
 
+const englishAndTudn = renderPlayer('unl-401861041', [
+  { youtubeId: 'VW2NXp9RaOE', kind: 'normal', publisher: 'tudn' },
+  { youtubeId: 'english0001', kind: 'normal' },
+])
+assert(
+  englishAndTudn.indexOf('Quick Highlights') < englishAndTudn.indexOf('Highlights (TUDN)'),
+  'English highlight is offered before its TUDN backup',
+)
+
 const worldCup = renderPlayer('A1', [
   { youtubeId: 'quick-video', kind: 'normal', durationSeconds: 300 },
   { youtubeId: 'extended-video', kind: 'extended', durationSeconds: 900 },

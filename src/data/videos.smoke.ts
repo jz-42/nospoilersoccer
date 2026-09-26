@@ -4,6 +4,7 @@ import {
   highlightExternalUrl,
   highlightKey,
   preferredHighlightVideos,
+  orderHighlightVideos,
   highlightSource,
   isFoxHighlight,
   isYouTubeHighlight,
@@ -38,6 +39,17 @@ assert(preferredWithFallback.some((v) => v.kind === 'extended'), 'extended highl
 
 const preferredFoxOnly = preferredHighlightVideos([fox, legacyYoutube])
 assert(preferredFoxOnly.some((v) => v.kind === 'normal' && isFoxHighlight(v)), 'FOX quick remains fallback without YouTube quick')
+
+const tudn: HighlightVideo = { youtubeId: 'tudn000001', kind: 'normal', publisher: 'tudn' }
+const english: HighlightVideo = { youtubeId: 'foxen000001', kind: 'normal' }
+assert(
+  orderHighlightVideos([tudn, english])[0] === english,
+  'English cut appears before a TUDN backup even when TUDN arrived first',
+)
+assert(
+  preferredHighlightVideos([tudn, english])[0] === english,
+  'same-kind preference selects English over TUDN',
+)
 
 assert(
   highlightExternalUrl(legacyYoutube) === 'https://www.youtube.com/watch?v=abc123XYZ_0',

@@ -5,6 +5,7 @@ import { nationalTeams } from '../src/data/national-teams'
 import { unl2026 } from '../src/data/nations/unl-2026'
 import { unl2026Videos } from '../src/data/nations/unl-2026-videos'
 import type { GroupMatch, HighlightVideo, KnockoutMatch, TeamId, Tournament } from '../src/data/types'
+import { isNonEnglishHighlight } from '../src/data/videos'
 import { isPlayed } from '../src/logic/spoilers'
 import { checkEmbeddable, getVideoMeta, getVideoMetaFromFeed, listPlaylistUploads } from './youtube'
 import { loadTargetedMetadata, parseTargetedMetadata } from './highlight-candidate'
@@ -189,7 +190,10 @@ export function acceptNationsCandidate(input: NationsCandidate): NationsCandidat
     ? 'normal'
     : parsed.kindHint === 'extended' || input.durationSeconds >= 600 ? 'extended' : 'normal'
   const current = [...(match.videos ?? []), ...(input.existing[match.id] ?? [])]
-  if (current.some((video) => video.kind === kind)) return { status: 'duplicate', reason: 'accepted cut already exists' }
+  const nonEnglish = parsed.broadcaster === 'tudn'
+  if (current.some((video) => video.kind === kind && isNonEnglishHighlight(video) === nonEnglish)) {
+    return { status: 'duplicate', reason: 'accepted cut already exists for this language' }
+  }
   if (input.trustMode === 'quarantine') {
     return { status: 'quarantined', reason: 'FOX Soccer source awaits matchday-1 manual verification', matchId: match.id }
   }

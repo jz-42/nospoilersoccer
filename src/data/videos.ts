@@ -19,15 +19,30 @@ export function highlightKey(v: HighlightVideo): string {
   return isFoxHighlight(v) ? `fox:${v.foxId}` : `youtube:${v.youtubeId}`
 }
 
+/** Known Spanish-language feeds are useful fallbacks behind English cuts. */
+export function isNonEnglishHighlight(v: HighlightVideo): boolean {
+  return isYouTubeHighlight(v) && (v.publisher === 'tudn' || v.publisher === 'espn-deportes')
+}
+
+export function orderHighlightVideos(videos: HighlightVideo[]): HighlightVideo[] {
+  const kindRank = { extended: 0, normal: 1 }
+  return [...videos].sort((a, b) =>
+    Number(isNonEnglishHighlight(a)) - Number(isNonEnglishHighlight(b)) ||
+    kindRank[a.kind] - kindRank[b.kind],
+  )
+}
+
 export function preferredHighlightVideos(videos: HighlightVideo[]): HighlightVideo[] {
   const byKind = new Map<HighlightVideo['kind'], HighlightVideo>()
   for (const video of videos) {
     const current = byKind.get(video.kind)
-    if (!current || (isFoxHighlight(current) && isYouTubeHighlight(video))) {
+    if (!current ||
+      (isNonEnglishHighlight(current) && !isNonEnglishHighlight(video)) ||
+      (isNonEnglishHighlight(current) === isNonEnglishHighlight(video) && isFoxHighlight(current) && isYouTubeHighlight(video))) {
       byKind.set(video.kind, video)
     }
   }
-  return [...byKind.values()]
+  return orderHighlightVideos([...byKind.values()])
 }
 
 export function foxWatchUrl(foxId: string): string {
