@@ -63,12 +63,20 @@ function devForcedLiveStatus(matchId: string): MatchLiveStatus | undefined {
   return undefined
 }
 
-export function matchLiveStatus(target: ModalTarget, progress: MatchView): MatchLiveStatus | undefined {
+export function matchLiveStatus(target: ModalTarget, progress: MatchView, now: Date = new Date()): MatchLiveStatus | undefined {
   const m = target.match
   if (progress.marks[m.id] !== undefined) return undefined
   const forced = devForcedLiveStatus(m.id)
   if (forced) return forced
   if (m.score !== undefined) return undefined
+  // A feed can keep serving a previously live snapshot after the updater
+  // stops. League matches cannot stay live indefinitely; knockout games can
+  // run longer because of extra time and penalties.
+  if (m.liveStatus?.kind === 'live' && m.kickoff) {
+    const kickoff = Date.parse(m.kickoff)
+    const maxMinutes = target.kind === 'knockout' ? 240 : 150
+    if (Number.isFinite(kickoff) && now.getTime() - kickoff >= maxMinutes * 60_000) return undefined
+  }
   return m.liveStatus
 }
 

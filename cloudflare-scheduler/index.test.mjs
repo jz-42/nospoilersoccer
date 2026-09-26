@@ -179,6 +179,22 @@ test('chooseAction dispatches whenever no workflow run is active', () => {
   assert.equal(chooseAction({ insideWindow: true, activeRunCount: 0 }), 'dispatch')
 })
 
+test('runScheduler dispatches without parsing schedules on the cron path', async () => {
+  let dispatched = 0
+  const result = await runScheduler({
+    now: new Date('2026-09-26T21:20:00Z'),
+    githubClient: {
+      getActiveRunCount: async () => 0,
+      dispatchWorkflow: async () => { dispatched += 1 },
+    },
+    logger: () => {},
+  })
+
+  assert.equal(result.action, 'dispatch')
+  assert.equal(result.insideWindow, null)
+  assert.equal(dispatched, 1)
+})
+
 test('createGitHubClient lists active runs and dispatches workflow', async () => {
   const calls = []
   const client = createGitHubClient({

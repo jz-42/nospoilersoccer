@@ -76,6 +76,7 @@ const liveGroupSource = wc2026.groupMatches.find((match): match is GroupMatch =>
 if (!liveGroupSource?.kickoff) throw new Error('Fixture error: expected a group match with kickoff data')
 const liveGroup: GroupMatch = {
   ...liveGroupSource,
+  kickoff: new Date().toISOString(),
   score: undefined,
   goals: undefined,
   videos: undefined,
@@ -112,6 +113,7 @@ const liveBracketMatch = liveBracketTournament.knockoutRounds
   .find((match) => match.homeTeam && match.awayTeam)
 if (!liveBracketMatch) throw new Error('Fixture error: expected a knockout match with resolved teams')
 liveBracketMatch.score = undefined
+liveBracketMatch.kickoff = new Date().toISOString()
 liveBracketMatch.goals = undefined
 liveBracketMatch.videos = undefined
 liveBracketMatch.liveStatus = { kind: 'live' }

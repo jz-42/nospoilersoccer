@@ -262,11 +262,17 @@ export async function runScheduler({
   logger = (entry) => console.log(JSON.stringify(entry)),
   throwOnError = false,
 }) {
-  const schedulePayload = await fetchSchedule()
-  const matches = typeof schedulePayload === 'string'
-    ? parseMatchKickoffs(schedulePayload)
-    : parseScheduleSources(schedulePayload)
-  const report = buildWindowReport(matches, now)
+  // Dispatch is unconditional when the updater is idle. Cron does not need to
+  // download and parse two full season files; that work can exhaust the free
+  // Worker's CPU allowance before the GitHub dispatch is sent.
+  let report = { now: now.toISOString(), insideWindow: null, activeWindowCount: null, activeWindows: [], parsedMatchCount: null }
+  if (fetchSchedule) {
+    const schedulePayload = await fetchSchedule()
+    const matches = typeof schedulePayload === 'string'
+      ? parseMatchKickoffs(schedulePayload)
+      : parseScheduleSources(schedulePayload)
+    report = buildWindowReport(matches, now)
+  }
 
   let activeRunCount = 0
   let action = 'pending'
@@ -529,33 +535,25 @@ export default {
 
   async scheduled(_controller, env) {
     const now = new Date()
-    const jobs = [
-      runScheduler({
-        now,
-        fetchSchedule: () => fetchScheduleSources(env),
-        githubClient: createEnvGitHubClient(env),
-        throwOnError: true,
-      }),
-    ]
+    // Results must be dispatched before the optional highlight scan spends CPU.
+    await runScheduler({
+      now,
+      githubClient: createEnvGitHubClient(env),
+      throwOnError: true,
+    })
     if (env.HIGHLIGHT_DB && env.HIGHLIGHT_QUEUE) {
       const store = createD1HighlightStore(env.HIGHLIGHT_DB)
-      jobs.push(
-        runHighlightIngestion({
-          now,
-          apiKey: env.YOUTUBE_API_KEY,
-          webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
-          nationsHotStateUrl: hotStateSourceUrl(env, 'unl-2026'),
-          nationsHighlightStateUrl: highlightStateSourceUrl(env, 'unl-2026'),
-          store,
-          queue: env.HIGHLIGHT_QUEUE,
-        }).then(({ feed }) => {
-          console.log(JSON.stringify({ highlightFeed: feed }))
-        }),
-      )
+      const { feed } = await runHighlightIngestion({
+        now,
+        apiKey: env.YOUTUBE_API_KEY,
+        webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
+        nationsHotStateUrl: hotStateSourceUrl(env, 'unl-2026'),
+        nationsHighlightStateUrl: highlightStateSourceUrl(env, 'unl-2026'),
+        store,
+        queue: env.HIGHLIGHT_QUEUE,
+      })
+      console.log(JSON.stringify({ highlightFeed: feed }))
     }
-    const results = await Promise.allSettled(jobs)
-    const failures = results.filter((result) => result.status === 'rejected')
-    if (failures.length) throw new AggregateError(failures.map((failure) => failure.reason))
   },
 
   async queue(batch, env) {
