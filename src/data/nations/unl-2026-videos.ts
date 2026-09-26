@@ -20,4 +20,11 @@ export const unl2026Videos: Record<string, HighlightVideo[]> = {
   'unl-401861054': [{ youtubeId: 'BqxBUP1ef0s', kind: 'normal', durationSeconds: 907, publisher: 'tudn' }],
   'unl-401861055': [{ youtubeId: 'eEd4iBk1dFE', kind: 'normal', durationSeconds: 908, publisher: 'tudn' }],
   'unl-401861056': [{ youtubeId: 'lA-FdF5sX70', kind: 'normal', durationSeconds: 917, publisher: 'tudn' }],
+  'unl-401861057': [{ youtubeId: 'AVpE-3g_rZQ', kind: 'normal', durationSeconds: 916, publisher: 'tudn' }],
+  'unl-401861058': [{ youtubeId: 'VmEtsCD3r5Y', kind: 'normal', durationSeconds: 916, publisher: 'tudn' }],
+  'unl-401861059': [{ youtubeId: 'pXJTjua9blM', kind: 'normal', durationSeconds: 912, publisher: 'tudn' }],
+  'unl-401861060': [{ youtubeId: 'V2BP1Bwv7MQ', kind: 'normal', durationSeconds: 894, publisher: 'tudn' }],
+  'unl-401861062': [{ youtubeId: '1CoC8dsGjDY', kind: 'normal', durationSeconds: 916, publisher: 'tudn' }],
+  'unl-401861063': [{ youtubeId: 'UCBytbDtcfo', kind: 'normal', durationSeconds: 917, publisher: 'tudn' }],
+  'unl-401861065': [{ youtubeId: 'Eyb26du9l9U', kind: 'normal', durationSeconds: 914, publisher: 'tudn' }],
 }

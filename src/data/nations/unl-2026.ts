@@ -932,9 +932,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-26T18:45Z",
       "home": "ALB",
       "away": "BLR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "ALB",
+          "player": "Kristjan Asllani",
+          "minute": "34'",
+          "penalty": true
+        },
+        {
+          "team": "ALB",
+          "player": "Ernest Muçi",
+          "minute": "45'+2'"
+        }
+      ]
     },
     {
       "id": "unl-401861063",
@@ -944,9 +958,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-26T18:45Z",
       "home": "CZE",
       "away": "CRO",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "CRO",
+          "player": "Luka Modric",
+          "minute": "47'"
+        },
+        {
+          "team": "CZE",
+          "player": "Adam Karabec",
+          "minute": "54'"
+        },
+        {
+          "team": "CRO",
+          "player": "Marco Pasalic",
+          "minute": "77'"
+        }
+      ]
     },
     {
       "id": "unl-401861064",
@@ -956,9 +988,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-26T18:45Z",
       "home": "SVK",
       "away": "MDA",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "SVK",
+          "player": "Ivan Schranz",
+          "minute": "32'"
+        },
+        {
+          "team": "SVK",
+          "player": "Ondrej Duda",
+          "minute": "40'",
+          "penalty": true
+        }
+      ]
     },
     {
       "id": "unl-401861065",
@@ -968,9 +1014,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-26T18:45Z",
       "home": "MKD",
       "away": "SUI",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "SUI",
+          "player": "Remo Freuler",
+          "minute": "22'"
+        },
+        {
+          "team": "SUI",
+          "player": "Zeki Amdouni",
+          "minute": "41'"
+        },
+        {
+          "team": "SUI",
+          "player": "Zeki Amdouni",
+          "minute": "74'"
+        }
+      ]
     },
     {
       "id": "unl-401861066",
@@ -980,9 +1044,37 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-26T18:45Z",
       "home": "ENG",
       "away": "ESP",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Lamine Yamal",
+          "minute": "2'"
+        },
+        {
+          "team": "ENG",
+          "player": "Anthony Gordon",
+          "minute": "36'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "40'"
+        },
+        {
+          "team": "ESP",
+          "player": "Álex Baena",
+          "minute": "60'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Oyarzabal",
+          "minute": "74'"
+        }
+      ]
     },
     {
       "id": "unl-401861067",
