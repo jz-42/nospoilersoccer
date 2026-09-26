@@ -25,6 +25,20 @@ export const HOT_STATE_SEASON_IDS = ['wc2026', 'unl-2026', 'eng1-2026', 'esp1-20
 const HOT_STATE_PATH_PATTERN = /^\/api\/hot-state\/([A-Za-z0-9-]+)$/
 const HIGHLIGHT_STATE_PATH_PATTERN = /^\/api\/highlights\/([A-Za-z0-9-]+)$/
 
+/** A failure in either cron task must not prevent the other from running. */
+export async function runScheduledTasks({ runHighlights, runResults, logger = console.error }) {
+  let firstError = null
+  for (const [task, run] of [['highlights', runHighlights], ['results', runResults]]) {
+    try {
+      await run()
+    } catch (error) {
+      logger(JSON.stringify({ scheduledTask: task, error: String(error) }))
+      firstError ??= error
+    }
+  }
+  if (firstError) throw firstError
+}
+
 const GROUP_START_OFFSET_MINUTES = 90
 const NATIONS_GROUP_START_OFFSET_MINUTES = 105
 const GROUP_END_OFFSET_MINUTES = 8 * 60
@@ -535,25 +549,27 @@ export default {
 
   async scheduled(_controller, env) {
     const now = new Date()
-    // Results must be dispatched before the optional highlight scan spends CPU.
-    await runScheduler({
-      now,
-      githubClient: createEnvGitHubClient(env),
-      throwOnError: true,
-    })
-    if (env.HIGHLIGHT_DB && env.HIGHLIGHT_QUEUE) {
-      const store = createD1HighlightStore(env.HIGHLIGHT_DB)
-      const { feed } = await runHighlightIngestion({
+    await runScheduledTasks({
+      runHighlights: async () => {
+        if (!env.HIGHLIGHT_DB || !env.HIGHLIGHT_QUEUE) return
+        const store = createD1HighlightStore(env.HIGHLIGHT_DB)
+        const { feed } = await runHighlightIngestion({
+          now,
+          apiKey: env.YOUTUBE_API_KEY,
+          webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
+          nationsHotStateUrl: hotStateSourceUrl(env, 'unl-2026'),
+          nationsHighlightStateUrl: highlightStateSourceUrl(env, 'unl-2026'),
+          store,
+          queue: env.HIGHLIGHT_QUEUE,
+        })
+        console.log(JSON.stringify({ highlightFeed: feed }))
+      },
+      runResults: () => runScheduler({
         now,
-        apiKey: env.YOUTUBE_API_KEY,
-        webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
-        nationsHotStateUrl: hotStateSourceUrl(env, 'unl-2026'),
-        nationsHighlightStateUrl: highlightStateSourceUrl(env, 'unl-2026'),
-        store,
-        queue: env.HIGHLIGHT_QUEUE,
-      })
-      console.log(JSON.stringify({ highlightFeed: feed }))
-    }
+        githubClient: createEnvGitHubClient(env),
+        throwOnError: true,
+      }),
+    })
   },
 
   async queue(batch, env) {

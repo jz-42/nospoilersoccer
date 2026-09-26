@@ -13,6 +13,7 @@ import worker, {
   hotStateSourceUrl,
   parseMatchKickoffs,
   runScheduler,
+  runScheduledTasks,
 } from './index.mjs'
 
 const SAMPLE_TS = `
@@ -298,6 +299,32 @@ test('runScheduler can fail cron execution after logging GitHub errors', async (
   assert.equal(messages.length, 1)
   assert.equal(messages[0].action, 'error')
   assert.equal(messages[0].github.status, 500)
+})
+
+test('scheduled tasks check highlights before results and still attempt results after a highlight error', async () => {
+  const calls = []
+  await assert.rejects(
+    runScheduledTasks({
+      runHighlights: async () => { calls.push('highlights'); throw new Error('feed failed') },
+      runResults: async () => { calls.push('results') },
+      logger: () => {},
+    }),
+    /feed failed/,
+  )
+  assert.deepEqual(calls, ['highlights', 'results'])
+})
+
+test('scheduled highlight checks still run when the results dispatcher fails', async () => {
+  const calls = []
+  await assert.rejects(
+    runScheduledTasks({
+      runHighlights: async () => { calls.push('highlights') },
+      runResults: async () => { calls.push('results'); throw new Error('GitHub failed') },
+      logger: () => {},
+    }),
+    /GitHub failed/,
+  )
+  assert.deepEqual(calls, ['highlights', 'results'])
 })
 
 test('worker serves hot-state JSON with CORS headers', async () => {
