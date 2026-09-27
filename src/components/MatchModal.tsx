@@ -1,5 +1,5 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode, TouchEvent as ReactTouchEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { CSSProperties, TouchEvent as ReactTouchEvent } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
 import { buildGoogleCalendarUrl } from '../calendar/google'
@@ -16,7 +16,6 @@ import {
 import { hasGroups, roundLabel } from '../navigation'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
-import { ClockIcon } from './ClockIcon'
 import { HighlightPlayer } from './HighlightPlayer'
 import { LiveStatusBadge } from './live-status'
 import { OddsBar } from './OddsBar'
@@ -26,7 +25,6 @@ import { matchLiveStatus } from './status'
 import { FINISHED_PENDING_MODAL_COPY } from './highlight-copy'
 import { MatchPeek, RevealResultButton, RollingScore, WatchLaterClock } from './MatchActions'
 import { inkVars } from '../ink'
-import { useLooks } from '../looks'
 import type { Winner } from '../reveal-fx'
 
 export type ModalTarget =
@@ -96,96 +94,6 @@ function CalendarIcon() {
   )
 }
 
-function DisclosureRow({
-  label,
-  accessoryOpen,
-  children,
-}: {
-  label: string
-  accessoryOpen?: ReactNode
-  children: ReactNode
-}) {
-  const [open, setOpen] = useState(false)
-  const contentId = useId()
-
-  return (
-    <div className="modal-disclosure">
-      <div className="modal-disclosure-bar">
-        <span className="modal-disclosure-head">
-          <span className="modal-disclosure-label">{label}</span>
-          {open && accessoryOpen}
-        </span>
-        <button
-          type="button"
-          className="modal-disclosure-trigger"
-          aria-expanded={open}
-          aria-controls={open ? contentId : undefined}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? 'Hide' : 'Reveal'}
-        </button>
-      </div>
-      {open && (
-        <div id={contentId} className="modal-disclosure-copy">
-          {children}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function EntertainmentDisclosureRow({
-  summary,
-  rating,
-}: {
-  summary: string
-  rating: 1 | 2 | 3 | 4 | 5
-}) {
-  return (
-    <DisclosureRow
-      label="Worth Watching?"
-      accessoryOpen={
-        <span className="entertainment-stars" aria-label={`${rating} out of 5 stars`}>
-          {Array.from({ length: 5 }, (_, i) => (
-            <span
-              key={i}
-              className={`entertainment-star ${i < rating ? 'filled' : ''}`}
-              aria-hidden="true"
-            >
-              ★
-            </span>
-          ))}
-        </span>
-      }
-    >
-      <div className="entertainment-disclosure">
-        <p className="entertainment-summary-copy">{summary}</p>
-        <p className="entertainment-disclaimer">AI generated — take with a grain of salt.</p>
-      </div>
-    </DisclosureRow>
-  )
-}
-
-/**
- * Total Goals is one number, so it doesn't get a row: a small pill whose
- * Reveal turns into the number in place.
- */
-function GoalCountChip({ total }: { total: number }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <button
-      type="button"
-      className={`modal-goal-chip${open ? ' is-open' : ''}`}
-      aria-pressed={open}
-      aria-label={open ? `Total Goals: ${total}. Hide` : 'Reveal Total Goals'}
-      onClick={() => setOpen((v) => !v)}
-    >
-      <span className="modal-goal-chip-label">Total Goals</span>
-      <span className="modal-goal-chip-value">{open ? total : 'Reveal'}</span>
-    </button>
-  )
-}
-
 /**
  * One side's scorers, in the order they scored. Rendered even when the side
  * has none: an empty column keeps the mirror's geometry, which is what holds
@@ -245,7 +153,6 @@ export function MatchModal({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const looks = useLooks()
   const modalRef = useRef<HTMLDivElement>(null)
   const dragStart = useRef<{ y: number; time: number } | null>(null)
   const [dragOffset, setDragOffset] = useState(0)
@@ -353,8 +260,8 @@ export function MatchModal({
     })
   }, [t.year, phase, mark, locked, ready])
 
-  // Who won, for the reveal to paint in before the page shows it (lab looks
-  // `revealFx: 'winner'` and `revealed`). Kept out of the page until marked.
+  // Who won, for the reveal to thaw into and the field to lean towards once
+  // it's out (`data-won`). Kept out of the page until marked.
   const won: Winner | null =
     score && homeTeam && awayTeam
       ? km?.penalties
@@ -383,35 +290,18 @@ export function MatchModal({
     }
   }
 
-  // Lab look `peeks`: main's rows, this branch's chip, or both behind the
-  // ball in the corner (MatchPeek).
-  const ballPeek = looks.peeks === 'pill' || looks.peeks === 'card' ? looks.peeks : null
-  const entertainmentDisclosure =
-    !ballPeek && m.entertainmentSummary && m.entertainmentRating ? (
-      <EntertainmentDisclosureRow
-        summary={m.entertainmentSummary}
-        rating={m.entertainmentRating}
-      />
-    ) : null
-
-  const goalCountDisclosure =
-    ballPeek || totalGoals === null || mark ? null : looks.peeks === 'row' ? (
-      <DisclosureRow label="Total Goals">{`${totalGoals} total`}</DisclosureRow>
-    ) : (
-      <GoalCountChip total={totalGoals} />
-    )
   const hasHighlights = Boolean(m.videos?.length)
-  // The ball sits in the highlights' corner, opposite the Spoiler Covers
-  // mark, and in the sheet's own corner while there are no highlights.
-  const peek = ballPeek ? (
+  // The peeks (goal count, Worth watching?) behind a ball in the highlights'
+  // corner, opposite the Spoiler Covers mark, and in the sheet's own corner
+  // while there are no highlights.
+  const peek = (
     <MatchPeek
-      look={ballPeek}
       goals={totalGoals}
       rating={m.entertainmentRating}
       summary={m.entertainmentSummary}
       inPoster={hasHighlights}
     />
-  ) : null
+  )
 
   // A reveal made in this sheet, so the score can arrive rather than appear.
   const [revealedAt, setRevealedAt] = useState(0)
@@ -424,10 +314,10 @@ export function MatchModal({
     setRevealedAt(Date.now())
     progress.setMark(m.id, 'watched')
   }
-  const rolling = looks.scoreIn === 'roll' && revealedAt > 0
-  // Lab look `autoReveal: 'countdown'`: the same player before and after the
-  // reveal, so a video, or its full-time card, carries on through it.
-  const keepPlayer = looks.autoReveal === 'countdown' ? 'player' : undefined
+  const rolling = revealedAt > 0
+  // The same player before and after the reveal, so a video, or its
+  // full-time card, carries on through it.
+  const keepPlayer = 'player'
   // On a phone the score can be above the fold when you reveal.
   const scoreRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -478,7 +368,7 @@ export function MatchModal({
     transform: dragOffset ? `translateY(${dragOffset}px)` : undefined,
     transition: dragging ? 'none' : undefined,
     ...matchTint(homeTeam, awayTeam),
-    ...(looks.ink === 'adaptive' ? inkVars(matchTint(homeTeam, awayTeam)) : undefined),
+    ...inkVars(matchTint(homeTeam, awayTeam)),
   }
 
   return (
@@ -502,7 +392,7 @@ export function MatchModal({
         onTouchEnd={onModalTouchEnd}
         onTouchCancel={onModalTouchEnd}
         style={modalStyle}
-        data-won={mark && looks.revealed !== 'plain' ? (won ?? undefined) : undefined}
+        data-won={mark ? (won ?? undefined) : undefined}
       >
         <span className="match-fabric" aria-hidden="true">
           <span />
@@ -523,24 +413,11 @@ export function MatchModal({
             <path d="M5 5l10 10M15 5L5 15" />
           </svg>
         </button>
-        {looks.save === 'bare' ? (
-          <WatchLaterClock
-            saved={pinned}
-            compact={!hasHighlights}
-            onToggle={() => progress.togglePin(m.id)}
-          />
-        ) : (
-          <button
-            type="button"
-            className={`modal-pin ${pinned ? 'pinned' : ''}`}
-            aria-label={pinned ? 'Remove from Watch Later' : 'Watch Later'}
-            aria-pressed={pinned}
-            title={pinned ? 'Remove from Watch Later' : 'Watch Later'}
-            onClick={() => progress.togglePin(m.id)}
-          >
-            <ClockIcon size={22} filled={pinned} />
-          </button>
-        )}
+        <WatchLaterClock
+          saved={pinned}
+          compact={!hasHighlights}
+          onToggle={() => progress.togglePin(m.id)}
+        />
 
         <div className="modal-context">
           <span className="modal-context-strong">{context}</span>
@@ -706,39 +583,12 @@ export function MatchModal({
                   <span>{FINISHED_PENDING_MODAL_COPY}</span>
                 </div>
               )}
-              {ballPeek ? (
-                /* The full width of the sheet, so the ball can sit in its
-                   corner, mirroring the clock above it. */
-                <div className="modal-reveal-row">
-                  {!hasHighlights && peek}
-                  <RevealResultButton
-                    look={looks.result}
-                    fx={looks.revealFx}
-                    clear={looks.thawClear}
-                    winner={won}
-                    onReveal={revealResult}
-                  />
-                </div>
-              ) : (
-                <div className="modal-pre-reveal-stack">
-                  <RevealResultButton
-                    look={looks.result}
-                    fx={looks.revealFx}
-                    clear={looks.thawClear}
-                    winner={won}
-                    onReveal={revealResult}
-                  />
-                  {(entertainmentDisclosure || goalCountDisclosure) && (
-                    <div className="modal-disclosures modal-pre-reveal-disclosures">
-                      {entertainmentDisclosure}
-                      {goalCountDisclosure}
-                    </div>
-                  )}
-                </div>
-              )}
-              {looks.result === 'green' && Object.keys(progress.marks).length < 3 && (
-                <p className="modal-hint modal-hint-small">Reveals the score and team progression.</p>
-              )}
+              {/* The full width of the sheet, so the ball can sit in its
+                  corner, mirroring the clock above it. */}
+              <div className="modal-reveal-row">
+                {!hasHighlights && peek}
+                <RevealResultButton winner={won} onReveal={revealResult} />
+              </div>
             </>
           ) : null}
         </div>

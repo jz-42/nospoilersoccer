@@ -19,8 +19,7 @@
     transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-.sc-mark:hover,
-.sc-mark.is-open {
+.sc-mark:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
 }
@@ -54,26 +53,7 @@
   stroke-width: 1;
 }
 
-/* ---- The popover: the header menu's panel, hung off the mark. */
-.sc-pop {
-  position: fixed;
-  z-index: 70;
-  width: min(300px, calc(100vw - 20px));
-  padding: 10px 12px 6px;
-  border-radius: 14px;
-  border: 1px solid var(--border-strong);
-  background: #161d27;
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.55);
-  transform-origin: top right;
-  animation: picker-in 0.2s cubic-bezier(0.32, 0.72, 0, 1);
-  outline: none;
-}
-
-.sc-pop.is-up {
-  transform-origin: bottom right;
-}
-
-/* ---- The panel, shared by the popover and the menu's page. */
+/* ---- The panel (the player lab's). */
 .sc-head {
   display: flex;
   align-items: center;
@@ -528,9 +508,9 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--border-strong);
 }
 
-/* ==== Lab looks (src/looks.ts) ========================================== */
+/* ==== The match sheet's own controls ===================================== */
 
-/* ---- coversEntry 'player': the mark as a player button, left of full
+/* ---- The mark as a player button, left of full
    screen. Bottom right is the one corner that's free: YouTube's own cluster
    (and Firefox's picture-in-picture tab, on the right edge at mid-height)
    stay untouched, and it sits over YouTube's logo, which only leads off to
@@ -560,7 +540,6 @@
 
 .player-wrap:has(> .yt-controls.is-shown) > .player-blur,
 .player-wrap:has(> .yt-controls.is-up) > .player-blur,
-.player-blur.is-open,
 .player-blur:focus-visible {
   pointer-events: auto;
   opacity: 1;
@@ -603,8 +582,7 @@
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
 }
 
-.player-blur:hover::before,
-.player-blur.is-open::before {
+.player-blur:hover::before {
   transform: scale(1.08);
   background-color: rgba(58, 62, 72, 0.4);
 }
@@ -623,7 +601,7 @@
   outline-offset: 3px;
 }
 
-/* ---- coversSheet 'sheet': Spoiler Blur, see SpoilerBlur.tsx. A sheet over
+/* ---- Spoiler Blur, see SpoilerBlur.tsx. A sheet over
    the page, which blurs away behind it: the one thing on screen. */
 .bs-backdrop {
   position: fixed;
@@ -986,96 +964,7 @@
   }
 }
 
-/* ---- play: the poster's play button stays YouTube's. It says "this is a
-   YouTube video, and it plays right here", and it is nothing like the tiles'
-   white glass disc. All three are YouTube's own lozenge at its own size, drawn
-   the way YouTube draws it, not a rounded box near it. 'yt-real' is
-   youtube.com's red. 'yt-dark' is the embed's smoke grey, which turns red
-   when you point at the video, as YouTube's embeds do. 'yt-glass' is the red
-   as tinted glass, which turns solid under the pointer. */
-.poster-play.poster-play-yt {
-  width: 68px;
-  height: 48px;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.24)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
-  transition:
-    transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
-    filter 0.2s ease;
-}
-
-.poster-play-yt svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.poster-play-pillow {
-  fill: #ff0033;
-  transition:
-    fill 0.18s ease,
-    fill-opacity 0.18s ease;
-}
-
-.poster-play-glyph {
-  fill: #fff;
-}
-
-.poster-play-rim {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.42);
-  stroke-width: 1;
-}
-
-.player-poster:hover .poster-play.poster-play-yt,
-.player-poster:focus-visible .poster-play.poster-play-yt {
-  transform: scale(1.06);
-  box-shadow: none;
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
-}
-
-.player-poster:active .poster-play.poster-play-yt {
-  transform: scale(0.94);
-  transition-duration: 0.12s;
-}
-
-.player-poster:hover .poster-play-yt.is-yt-real .poster-play-pillow {
-  fill: #ff1f4c;
-}
-
-.poster-play-yt.is-yt-dark .poster-play-pillow {
-  fill: #212121;
-  fill-opacity: 0.8;
-}
-
-.poster-play-yt.is-yt-glass .poster-play-pillow {
-  fill: #ff0033;
-  fill-opacity: 0.5;
-}
-
-.poster-play-yt.is-yt-glass {
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.16));
-}
-
-.player-poster:hover .poster-play-yt.is-yt-dark .poster-play-pillow,
-.player-poster:hover .poster-play-yt.is-yt-glass .poster-play-pillow,
-.player-poster:focus-visible .poster-play-yt.is-yt-dark .poster-play-pillow,
-.player-poster:focus-visible .poster-play-yt.is-yt-glass .poster-play-pillow {
-  fill: #ff0033;
-  fill-opacity: 1;
-}
-
-/* No pointer, no hover: the red is the resting state. */
-@media (hover: none) {
-  .poster-play-yt.is-yt-dark .poster-play-pillow {
-    fill: #ff0033;
-    fill-opacity: 1;
-  }
-}
-
-/* ---- save 'bare': the clock alone, no disc, as Close's mirror image: the
+/* ---- Watch Later: the clock alone, no disc, as Close's mirror image: the
    same size of button in the other top corner, so the two glyphs sit on one
    line at one distance from the edges, and the clock drawn at the X's
    weight. See WatchLaterClock. */
@@ -1328,8 +1217,7 @@
 
 /* ---- Tooltips for the quiet controls, after a beat, pointer only. */
 @media (hover: hover) {
-  .modal-clock::before,
-  .match-peek-item[data-tip]::after {
+  .modal-clock::before {
     content: attr(data-tip);
     position: absolute;
     z-index: 5;
@@ -1357,14 +1245,7 @@
     transform: translate(-4px, -50%);
   }
 
-  .match-peek-item[data-tip]::after {
-    left: 50%;
-    bottom: calc(100% + 7px);
-    transform: translate(-50%, 4px);
-  }
-
-  .modal-clock:hover::before,
-  .match-peek-item[data-tip]:hover::after {
+  .modal-clock:hover::before {
     opacity: 1;
     transition-delay: 0.45s;
   }
@@ -1372,28 +1253,11 @@
   .modal-clock:hover::before {
     transform: translate(0, -50%);
   }
-
-  .match-peek-item[data-tip]:hover::after {
-    transform: translate(-50%, 0);
-  }
-
-  /* The verdict card sits where they would. */
-  .match-peek:has(.match-peek-verdict.is-shown) .match-peek-item[data-tip]::after {
-    display: none;
-  }
 }
 
-/* ---- result: the Reveal Result button. White is Apple TV's and Netflix's
-   one primary action; the two looks here soften it where it meets the kits.
-   'frost' lets the kits show faintly through; 'tint' mixes them in, home on
-   the left and away on the right, as Apple Music tints buttons from the
-   artwork. --dust-a and --dust-b are its colours at each end, for the
-   reveal effects in src/reveal-fx.ts. */
-.btn-primary.modal-pre-reveal-cta {
-  --dust-a: var(--accent-deep);
-  --dust-b: var(--accent-deep);
-}
-
+/* ---- The Reveal Result button. White is Apple TV's and Netflix's one
+   primary action; frosted, it softens where it meets the kits, which show
+   faintly through. */
 .reveal-btn {
   position: relative;
   display: inline-grid;
@@ -1419,8 +1283,6 @@
 }
 
 .reveal-btn.is-frost {
-  --dust-a: #fff;
-  --dust-b: #fff;
   /* Lit from above. The backdrop is brightened and saturated so the kits
      come through as a pastel, never as grey. */
   background: linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.74));
@@ -1437,7 +1299,7 @@
   background: linear-gradient(rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.84));
 }
 
-/* The glass painted flat, for the dust to eat through: Chrome won't mask a
+/* The glass painted flat, for the thaw to melt through: Chrome won't mask a
    backdrop-filter inside a scroller, and the phone sheet scrolls. */
 .reveal-btn.is-frost[data-baked] {
   background:
@@ -1449,20 +1311,6 @@
     );
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-}
-
-.reveal-btn.is-tint {
-  --dust-a: color-mix(in oklab, #fff 80%, var(--home-1, #fff));
-  --dust-b: color-mix(in oklab, #fff 80%, var(--away-1, #fff));
-  background: linear-gradient(98deg in oklab, var(--dust-a), var(--dust-b));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    0 1px 2px rgba(0, 0, 0, 0.12),
-    0 8px 24px rgba(0, 0, 0, 0.16);
-}
-
-.reveal-btn.is-tint:hover {
-  filter: brightness(1.04);
 }
 
 .reveal-btn:active {
@@ -1478,15 +1326,9 @@
   pointer-events: none;
 }
 
-.reveal-grains {
-  position: fixed;
-  z-index: 250;
-  pointer-events: none;
-}
-
 /* The button carried on after it's gone, as the sheet glides (see
-   src/reveal-fx.ts): a copy of it, or, for a becoming, its frost over Hide
-   Result's glass with each label on top. */
+   src/reveal-fx.ts): a copy of it, or, for the thaw, its frost over the
+   winner's colour and Hide Result's glass, with each label on top. */
 .reveal-ghost {
   position: fixed;
   z-index: 250;
@@ -1536,22 +1378,13 @@
   opacity: 0;
 }
 
-/* 'kits': the two kits under the frost, lit, home on the left. */
+/* The winner's colour under the frost, both kits in a draw, lit from above
+   like the frost it was under (colours from src/reveal-fx.ts). */
 .reveal-ghost-kits {
-  background: linear-gradient(
-    98deg in oklab,
-    oklch(from var(--home-1, #777) clamp(0.5, calc(l * 1.08), 0.72) calc(c * 1.25) h),
-    oklch(from var(--away-1, #777) clamp(0.5, calc(l * 1.08), 0.72) calc(c * 1.25) h)
-  );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.35),
     inset 0 0 0 0.5px rgba(255, 255, 255, 0.3);
   opacity: 0;
-}
-
-/* 'winner': the winner's colour under the frost, both kits in a draw, lit
-   from above like the frost it was under (colours from src/reveal-fx.ts). */
-.reveal-ghost-kits.is-winner {
   background:
     linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 55%, rgb(0 0 0 / 0.1)),
     linear-gradient(98deg in oklab, var(--win-a), var(--win-b));
@@ -1559,7 +1392,7 @@
 
 /* A draw: each side keeps its colour, and the narrow join between them is
    shaded like a fold, so two kits never blend to mud under the words. */
-.reveal-ghost-kits.is-winner.is-draw {
+.reveal-ghost-kits.is-draw {
   background:
     linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 55%, rgb(0 0 0 / 0.1)),
     linear-gradient(
@@ -1587,7 +1420,7 @@
   white-space: nowrap;
 }
 
-/* ---- peeks 'pill' and 'card': the goal count and Worth watching? behind
+/* ---- The peeks: the goal count and Worth watching? behind
    the ball in the bottom-left corner. See MatchPeek. The row is the sheet's
    whole width, so the ball can mirror the clock: the same distance in from
    the edge as Close and the clock, level with the button. */
@@ -1670,10 +1503,6 @@
 
 /* The ball rolls the way the peeks go out of it. A fifth of a turn looks the
    same at rest, so it only shows in motion. */
-.match-peek.is-pill.is-open .match-peek-ball-icon {
-  transform: rotate(144deg);
-}
-
 .match-peek.is-card.is-open .match-peek-ball-icon {
   transform: rotate(-72deg);
 }
@@ -1791,78 +1620,6 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* 'pill': a capsule out to the right of the ball, the ball its first icon:
-   ⚽ goals │ ★ rating. */
-.match-peek.is-pill .match-peek-surface {
-  left: 4px;
-  top: 4px;
-  height: 40px;
-  align-items: center;
-  padding: 0 4px 0 38px;
-  border-radius: 20px;
-  clip-path: inset(-1px calc(100% - 39px) -1px -1px round 20px);
-}
-
-.match-peek.is-pill.is-open .match-peek-surface {
-  clip-path: inset(-60px -60px -60px -60px round 80px);
-}
-
-.match-peek.is-pill .match-peek-item {
-  justify-content: center;
-  gap: 4px;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 8px;
-  border-radius: 16px;
-  transition: background-color 0.15s ease;
-}
-
-.match-peek.is-pill .match-peek-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.match-peek-rule {
-  width: 1px;
-  height: 16px;
-  margin: 0 1px;
-  background: rgba(255, 255, 255, 0.2);
-}
-
-/* Its verdict opens above it, a card of its own. Denser glass than the
-   pill, since it holds prose and often sits over a red play button. */
-.match-peek.is-pill > .match-peek-verdict {
-  position: absolute;
-  left: 4px;
-  bottom: calc(100% + 4px);
-  width: min(300px, calc(100vw - 48px));
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(20, 25, 33, 0.74);
-  -webkit-backdrop-filter: blur(32px) saturate(1.2);
-  backdrop-filter: blur(32px) saturate(1.2);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 10px 28px rgba(0, 0, 0, 0.28);
-  opacity: 0;
-  transform: translateY(6px) scale(0.98);
-  transform-origin: 20px 100%;
-  pointer-events: none;
-  transition:
-    opacity 0.18s ease,
-    transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
-    grid-template-rows 0.4s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.match-peek.is-pill > .match-peek-verdict > div {
-  padding: 12px 14px 12px;
-}
-
-.match-peek.is-pill.is-open > .match-peek-verdict.is-shown {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
 /* In the highlights, the ball rides the posters' bottom-left corner, the
    mirror of the Spoiler Covers mark in the other: its size, its ink, its
    disc under the pointer. The peeks come out of it the same way. */
@@ -1906,16 +1663,7 @@
   filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3));
 }
 
-.match-peek.in-poster.is-pill .match-peek-surface,
-.match-peek.in-poster.is-pill > .match-peek-verdict {
-  left: -4px;
-}
-
-.match-peek.in-poster.is-pill .match-peek-surface {
-  top: -4px;
-}
-
-/* 'card': a small card up out of the corner, above the ball, so the row
+/* The card: up out of the corner, above the ball, so the row
    the button sits on stays clear. Like an iOS context menu, it springs from
    where you pointed. */
 .match-peek.is-card .match-peek-surface {
@@ -2024,17 +1772,9 @@
   .match-peek {
     left: 15px;
   }
-
-  /* No room beside the pill here, so the button steps back while it's out. */
-  .modal-reveal-row:has(.match-peek.is-pill.is-open) > .modal-pre-reveal-cta {
-    opacity: 0;
-    transform: scale(0.96);
-    filter: blur(4px);
-    pointer-events: none;
-  }
 }
 
-/* ---- autoReveal 'countdown': over the video's last seconds, Reveal Result
+/* ---- The end of a video: over the last seconds, Reveal Result
    counts down in the corner as the video plays on (Netflix's next episode),
    and at the whistle the result follows. Full time covers the player only
    then, opaque, the kits glowing faintly at its foot. */
@@ -2286,7 +2026,7 @@
   outline-offset: 3px;
 }
 
-/* ---- scoreIn 'roll': each number rolls up into place out of a blur, the
+/* ---- The score arrives: each number rolls up into place out of a blur, the
    away side a beat behind; the verdict and scorers rise in after it. */
 .modal-score.is-rolling {
   animation: none;
@@ -2344,14 +2084,10 @@
   }
 }
 
-/* ---- blurInPlayer: the blur settings inside the player, all smaller than
-   full screen and set apart from it, since full screen is the button people
-   reach for without looking. 'disc' is a smaller disc, centred on full
-   screen's line; 'glyph' is the bare glyph, which gains its disc on hover the
-   way YouTube's own buttons do; 'title' puts the glyph at the end of our
-   title bar, as far from full screen as the player allows. */
-.player-blur.is-disc,
-.player-blur.is-glyph {
+/* ---- The blur settings inside the player: a disc smaller than full
+   screen's and set apart from it, centred on its line, since full screen is
+   the button people reach for without looking. */
+.player-blur.is-disc {
   --player-blur-size: calc(var(--player-expand-size) * 0.72);
   --player-blur-pad: 6px;
   right: calc(var(--player-expand-size) + 2 * var(--player-expand-gap) + 4px);
@@ -2362,91 +2098,27 @@
   height: calc(var(--player-blur-size) + 2 * var(--player-blur-pad));
 }
 
-.player-blur.is-disc::before,
-.player-blur.is-glyph::before {
+.player-blur.is-disc::before {
   inset: var(--player-blur-pad);
 }
 
-.player-blur.is-disc svg,
-.player-blur.is-glyph svg {
+.player-blur.is-disc svg {
   width: calc(var(--player-blur-size) * 0.5);
   height: calc(var(--player-blur-size) * 0.5);
 }
 
-.player-blur.is-glyph::before,
-.player-blur.is-title::before {
-  opacity: 0;
-  transform: scale(0.8);
-  transition:
-    opacity 0.15s ease-out,
-    transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
-    background-color 0.2s ease-out;
-}
-
-.player-blur.is-glyph:hover::before,
-.player-blur.is-glyph.is-open::before,
-.player-blur.is-glyph:focus-visible::before,
-.player-blur.is-title:hover::before,
-.player-blur.is-title.is-open::before,
-.player-blur.is-title:focus-visible::before {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.player-blur.is-glyph svg,
-.player-blur.is-title svg {
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
-}
-
-.player-blur.is-title {
-  --player-youtube-controls-width: 168px;
-  top: 0;
-  bottom: auto;
-  right: calc(var(--player-youtube-controls-width) - 8px + 2px);
-  z-index: 4;
-  width: 38px;
-  height: 38px;
-}
-
-.player-blur.is-title::before {
-  inset: 5px;
-}
-
-.player-blur.is-title svg {
-  width: 16px;
-  height: 16px;
-}
-
-@container (max-width: 395px) {
-  .player-blur.is-title {
-    --player-youtube-controls-width: 144px;
-  }
-}
-
-@container (max-width: 359px) {
-  .player-blur.is-title {
-    --player-youtube-controls-width: 96px;
-  }
-}
-
-/* ---- ink 'adaptive': the vars come from src/ink.ts on the sheet. */
-html[data-look-ink='adaptive'] .modal-context-date,
-html[data-look-ink='adaptive'] .poster-time,
-html[data-look-ink='adaptive'] .oddsbar-keys,
-html[data-look-ink='adaptive'] .oddsbar-key b,
-html[data-look-ink='adaptive'] .modal-hint {
+/* ---- The sheet's ink, tuned to how light the team colours are: the vars
+   come from src/ink.ts on the sheet. */
+html .modal :is(.modal-context-date, .poster-time, .oddsbar-keys, .oddsbar-key b, .modal-hint) {
   color: var(--ink-soft, inherit);
   text-shadow: var(--ink-shadow, none);
 }
 
-html[data-look-ink='adaptive'] .modal-hint {
+html .modal .modal-hint {
   opacity: 1;
 }
 
-html[data-look-ink='adaptive'] .modal-pin:not(.pinned):not(:hover),
-html[data-look-ink='adaptive'] .modal-clock:not(.is-saved):not(:hover),
-html[data-look-ink='adaptive'] .match-peek:not(.is-open) .match-peek-ball:not(:hover),
-html[data-look-ink='adaptive'] .sc-mark:not(:hover) {
+html .modal :is(.modal-clock:not(.is-saved):not(:hover), .match-peek:not(.is-open) .match-peek-ball:not(:hover), .sc-mark:not(:hover)) {
   color: var(--ink-icon, inherit);
   filter: var(--ink-drop, none);
 }
@@ -2472,30 +2144,21 @@ html[data-look-ink='adaptive'] .sc-mark:not(:hover) {
 
 }
 
-/* ---- revealed: the sheet once the result is out. 'seam' and 'dim' slide
-   the seam over so the winner's colour takes about two thirds of the field;
-   'lit' leaves the seam and keeps the lights on over the winner's crest,
-   the loser's half falling into shade. 'dim' and 'lit' also step the
-   loser's name, score and scorers back, the way Apple Sports sets a final.
-   A draw changes nothing. The field is App.css .modal's, with its seam and
-   lobes on two registered numbers so it can move. */
+/* ---- The sheet once the result is out: the seam slides over so the
+   winner's colour takes about two thirds of the field, and the loser's name,
+   score and scorers step back, the way Apple Sports sets a final. A draw
+   changes nothing. The field is App.css .modal's, with its seam on a
+   registered number so it can move; `html` so this wins over App.css, which
+   loads after this file. */
 @property --won-seam {
   syntax: '<number>';
   inherits: false;
   initial-value: 0;
 }
 
-@property --won-light {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
-}
-
-html:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-revealed='lit']) .modal {
+html .modal {
   /* How far the seam moves: less to the left, where it already sits. */
   --won-shift: calc(max(0, var(--won-seam)) * 22% + min(0, var(--won-seam)) * 18%);
-  --won-home: max(0, var(--won-light));
-  --won-away: max(0, -1 * var(--won-light));
   /* Who lost the field: their colour gathers into a pool behind their
      crest, so the seam never leaves the crest on the blend's mud. */
   --lost-home: max(0, -1 * var(--won-seam));
@@ -2509,30 +2172,14 @@ html:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-reve
       rgba(5, 8, 12, 0.24) 70%,
       rgba(5, 8, 12, 0.44) 100%
     ),
-    radial-gradient(70% 96% at 78% 36%, rgb(5 8 12 / calc(0.34 * var(--won-home))), transparent),
-    radial-gradient(70% 96% at 22% 36%, rgb(5 8 12 / calc(0.34 * var(--won-away))), transparent),
     radial-gradient(
-      calc(50% + 10% * var(--won-home) - 10% * var(--lost-home))
-        calc(26% + 8% * var(--won-home) + 4% * var(--lost-home)) at 26% 16%,
-      color-mix(
-        in srgb,
-        var(--home-1, transparent)
-          calc(72% + 14% * var(--won-home) - 32% * var(--won-away) + 24% * var(--lost-home)),
-        transparent
-      )
-        0%,
+      calc(50% - 10% * var(--lost-home)) calc(26% + 4% * var(--lost-home)) at 26% 16%,
+      color-mix(in srgb, var(--home-1, transparent) calc(72% + 24% * var(--lost-home)), transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
-      calc(50% + 10% * var(--won-away) - 10% * var(--lost-away))
-        calc(26% + 8% * var(--won-away) + 4% * var(--lost-away)) at 74% 16%,
-      color-mix(
-        in srgb,
-        var(--away-1, transparent)
-          calc(72% + 14% * var(--won-away) - 32% * var(--won-home) + 24% * var(--lost-away)),
-        transparent
-      )
-        0%,
+      calc(50% - 10% * var(--lost-away)) calc(26% + 4% * var(--lost-away)) at 74% 16%,
+      color-mix(in srgb, var(--away-1, transparent) calc(72% + 24% * var(--lost-away)), transparent) 0%,
       transparent 100%
     ),
     radial-gradient(
@@ -2565,51 +2212,29 @@ html:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-reve
   /* Hide Result takes it all back at once, with the sheet. */
   transition:
     transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
-    --won-seam 0.32s cubic-bezier(0.32, 0.72, 0, 1),
-    --won-light 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+    --won-seam 0.32s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* After the score has landed, slowly, like light moving, not a slide. */
-html:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-revealed='lit']) .modal[data-won] {
+/* While the score rolls in, slowly, like light moving, not a slide. */
+html .modal[data-won] {
   transition:
     transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
-    --won-seam 1.2s 0.3s cubic-bezier(0.45, 0, 0.2, 1),
-    --won-light 1.2s 0.3s cubic-bezier(0.45, 0, 0.2, 1);
+    --won-seam 1.2s 0.3s cubic-bezier(0.45, 0, 0.2, 1);
 }
 
-/* 'landed': one beat after the score, with the loser's dim (won-dim). */
-@media (prefers-reduced-motion: no-preference) {
-  html[data-look-settle='landed']:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-revealed='lit'])
-    .modal[data-won] {
-    transition:
-      transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
-      --won-seam 0.9s 1s cubic-bezier(0.45, 0, 0.2, 1),
-      --won-light 0.9s 1s cubic-bezier(0.45, 0, 0.2, 1);
-  }
-}
-
-html:is([data-look-revealed='seam'], [data-look-revealed='dim']) .modal[data-won='home'] {
+.modal[data-won='home'] {
   --won-seam: 1;
 }
 
-html:is([data-look-revealed='seam'], [data-look-revealed='dim']) .modal[data-won='away'] {
+.modal[data-won='away'] {
   --won-seam: -1;
 }
 
-html[data-look-revealed='lit'] .modal[data-won='home'] {
-  --won-light: 1;
-}
-
-html[data-look-revealed='lit'] .modal[data-won='away'] {
-  --won-light: -1;
-}
-
-html:is([data-look-revealed='dim'], [data-look-revealed='lit']) .modal-team-name {
+html .modal-team-name {
   transition: opacity 0.32s ease;
 }
 
-html:is([data-look-revealed='dim'], [data-look-revealed='lit'])
-  :is(
+:is(
     .modal[data-won='home'] :is(.modal-teams > .modal-team:last-child .modal-team-name, .modal-score > :first-child > :last-child, .modal-goals > .goals-side:last-child),
     .modal[data-won='away'] :is(.modal-teams > .modal-team:first-child .modal-team-name, .modal-score > :first-child > :first-child, .modal-goals > .goals-side:first-child)
   ) {
@@ -2617,8 +2242,7 @@ html:is([data-look-revealed='dim'], [data-look-revealed='lit'])
 }
 
 /* Revealed here: the loser steps back once the numbers have landed. */
-html:is([data-look-revealed='dim'], [data-look-revealed='lit'])
-  :is(
+:is(
     .modal[data-won='home']:has(.modal-score.is-rolling) :is(.modal-teams > .modal-team:last-child .modal-team-name, .modal-score > :first-child > :last-child, .modal-goals > .goals-side:last-child),
     .modal[data-won='away']:has(.modal-score.is-rolling) :is(.modal-teams > .modal-team:first-child .modal-team-name, .modal-score > :first-child > :first-child, .modal-goals > .goals-side:first-child)
   ) {
@@ -2632,7 +2256,7 @@ html:is([data-look-revealed='dim'], [data-look-revealed='lit'])
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-revealed='lit']) :is(.modal, .modal[data-won]) {
+  html :is(.modal, .modal[data-won]) {
     transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
   }
 }

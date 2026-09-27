@@ -1,6 +1,6 @@
 /**
- * Spoiler Blur (lab look `coversSheet: 'sheet'`): the blur settings as a
- * sheet over a blurred page, led by a large preview of the player.
+ * Spoiler Blur: the blur settings as a sheet over a blurred page, led by a
+ * large preview of the player.
  *
  * The preview is the real thing, not a drawing. Under it lies YouTube's own
  * chrome, captured from a live embed with demo spoilers written in (a score

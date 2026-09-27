@@ -178,31 +178,17 @@
   }
 }
 
-/* Chapter names run to about 28 characters of YouTube's 12px Roboto,
-   starting 8px after its pill (none below 396px). The glass starts under our pill and eases out
-   over its last quarter, past where names usually end. */
+/* YouTube's chapter name is one 12px line, 14px tall, starting 8px after
+   its pill (measured Sep 2026). A 20px band at blur 8 leaves no letter
+   shapes, only a faint streak, and over bare video it is barely there. It
+   starts under our pill so the text never meets a feathered edge, and eases
+   out over its last quarter, past where names usually end. Below 396px
+   YouTube drops the chapter name, so there's nothing to cover. */
 .yt-chapter-cover {
-  --feather-x: 14px;
-  --feather-y: 7px;
-  --fade-x: 75%;
-  flex: none;
-  align-self: stretch;
-  width: min(300px, 100% - 140px);
-  margin: -7px 0 -7px -20px;
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-}
-
-/* Lab look "slim": YouTube's chapter name is one 12px line, 14px tall,
-   starting 8px after its pill (measured Sep 2026). A 20px band at blur 8
-   leaves no letter shapes, only a faint streak, and over bare video it is
-   barely there. It starts under our pill so the text never meets a feathered
-   edge. Below 396px YouTube drops the chapter name, so there's nothing to
-   cover. */
-html[data-look-chapter='slim'] .yt-chapter-cover {
   --feather-x: 12px;
   --feather-y: 5px;
   --fade-x: 75%;
+  flex: none;
   align-self: center;
   height: 20px;
   width: min(250px, 100% - 130px);
@@ -212,7 +198,7 @@ html[data-look-chapter='slim'] .yt-chapter-cover {
 }
 
 @container (max-width: 395px) {
-  html[data-look-chapter='slim'] .yt-chapter-cover {
+  .yt-chapter-cover {
     display: none;
   }
 }

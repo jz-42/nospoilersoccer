@@ -1,7 +1,8 @@
 /**
- * Spoiler Covers: the one panel for choosing what our covers over YouTube's
- * player hide. It opens from a small mark beside a match's highlights, where
- * you notice the covers, and from the header menu.
+ * Spoiler Covers: a compact panel for choosing what our covers over YouTube's
+ * player hide, kept for the player lab. The app opens Spoiler Blur instead,
+ * from the mark beside a match's highlights (SpoilerCoversButton) and from
+ * the header menu.
  *
  * The panel leads with a preview: a drawing of the player with YouTube's
  * leaks on it (a score in the title, the full runtime, the progress bar, a
@@ -11,8 +12,7 @@
  * playback, so a live embed would mostly show nothing changing, and any real
  * highlight is somebody's spoiler.
  */
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import { useState, type ReactNode } from 'react'
 import {
   DEFAULT_PLAYER_SETTINGS,
   resetPlayerSettings,
@@ -21,7 +21,6 @@ import {
   usePlayerSettings,
   type PlayerSettings,
 } from '../player-settings'
-import { useLooks } from '../looks'
 import { SkipIcon } from './PlayerControls'
 import { openSpoilerBlur } from '../spoiler-blur'
 import { BlurIcon } from './SpoilerBlur'
@@ -172,115 +171,20 @@ export function CoversIcon({ className }: { className: string }) {
 }
 
 /**
- * The mark beside a match's highlights, and the panel it opens. The panel is
- * portalled to the body and placed against the viewport: the match sheet
- * scrolls and clips, and on a phone it is only as wide as the screen.
- *
- * Lab looks: `blurInPlayer` puts a button inside the player too (`inPlayer`),
- * as a disc, a bare glyph or in the title bar; `coversSheet: 'sheet'` opens
- * Spoiler Blur instead.
+ * The mark beside a match's highlights (`inPlayer`: the disc inside the
+ * player while a video plays). Either opens Spoiler Blur.
  */
 export function SpoilerCoversButton({ inPlayer = false }: { inPlayer?: boolean }) {
-  const looks = useLooks()
-  const sheet = looks.coversSheet === 'sheet'
-  const [open, setOpen] = useState(false)
-  const [spot, setSpot] = useState<{ top: number; left: number; up: boolean } | null>(null)
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const popRef = useRef<HTMLDivElement>(null)
-  const headingId = useId()
-
-  useLayoutEffect(() => {
-    // A spot left from the last opening is replaced here, before paint.
-    if (!open) return
-    const place = () => {
-      const button = buttonRef.current
-      const pop = popRef.current
-      if (!button || !pop) return
-      const a = button.getBoundingClientRect()
-      const w = pop.offsetWidth
-      const h = pop.offsetHeight
-      const m = 10
-      const below = window.innerHeight - a.bottom - 8
-      const above = a.top - 8
-      // Below if it fits (or has more room than above), right edges aligned.
-      const up = below < h + m && above > below
-      const top = up ? a.top - 8 - h : a.bottom + 8
-      const left = Math.min(Math.max(a.right - w, m), window.innerWidth - w - m)
-      setSpot({ top: Math.max(m, Math.min(top, window.innerHeight - h - m)), left, up })
-    }
-    place()
-    window.addEventListener('resize', place)
-    window.addEventListener('scroll', place, true)
-    return () => {
-      window.removeEventListener('resize', place)
-      window.removeEventListener('scroll', place, true)
-    }
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    popRef.current?.focus()
-    const onPointerDown = (e: PointerEvent) => {
-      const t = e.target as Node
-      if (!popRef.current?.contains(t) && !buttonRef.current?.contains(t)) setOpen(false)
-    }
-    // Capture, and stop it there: Escape closes this panel, not the match
-    // sheet underneath, which listens on the window too.
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      e.stopPropagation()
-      setOpen(false)
-      buttonRef.current?.focus()
-    }
-    document.addEventListener('pointerdown', onPointerDown)
-    window.addEventListener('keydown', onKeyDown, true)
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown)
-      window.removeEventListener('keydown', onKeyDown, true)
-    }
-  }, [open])
-
-  // Touches inside the panel must not reach the sheet's drag-to-dismiss.
-  const stop = (e: { stopPropagation: () => void }) => e.stopPropagation()
-
   return (
-    <>
-      <button
-        ref={buttonRef}
-        type="button"
-        className={`${inPlayer ? `player-blur is-${looks.blurInPlayer}` : 'sc-mark'}${open ? ' is-open' : ''}`}
-        aria-label={sheet ? 'Spoiler Blur' : 'Spoiler Covers'}
-        aria-expanded={sheet ? undefined : open}
-        aria-haspopup="dialog"
-        title={sheet ? 'Blur' : 'Spoiler Covers'}
-        onClick={() => (sheet ? openSpoilerBlur() : setOpen((v) => !v))}
-      >
-        <BlurIcon className={inPlayer ? undefined : 'sc-mark-blur'} />
-      </button>
-      {open &&
-        createPortal(
-          <div
-            ref={popRef}
-            className={`sc-pop${spot?.up ? ' is-up' : ''}`}
-            role="dialog"
-            aria-labelledby={headingId}
-            tabIndex={-1}
-            style={spot ? { top: spot.top, left: spot.left } : { visibility: 'hidden', top: 0, left: 0 }}
-            onClick={stop}
-            onTouchStart={stop}
-            onTouchMove={stop}
-            onTouchEnd={stop}
-          >
-            <SpoilerCoversPanel
-              heading={
-                <h2 id={headingId} className="sc-title">
-                  Spoiler Covers
-                </h2>
-              }
-            />
-          </div>,
-          document.body,
-        )}
-    </>
+    <button
+      type="button"
+      className={inPlayer ? 'player-blur is-disc' : 'sc-mark'}
+      aria-label="Spoiler Blur"
+      aria-haspopup="dialog"
+      title="Blur"
+      onClick={openSpoilerBlur}
+    >
+      <BlurIcon className={inPlayer ? undefined : 'sc-mark-blur'} />
+    </button>
   )
 }

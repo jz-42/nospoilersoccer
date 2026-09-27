@@ -1,14 +1,14 @@
 /**
- * Lab looks (src/looks.ts) for the match sheet's own controls: the Watch
- * Later clock, the Reveal Result button, and the ball that holds the peeks.
+ * The match sheet's own controls: the Watch Later clock, the Reveal Result
+ * button, and the ball that holds the peeks.
  */
 import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ClockIcon } from './ClockIcon'
-import { playRevealFx, type RevealFx, type ThawClear, type Winner } from '../reveal-fx'
+import { playRevealFx, type Winner } from '../reveal-fx'
 
 /**
- * `save: 'bare'`: the clock on its own, no disc, sized and placed as the
+ * The clock on its own, no disc, sized and placed as the
  * mirror image of Close. Saving works the way SF Symbols toggle (bookmark →
  * bookmark.fill): the outline clock fills amber, its hand sweeps round once
  * and a ring goes out. Removing plays the same beat backwards. A short toast
@@ -63,33 +63,23 @@ export function WatchLaterClock({
 }
 
 /**
- * `result`: the one button that ends the spoiler-free state. 'frost' is
- * white with the kits showing faintly through it; 'tint' mixes the kits into
- * the white on purpose, home on the left and away on the right, the way
- * Apple Music tints its buttons from the artwork. `fx` is what the tap does
- * before the score rolls in (see src/reveal-fx.ts).
+ * The one button that ends the spoiler-free state: frosted white glass with
+ * the kits showing faintly through it. The tap thaws it into the winner's
+ * colour before the score rolls in (see src/reveal-fx.ts).
  */
 export function RevealResultButton({
-  look,
-  fx,
-  clear,
   winner,
   onReveal,
 }: {
-  look: 'green' | 'frost' | 'tint'
-  fx: RevealFx
-  clear: ThawClear
   /** For the thaw to paint in; it never reaches the page. */
   winner: Winner | null
   onReveal: () => void
 }) {
   const [going, setGoing] = useState(false)
-  const className =
-    look === 'green' ? 'btn-primary modal-pre-reveal-cta' : `reveal-btn is-${look} modal-pre-reveal-cta`
   return (
     <button
       type="button"
-      className={`${className}${going ? ' is-going' : ''}`}
+      className={`reveal-btn is-frost modal-pre-reveal-cta${going ? ' is-going' : ''}`}
       onClick={(e) => {
         if (going) return
         const button = e.currentTarget
@@ -97,7 +87,7 @@ export function RevealResultButton({
         const r = button.getBoundingClientRect()
         const point = e.detail ? { x: e.clientX, y: e.clientY } : { x: r.left + r.width / 2, y: r.top + r.height / 2 }
         setGoing(true)
-        playRevealFx(fx, button, point, onReveal, { clear, winner })
+        playRevealFx(button, point, onReveal, winner)
       }}
     >
       <span className="reveal-btn-label">Reveal Result</span>
@@ -106,24 +96,22 @@ export function RevealResultButton({
 }
 
 /**
- * `peeks: 'pill' | 'card'`: the goal count and Worth watching? behind one
- * ball in the bottom-left corner of the highlights, the mirror of the Spoiler
- * Covers mark in the other corner (`inPoster`), or of the sheet's own corner
- * when there are no highlights yet. Pointing at the ball slides the peeks out
- * of it, as a pill beside it or as a card above it. Clicking the ball (or, on
+ * The goal count and Worth watching? behind one ball in the bottom-left
+ * corner of the highlights, the mirror of the Spoiler Covers mark in the
+ * other corner (`inPoster`), or of the sheet's own corner when there are no
+ * highlights yet. Pointing at the ball slides the peeks out of it as a card
+ * above it. Clicking the ball (or, on
  * touch, tapping it) pins them out until it's clicked again. The values are
  * blurred until tapped, and pointing never unblurs anything, so a passing
  * mouse can't spoil the match. The blur is drawn over a stand-in, not the
  * real value, so the shape of the text gives nothing away.
  */
 export function MatchPeek({
-  look,
   goals,
   rating,
   summary,
   inPoster = false,
 }: {
-  look: 'pill' | 'card'
   goals: number | null
   rating?: 1 | 2 | 3 | 4 | 5
   summary?: string
@@ -170,10 +158,9 @@ export function MatchPeek({
       className={`match-peek-item is-goals${shown.goals ? ' is-shown' : ''}`}
       aria-pressed={shown.goals}
       aria-label={shown.goals ? `${goals} ${goals === 1 ? 'goal' : 'goals'}. Blur again` : 'Show total goals'}
-      data-tip={look === 'pill' ? 'Total goals' : undefined}
       onClick={() => toggle('goals')}
     >
-      {look === 'card' && <span className="match-peek-label">Total goals</span>}
+      <span className="match-peek-label">Total goals</span>
       <span className="match-peek-value">{shown.goals ? goals : 0}</span>
     </button>
   )
@@ -190,20 +177,10 @@ export function MatchPeek({
       className={`match-peek-item is-worth${shown.worth ? ' is-shown' : ''}`}
       aria-pressed={shown.worth}
       aria-label={shown.worth ? `Worth watching: ${rating} out of 5. Blur again` : 'Show whether it’s worth watching'}
-      data-tip={look === 'pill' ? 'Worth watching?' : undefined}
       onClick={() => toggle('worth')}
     >
-      {look === 'pill' ? (
-        <>
-          <StarIcon on={shown.worth} />
-          <span className="match-peek-value">{shown.worth ? rating : 3}</span>
-        </>
-      ) : (
-        <>
-          <span className="match-peek-label">Worth watching?</span>
-          {stars}
-        </>
-      )}
+      <span className="match-peek-label">Worth watching?</span>
+      {stars}
     </button>
   )
   const verdict = hasWorth && (
@@ -217,7 +194,7 @@ export function MatchPeek({
 
   return (
     <div
-      className={`match-peek is-${look}${inPoster ? ' in-poster' : ''}${open ? ' is-open' : ''}${pinned ? ' is-pinned' : ''}`}
+      className={`match-peek is-card${inPoster ? ' in-poster' : ''}${open ? ' is-open' : ''}${pinned ? ' is-pinned' : ''}`}
       onPointerEnter={(e) => {
         if (e.pointerType !== 'mouse') return
         hold()
@@ -230,21 +207,10 @@ export function MatchPeek({
       }}
     >
       <div className="match-peek-surface" id={trayId} inert={!open}>
-        {look === 'card' ? (
-          <>
-            {worthItem}
-            {verdict}
-            {goalsItem}
-          </>
-        ) : (
-          <>
-            {goalsItem}
-            {goalsItem && worthItem && <span className="match-peek-rule" aria-hidden="true" />}
-            {worthItem}
-          </>
-        )}
+        {worthItem}
+        {verdict}
+        {goalsItem}
       </div>
-      {look === 'pill' && verdict}
       <button
         type="button"
         className="match-peek-ball"
@@ -289,7 +255,7 @@ function StarIcon({ on }: { on: boolean }) {
 }
 
 /**
- * `scoreIn: 'roll'`: each side's number rolls up into place out of a blur,
+ * Each side's number rolls up into place out of a blur,
  * like a stadium scoreboard's flaps, the away side a beat behind.
  */
 export function RollingScore({ home, away }: { home: number; away: number }) {

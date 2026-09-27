@@ -598,23 +598,6 @@
   transform: translateX(-28%);
 }
 
-/* Wider than the menu, so it stands outside the grid rather than widening
-   the other pages; the panel grows to it only while it shows. */
-.menu-page-covers {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: min(300px, calc(100vw - 32px));
-  padding: 0 7px 1px;
-}
-
-/* The back row is the panel's heading here, beside its Reset. */
-.menu-page-covers .menu-back {
-  flex: 1;
-  width: auto;
-  margin-left: -7px;
-}
-
 .menu-back {
   color: var(--text-h);
   font-weight: 600;
@@ -3802,46 +3785,6 @@
 
 /* ============ saved matches (warm amber): watch-later clock + favorites ============ */
 
-.modal-pin {
-  position: absolute;
-  top: 13px;
-  left: 13px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: rgba(235, 240, 248, 0.6);
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-  width: 40px;
-  height: 40px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border-radius: 50%;
-  transition:
-    color 0.15s,
-    background 0.15s,
-    border-color 0.15s,
-    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.modal-pin:active {
-  transform: scale(0.88);
-}
-
-.modal-pin:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.2);
-  -webkit-backdrop-filter: blur(12px) saturate(1.3);
-  backdrop-filter: blur(12px) saturate(1.3);
-}
-
-.modal-pin.pinned {
-  color: var(--saved);
-}
-
 /* ============ favorites panel ============ */
 
 /*
@@ -4820,167 +4763,9 @@
   gap: 14px;
 }
 
-.modal-pre-reveal-stack {
-  width: min(100%, 440px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin-top: 0;
-}
-
 .modal-pre-reveal-cta {
   order: 2;
   margin-top: 0;
-}
-
-.modal-pre-reveal-disclosures {
-  order: 1;
-}
-
-.modal-disclosures {
-  width: min(100%, 440px);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-self: center;
-}
-
-/* Same light-glass family as the posters, at roughly half the presence — a
-   quiet second shelf, visibly interactive rather than disabled-looking. */
-.modal-disclosure {
-  width: 100%;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  background: linear-gradient(168deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.04));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  overflow: hidden;
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  backdrop-filter: blur(14px) saturate(1.2);
-}
-
-.modal-disclosure-bar {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 9px 12px;
-}
-
-.modal-disclosure-head {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-}
-
-.modal-disclosure-label {
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  color: var(--text-h);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-.modal-disclosure-hint {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 1px solid rgba(154, 173, 203, 0.3);
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.modal-disclosure-trigger {
-  flex-shrink: 0;
-  font-size: 11px;
-  color: rgba(230, 237, 245, 0.82);
-  padding: 6px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.09);
-  cursor: pointer;
-  transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease,
-    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.modal-disclosure-trigger:hover {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(154, 173, 203, 0.38);
-}
-
-.modal-disclosure-trigger:active {
-  transform: scale(0.92);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.modal-goal-chip {
-  align-self: center;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 30px;
-  padding: 0 4px 0 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
-  background: linear-gradient(168deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.04));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
-  backdrop-filter: blur(14px) saturate(1.2);
-  font: inherit;
-  cursor: pointer;
-  transition: transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.modal-goal-chip:active {
-  transform: scale(0.96);
-}
-
-.modal-goal-chip-label {
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0.02em;
-  color: var(--text-h);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-/* The Reveal pill, which becomes the number. */
-.modal-goal-chip-value {
-  min-width: 22px;
-  padding: 4px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.09);
-  font-size: 11px;
-  line-height: 1.2;
-  color: rgba(230, 237, 245, 0.82);
-  transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease;
-}
-
-.modal-goal-chip:hover .modal-goal-chip-value {
-  color: var(--text);
-  border-color: rgba(154, 173, 203, 0.38);
-}
-
-.modal-goal-chip.is-open .modal-goal-chip-value {
-  font-size: 12.5px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.16);
 }
 
 /*
@@ -5011,34 +4796,6 @@
 
 .modal-hide-result:active {
   background: rgba(255, 255, 255, 0.08);
-}
-
-.modal-disclosure-copy {
-  padding: 0 13px 12px;
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--muted);
-}
-
-.entertainment-disclosure {
-  padding: 0 13px 12px;
-}
-
-.entertainment-stars {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 2px;
-}
-
-.entertainment-star {
-  font-size: 12.5px;
-  line-height: 1;
-  color: rgba(154, 173, 203, 0.22);
-}
-
-.entertainment-star.filled {
-  color: #f1c76d;
 }
 
 .entertainment-summary-copy {
@@ -6152,6 +5909,33 @@
 
 /* ============ responsive ============ */
 
+/* A phone gives the utility row its own line, and a World Cup's meter plus
+   four buttons is wider than it: Catch up broke onto two lines and the menu
+   was pushed off the edge. The meter's bar is the one part that can give, so
+   it takes whatever the buttons leave. */
+@media (max-width: 480px) {
+  .app-header-end {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .app-progress {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .app-progress-bar {
+    flex: 1;
+    width: auto;
+    min-width: 24px;
+    max-width: 104px;
+  }
+
+  .btn-catch-up {
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 760px) {
   .app-header {
     gap: 12px;
@@ -6371,18 +6155,6 @@
     background: rgba(120, 120, 128, 0.5);
   }
 
-  .modal-pin {
-    top: 7px;
-    left: 7px;
-    width: 44px;
-    height: 44px;
-    font-size: 26px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   .modal-hide-result {
     /* Bigger tap target only. Colour stays the sheet's translucent white —
        `--text` and `--border-strong` are the page's slate greys and go dead on
@@ -6405,22 +6177,9 @@
     max-width: 380px;
   }
 
-  .modal-pre-reveal-stack {
-    gap: 14px;
-  }
-
   .modal-pre-reveal-cta {
     order: 1;
     margin-top: 6px;
-  }
-
-  .modal-pre-reveal-disclosures {
-    order: 2;
-  }
-
-  .modal-disclosures {
-    margin-top: 8px;
-    gap: 6px;
   }
 
   .modal-flag {
@@ -6458,35 +6217,6 @@
   .oddsbar-keys {
     font-size: 9.5px;
     margin-top: 5px;
-  }
-
-  .modal-disclosures {
-    gap: 10px;
-  }
-
-  .modal-disclosure-bar {
-    padding: 9px 12px;
-    gap: 10px;
-  }
-
-  .modal-disclosure-label {
-    font-size: 12.5px;
-  }
-
-  .modal-disclosure-hint {
-    display: none;
-  }
-
-  .modal-disclosure-trigger {
-    font-size: 11.5px;
-    padding: 5px 11px;
-    min-height: 0;
-  }
-
-  .modal-disclosure-copy,
-  .entertainment-disclosure {
-    padding: 0 12px 11px;
-    font-size: 12.5px;
   }
 
   .tile-thumb {

@@ -1,51 +1,28 @@
 import { flushSync } from 'react-dom'
 
 /**
- * Lab look `revealFx`: what a tap on Reveal Result does as the score rolls
- * in. `reveal` is the real reveal; each effect calls it once. Nothing flies
- * off: the button thaws where it is, then turns into Hide Result, carried
- * along with the sheet as it grows.
- *
- * - 'thaw': the frost clears from the finger, leaving the words on the
- *   glass underneath, and that glass becomes Hide Result.
- * - 'kits': under the frost are the two kits, lit for a moment, then
- *   cooling to the glass.
- * - 'winner': under the frost is the winner's colour, or both kits in a
- *   draw.
- *
- * Lab look `thawClear`: how the frost clears.
- *
- * - 'grains': the wave sheds fine grains that settle where they were.
- * - 'edge': no loose grains; the frost is grainy only along its melting
- *   edge, so the texture goes with it.
- * - 'mist': a wide, soft edge, like breath clearing off a window.
- * - 'rim': a crisp edge that catches the light, the lip of Liquid Glass.
- *
- * Every effect ends in a glide: rather than jump to the revealed layout, the
- * sheet grows to its new height and the videos slide down to make room.
+ * What a tap on Reveal Result does as the score rolls in. `reveal` is the
+ * real reveal, called once. Nothing flies off: the frost clears from the
+ * finger in one wave, grainy only along its melting edge, uncovering the
+ * winner's colour (both sides' in a draw) with the words lit on it. Then the
+ * button turns into Hide Result, carried along with the sheet as it grows:
+ * rather than jump to the revealed layout, the sheet grows to its new height
+ * and the videos slide down to make room.
  */
-export type RevealFx = 'none' | 'thaw' | 'kits' | 'winner'
-export type ThawClear = 'grains' | 'edge' | 'mist' | 'rim'
 /** Who won the match being revealed, held in memory only, never in the page. */
 export type Winner = 'home' | 'away' | 'draw'
 
 type Point = { x: number; y: number }
 
-export function playRevealFx(
-  fx: RevealFx,
-  button: HTMLElement,
-  point: Point,
-  reveal: () => void,
-  { clear = 'grains', winner = null }: { clear?: ThawClear; winner?: Winner | null } = {},
-) {
-  if (fx === 'none' || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+export function playRevealFx(button: HTMLElement, point: Point, reveal: () => void, winner: Winner | null = null) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
     reveal()
     return
   }
   // Only the sheet's own button has a Hide Result to become. Anywhere else
   // (the full-time pill in the player) the button just clears away.
-  if (button.classList.contains('modal-pre-reveal-cta')) thaw(button, point, reveal, fx, clear, winner)
-  else clearAway(button, point, () => glide(button, reveal), clear, true)
+  if (button.classList.contains('modal-pre-reveal-cta')) thaw(button, point, reveal, winner)
+  else melt(button, point, () => glide(button, reveal))
 }
 
 const SPRING = 'cubic-bezier(0.32, 0.72, 0, 1)'
@@ -213,152 +190,6 @@ function inScroller(el: HTMLElement) {
   return false
 }
 
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2)
-
-type Grain = { x: number; y: number; vx: number; vy: number; age: number; life: number; size: number; colour: string; glint: boolean }
-
-/**
- * The surface of `el` clears in a soft wave from `point`, and where the wave
- * passes the surface stays behind for a moment as fine grains, which barely
- * drift, dim and are gone: sand settling, not dust blown off. `words`: the
- * label comes apart too, in its own ink. `done` runs as the wave finishes.
- */
-function sift(
-  el: HTMLElement,
-  point: Point,
-  done: () => void,
-  { words = true, colours }: { words?: boolean; colours?: [string, string] } = {},
-): number {
-  const rect = el.getBoundingClientRect()
-  const style = getComputedStyle(el)
-  const [left, right] = colours ?? [
-    paintable(style.getPropertyValue('--dust-a').trim(), style.backgroundColor),
-    paintable(style.getPropertyValue('--dust-b').trim(), style.backgroundColor),
-  ]
-  const ink = style.color
-  const label = words ? (el.querySelector('.reveal-btn-label')?.getBoundingClientRect() ?? null) : null
-  const corner = Math.min(parseFloat(style.borderTopLeftRadius) || 0, rect.height / 2)
-  // Chrome won't cut the wave through a backdrop-filter in a scroller, so
-  // there the glass is swapped for a flat painting of itself (see is-frost).
-  if (style.backdropFilter !== 'none' && inScroller(el)) el.dataset.baked = ''
-
-  const px = point.x - rect.left
-  const py = point.y - rect.top
-  const reach = reachOf(rect, point)
-  const feather = 26
-  const duration = Math.min(620, 380 + reach * 0.7)
-
-  const pad = 24
-  const w = rect.width + pad * 2
-  const h = rect.height + pad * 2
-  const dpr = Math.min(2, window.devicePixelRatio || 1)
-  const canvas = document.createElement('canvas')
-  canvas.className = 'reveal-grains'
-  canvas.width = Math.ceil(w * dpr)
-  canvas.height = Math.ceil(h * dpr)
-  Object.assign(canvas.style, {
-    left: `${rect.left - pad}px`,
-    top: `${rect.top - pad}px`,
-    width: `${w}px`,
-    height: `${h}px`,
-  })
-  document.body.append(canvas)
-  const ctx = canvas.getContext('2d')
-  if (!ctx) {
-    canvas.remove()
-    done()
-    return 0
-  }
-  ctx.scale(dpr, dpr)
-
-  // Inside the rounded outline, in the element's own coordinates.
-  const inside = (x: number, y: number) => {
-    if (x < 0 || y < 0 || x > rect.width || y > rect.height) return false
-    const cx = Math.min(Math.max(x, corner), rect.width - corner)
-    const cy = Math.min(Math.max(y, corner), rect.height - corner)
-    return (x - cx) ** 2 + (y - cy) ** 2 <= corner ** 2
-  }
-  const onLabel = (x: number, y: number) =>
-    label !== null &&
-    x + rect.left > label.left &&
-    x + rect.left < label.right &&
-    y + rect.top > label.top + label.height * 0.18 &&
-    y + rect.top < label.bottom - label.height * 0.12
-
-  const grains: Grain[] = []
-  const density = 0.14
-  let swept = 0
-  let finished = false
-  const start = performance.now()
-  let last = start
-
-  const frame = (now: number) => {
-    const dt = Math.min(0.05, (now - last) / 1000)
-    last = now
-    if (!finished) {
-      const t = Math.min(1, (now - start) / duration)
-      const r = (reach + feather) * easeInOut(t)
-      const mask = `radial-gradient(circle at ${px}px ${py}px, transparent ${Math.max(0, r - feather)}px, #000 ${r}px)`
-      el.style.setProperty('-webkit-mask-image', mask)
-      el.style.setProperty('mask-image', mask)
-      // Grains where the wave's soft edge passed this frame, so they sit
-      // where the surface was, not ahead of it.
-      const edge = Math.max(0, r - feather / 2)
-      const n = Math.round(Math.PI * (edge * edge - swept * swept) * density)
-      for (let i = 0; i < n; i++) {
-        const a = Math.random() * Math.PI * 2
-        const d = Math.sqrt(swept * swept + Math.random() * (edge * edge - swept * swept))
-        const x = px + Math.cos(a) * d
-        const y = py + Math.sin(a) * d
-        if (!inside(x, y)) continue
-        const text = onLabel(x, y) && Math.random() < 0.5
-        const glint = !text && Math.random() < 0.08
-        grains.push({
-          x,
-          y,
-          // Barely moving: a breath away from the finger, a little lift.
-          vx: Math.cos(a) * (2 + Math.random() * 6) + (Math.random() - 0.5) * 4,
-          vy: Math.sin(a) * (2 + Math.random() * 4) - 5 - Math.random() * 9,
-          age: 0,
-          life: glint ? 0.5 + Math.random() * 0.4 : 0.3 + Math.random() * 0.5,
-          size: glint ? 1.3 + Math.random() * 0.6 : 0.6 + Math.random() * 0.8,
-          colour: text ? ink : glint ? '#fff' : Math.random() < x / rect.width ? right : left,
-          glint,
-        })
-      }
-      swept = edge
-      if (t >= 1) {
-        finished = true
-        done()
-        // The sheet moves under the grains as it glides, so they go quickly.
-        canvas.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 320, easing: 'ease-in', fill: 'forwards' })
-      }
-    }
-
-    ctx.clearRect(0, 0, w, h)
-    for (let i = grains.length - 1; i >= 0; i--) {
-      const g = grains[i]
-      g.age += dt
-      if (g.age >= g.life) {
-        grains.splice(i, 1)
-        continue
-      }
-      g.x += g.vx * dt
-      g.y += g.vy * dt
-      const k = g.age / g.life
-      // Grains dim as they go; the odd bright one catches the light once.
-      ctx.globalAlpha = g.glint ? Math.sin(Math.PI * k) * 0.95 : 0.85 * (1 - k) ** 1.4
-      ctx.fillStyle = g.colour
-      const s = g.size * (1 - k * 0.5)
-      ctx.fillRect(g.x + pad - s / 2, g.y + pad - s / 2, s, s)
-    }
-    if (!finished || grains.length) requestAnimationFrame(frame)
-    else canvas.remove()
-  }
-  requestAnimationFrame(frame)
-  return duration
-}
-
 /** A gentle ease-out: under way from the first frame, with no slow tail. */
 const easeWave = (t: number) => 1 - (1 - t) ** 2
 
@@ -393,23 +224,23 @@ function grainTile() {
 }
 
 /**
- * 'edge', 'mist' and 'rim': the surface of `el` clears in one wave from
- * `point`, and nothing is left behind it: when the wave is done, so is
+ * The surface of `el` clears in one wave from `point`, grainy only along its
+ * melting edge, and nothing is left behind it: when the wave is done, so is
  * everything it drew, before anything moves. Returns how long it takes.
  */
-function melt(el: HTMLElement, point: Point, done: () => void, mode: 'edge' | 'mist' | 'rim'): number {
+function melt(el: HTMLElement, point: Point, done: () => void): number {
   const rect = el.getBoundingClientRect()
-  const style = getComputedStyle(el)
-  const corner = Math.min(parseFloat(style.borderTopLeftRadius) || 0, rect.height / 2)
-  if (style.backdropFilter !== 'none' && inScroller(el)) el.dataset.baked = ''
+  // Chrome won't cut the wave through a backdrop-filter in a scroller, so
+  // there the glass is swapped for a flat painting of itself (see is-frost).
+  if (getComputedStyle(el).backdropFilter !== 'none' && inScroller(el)) el.dataset.baked = ''
   const px = point.x - rect.left
   const py = point.y - rect.top
   const reach = reachOf(rect, point)
-  // How wide the thawing edge is: sugar needs room to show, mist is wide.
-  const band = mode === 'mist' ? Math.max(56, reach * 0.6) : mode === 'edge' ? 36 : 16
+  // How wide the thawing edge is: sugar needs room to show.
+  const band = 36
   const duration = Math.min(400, Math.max(300, 250 + reach * 0.45))
   const at = `circle at ${px}px ${py}px`
-  const grain = mode === 'edge' && CSS.supports('mask-composite', 'intersect') ? grainTile() : ''
+  const grain = CSS.supports('mask-composite', 'intersect') ? grainTile() : ''
   if (grain) {
     // Solid frost, then grain over a soft ramp, then clear: the grain lives
     // only in the edge, and goes as it does.
@@ -419,58 +250,12 @@ function melt(el: HTMLElement, point: Point, done: () => void, mode: 'edge' | 'm
   }
   const cut = (r: number) => {
     const a = r - band
-    let mask = `radial-gradient(${at}, transparent ${a}px, #000 ${r}px)`
-    if (grain) {
-      const k = r - band * 0.45
-      mask = `radial-gradient(${at}, transparent ${k}px, #000 ${r}px), url(${grain}), radial-gradient(${at}, transparent ${a}px, #000 ${k}px)`
-    } else if (mode === 'mist') {
-      // A smoothstep, so the mist has no line at either end.
-      const f = (x: number) => `${a + band * x}px`
-      mask = `radial-gradient(${at}, transparent ${a}px, rgb(0 0 0 / 0.16) ${f(0.25)}, rgb(0 0 0 / 0.5) ${f(0.5)}, rgb(0 0 0 / 0.84) ${f(0.75)}, #000 ${r}px)`
-    }
+    const k = r - band * 0.45
+    const mask = grain
+      ? `radial-gradient(${at}, transparent ${k}px, #000 ${r}px), url(${grain}), radial-gradient(${at}, transparent ${a}px, #000 ${k}px)`
+      : `radial-gradient(${at}, transparent ${a}px, #000 ${r}px)`
     el.style.setProperty('-webkit-mask-image', mask)
     el.style.setProperty('mask-image', mask)
-  }
-
-  // 'rim': the thawed edge catches the light, brightest along the top.
-  let rim: CanvasRenderingContext2D | null = null
-  let canvas: HTMLCanvasElement | null = null
-  if (mode === 'rim') {
-    const dpr = Math.min(2, window.devicePixelRatio || 1)
-    canvas = document.createElement('canvas')
-    canvas.className = 'reveal-grains'
-    canvas.width = Math.ceil(rect.width * dpr)
-    canvas.height = Math.ceil(rect.height * dpr)
-    Object.assign(canvas.style, box(rect))
-    document.body.append(canvas)
-    rim = canvas.getContext('2d')
-    rim?.scale(dpr, dpr)
-  }
-  const light = (r: number, t: number) => {
-    if (!rim) return
-    const { width: w, height: h } = rect
-    rim.clearRect(0, 0, w, h)
-    const ring = r - band * 0.9
-    if (ring <= 1) return
-    const a = (1 - t) ** 0.6
-    rim.save()
-    rim.beginPath()
-    rim.roundRect(0.5, 0.5, w - 1, h - 1, Math.max(0, corner - 0.5))
-    rim.clip()
-    const g = rim.createRadialGradient(px, py, Math.max(0, ring - 7), px, py, ring + 1.5)
-    g.addColorStop(0, 'rgb(255 255 255 / 0)')
-    g.addColorStop(0.72, `rgb(255 255 255 / ${0.2 * a})`)
-    g.addColorStop(0.9, `rgb(255 255 255 / ${0.9 * a})`)
-    g.addColorStop(1, 'rgb(255 255 255 / 0)')
-    rim.fillStyle = g
-    rim.fillRect(0, 0, w, h)
-    rim.globalCompositeOperation = 'destination-in'
-    const top = rim.createLinearGradient(0, 0, 0, h)
-    top.addColorStop(0, '#000')
-    top.addColorStop(1, 'rgb(0 0 0 / 0.35)')
-    rim.fillStyle = top
-    rim.fillRect(0, 0, w, h)
-    rim.restore()
   }
 
   // Already thinning under the finger on the first frame.
@@ -479,23 +264,12 @@ function melt(el: HTMLElement, point: Point, done: () => void, mode: 'edge' | 'm
   const start = performance.now()
   const frame = (now: number) => {
     const t = Math.min(1, (now - start) / duration)
-    const r = r0 + (reach + band - r0) * easeWave(t)
-    cut(r)
-    light(r, t)
-    if (t < 1) {
-      requestAnimationFrame(frame)
-      return
-    }
-    canvas?.remove()
-    done()
+    cut(r0 + (reach + band - r0) * easeWave(t))
+    if (t < 1) requestAnimationFrame(frame)
+    else done()
   }
   requestAnimationFrame(frame)
   return duration
-}
-
-/** Clears `el` from `point` the way `thawClear` says, then `done`. */
-function clearAway(el: HTMLElement, point: Point, done: () => void, clear: ThawClear, words: boolean) {
-  return clear === 'grains' ? sift(el, point, done, { words }) : melt(el, point, done, clear)
 }
 
 /** A colour as OKLCh (hue in degrees), or null if it isn't one. */
@@ -555,51 +329,33 @@ const BECOME_MS = 560
  * under the frost, the frost, and each label — so the frost can go while
  * the words stay, and one label can swap for the other.
  */
-function thaw(
-  button: HTMLElement,
-  point: Point,
-  reveal: () => void,
-  fx: 'thaw' | 'kits' | 'winner',
-  clear: ThawClear,
-  winner: Winner | null,
-) {
+function thaw(button: HTMLElement, point: Point, reveal: () => void, winner: Winner | null) {
   const style = getComputedStyle(button)
   const sheet = button.closest<HTMLElement>('.modal')
   const { ghost, rect } = ghostOf(button)
   // Read now: the style is live, and empty once the reveal takes the button.
   const radius = Math.min(parseFloat(style.borderTopLeftRadius) || 0, rect.height / 2)
-  const ink = style.color
   ghost.style.borderRadius = `${radius}px`
   const plate = document.createElement('div')
   plate.className = 'reveal-ghost-plate'
-  const colours = fx === 'winner' ? winnerColours(sheet, winner) : null
-  const kits = fx === 'kits' || colours ? document.createElement('div') : null
+  // Without the sides' colours, the frost clears to Hide Result's glass.
+  const colours = winnerColours(sheet, winner)
+  const kits = colours ? document.createElement('div') : null
   if (kits && colours) {
-    kits.className = winner === 'draw' ? 'reveal-ghost-kits is-winner is-draw' : 'reveal-ghost-kits is-winner'
+    kits.className = winner === 'draw' ? 'reveal-ghost-kits is-draw' : 'reveal-ghost-kits'
     kits.style.setProperty('--win-a', colours[0])
     kits.style.setProperty('--win-b', colours[1])
-  } else if (kits) {
-    kits.className = 'reveal-ghost-kits'
-    // The kits are custom properties of the sheet, not of the body.
-    if (sheet) {
-      const s = getComputedStyle(sheet)
-      kits.style.setProperty('--home-1', s.getPropertyValue('--home-1'))
-      kits.style.setProperty('--away-1', s.getPropertyValue('--away-1'))
-    }
   }
-  const lit = kits ? '#fff' : GLASS_INK
-  // A melt takes the words with the frost, uncovering lit words beneath,
-  // so they turn along the wave. The grains leave them and fade them.
-  const melting = clear !== 'grains'
-  const frost = button.cloneNode(melting) as HTMLElement
+  // The melt takes the words with the frost, uncovering lit words beneath,
+  // so they turn along the wave.
+  const frost = button.cloneNode(true) as HTMLElement
   frost.classList.remove('is-going')
   frost.classList.add('reveal-ghost-face')
   const from = document.createElement('span')
   from.className = 'reveal-ghost-label'
   from.textContent = button.textContent
-  Object.assign(from.style, { font: style.font, letterSpacing: style.letterSpacing, color: melting ? lit : ink })
-  if (melting) ghost.append(plate, ...(kits ? [kits] : []), from, frost)
-  else ghost.append(plate, ...(kits ? [kits] : []), frost, from)
+  Object.assign(from.style, { font: style.font, letterSpacing: style.letterSpacing, color: kits ? '#fff' : GLASS_INK })
+  ghost.append(plate, ...(kits ? [kits] : []), from, frost)
   button.style.visibility = 'hidden'
 
   const turn = () => {
@@ -650,18 +406,13 @@ function thaw(
     })
   }
 
-  // The frost clears from the finger first, and the words, left on the
-  // glass (or the lit colours), go from ink to Hide Result's white.
-  const ms = clearAway(frost, point, turn, clear, false)
-  const thawMs = melting ? ms : 360
+  // The frost clears from the finger first. The colour under it is there as
+  // soon as the finger is, so a hole in the frost never shows grey glass.
+  const ms = melt(frost, point, turn)
   const under = kits ?? plate
-  // Under a melt the colour is there as soon as the finger is: a hole in the
-  // frost never shows the grey glass.
-  const [from0, glow] = melting ? [0.5, 0.2] : [0, 0.4]
-  under.animate([{ opacity: from0, easing: 'ease-out' }, { opacity: 1, offset: glow }, { opacity: 1 }], {
-    duration: thawMs,
+  under.animate([{ opacity: 0.5, easing: 'ease-out' }, { opacity: 1, offset: 0.2 }, { opacity: 1 }], {
+    duration: ms,
     fill: 'both',
   })
   if (kits) plate.style.opacity = '1'
-  if (!melting) from.animate([{ color: ink }, { color: lit }], { duration: thawMs, easing: 'ease-in-out', fill: 'forwards' })
 }

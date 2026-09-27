@@ -8,9 +8,8 @@
  * and not an inline list, which would grow the menu with every season
  * archived. A dot on the row says when you are in one.
  *
- * Spoiler Covers turns the same way, to the panel that also opens from the
- * mark beside a match's highlights. It is the one page wider than the menu,
- * so the panel widens as it turns.
+ * Spoiler Blur is not a page: it opens its own sheet, the one the mark beside
+ * a match's highlights opens.
  *
  * Deliberately not a gear. A gear promises preferences; this is a guide, so
  * the mark is three rules — a list, which is what opens. The last rule is
@@ -18,9 +17,8 @@
  * animation budget.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { CoversIcon, SpoilerCoversPanel } from './SpoilerCovers'
+import { CoversIcon } from './SpoilerCovers'
 import { openSpoilerBlur } from '../spoiler-blur'
-import { useLooks } from '../looks'
 
 export interface ArchiveEntry {
   id: string
@@ -46,7 +44,6 @@ export function SettingsMenu({
   const [open, setOpen] = useState(false)
   const inArchive = archive.some((a) => a.active)
   const [page, setPage] = useState<Page>('root')
-  const blurSheet = useLooks().coversSheet === 'sheet'
   // The page you came back from, so focus returns to the row you left by.
   const returning = useRef<Page | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -78,17 +75,13 @@ export function SettingsMenu({
       page === 'archive'
         ? // Straight to the seasons (the one you are in, if any), past the back row.
           (scope?.querySelector('.menu-archive-row.is-active') ?? scope?.querySelector('.menu-archive-row'))
-        : page === 'covers'
-          ? scope?.querySelector('.menu-back')
-          : scope?.querySelector(returning.current ? `[data-opens='${returning.current}']` : '.menu-item')
+        : scope?.querySelector(returning.current ? `[data-opens='${returning.current}']` : '.menu-item')
     returning.current = null
     ;(target as HTMLButtonElement | null | undefined)?.focus()
   }, [open, page])
 
   // The panel takes the size of the page it is showing, animated, so the
-  // second page does not sit in the first one's empty frame. Spoiler Covers
-  // stands outside the grid (see .menu-page-covers), so clearing the width
-  // measures the menu's own.
+  // second page does not sit in the first one's empty frame.
   useLayoutEffect(() => {
     const pages = pagesRef.current
     if (!open || !pages) return
@@ -96,7 +89,7 @@ export function SettingsMenu({
     if (!current) return
     const from = pages.offsetWidth
     pages.style.width = ''
-    const to = page === 'covers' ? current.offsetWidth : pages.offsetWidth
+    const to = pages.offsetWidth
     pages.style.width = `${from}px`
     void pages.offsetWidth
     pages.style.width = `${to}px`
@@ -158,13 +151,10 @@ export function SettingsMenu({
                 type="button"
                 role="menuitem"
                 className="menu-item"
-                data-opens="covers"
-                // Lab look `coversSheet: 'sheet'`: its own sheet, not a page here.
-                onClick={() => (blurSheet ? choose(openSpoilerBlur) : setPage('covers'))}
+                onClick={() => choose(openSpoilerBlur)}
               >
                 <CoversIcon className="menu-icon" />
-                <span className="menu-item-label">{blurSheet ? 'Spoiler Blur' : 'Spoiler Covers'}</span>
-                {!blurSheet && <Chevron />}
+                <span className="menu-item-label">Spoiler Blur</span>
               </button>
               {archive.length > 0 && (
                 <button
@@ -188,9 +178,6 @@ export function SettingsMenu({
               <div className="menu-divider" />
               {entries}
             </div>
-            <div {...pageProps('covers')}>
-              <SpoilerCoversPanel heading={<BackRow label="Spoiler Covers" onBack={() => goBack('covers')} />} />
-            </div>
           </div>
         </div>
       )}
@@ -198,7 +185,7 @@ export function SettingsMenu({
   )
 }
 
-type Page = 'root' | 'archive' | 'covers'
+type Page = 'root' | 'archive'
 
 function BackRow({ label, onBack }: { label: string; onBack: () => void }) {
   return (
