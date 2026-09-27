@@ -25,7 +25,35 @@ import {
   runFeedRecovery,
   processHighlightQueue,
   enqueueDueCandidates,
+  runScheduledHighlightTick,
 } from './highlights.mjs'
+
+test('scheduled highlight tick scans each source in its own service invocation', async () => {
+  const events = []
+  const result = await runScheduledHighlightTick({
+    now: new Date('2026-09-27T18:08:00Z'),
+    store: { dueCandidates: async () => [] },
+    queue: { send: async () => events.push('unexpected-queue-send') },
+    scanService: {
+      fetch: async (request) => {
+        events.push(new URL(request.url).searchParams.get('source'))
+        return new Response('{}')
+      },
+    },
+  })
+  assert.deepEqual(events.sort(), HIGHLIGHT_SOURCES.map((source) => source.id).sort())
+  assert.deepEqual(result, { feedsScanned: 7, candidatesRequeued: 0 })
+})
+
+test('queue acknowledges scan jobs left by the previous deployment', async () => {
+  const events = []
+  await processHighlightQueue({ messages: [{
+    body: { kind: 'feed_scan', shard: 0 },
+    ack: () => events.push('ack'),
+    retry: () => events.push('retry'),
+  }] }, { dispatch: async () => events.push('dispatch') })
+  assert.deepEqual(events, ['ack'])
+})
 
 test('FOX Soccer source is exact and its authenticated recovery is capped at two pages', () => {
   const source = HIGHLIGHT_SOURCES.find((item) => item.id === 'foxsoccer')

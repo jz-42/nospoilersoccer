@@ -56,6 +56,35 @@ export const HIGHLIGHT_SOURCES = Object.freeze([
   },
 ])
 
+// Each service call has its own CPU allowance. The minute cron itself never
+// parses seven feeds inside one 10 ms free-tier invocation.
+export async function runScheduledHighlightTick({ now = new Date(), store, queue, scanService }) {
+  const scanResults = await Promise.allSettled(HIGHLIGHT_SOURCES.map(async (source) => {
+    const request = new Request(`https://feed-scanner.internal/scan?source=${source.id}`)
+    const response = await scanService.fetch(request)
+    if (!response.ok) throw new Error(`${source.id}:${response.status}`)
+  }))
+  const failures = scanResults.flatMap((result, index) => result.status === 'rejected'
+    ? [`${HIGHLIGHT_SOURCES[index].id}:${result.reason instanceof Error ? result.reason.message : String(result.reason)}`]
+    : [])
+  // Renew one subscription on each of the first seven minutes every six
+  // hours, keeping maintenance out of the critical feed scan invocation.
+  if (now.getUTCHours() % 6 === 0 && now.getUTCMinutes() < HIGHLIGHT_SOURCES.length) {
+    const source = HIGHLIGHT_SOURCES[now.getUTCMinutes()]
+    try {
+      const response = await scanService.fetch(new Request(
+        `https://feed-scanner.internal/renew?source=${source.id}`,
+      ))
+      if (!response.ok) failures.push(`${source.id}:renew_${response.status}`)
+    } catch (error) {
+      failures.push(`${source.id}:renew_${error instanceof Error ? error.message : String(error)}`)
+    }
+  }
+  const candidatesRequeued = await enqueueDueCandidates(store, queue, now)
+  if (failures.length) throw new Error(`highlight scans failed: ${failures.join(', ')}`)
+  return { feedsScanned: scanResults.length, candidatesRequeued }
+}
+
 const POTENTIAL_HIGHLIGHT_RE = {
   fox: /^.+?\s+vs\.?\s+.+?\s+(?:Extended\s+)?Highlights\b.*World Cup/i,
   golazo: /^.+?\s+vs\.?\s+.+?:\s+(?:Extended\s+)?Highlights\b.*\|\s*(?:UCL\b|UEFA\s+Champions\s+League\b|Champions\s+League\b)/i,
@@ -569,8 +598,8 @@ export async function runHighlightRecovery({
   return result
 }
 
-export async function runFeedRecovery({ now = new Date(), store, queue, fetchImpl = fetch }) {
-  const sourceResults = await Promise.all(HIGHLIGHT_SOURCES.map(async (source) => {
+export async function runFeedRecovery({ now = new Date(), store, queue, fetchImpl = fetch, sources = HIGHLIGHT_SOURCES }) {
+  const sourceResults = await Promise.all(sources.map(async (source) => {
     const result = { feedsFetched: 0, candidatesChanged: 0, errors: [], fallbacks: [] }
     try {
       const { response, fallback } = await fetchChannelFeed(source.channelId, now, fetchImpl)
@@ -618,8 +647,9 @@ export async function renewWebSubSubscriptions({
   callbackUrl,
   store,
   fetchImpl = fetch,
+  sources = HIGHLIGHT_SOURCES,
 }) {
-  const sourceResults = await Promise.all(HIGHLIGHT_SOURCES.map(async (source) => {
+  const sourceResults = await Promise.all(sources.map(async (source) => {
     if (!(await store.subscriptionDue(source.channelId, now))) {
       return { requested: 0, skipped: 1, errors: [] }
     }
@@ -739,6 +769,12 @@ export function createHighlightDispatchClient({
 export async function processHighlightQueue(batch, dispatchClient, store = null) {
   for (const message of batch.messages) {
     try {
+      // Drain scan tasks already in the queue from the short-lived shard
+      // deployment. The feed scanner service now runs those checks directly.
+      if (message.body?.kind === 'feed_scan' || message.body?.kind === 'renew_websub') {
+        message.ack()
+        continue
+      }
       await dispatchClient.dispatch(message.body)
       await store?.markDispatched(message.body.videoId, message.body.contentVersion)
       message.ack()
