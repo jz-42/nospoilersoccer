@@ -580,11 +580,24 @@
       "kickoff": "2026-09-26T18:45Z"
     },
     "unl-401861067": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "LTU",
+          "player": "Armandas Kucys",
+          "minute": "9'",
+          "penalty": true
+        },
+        {
+          "team": "AZE",
+          "player": "Mahir Emreli",
+          "minute": "14'"
+        }
+      ],
       "kickoff": "2026-09-27T13:00Z"
     },
     "unl-401861068": {

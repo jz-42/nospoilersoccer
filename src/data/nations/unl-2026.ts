@@ -1084,9 +1084,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-27T13:00Z",
       "home": "LTU",
       "away": "AZE",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "LTU",
+          "player": "Armandas Kucys",
+          "minute": "9'",
+          "penalty": true
+        },
+        {
+          "team": "AZE",
+          "player": "Mahir Emreli",
+          "minute": "14'"
+        }
+      ]
     },
     {
       "id": "unl-401861068",
