@@ -4,7 +4,6 @@ import {
   handleCandidateResultRequest,
   handleWebSubRequest,
   processHighlightQueue,
-  runHighlightIngestion,
 } from './highlights.mjs'
 
 const DEFAULT_SCHEDULE_URL =
@@ -549,26 +548,10 @@ export default {
 
   async scheduled(_controller, env) {
     const now = new Date()
-    await runScheduledTasks({
-      runHighlights: async () => {
-        if (!env.HIGHLIGHT_DB || !env.HIGHLIGHT_QUEUE) return
-        const store = createD1HighlightStore(env.HIGHLIGHT_DB)
-        const { feed } = await runHighlightIngestion({
-          now,
-          apiKey: env.YOUTUBE_API_KEY,
-          webSubCallbackUrl: env.WEBSUB_CALLBACK_URL,
-          nationsHotStateUrl: hotStateSourceUrl(env, 'unl-2026'),
-          nationsHighlightStateUrl: highlightStateSourceUrl(env, 'unl-2026'),
-          store,
-          queue: env.HIGHLIGHT_QUEUE,
-        })
-        console.log(JSON.stringify({ highlightFeed: feed }))
-      },
-      runResults: () => runScheduler({
-        now,
-        githubClient: createEnvGitHubClient(env),
-        throwOnError: true,
-      }),
+    await runScheduler({
+      now,
+      githubClient: createEnvGitHubClient(env),
+      throwOnError: true,
     })
   },
 

@@ -1,0 +1,16 @@
+name = "nospoilersoccer-feed-scanner"
+main = "../cloudflare-scheduler/feed-scanner.mjs"
+compatibility_date = "2026-06-25"
+workers_dev = false
+
+[vars]
+WEBSUB_CALLBACK_URL = "https://nospoilersoccer-scheduler.jerryzhan42.workers.dev/websub/youtube"
+
+[[d1_databases]]
+binding = "HIGHLIGHT_DB"
+database_name = "nospoilersoccer-highlights"
+database_id = "645a2a9d-4fe1-44ea-bf7e-c04dda32aadc"
+
+[[queues.producers]]
+binding = "HIGHLIGHT_QUEUE"
+queue = "nospoilersoccer-highlight-candidates"

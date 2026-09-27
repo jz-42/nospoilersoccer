@@ -1,0 +1,20 @@
+name = "nospoilersoccer-highlight-tick"
+main = "../cloudflare-scheduler/highlight-tick.mjs"
+compatibility_date = "2026-06-25"
+workers_dev = false
+
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "HIGHLIGHT_DB"
+database_name = "nospoilersoccer-highlights"
+database_id = "645a2a9d-4fe1-44ea-bf7e-c04dda32aadc"
+
+[[queues.producers]]
+binding = "HIGHLIGHT_QUEUE"
+queue = "nospoilersoccer-highlight-candidates"
+
+[[services]]
+binding = "FEED_SCANNER"
+service = "nospoilersoccer-feed-scanner"
