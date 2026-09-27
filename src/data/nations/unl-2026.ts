@@ -1110,9 +1110,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-27T16:00Z",
       "home": "SRB",
       "away": "NED",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "NED",
+          "player": "Mexx Meerdink",
+          "minute": "30'",
+          "penalty": true
+        },
+        {
+          "team": "SRB",
+          "player": "Luka Jovic",
+          "minute": "46'"
+        },
+        {
+          "team": "NED",
+          "player": "Mexx Meerdink",
+          "minute": "69'"
+        }
+      ]
     },
     {
       "id": "unl-401861069",
@@ -1122,9 +1141,11 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-27T16:00Z",
       "home": "GIB",
       "away": "AND",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861070",
@@ -1134,9 +1155,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-27T16:00Z",
       "home": "DEN",
       "away": "WAL",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "DEN",
+          "player": "Ben Davies",
+          "minute": "53'",
+          "ownGoal": true
+        },
+        {
+          "team": "DEN",
+          "player": "Gustav Isaksen",
+          "minute": "66'"
+        }
+      ]
     },
     {
       "id": "unl-401861071",
