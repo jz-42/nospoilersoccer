@@ -12,7 +12,7 @@ import '../App.css'
 // tests import components directly and can't load CSS).
 import '@fontsource/roboto/latin-500.css'
 import '../components/PlayerControls.css'
-import '../components/PlayerSettingsPanel.css'
+import '../components/SpoilerCovers.css'
 import './player-lab.css'
 import { PlayerLab } from './PlayerLab'
 

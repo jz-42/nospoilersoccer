@@ -1,0 +1,2638 @@
+/* Spoiler Covers — see SpoilerCovers.tsx. */
+
+/* ---- The mark beside the highlights. Always there, never loud: the glyph
+   alone in the modal's translucent-white ink, a full 32px to hit. */
+.sc-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.sc-mark:hover,
+.sc-mark.is-open {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sc-mark:active {
+  transform: scale(0.92);
+}
+
+.sc-mark:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 1px;
+}
+
+.sc-menu-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The player's own blur glyph, at the size it has there. */
+.sc-mark-blur {
+  width: 16px;
+  height: 16px;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3));
+}
+
+.sc-icon-play {
+  fill: currentColor;
+  stroke-width: 1;
+}
+
+/* ---- The popover: the header menu's panel, hung off the mark. */
+.sc-pop {
+  position: fixed;
+  z-index: 70;
+  width: min(300px, calc(100vw - 20px));
+  padding: 10px 12px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border-strong);
+  background: #161d27;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.55);
+  transform-origin: top right;
+  animation: picker-in 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  outline: none;
+}
+
+.sc-pop.is-up {
+  transform-origin: bottom right;
+}
+
+/* ---- The panel, shared by the popover and the menu's page. */
+.sc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 28px;
+  margin-bottom: 8px;
+}
+
+.sc-title {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 620;
+  letter-spacing: -0.008em;
+  color: var(--text-h);
+}
+
+.sc-reset {
+  margin-right: -6px;
+  padding: 6px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: 560 12.5px/1 var(--sans);
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.sc-reset:hover {
+  color: var(--text-h);
+  background: rgba(154, 173, 203, 0.11);
+}
+
+.sc-caption {
+  margin: 12px 0 2px;
+  font-size: 10.5px;
+  font-weight: 640;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.sc-row-skip {
+  cursor: default;
+  margin-top: 4px;
+  padding: 6px 0 4px;
+  border-top: 1px solid var(--border);
+}
+
+.sc-row-label {
+  font-size: 13.5px;
+  font-weight: 520;
+  letter-spacing: -0.008em;
+  color: var(--text);
+}
+
+.sc-row .ps-switch {
+  width: 38px;
+  height: 22px;
+}
+
+.sc-row .ps-switch::after {
+  width: 16px;
+  height: 16px;
+}
+
+.sc-row .ps-switch:checked::after {
+  transform: translateX(16px);
+}
+
+.sc-row .ps-segment button {
+  padding: 5px 8px;
+  font-size: 12.5px;
+}
+
+/* ---- The preview. A pitch under a player's chrome, drawn to the player's
+   proportions at about half its phone size. */
+.sc-preview {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 10px;
+  background: #255a37;
+  font-family: Roboto, Arial, sans-serif;
+  color: #fff;
+  user-select: none;
+}
+
+.sc-pitch,
+.sc-pitch::after {
+  position: absolute;
+  inset: 0;
+}
+
+.sc-pitch {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 21px, rgba(255, 255, 255, 0.26) 21.5px 22.5px, transparent 23px),
+    linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.26) 0 calc(50% + 0.5px), transparent 0),
+    repeating-linear-gradient(90deg, #2d6a41 0 11.11%, #28603b 11.11% 22.22%);
+}
+
+/* YouTube's own shade under its title and controls. */
+.sc-pitch::after {
+  content: '';
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5), transparent 26%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.62), transparent 42%);
+}
+
+/* The frame's edge, drawn over everything. */
+.sc-preview::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.sc-yt-title {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  right: 10px;
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.sc-yt-time,
+.sc-time {
+  position: absolute;
+  left: 10px;
+  bottom: 39px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.sc-yt-time {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.sc-yt-bar {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 30px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.sc-yt-bar-played {
+  position: absolute;
+  inset: 0 77% 0 0;
+  background: #ff0033;
+}
+
+.sc-yt-bar-head {
+  position: absolute;
+  left: 23%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: #ff0033;
+}
+
+.sc-yt-more {
+  position: absolute;
+  right: 10px;
+  bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px 2px 2px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.45);
+  font-size: 9.5px;
+  font-weight: 500;
+}
+
+/* Another match's thumbnail, score and all. */
+.sc-yt-more-thumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 15px;
+  border-radius: 5px;
+  background: linear-gradient(120deg, #1d4ea8, #b6243a);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+  font: 700 8px/1 'Inter Variable', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* ---- Our covers, as the player draws them. Switched off, each fades out. */
+.sc-title-shield,
+.sc-bar-mute,
+.sc-bar-cover,
+.sc-more-cover {
+  transition: opacity 0.22s ease;
+}
+
+.sc-title-shield.is-off,
+.sc-bar-mute.is-off,
+.sc-bar-cover.is-off,
+.sc-more-cover.is-off {
+  opacity: 0;
+}
+
+/* The player's title shield: YouTube's title out of focus under our own
+   label, easing off below the line. */
+.sc-title-shield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  padding: 0 10px;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(5, 7, 11, 0.22), transparent);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent);
+  mask-image: linear-gradient(180deg, #000 55%, transparent);
+  font: 600 11px/16px 'Inter Variable', system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.sc-time {
+  display: grid;
+  left: 9px;
+  bottom: 38px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  line-height: 20px;
+  text-shadow: 0 0 2px #000;
+  transition: outline-color 0.15s ease;
+}
+
+.sc-time-size,
+.sc-time-text {
+  grid-area: 1 / 1;
+  display: flex;
+}
+
+.sc-time-size {
+  visibility: hidden;
+}
+
+.sc-time-text {
+  justify-self: center;
+}
+
+.sc-time-sep {
+  margin: 0 3px;
+  opacity: 0.7;
+}
+
+.sc-time-total {
+  opacity: 0.7;
+}
+
+/* The bar's cover: a dark line blots the red, then a soft band melts it. */
+.sc-bar-mute {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 30px;
+  height: 3px;
+  border-radius: 2px;
+  background: #2e3034;
+}
+
+.sc-bar-cover {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 23px;
+  height: 17px;
+  border-radius: 10px;
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+}
+
+.sc-more-cover {
+  position: absolute;
+  inset: 0.5px;
+  border-radius: 4.5px;
+  -webkit-backdrop-filter: blur(3.5px);
+  backdrop-filter: blur(3.5px);
+}
+
+/* Our play and skip glass, scaled down. */
+.sc-center {
+  --yt-play: 32px;
+  --yt-skip: 25px;
+  position: absolute;
+  inset: 22px 0 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.sc-center .yt-btn,
+.sc-center .yt-btn:hover {
+  transform: none;
+  background-color: rgba(20, 22, 28, 0.5);
+}
+
+/* ---- Rings: the part of the drawing the pointed-at row changes. */
+.sc-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 7px;
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.92);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.sc-ring-title {
+  inset: 4px 4px auto;
+  height: 24px;
+}
+
+.sc-ring-bar {
+  inset: auto 5px 24px;
+  height: 15px;
+  border-radius: 8px;
+}
+
+.sc-ring.is-focus {
+  opacity: 1;
+}
+
+.sc-time,
+.sc-center .yt-btn {
+  outline: 1.5px solid transparent;
+  outline-offset: 3px;
+}
+
+.sc-time.is-focus,
+.sc-center .yt-btn.is-focus {
+  outline-color: rgba(255, 255, 255, 0.92);
+}
+
+/* ---- Shared controls, also used by the player lab. */
+
+/* iOS-style switch on a native checkbox. */
+.ps-switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--control-hover);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.ps-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.ps-switch:checked {
+  background: var(--accent-deep);
+  box-shadow: none;
+}
+
+.ps-switch:checked::after {
+  transform: translateX(18px);
+}
+
+.ps-switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ps-segment {
+  display: inline-flex;
+  flex: none;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+  background: var(--control);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.ps-segment button {
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: 580 13px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ps-segment button:hover {
+  color: var(--text-h);
+}
+
+.ps-segment button.is-active {
+  background: var(--control-hover);
+  color: var(--text-h);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 0 0 1px var(--border-strong);
+}
+
+/* ==== Lab looks (src/looks.ts) ========================================== */
+
+/* ---- coversEntry 'player': the mark as a player button, left of full
+   screen. Bottom right is the one corner that's free: YouTube's own cluster
+   (and Firefox's picture-in-picture tab, on the right edge at mid-height)
+   stay untouched, and it sits over YouTube's logo, which only leads off to
+   youtube.com anyway. It comes and goes with our controls, so it never sits
+   on bare video. The disc is full screen's own. */
+.player-blur {
+  --player-expand-size: clamp(44px, 4cqi, 52px);
+  --player-expand-gap: clamp(8px, 0.9cqi, 12px);
+  pointer-events: none;
+  position: absolute;
+  right: calc(var(--player-expand-size) + var(--player-expand-gap));
+  bottom: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: calc(var(--player-expand-size) + 2 * var(--player-expand-gap));
+  height: calc(var(--player-expand-size) + 2 * var(--player-expand-gap));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.player-wrap:has(> .yt-controls.is-shown) > .player-blur,
+.player-wrap:has(> .yt-controls.is-up) > .player-blur,
+.player-blur.is-open,
+.player-blur:focus-visible {
+  pointer-events: auto;
+  opacity: 1;
+  transition-duration: 0.15s;
+}
+
+.player-blur::before {
+  content: '';
+  position: absolute;
+  inset: var(--player-expand-gap);
+  border-radius: 50%;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
+    rgba(20, 22, 28, 0.62);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.24),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.07),
+    0 4px 16px rgba(0, 0, 0, 0.26),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 0.2s ease-out;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .player-blur::before {
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
+      rgba(20, 22, 28, 0.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.8) brightness(0.9);
+    backdrop-filter: blur(12px) saturate(1.8) brightness(0.9);
+  }
+}
+
+.player-blur svg {
+  position: relative;
+  width: calc(var(--player-expand-size) * 0.46);
+  height: calc(var(--player-expand-size) * 0.46);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.player-blur:hover::before,
+.player-blur.is-open::before {
+  transform: scale(1.08);
+  background-color: rgba(58, 62, 72, 0.4);
+}
+
+.player-blur:active::before {
+  transform: scale(0.95);
+  transition-duration: 0.08s;
+}
+
+.player-blur:focus-visible {
+  outline: none;
+}
+
+.player-blur:focus-visible::before {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+/* ---- coversSheet 'sheet': Spoiler Blur, see SpoilerBlur.tsx. A sheet over
+   the page, which blurs away behind it: the one thing on screen. */
+.bs-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  background: rgba(4, 6, 10, 0.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
+  animation: bs-fade 0.24s ease-out;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bs-backdrop.is-leaving {
+  opacity: 0;
+  transition: opacity 0.2s ease-in;
+}
+
+.bs-sheet {
+  width: min(720px, 100%);
+  padding: 16px 20px 20px;
+  border-radius: 22px;
+  background: rgba(20, 26, 35, 0.92);
+  box-shadow:
+    inset 0 0 0 1px rgba(154, 173, 203, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 30px 80px rgba(0, 0, 0, 0.55);
+  outline: none;
+  animation: bs-rise 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+  cursor: default;
+}
+
+.bs-backdrop.is-leaving .bs-sheet {
+  transform: scale(0.97);
+  transition: transform 0.2s ease-in;
+}
+
+@keyframes bs-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes bs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.965);
+  }
+}
+
+.bs-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 -6px 14px 0;
+}
+
+.bs-title {
+  flex: 1;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 660;
+  letter-spacing: -0.015em;
+  color: var(--text-h);
+}
+
+.bs-reset {
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: 560 13px/1 var(--sans);
+  cursor: pointer;
+  transition: color 0.12s ease, background 0.12s ease;
+}
+
+.bs-reset:hover {
+  color: var(--text-h);
+  background: rgba(154, 173, 203, 0.11);
+}
+
+.bs-close {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 4px 14px rgba(0, 0, 0, 0.22);
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 120ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.bs-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.bs-close:active {
+  transform: scale(0.94);
+}
+
+.bs-close svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.bs-reset:focus-visible,
+.bs-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---- The preview: YouTube's player at its own size, scaled to fit. */
+.bp-box {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 12px;
+  background: #1f4a2e;
+}
+
+.bp-box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.player-wrap.bp-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  aspect-ratio: auto;
+  border-radius: 0;
+  transform-origin: 0 0;
+  user-select: none;
+}
+
+.bp-pitch,
+.bp-chrome {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* A broadcast frame, drawn: mown stripes, the halfway line and centre
+   circle, the far stand dark. Enough detail to show what the glass does. */
+.bp-pitch {
+  background:
+    radial-gradient(ellipse 120% 70% at 50% 110%, transparent 50%, rgba(0, 0, 0, 0.32)),
+    radial-gradient(ellipse 72px 30px at 50% 60%, transparent 69px, rgba(255, 255, 255, 0.34) 70px 72px, transparent 73px),
+    linear-gradient(90deg, transparent calc(50% - 1px), rgba(255, 255, 255, 0.34) 0 calc(50% + 1px), transparent 0) 0 30% / 100% 100% no-repeat,
+    linear-gradient(180deg, #0e1319 0 26%, rgba(255, 255, 255, 0.34) 26% calc(26% + 2px), transparent 0),
+    repeating-linear-gradient(90deg, #2f6d43 0 64px, #296339 64px 128px);
+}
+
+/* Rings: the part of the player the pointed-at row changes. Above the
+   covers, so the glass can't blur them. */
+.bp-ring {
+  position: absolute;
+  z-index: 6;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 1.5px rgba(255, 255, 255, 0.95),
+    0 0 0 5px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.bp-ring.is-focus {
+  opacity: 1;
+}
+
+.bp-ring-title {
+  top: 4px;
+  left: 4px;
+  right: 164px;
+  height: 32px;
+}
+
+.bp-ring-time {
+  top: 240px;
+  left: 23px;
+  width: 99px;
+  height: 32px;
+  border-radius: 16px;
+}
+
+.bp-ring-chapters {
+  top: 244px;
+  left: 120px;
+  width: 116px;
+  height: 24px;
+}
+
+.bp-ring-bar {
+  top: 276px;
+  left: 22px;
+  right: 22px;
+  height: 19px;
+  border-radius: 10px;
+}
+
+.bp-ring-more {
+  top: 305px;
+  left: 389px;
+  width: 70px;
+  height: 43px;
+  border-radius: 11px;
+}
+
+.bp-box.is-compact .bp-ring-title {
+  right: 140px;
+}
+
+.bp-box.is-compact .bp-ring-time {
+  top: 103px;
+  left: 11px;
+  width: 99px;
+}
+
+/* YouTube shows no chapter name this small. */
+.bp-box.is-compact .bp-ring-chapters {
+  display: none;
+}
+
+.bp-box.is-compact .bp-ring-bar {
+  top: 134px;
+  left: 4px;
+  right: 4px;
+}
+
+.bp-box.is-compact .bp-ring-more {
+  top: 154px;
+  left: 133px;
+}
+
+/* ---- The switches, in two cards side by side. */
+.bs-groups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.bs-group-controls {
+  margin-top: 14px;
+}
+
+.bs-group-name {
+  margin: 0 0 6px 14px;
+  font-size: 11px;
+  font-weight: 640;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.bs-card {
+  padding: 0 14px;
+  border-radius: 14px;
+  background: rgba(154, 173, 203, 0.055);
+  box-shadow: inset 0 0 0 1px rgba(154, 173, 203, 0.09);
+}
+
+.bs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 46px;
+  cursor: pointer;
+}
+
+.bs-row + .bs-row {
+  border-top: 1px solid rgba(154, 173, 203, 0.1);
+}
+
+.bs-group-controls .bs-row {
+  cursor: default;
+}
+
+.bs-row-label {
+  font-size: 14px;
+  font-weight: 520;
+  letter-spacing: -0.01em;
+  color: var(--text-h);
+}
+
+/* Phones: a sheet from the bottom edge, as iOS does it. */
+@media (max-width: 559px) {
+  .bs-backdrop {
+    place-items: end stretch;
+    padding: 24px 0 0;
+  }
+
+  .bs-sheet {
+    width: 100%;
+    padding: 14px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 22px 22px 0 0;
+    animation-name: bs-slide;
+  }
+
+  .bs-backdrop.is-leaving .bs-sheet {
+    transform: translateY(40px);
+  }
+
+  .bs-groups {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .bs-group-controls {
+    margin-top: 12px;
+  }
+
+  .bs-row {
+    min-height: 44px;
+  }
+}
+
+@keyframes bs-slide {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-backdrop,
+  .bs-sheet {
+    animation-duration: 0.01s;
+  }
+}
+
+/* ---- play: the poster's play button stays YouTube's. It says "this is a
+   YouTube video, and it plays right here", and it is nothing like the tiles'
+   white glass disc. All three are YouTube's own lozenge at its own size, drawn
+   the way YouTube draws it, not a rounded box near it. 'yt-real' is
+   youtube.com's red. 'yt-dark' is the embed's smoke grey, which turns red
+   when you point at the video, as YouTube's embeds do. 'yt-glass' is the red
+   as tinted glass, which turns solid under the pointer. */
+.poster-play.poster-play-yt {
+  width: 68px;
+  height: 48px;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.24)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+  transition:
+    transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+    filter 0.2s ease;
+}
+
+.poster-play-yt svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.poster-play-pillow {
+  fill: #ff0033;
+  transition:
+    fill 0.18s ease,
+    fill-opacity 0.18s ease;
+}
+
+.poster-play-glyph {
+  fill: #fff;
+}
+
+.poster-play-rim {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.42);
+  stroke-width: 1;
+}
+
+.player-poster:hover .poster-play.poster-play-yt,
+.player-poster:focus-visible .poster-play.poster-play-yt {
+  transform: scale(1.06);
+  box-shadow: none;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.3)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+}
+
+.player-poster:active .poster-play.poster-play-yt {
+  transform: scale(0.94);
+  transition-duration: 0.12s;
+}
+
+.player-poster:hover .poster-play-yt.is-yt-real .poster-play-pillow {
+  fill: #ff1f4c;
+}
+
+.poster-play-yt.is-yt-dark .poster-play-pillow {
+  fill: #212121;
+  fill-opacity: 0.8;
+}
+
+.poster-play-yt.is-yt-glass .poster-play-pillow {
+  fill: #ff0033;
+  fill-opacity: 0.5;
+}
+
+.poster-play-yt.is-yt-glass {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.16));
+}
+
+.player-poster:hover .poster-play-yt.is-yt-dark .poster-play-pillow,
+.player-poster:hover .poster-play-yt.is-yt-glass .poster-play-pillow,
+.player-poster:focus-visible .poster-play-yt.is-yt-dark .poster-play-pillow,
+.player-poster:focus-visible .poster-play-yt.is-yt-glass .poster-play-pillow {
+  fill: #ff0033;
+  fill-opacity: 1;
+}
+
+/* No pointer, no hover: the red is the resting state. */
+@media (hover: none) {
+  .poster-play-yt.is-yt-dark .poster-play-pillow {
+    fill: #ff0033;
+    fill-opacity: 1;
+  }
+}
+
+/* ---- save 'bare': the clock alone, no disc, as Close's mirror image: the
+   same size of button in the other top corner, so the two glyphs sit on one
+   line at one distance from the edges, and the clock drawn at the X's
+   weight. See WatchLaterClock. */
+.modal-clock {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modal-clock.is-compact {
+  width: 44px;
+  height: 44px;
+}
+
+.modal-clock:hover {
+  color: #fff;
+}
+
+.modal-clock:active {
+  transform: scale(0.88);
+}
+
+.modal-clock:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: -2px;
+}
+
+.modal-clock-icon {
+  width: 24px;
+  height: 24px;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.modal-clock:hover .modal-clock-icon {
+  transform: scale(1.06);
+}
+
+.modal-clock-face {
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    fill 0.2s ease,
+    stroke 0.2s ease;
+}
+
+.modal-clock-hands {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transform-box: view-box;
+  transform-origin: 8px 8px;
+  transition: stroke 0.2s ease;
+}
+
+.modal-clock-ring {
+  fill: none;
+  stroke: var(--saved);
+  stroke-width: 1.2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.modal-clock.is-saved .modal-clock-face {
+  fill: var(--saved);
+  stroke: var(--saved);
+}
+
+.modal-clock.is-saved .modal-clock-hands {
+  stroke: #33240a;
+  stroke-width: 1.6;
+}
+
+.modal-clock.is-saved:hover .modal-clock-face {
+  fill: var(--saved-ink);
+  stroke: var(--saved-ink);
+}
+
+/* Saving: the face springs in amber, the hand sweeps once round and a ring
+   goes out, the beat of a heart in Photos or Music. */
+.modal-clock.is-save .modal-clock-face {
+  animation: clock-fill 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.modal-clock.is-save .modal-clock-hands {
+  animation: clock-sweep 0.8s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.modal-clock.is-save .modal-clock-ring {
+  animation: clock-ring-out 0.62s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* Removing: the same beat backwards. The amber drains as the face dips, the
+   hand sweeps back the other way, and a ring comes in rather than going
+   out. */
+.modal-clock.is-unsave .modal-clock-face {
+  animation: clock-drain 0.5s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.modal-clock.is-unsave .modal-clock-hands {
+  animation: clock-sweep-back 0.8s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.modal-clock.is-unsave .modal-clock-ring {
+  stroke: rgba(255, 255, 255, 0.75);
+  animation: clock-ring-in 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes clock-fill {
+  from {
+    transform: scale(0.55);
+  }
+}
+
+@keyframes clock-drain {
+  from {
+    fill: var(--saved);
+    stroke: var(--saved);
+  }
+  45% {
+    transform: scale(0.8);
+  }
+}
+
+@keyframes clock-sweep {
+  from {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes clock-sweep-back {
+  from {
+    transform: rotate(360deg);
+    stroke: #33240a;
+  }
+  30% {
+    stroke: #33240a;
+  }
+}
+
+@keyframes clock-ring-out {
+  from {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+
+@keyframes clock-ring-in {
+  from {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+  55% {
+    opacity: 0.6;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-clock,
+  .modal-clock.is-compact {
+    width: 54px;
+    height: 54px;
+  }
+
+  .modal-clock-icon {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* The toast: what just happened, top centre, gone in under three seconds.
+   Tapping the clock again is the undo. */
+.ma-toast {
+  position: fixed;
+  left: 50%;
+  top: max(14px, env(safe-area-inset-top));
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px 10px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(22, 28, 37, 0.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 12px 32px rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
+  color: var(--text-h);
+  font: 550 13.5px/1 var(--sans);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation:
+    ma-toast-in 0.42s cubic-bezier(0.32, 0.72, 0, 1) both,
+    ma-toast-out 0.3s 2.25s ease-in forwards;
+}
+
+.ma-toast.is-save > svg {
+  color: var(--saved-ink);
+}
+
+.ma-toast.is-unsave > svg {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+@keyframes ma-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -14px) scale(0.96);
+  }
+}
+
+@keyframes ma-toast-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.98);
+  }
+}
+
+/* ---- Tooltips for the quiet controls, after a beat, pointer only. */
+@media (hover: hover) {
+  .modal-clock::before,
+  .match-peek-item[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    z-index: 5;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(16, 20, 27, 0.88);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 6px 18px rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font: 550 12px/1 var(--sans);
+    letter-spacing: 0;
+    white-space: nowrap;
+    text-shadow: none;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.12s ease,
+      transform 0.12s ease;
+  }
+
+  .modal-clock::before {
+    left: calc(100% + 2px);
+    top: 50%;
+    transform: translate(-4px, -50%);
+  }
+
+  .match-peek-item[data-tip]::after {
+    left: 50%;
+    bottom: calc(100% + 7px);
+    transform: translate(-50%, 4px);
+  }
+
+  .modal-clock:hover::before,
+  .match-peek-item[data-tip]:hover::after {
+    opacity: 1;
+    transition-delay: 0.45s;
+  }
+
+  .modal-clock:hover::before {
+    transform: translate(0, -50%);
+  }
+
+  .match-peek-item[data-tip]:hover::after {
+    transform: translate(-50%, 0);
+  }
+
+  /* The verdict card sits where they would. */
+  .match-peek:has(.match-peek-verdict.is-shown) .match-peek-item[data-tip]::after {
+    display: none;
+  }
+}
+
+/* ---- result: the Reveal Result button. White is Apple TV's and Netflix's
+   one primary action; the two looks here soften it where it meets the kits.
+   'frost' lets the kits show faintly through; 'tint' mixes them in, home on
+   the left and away on the right, as Apple Music tints buttons from the
+   artwork. --dust-a and --dust-b are its colours at each end, for the
+   reveal effects in src/reveal-fx.ts. */
+.btn-primary.modal-pre-reveal-cta {
+  --dust-a: var(--accent-deep);
+  --dust-b: var(--accent-deep);
+}
+
+.reveal-btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: min(100%, 264px);
+  height: 50px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  color: #0b0e13;
+  font: 650 15px/1 var(--sans);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  transition:
+    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reveal-btn.is-frost {
+  --dust-a: #fff;
+  --dust-b: #fff;
+  /* Lit from above. The backdrop is brightened and saturated so the kits
+     come through as a pastel, never as grey. */
+  background: linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.74));
+  -webkit-backdrop-filter: blur(24px) saturate(2.4) brightness(1.5);
+  backdrop-filter: blur(24px) saturate(2.4) brightness(1.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.5),
+    0 1px 2px rgba(0, 0, 0, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.reveal-btn.is-frost:hover {
+  background: linear-gradient(rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.84));
+}
+
+/* The glass painted flat, for the dust to eat through: Chrome won't mask a
+   backdrop-filter inside a scroller, and the phone sheet scrolls. */
+.reveal-btn.is-frost[data-baked] {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.68)),
+    linear-gradient(
+      98deg in oklab,
+      oklch(from var(--home-1, #fff) calc(l * 1.25) calc(c * 1.4) h),
+      oklch(from var(--away-1, #fff) calc(l * 1.25) calc(c * 1.4) h)
+    );
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.reveal-btn.is-tint {
+  --dust-a: color-mix(in oklab, #fff 80%, var(--home-1, #fff));
+  --dust-b: color-mix(in oklab, #fff 80%, var(--away-1, #fff));
+  background: linear-gradient(98deg in oklab, var(--dust-a), var(--dust-b));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 1px 2px rgba(0, 0, 0, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.reveal-btn.is-tint:hover {
+  filter: brightness(1.04);
+}
+
+.reveal-btn:active {
+  transform: scale(0.97);
+}
+
+.reveal-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 3px;
+}
+
+.modal-pre-reveal-cta.is-going {
+  pointer-events: none;
+}
+
+.reveal-grains {
+  position: fixed;
+  z-index: 250;
+  pointer-events: none;
+}
+
+/* The button carried on after it's gone, as the sheet glides (see
+   src/reveal-fx.ts): a copy of it, or, for a becoming, its frost over Hide
+   Result's glass with each label on top. */
+.reveal-ghost {
+  position: fixed;
+  z-index: 250;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.reveal-ghost > .reveal-ghost-face,
+.reveal-ghost-plate,
+.reveal-ghost-kits {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  animation: none;
+  transition: none;
+}
+
+.reveal-ghost-plate,
+.reveal-ghost-kits {
+  border-radius: inherit;
+}
+
+.reveal-ghost > .reveal-ghost-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* The ghost has its own corners while it changes shape. */
+.reveal-ghost[style*='border-radius'] > .reveal-ghost-face {
+  border-radius: inherit;
+}
+
+/* Hide Result's glass (App.css .modal-hide-result). */
+.reveal-ghost-plate {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+}
+
+/* 'kits': the two kits under the frost, lit, home on the left. */
+.reveal-ghost-kits {
+  background: linear-gradient(
+    98deg in oklab,
+    oklch(from var(--home-1, #777) clamp(0.5, calc(l * 1.08), 0.72) calc(c * 1.25) h),
+    oklch(from var(--away-1, #777) clamp(0.5, calc(l * 1.08), 0.72) calc(c * 1.25) h)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.3);
+  opacity: 0;
+}
+
+/* 'winner': the winner's colour under the frost, both kits in a draw, lit
+   from above like the frost it was under (colours from src/reveal-fx.ts). */
+.reveal-ghost-kits.is-winner {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 55%, rgb(0 0 0 / 0.1)),
+    linear-gradient(98deg in oklab, var(--win-a), var(--win-b));
+}
+
+/* A draw: each side keeps its colour, and the narrow join between them is
+   shaded like a fold, so two kits never blend to mud under the words. */
+.reveal-ghost-kits.is-winner.is-draw {
+  background:
+    linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0) 55%, rgb(0 0 0 / 0.1)),
+    linear-gradient(
+      98deg,
+      transparent 32%,
+      rgb(0 0 0 / 0.07) 41%,
+      rgb(0 0 0 / 0.18) 50%,
+      rgb(0 0 0 / 0.07) 59%,
+      transparent 68%
+    ),
+    linear-gradient(
+      98deg in oklab,
+      var(--win-a) 30%,
+      color-mix(in oklab, var(--win-a), var(--win-b) 10%) 38%,
+      color-mix(in oklab, var(--win-a), var(--win-b) 35%) 46%,
+      color-mix(in oklab, var(--win-a), var(--win-b) 65%) 54%,
+      color-mix(in oklab, var(--win-a), var(--win-b) 90%) 62%,
+      var(--win-b) 70%
+    );
+}
+
+.reveal-ghost-label {
+  position: relative;
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+
+/* ---- peeks 'pill' and 'card': the goal count and Worth watching? behind
+   the ball in the bottom-left corner. See MatchPeek. The row is the sheet's
+   whole width, so the ball can mirror the clock: the same distance in from
+   the edge as Close and the clock, level with the button. */
+.modal-reveal-row {
+  --row-bleed: 28px;
+  position: relative;
+  z-index: 5;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  margin-inline: calc(-1 * var(--row-bleed));
+  padding-inline: 76px;
+}
+
+.modal-reveal-row > .modal-pre-reveal-cta {
+  margin: 0;
+  transition:
+    transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.2s ease,
+    filter 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.match-peek {
+  position: absolute;
+  z-index: 2;
+  left: 14px;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  margin-top: -24px;
+}
+
+.match-peek-ball {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.match-peek-ball:hover,
+.match-peek.is-open .match-peek-ball {
+  color: #fff;
+}
+
+/* Clicked open, it stays: the ball keeps a disc to say so. */
+.match-peek.is-pinned .match-peek-ball {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.match-peek-ball:active {
+  transform: scale(0.88);
+}
+
+.match-peek-ball:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: -2px;
+}
+
+.match-peek-ball-icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.22));
+  transition: transform 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The ball rolls the way the peeks go out of it. A fifth of a turn looks the
+   same at rest, so it only shows in motion. */
+.match-peek.is-pill.is-open .match-peek-ball-icon {
+  transform: rotate(144deg);
+}
+
+.match-peek.is-card.is-open .match-peek-ball-icon {
+  transform: rotate(-72deg);
+}
+
+/* The surface grows out of the ball: clipped to the ball's circle when shut,
+   to a little more than itself when open, so its shadow and tooltips show. */
+.match-peek-surface {
+  position: absolute;
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(20, 25, 33, 0.46);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 28px rgba(0, 0, 0, 0.28);
+  color: #fff;
+  opacity: 0;
+  transition:
+    clip-path 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.16s ease 0.06s;
+}
+
+.match-peek.is-open .match-peek-surface {
+  opacity: 1;
+  transition:
+    clip-path 0.46s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.16s ease;
+}
+
+.match-peek-surface > * {
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.match-peek.is-open .match-peek-surface > * {
+  opacity: 1;
+  transition: opacity 0.24s ease 0.1s;
+}
+
+.match-peek-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.match-peek-item:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: -2px;
+}
+
+.match-peek-value {
+  display: inline-block;
+  min-width: 0.7em;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  filter: blur(5px);
+  transition: filter 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.match-peek-item.is-shown .match-peek-value {
+  filter: blur(0);
+}
+
+.match-peek-star {
+  width: 14px;
+  height: 14px;
+  fill: rgba(255, 255, 255, 0.78);
+  transition: fill 0.3s ease;
+}
+
+.match-peek-star.is-on {
+  fill: #f1c76d;
+}
+
+.match-peek-item.is-shown .match-peek-star:not(.is-on) {
+  fill: rgba(255, 255, 255, 0.28);
+}
+
+/* The verdict: the AI summary, once the rating is showing. */
+.match-peek-verdict {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.match-peek-verdict.is-shown {
+  grid-template-rows: 1fr;
+}
+
+.match-peek-verdict > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.match-peek-verdict .entertainment-summary-copy {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.match-peek-verdict .entertainment-disclaimer {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* 'pill': a capsule out to the right of the ball, the ball its first icon:
+   ⚽ goals │ ★ rating. */
+.match-peek.is-pill .match-peek-surface {
+  left: 4px;
+  top: 4px;
+  height: 40px;
+  align-items: center;
+  padding: 0 4px 0 38px;
+  border-radius: 20px;
+  clip-path: inset(-1px calc(100% - 39px) -1px -1px round 20px);
+}
+
+.match-peek.is-pill.is-open .match-peek-surface {
+  clip-path: inset(-60px -60px -60px -60px round 80px);
+}
+
+.match-peek.is-pill .match-peek-item {
+  justify-content: center;
+  gap: 4px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 16px;
+  transition: background-color 0.15s ease;
+}
+
+.match-peek.is-pill .match-peek-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.match-peek-rule {
+  width: 1px;
+  height: 16px;
+  margin: 0 1px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Its verdict opens above it, a card of its own. Denser glass than the
+   pill, since it holds prose and often sits over a red play button. */
+.match-peek.is-pill > .match-peek-verdict {
+  position: absolute;
+  left: 4px;
+  bottom: calc(100% + 4px);
+  width: min(300px, calc(100vw - 48px));
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(20, 25, 33, 0.74);
+  -webkit-backdrop-filter: blur(32px) saturate(1.2);
+  backdrop-filter: blur(32px) saturate(1.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 10px 28px rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  transform: translateY(6px) scale(0.98);
+  transform-origin: 20px 100%;
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    grid-template-rows 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.match-peek.is-pill > .match-peek-verdict > div {
+  padding: 12px 14px 12px;
+}
+
+.match-peek.is-pill.is-open > .match-peek-verdict.is-shown {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* In the highlights, the ball rides the posters' bottom-left corner, the
+   mirror of the Spoiler Covers mark in the other: its size, its ink, its
+   disc under the pointer. The peeks come out of it the same way. */
+.poster-peek {
+  position: absolute;
+  z-index: 2;
+  left: 6px;
+  bottom: 6px;
+  width: 32px;
+  height: 32px;
+}
+
+.match-peek.in-poster {
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  margin-top: 0;
+}
+
+.match-peek.in-poster .match-peek-ball {
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.match-peek.in-poster .match-peek-ball:hover,
+.match-peek.in-poster.is-open .match-peek-ball {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.match-peek.in-poster.is-pinned .match-peek-ball {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.match-peek.in-poster .match-peek-ball:focus-visible {
+  outline-offset: 1px;
+}
+
+.match-peek.in-poster .match-peek-ball-icon {
+  width: 17px;
+  height: 17px;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.3));
+}
+
+.match-peek.in-poster.is-pill .match-peek-surface,
+.match-peek.in-poster.is-pill > .match-peek-verdict {
+  left: -4px;
+}
+
+.match-peek.in-poster.is-pill .match-peek-surface {
+  top: -4px;
+}
+
+/* 'card': a small card up out of the corner, above the ball, so the row
+   the button sits on stays clear. Like an iOS context menu, it springs from
+   where you pointed. */
+.match-peek.is-card .match-peek-surface {
+  left: 0;
+  bottom: calc(100% + 4px);
+  width: 264px;
+  flex-direction: column;
+  padding: 3px 0;
+  border-radius: 18px;
+  clip-path: inset(calc(100% - 1px) calc(100% - 1px) 0 0 round 18px);
+  transform: scale(0.92);
+  transform-origin: 24px calc(100% + 28px);
+  transition:
+    clip-path 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.16s ease 0.06s;
+}
+
+.match-peek.is-card.is-open .match-peek-surface {
+  clip-path: inset(-32px -32px -32px -32px round 50px);
+  transform: none;
+  transition:
+    clip-path 0.46s cubic-bezier(0.32, 0.72, 0, 1),
+    transform 0.46s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.16s ease;
+}
+
+.match-peek.in-poster.is-card .match-peek-surface {
+  transform-origin: 16px calc(100% + 20px);
+}
+
+/* Rows highlight inset, as macOS menus do. */
+.match-peek.is-card .match-peek-item {
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  margin: 0 4px;
+  padding: 0 12px;
+  border-radius: 12px;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.match-peek.is-card .match-peek-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.match-peek.is-card .match-peek-item.is-goals::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: -4px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.match-peek-label {
+  font-size: 13.5px;
+  font-weight: 560;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.match-peek-stars {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.match-peek-stars .match-peek-star {
+  width: 13px;
+  height: 13px;
+  filter: blur(3px);
+  transition:
+    filter 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+    fill 0.3s ease;
+}
+
+.match-peek-item.is-shown .match-peek-stars .match-peek-star {
+  filter: blur(0);
+}
+
+.match-peek-stars .match-peek-star:nth-child(2) { transition-delay: 40ms; }
+.match-peek-stars .match-peek-star:nth-child(3) { transition-delay: 80ms; }
+.match-peek-stars .match-peek-star:nth-child(4) { transition-delay: 120ms; }
+.match-peek-stars .match-peek-star:nth-child(5) { transition-delay: 160ms; }
+
+.match-peek.is-card .match-peek-surface > .match-peek-verdict > div {
+  padding: 0 16px;
+}
+
+.match-peek.is-card .match-peek-verdict.is-shown > div {
+  padding-bottom: 12px;
+}
+
+@media (max-width: 640px) {
+  .modal-reveal-row {
+    --row-bleed: var(--sheet-pad-x, 18px);
+    margin-top: 6px;
+    padding-inline: 73px;
+  }
+
+  .modal-reveal-row > .reveal-btn {
+    width: 100%;
+  }
+
+  .match-peek {
+    left: 15px;
+  }
+
+  /* No room beside the pill here, so the button steps back while it's out. */
+  .modal-reveal-row:has(.match-peek.is-pill.is-open) > .modal-pre-reveal-cta {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(4px);
+    pointer-events: none;
+  }
+}
+
+/* ---- autoReveal 'countdown': over the video's last seconds, Reveal Result
+   counts down in the corner as the video plays on (Netflix's next episode),
+   and at the whistle the result follows. Full time covers the player only
+   then, opaque, the kits glowing faintly at its foot. */
+.player-overlay.player-fulltime {
+  gap: 0;
+  background:
+    radial-gradient(60% 80% at 25% 110%, color-mix(in srgb, var(--home-1, transparent) 26%, transparent), transparent),
+    radial-gradient(60% 80% at 75% 110%, color-mix(in srgb, var(--away-1, transparent) 26%, transparent), transparent),
+    #080b10;
+}
+
+.player-fulltime > * {
+  animation: reveal-rise 0.5s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.player-fulltime > :nth-child(2) {
+  animation-delay: 0.06s;
+}
+
+.player-fulltime > :nth-child(3) {
+  animation-delay: 0.12s;
+}
+
+.fulltime-eyebrow {
+  margin-bottom: 14px;
+  color: rgba(255, 255, 255, 0.56);
+  font: 650 11.5px/1 var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.fulltime-reveal {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0b0e13;
+  font: 650 15px/1 var(--sans);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.2s cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 0.15s ease;
+}
+
+
+.fulltime-reveal:hover {
+  background: #fff;
+}
+
+.fulltime-reveal:active {
+  transform: scale(0.96);
+}
+
+.fulltime-ring {
+  width: 18px;
+  height: 18px;
+  rotate: -90deg;
+}
+
+.fulltime-ring circle {
+  fill: none;
+  stroke-width: 2.4;
+}
+
+.fulltime-ring circle:first-child {
+  stroke: rgba(11, 14, 19, 0.16);
+}
+
+.fulltime-ring circle:last-child {
+  stroke: #0b0e13;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+/* Right above full screen. While the controls are up it lifts clear of
+   YouTube's progress line and playhead, the way Netflix's Skip Intro makes
+   room for its bar, into the time row's free end and under the skip
+   buttons. Pointed at, it stays up, so it never moves out from under you. */
+.fulltime-corner {
+  --player-expand-size: clamp(44px, 4cqi, 52px);
+  --player-expand-gap: clamp(8px, 0.9cqi, 12px);
+  --corner-lift: 86px;
+  position: absolute;
+  right: var(--player-expand-gap);
+  bottom: calc(var(--player-expand-size) + 2 * var(--player-expand-gap));
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: reveal-rise 0.5s cubic-bezier(0.32, 0.72, 0, 1) both;
+  transition:
+    bottom 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+    gap 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.player-wrap:has(> .yt-controls.is-shown) > .fulltime-corner,
+.fulltime-corner:hover {
+  bottom: var(--corner-lift);
+}
+
+.fulltime-reveal.is-corner {
+  gap: 0;
+  height: 36px;
+  padding: 0 15px 0 10px;
+  font-size: 14px;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.3),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 0.15s ease,
+    padding 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.fulltime-reveal.is-corner .reveal-btn-label {
+  max-width: 8em;
+  padding-left: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  transition:
+    max-width 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+    padding 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.25s ease;
+}
+
+/* A phone's controls leave no row free, so there it tucks down to the
+   ring alone (Dynamic Island's minimal state) beside the skip buttons and
+   opens back out as they go. */
+@container (max-width: 395px) {
+  .fulltime-corner {
+    --corner-lift: 66px;
+  }
+
+  .player-wrap:has(> .yt-controls.is-shown) > .fulltime-corner {
+    gap: 0;
+  }
+
+  .player-wrap:has(> .yt-controls.is-shown) > .fulltime-corner .fulltime-stop {
+    width: 0;
+    opacity: 0;
+    transform: scale(0.5);
+    pointer-events: none;
+  }
+
+  .player-wrap:has(> .yt-controls.is-shown) > .fulltime-corner .fulltime-reveal {
+    padding: 0 9px;
+  }
+
+  .player-wrap:has(> .yt-controls.is-shown) > .fulltime-corner .reveal-btn-label {
+    max-width: 0;
+    padding-left: 0;
+    opacity: 0;
+  }
+}
+
+/* × is full screen's glass, smaller: there, but second to the pill. */
+.fulltime-stop {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
+    rgba(20, 22, 28, 0.62);
+  box-shadow:
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.24),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    0 4px 16px rgba(0, 0, 0, 0.26);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 0.2s ease-out,
+    width 0.45s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fulltime-stop {
+    background:
+      radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.16), transparent 58%),
+      rgba(20, 22, 28, 0.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.8) brightness(0.9);
+    backdrop-filter: blur(12px) saturate(1.8) brightness(0.9);
+  }
+}
+
+.fulltime-corner.is-going .fulltime-stop {
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+}
+
+.fulltime-stop:hover {
+  background-color: rgba(58, 62, 72, 0.4);
+  transform: scale(1.06);
+}
+
+.fulltime-stop:active {
+  transform: scale(0.94);
+  transition-duration: 0.08s;
+}
+
+.fulltime-stop svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.fulltime-quiet {
+  margin-top: 8px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font: 550 13.5px/1 var(--sans);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.fulltime-quiet:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.fulltime-reveal:focus-visible,
+.fulltime-stop:focus-visible,
+.fulltime-quiet:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 3px;
+}
+
+/* ---- scoreIn 'roll': each number rolls up into place out of a blur, the
+   away side a beat behind; the verdict and scorers rise in after it. */
+.modal-score.is-rolling {
+  animation: none;
+}
+
+.score-rolling {
+  display: inline-flex;
+  align-items: center;
+}
+
+.score-roll {
+  display: inline-block;
+  height: 1.3em;
+  overflow: hidden;
+  line-height: 1.3em;
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+}
+
+.score-roll-strip {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--n) * -1.3em));
+  animation: score-roll 1.05s var(--d) cubic-bezier(0.22, 0.8, 0.28, 1) both;
+}
+
+.score-roll-dash {
+  padding: 0 0.04em;
+  animation: bs-fade 0.4s ease-out both;
+}
+
+@keyframes score-roll {
+  from {
+    transform: translateY(1.3em);
+    filter: blur(4px);
+  }
+  60% {
+    filter: blur(0);
+  }
+}
+
+.modal-summary.is-arriving {
+  animation: reveal-rise 0.55s 0.6s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.modal-goals.is-arriving {
+  animation: reveal-rise 0.55s 0.75s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+}
+
+/* ---- blurInPlayer: the blur settings inside the player, all smaller than
+   full screen and set apart from it, since full screen is the button people
+   reach for without looking. 'disc' is a smaller disc, centred on full
+   screen's line; 'glyph' is the bare glyph, which gains its disc on hover the
+   way YouTube's own buttons do; 'title' puts the glyph at the end of our
+   title bar, as far from full screen as the player allows. */
+.player-blur.is-disc,
+.player-blur.is-glyph {
+  --player-blur-size: calc(var(--player-expand-size) * 0.72);
+  --player-blur-pad: 6px;
+  right: calc(var(--player-expand-size) + 2 * var(--player-expand-gap) + 4px);
+  bottom: calc(
+    var(--player-expand-gap) + var(--player-expand-size) / 2 - var(--player-blur-size) / 2 - var(--player-blur-pad)
+  );
+  width: calc(var(--player-blur-size) + 2 * var(--player-blur-pad));
+  height: calc(var(--player-blur-size) + 2 * var(--player-blur-pad));
+}
+
+.player-blur.is-disc::before,
+.player-blur.is-glyph::before {
+  inset: var(--player-blur-pad);
+}
+
+.player-blur.is-disc svg,
+.player-blur.is-glyph svg {
+  width: calc(var(--player-blur-size) * 0.5);
+  height: calc(var(--player-blur-size) * 0.5);
+}
+
+.player-blur.is-glyph::before,
+.player-blur.is-title::before {
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 0.15s ease-out,
+    transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 0.2s ease-out;
+}
+
+.player-blur.is-glyph:hover::before,
+.player-blur.is-glyph.is-open::before,
+.player-blur.is-glyph:focus-visible::before,
+.player-blur.is-title:hover::before,
+.player-blur.is-title.is-open::before,
+.player-blur.is-title:focus-visible::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.player-blur.is-glyph svg,
+.player-blur.is-title svg {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+}
+
+.player-blur.is-title {
+  --player-youtube-controls-width: 168px;
+  top: 0;
+  bottom: auto;
+  right: calc(var(--player-youtube-controls-width) - 8px + 2px);
+  z-index: 4;
+  width: 38px;
+  height: 38px;
+}
+
+.player-blur.is-title::before {
+  inset: 5px;
+}
+
+.player-blur.is-title svg {
+  width: 16px;
+  height: 16px;
+}
+
+@container (max-width: 395px) {
+  .player-blur.is-title {
+    --player-youtube-controls-width: 144px;
+  }
+}
+
+@container (max-width: 359px) {
+  .player-blur.is-title {
+    --player-youtube-controls-width: 96px;
+  }
+}
+
+/* ---- ink 'adaptive': the vars come from src/ink.ts on the sheet. */
+html[data-look-ink='adaptive'] .modal-context-date,
+html[data-look-ink='adaptive'] .poster-time,
+html[data-look-ink='adaptive'] .oddsbar-keys,
+html[data-look-ink='adaptive'] .oddsbar-key b,
+html[data-look-ink='adaptive'] .modal-hint {
+  color: var(--ink-soft, inherit);
+  text-shadow: var(--ink-shadow, none);
+}
+
+html[data-look-ink='adaptive'] .modal-hint {
+  opacity: 1;
+}
+
+html[data-look-ink='adaptive'] .modal-pin:not(.pinned):not(:hover),
+html[data-look-ink='adaptive'] .modal-clock:not(.is-saved):not(:hover),
+html[data-look-ink='adaptive'] .match-peek:not(.is-open) .match-peek-ball:not(:hover),
+html[data-look-ink='adaptive'] .sc-mark:not(:hover) {
+  color: var(--ink-icon, inherit);
+  filter: var(--ink-drop, none);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-clock-icon *,
+  .player-fulltime > *,
+  .fulltime-corner,
+  .score-roll-strip,
+  .modal-summary.is-arriving,
+  .modal-goals.is-arriving {
+    animation: none;
+  }
+
+  .ma-toast {
+    animation: ma-toast-out 0.3s 2.25s ease-in forwards;
+  }
+
+  .match-peek-surface,
+  .match-peek-ball-icon {
+    transition: none;
+  }
+
+}
+
+/* ---- revealed: the sheet once the result is out. 'seam' and 'dim' slide
+   the seam over so the winner's colour takes about two thirds of the field;
+   'lit' leaves the seam and keeps the lights on over the winner's crest,
+   the loser's half falling into shade. 'dim' and 'lit' also step the
+   loser's name, score and scorers back, the way Apple Sports sets a final.
+   A draw changes nothing. The field is App.css .modal's, with its seam and
+   lobes on two registered numbers so it can move. */
+@property --won-seam {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --won-light {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+html:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-revealed='lit']) .modal {
+  /* How far the seam moves: less to the left, where it already sits. */
+  --won-shift: calc(max(0, var(--won-seam)) * 22% + min(0, var(--won-seam)) * 18%);
+  --won-home: max(0, var(--won-light));
+  --won-away: max(0, -1 * var(--won-light));
+  /* Who lost the field: their colour gathers into a pool behind their
+     crest, so the seam never leaves the crest on the blend's mud. */
+  --lost-home: max(0, -1 * var(--won-seam));
+  --lost-away: max(0, var(--won-seam));
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      transparent 14%,
+      transparent 40%,
+      rgba(5, 8, 12, 0.24) 70%,
+      rgba(5, 8, 12, 0.44) 100%
+    ),
+    radial-gradient(70% 96% at 78% 36%, rgb(5 8 12 / calc(0.34 * var(--won-home))), transparent),
+    radial-gradient(70% 96% at 22% 36%, rgb(5 8 12 / calc(0.34 * var(--won-away))), transparent),
+    radial-gradient(
+      calc(50% + 10% * var(--won-home) - 10% * var(--lost-home))
+        calc(26% + 8% * var(--won-home) + 4% * var(--lost-home)) at 26% 16%,
+      color-mix(
+        in srgb,
+        var(--home-1, transparent)
+          calc(72% + 14% * var(--won-home) - 32% * var(--won-away) + 24% * var(--lost-home)),
+        transparent
+      )
+        0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      calc(50% + 10% * var(--won-away) - 10% * var(--lost-away))
+        calc(26% + 8% * var(--won-away) + 4% * var(--lost-away)) at 74% 16%,
+      color-mix(
+        in srgb,
+        var(--away-1, transparent)
+          calc(72% + 14% * var(--won-away) - 32% * var(--won-home) + 24% * var(--lost-away)),
+        transparent
+      )
+        0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      72% 30% at 24% -8%,
+      color-mix(in srgb, var(--home-2, transparent) 34%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      72% 30% at 76% -8%,
+      color-mix(in srgb, var(--away-2, transparent) 34%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      80% 62% at 24% 112%,
+      color-mix(in srgb, var(--home-deep, transparent) 70%, transparent) 0%,
+      transparent 100%
+    ),
+    radial-gradient(
+      80% 62% at 76% 112%,
+      color-mix(in srgb, var(--away-deep, transparent) 70%, transparent) 0%,
+      transparent 100%
+    ),
+    linear-gradient(
+      98deg in oklab,
+      color-mix(in srgb, var(--home-1, transparent) 94%, transparent) 0%,
+      color-mix(in srgb, var(--home-1, transparent) 80%, transparent) calc(30% + var(--won-shift) * 1.15),
+      color-mix(in srgb, var(--away-1, transparent) 80%, transparent) calc(58% + var(--won-shift) * 0.85),
+      color-mix(in srgb, var(--away-1, transparent) 94%, transparent) 100%
+    );
+  /* Hide Result takes it all back at once, with the sheet. */
+  transition:
+    transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+    --won-seam 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+    --won-light 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* After the score has landed, slowly, like light moving, not a slide. */
+html:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-revealed='lit']) .modal[data-won] {
+  transition:
+    transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+    --won-seam 1.2s 0.3s cubic-bezier(0.45, 0, 0.2, 1),
+    --won-light 1.2s 0.3s cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+/* 'landed': one beat after the score, with the loser's dim (won-dim). */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-look-settle='landed']:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-revealed='lit'])
+    .modal[data-won] {
+    transition:
+      transform 0.32s cubic-bezier(0.32, 0.72, 0, 1),
+      --won-seam 0.9s 1s cubic-bezier(0.45, 0, 0.2, 1),
+      --won-light 0.9s 1s cubic-bezier(0.45, 0, 0.2, 1);
+  }
+}
+
+html:is([data-look-revealed='seam'], [data-look-revealed='dim']) .modal[data-won='home'] {
+  --won-seam: 1;
+}
+
+html:is([data-look-revealed='seam'], [data-look-revealed='dim']) .modal[data-won='away'] {
+  --won-seam: -1;
+}
+
+html[data-look-revealed='lit'] .modal[data-won='home'] {
+  --won-light: 1;
+}
+
+html[data-look-revealed='lit'] .modal[data-won='away'] {
+  --won-light: -1;
+}
+
+html:is([data-look-revealed='dim'], [data-look-revealed='lit']) .modal-team-name {
+  transition: opacity 0.32s ease;
+}
+
+html:is([data-look-revealed='dim'], [data-look-revealed='lit'])
+  :is(
+    .modal[data-won='home'] :is(.modal-teams > .modal-team:last-child .modal-team-name, .modal-score > :first-child > :last-child, .modal-goals > .goals-side:last-child),
+    .modal[data-won='away'] :is(.modal-teams > .modal-team:first-child .modal-team-name, .modal-score > :first-child > :first-child, .modal-goals > .goals-side:first-child)
+  ) {
+  opacity: 0.5;
+}
+
+/* Revealed here: the loser steps back once the numbers have landed. */
+html:is([data-look-revealed='dim'], [data-look-revealed='lit'])
+  :is(
+    .modal[data-won='home']:has(.modal-score.is-rolling) :is(.modal-teams > .modal-team:last-child .modal-team-name, .modal-score > :first-child > :last-child, .modal-goals > .goals-side:last-child),
+    .modal[data-won='away']:has(.modal-score.is-rolling) :is(.modal-teams > .modal-team:first-child .modal-team-name, .modal-score > :first-child > :first-child, .modal-goals > .goals-side:first-child)
+  ) {
+  animation: won-dim 0.7s 1s ease both;
+}
+
+@keyframes won-dim {
+  from {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:is([data-look-revealed='seam'], [data-look-revealed='dim'], [data-look-revealed='lit']) :is(.modal, .modal[data-won]) {
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}

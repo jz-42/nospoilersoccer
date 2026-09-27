@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { HighlightVideo } from '../data/types'
 import { HighlightPlayer } from '../components/HighlightPlayer'
-import { PlayerSettingsPanel } from '../components/PlayerSettingsPanel'
+import { SpoilerCoversPanel } from '../components/SpoilerCovers'
 
 const CLIPS: { label: string; matchId: string; video: HighlightVideo }[] = [
   {
@@ -85,7 +85,9 @@ export function PlayerLab() {
             customControls={custom}
           />
         </div>
-        <PlayerSettingsPanel />
+        <div className="lab-covers">
+          <SpoilerCoversPanel heading={<h2 className="sc-title">Spoiler Covers</h2>} />
+        </div>
       </div>
     </main>
   )

@@ -24,6 +24,10 @@ import { formatMatchDateLong } from './format'
 import { KickoffTime } from './KickoffTime'
 import { matchLiveStatus } from './status'
 import { FINISHED_PENDING_MODAL_COPY } from './highlight-copy'
+import { MatchPeek, RevealResultButton, RollingScore, WatchLaterClock } from './MatchActions'
+import { inkVars } from '../ink'
+import { useLooks } from '../looks'
+import type { Winner } from '../reveal-fx'
 
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
@@ -163,6 +167,26 @@ function EntertainmentDisclosureRow({
 }
 
 /**
+ * Total Goals is one number, so it doesn't get a row: a small pill whose
+ * Reveal turns into the number in place.
+ */
+function GoalCountChip({ total }: { total: number }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <button
+      type="button"
+      className={`modal-goal-chip${open ? ' is-open' : ''}`}
+      aria-pressed={open}
+      aria-label={open ? `Total Goals: ${total}. Hide` : 'Reveal Total Goals'}
+      onClick={() => setOpen((v) => !v)}
+    >
+      <span className="modal-goal-chip-label">Total Goals</span>
+      <span className="modal-goal-chip-value">{open ? total : 'Reveal'}</span>
+    </button>
+  )
+}
+
+/**
  * One side's scorers, in the order they scored. Rendered even when the side
  * has none: an empty column keeps the mirror's geometry, which is what holds
  * the other side's names under their own crest in a 3–0.
@@ -221,6 +245,7 @@ export function MatchModal({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  const looks = useLooks()
   const modalRef = useRef<HTMLDivElement>(null)
   const dragStart = useRef<{ y: number; time: number } | null>(null)
   const [dragOffset, setDragOffset] = useState(0)
@@ -328,6 +353,21 @@ export function MatchModal({
     })
   }, [t.year, phase, mark, locked, ready])
 
+  // Who won, for the reveal to paint in before the page shows it (lab looks
+  // `revealFx: 'winner'` and `revealed`). Kept out of the page until marked.
+  const won: Winner | null =
+    score && homeTeam && awayTeam
+      ? km?.penalties
+        ? km.penalties.home > km.penalties.away
+          ? 'home'
+          : 'away'
+        : score.home === score.away
+          ? 'draw'
+          : score.home > score.away
+            ? 'home'
+            : 'away'
+      : null
+
   let summary: string | null = null
   if (mark && score && homeTeam && awayTeam) {
     const homeName = t.teams[homeTeam].name
@@ -343,18 +383,58 @@ export function MatchModal({
     }
   }
 
+  // Lab look `peeks`: main's rows, this branch's chip, or both behind the
+  // ball in the corner (MatchPeek).
+  const ballPeek = looks.peeks === 'pill' || looks.peeks === 'card' ? looks.peeks : null
   const entertainmentDisclosure =
-    m.entertainmentSummary && m.entertainmentRating ? (
+    !ballPeek && m.entertainmentSummary && m.entertainmentRating ? (
       <EntertainmentDisclosureRow
         summary={m.entertainmentSummary}
         rating={m.entertainmentRating}
       />
     ) : null
 
-  const goalCountDisclosure = totalGoals !== null && !mark ? (
-    <DisclosureRow label="Total Goals">{`${totalGoals} total`}</DisclosureRow>
-  ) : null
+  const goalCountDisclosure =
+    ballPeek || totalGoals === null || mark ? null : looks.peeks === 'row' ? (
+      <DisclosureRow label="Total Goals">{`${totalGoals} total`}</DisclosureRow>
+    ) : (
+      <GoalCountChip total={totalGoals} />
+    )
   const hasHighlights = Boolean(m.videos?.length)
+  // The ball sits in the highlights' corner, opposite the Spoiler Covers
+  // mark, and in the sheet's own corner while there are no highlights.
+  const peek = ballPeek ? (
+    <MatchPeek
+      look={ballPeek}
+      goals={totalGoals}
+      rating={m.entertainmentRating}
+      summary={m.entertainmentSummary}
+      inPoster={hasHighlights}
+    />
+  ) : null
+
+  // A reveal made in this sheet, so the score can arrive rather than appear.
+  const [revealedAt, setRevealedAt] = useState(0)
+  const revealResult = () => {
+    analytics.resultRevealed({
+      tournament_year: t.year,
+      tournament_phase: phase,
+      reveal_source: 'manual',
+    })
+    setRevealedAt(Date.now())
+    progress.setMark(m.id, 'watched')
+  }
+  const rolling = looks.scoreIn === 'roll' && revealedAt > 0
+  // Lab look `autoReveal: 'countdown'`: the same player before and after the
+  // reveal, so a video, or its full-time card, carries on through it.
+  const keepPlayer = looks.autoReveal === 'countdown' ? 'player' : undefined
+  // On a phone the score can be above the fold when you reveal.
+  const scoreRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (revealedAt) scoreRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [revealedAt])
+
+  const pinned = progress.pins.has(m.id)
 
   /**
    * The leg pager. Leg 2 is disabled — not hidden — until leg 1 is marked, so
@@ -398,6 +478,7 @@ export function MatchModal({
     transform: dragOffset ? `translateY(${dragOffset}px)` : undefined,
     transition: dragging ? 'none' : undefined,
     ...matchTint(homeTeam, awayTeam),
+    ...(looks.ink === 'adaptive' ? inkVars(matchTint(homeTeam, awayTeam)) : undefined),
   }
 
   return (
@@ -421,6 +502,7 @@ export function MatchModal({
         onTouchEnd={onModalTouchEnd}
         onTouchCancel={onModalTouchEnd}
         style={modalStyle}
+        data-won={mark && looks.revealed !== 'plain' ? (won ?? undefined) : undefined}
       >
         <span className="match-fabric" aria-hidden="true">
           <span />
@@ -441,16 +523,24 @@ export function MatchModal({
             <path d="M5 5l10 10M15 5L5 15" />
           </svg>
         </button>
-        <button
-          type="button"
-          className={`modal-pin ${progress.pins.has(m.id) ? 'pinned' : ''}`}
-          aria-label={progress.pins.has(m.id) ? 'Remove from Watch Later' : 'Watch Later'}
-          aria-pressed={progress.pins.has(m.id)}
-          title={progress.pins.has(m.id) ? 'Remove from Watch Later' : 'Watch Later'}
-          onClick={() => progress.togglePin(m.id)}
-        >
-          <ClockIcon size={22} filled={progress.pins.has(m.id)} />
-        </button>
+        {looks.save === 'bare' ? (
+          <WatchLaterClock
+            saved={pinned}
+            compact={!hasHighlights}
+            onToggle={() => progress.togglePin(m.id)}
+          />
+        ) : (
+          <button
+            type="button"
+            className={`modal-pin ${pinned ? 'pinned' : ''}`}
+            aria-label={pinned ? 'Remove from Watch Later' : 'Watch Later'}
+            aria-pressed={pinned}
+            title={pinned ? 'Remove from Watch Later' : 'Watch Later'}
+            onClick={() => progress.togglePin(m.id)}
+          >
+            <ClockIcon size={22} filled={pinned} />
+          </button>
+        )}
 
         <div className="modal-context">
           <span className="modal-context-strong">{context}</span>
@@ -486,10 +576,18 @@ export function MatchModal({
           <TeamSide t={t} teamId={homeTeam} placeholder={homePlaceholder} />
           <div className="modal-mid">
             {mark && score ? (
-              <div className="modal-score">
-                <span>
-                  {score.home}–{score.away}
-                </span>
+              <div
+                key={revealedAt}
+                ref={scoreRef}
+                className={`modal-score${rolling ? ' is-rolling' : ''}`}
+              >
+                {rolling ? (
+                  <RollingScore home={score.home} away={score.away} />
+                ) : (
+                  <span>
+                    <span>{score.home}</span>–<span>{score.away}</span>
+                  </span>
+                )}
                 {km?.penalties && (
                   <span className="modal-score-note">
                     {km.penalties.home}–{km.penalties.away} on penalties
@@ -531,19 +629,27 @@ export function MatchModal({
               <p className="modal-hint">This matchup hasn't been decided yet.</p>
             )
           ) : liveStatus ? null : !played ? (
-            <>
-              <p className="modal-hint">This match hasn't been played yet.</p>
-            </>
+            <p className="modal-hint">This match hasn't been played yet.</p>
           ) : mark ? (
             <>
-              {summary && <div className="modal-summary">{summary}</div>}
+              {summary && (
+                <div
+                  key={`summary-${revealedAt}`}
+                  className={`modal-summary${rolling ? ' is-arriving' : ''}`}
+                >
+                  {summary}
+                </div>
+              )}
               {/* Scorers sit directly under the scoreline they explain, on the
                   same three-column geometry as the crests above, so each side's
                   list reads as belonging to the crest it sits beneath — no
                   labels needed, and a shutout leaves an honestly empty half
                   rather than drifting to the middle. */}
               {m.goals && m.goals.length > 0 && (
-                <div className="modal-goals">
+                <div
+                  key={`goals-${revealedAt}`}
+                  className={`modal-goals${rolling ? ' is-arriving' : ''}`}
+                >
                   <ScorerList goals={m.goals} team={homeTeam} />
                   <div className="goals-mid" aria-hidden="true" />
                   <ScorerList goals={m.goals} team={awayTeam} />
@@ -551,6 +657,7 @@ export function MatchModal({
               )}
               {m.videos && m.videos.length > 0 && (
                 <HighlightPlayer
+                  key={keepPlayer}
                   videos={m.videos}
                   tournamentYear={t.year}
                   tournamentPhase={phase}
@@ -574,6 +681,7 @@ export function MatchModal({
             <>
               {m.videos && m.videos.length > 0 ? (
                 <HighlightPlayer
+                  key={keepPlayer}
                   videos={m.videos}
                   tournamentYear={t.year}
                   tournamentPhase={phase}
@@ -581,12 +689,14 @@ export function MatchModal({
                   homeName={homeNameForAnalytics}
                   awayName={awayNameForAnalytics}
                   marked={false}
+                  posterCorner={peek}
                   onReveal={() => {
                     analytics.resultRevealed({
                       tournament_year: t.year,
                       tournament_phase: phase,
                       reveal_source: 'video_end',
                     })
+                    setRevealedAt(Date.now())
                     progress.setMark(m.id, 'watched')
                   }}
                 />
@@ -596,29 +706,37 @@ export function MatchModal({
                   <span>{FINISHED_PENDING_MODAL_COPY}</span>
                 </div>
               )}
-              <div className="modal-pre-reveal-stack">
-                <button
-                  type="button"
-                  className="btn-primary modal-pre-reveal-cta"
-                  onClick={() => {
-                    analytics.resultRevealed({
-                      tournament_year: t.year,
-                      tournament_phase: phase,
-                      reveal_source: 'manual',
-                    })
-                    progress.setMark(m.id, 'watched')
-                  }}
-                >
-                  Reveal Result
-                </button>
-                {(entertainmentDisclosure || goalCountDisclosure) && (
-                  <div className="modal-disclosures modal-pre-reveal-disclosures">
-                    {entertainmentDisclosure}
-                    {goalCountDisclosure}
-                  </div>
-                )}
-              </div>
-              {Object.keys(progress.marks).length < 3 && (
+              {ballPeek ? (
+                /* The full width of the sheet, so the ball can sit in its
+                   corner, mirroring the clock above it. */
+                <div className="modal-reveal-row">
+                  {!hasHighlights && peek}
+                  <RevealResultButton
+                    look={looks.result}
+                    fx={looks.revealFx}
+                    clear={looks.thawClear}
+                    winner={won}
+                    onReveal={revealResult}
+                  />
+                </div>
+              ) : (
+                <div className="modal-pre-reveal-stack">
+                  <RevealResultButton
+                    look={looks.result}
+                    fx={looks.revealFx}
+                    clear={looks.thawClear}
+                    winner={won}
+                    onReveal={revealResult}
+                  />
+                  {(entertainmentDisclosure || goalCountDisclosure) && (
+                    <div className="modal-disclosures modal-pre-reveal-disclosures">
+                      {entertainmentDisclosure}
+                      {goalCountDisclosure}
+                    </div>
+                  )}
+                </div>
+              )}
+              {looks.result === 'green' && Object.keys(progress.marks).length < 3 && (
                 <p className="modal-hint modal-hint-small">Reveals the score and team progression.</p>
               )}
             </>

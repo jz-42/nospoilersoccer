@@ -10,6 +10,7 @@ export interface PlayerSettings {
   showTotal: boolean
   showProgress: boolean
   showTitle: boolean
+  showChapters: boolean
   showMoreVideos: boolean
   skipSeconds: number
 }
@@ -21,6 +22,7 @@ export const DEFAULT_PLAYER_SETTINGS: PlayerSettings = {
   showTotal: false,
   showProgress: false,
   showTitle: false,
+  showChapters: false,
   showMoreVideos: false,
   skipSeconds: 5,
 }

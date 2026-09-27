@@ -80,7 +80,7 @@ function formatClock(seconds: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`
 }
 
-function SkipIcon({ seconds, forward, spin }: { seconds: number; forward: boolean; spin: number }) {
+export function SkipIcon({ seconds, forward, spin }: { seconds: number; forward: boolean; spin: number }) {
   // In the manner of SF Symbols' goforward / gobackward: a ring whose open
   // chevron at the top points into the gap it is about to close, the number
   // inside. The back glyph is the same ring mirrored; the number stays
@@ -447,7 +447,7 @@ export function PlayerControls({
           )}
         </div>
         {/* YouTube writes the chapter name right after its time. */}
-        <span className="yt-chapter-cover" aria-hidden="true" />
+        {!settings.showChapters && <span className="yt-chapter-cover" aria-hidden="true" />}
       </div>
 
       {!settings.showProgress && (

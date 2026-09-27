@@ -18,6 +18,7 @@ const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
 const flagSource = readFileSync(new URL('./Flag.tsx', import.meta.url), 'utf8')
 const playerSource = readFileSync(new URL('./HighlightPlayer.tsx', import.meta.url), 'utf8')
+const titlebarSource = readFileSync(new URL('./PlayerTitlebar.tsx', import.meta.url), 'utf8')
 
 function googleCalendarDateTime(instant: string | Date, timeZone = localTimeZone) {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -332,7 +333,7 @@ assert(
     /@supports\s*\(\(backdrop-filter:\s*blur\(1px\)\)\s*or\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)\)\s*\{\s*\.player-titlebar\s*\{[\s\S]*?background:\s*none;/.test(appCss) &&
     /\.player-titlebar-glass > span\s*\{[\s\S]*?backdrop-filter:\s*blur\(var\(--blur\)\);/.test(appCss) &&
     /\.player-titlebar-glass > span:nth-child\(1\)\s*\{\s*--blur:\s*24px;/.test(appCss) &&
-    /<span className="player-titlebar-glass" aria-hidden="true">\s*(<span \/>\s*){7}<\/span>/.test(playerSource),
+    /<span className="player-titlebar-glass" aria-hidden="true">\s*(<span \/>\s*){7}<\/span>/.test(titlebarSource),
   'the title shield is stepped progressive glass, strongest over the title line, with an opaque fallback',
 )
 assert(
@@ -347,7 +348,7 @@ assert(
   'the fullscreen control is a round glass disc, at least 44px, inside a larger corner hit area, with a glyph sized to the disc',
 )
 assert(
-  /<div className="player-titlebar">\s*<span[\s\S]*?<\/span>\s*<\/div>\s*<button[\s\S]*?className="player-expand"/.test(
+  /<PlayerTitlebar [^>]*\/>[\s\S]*?<button[\s\S]*?className="player-expand"/.test(
     playerSource,
   ),
   'the fullscreen control is a sibling after the title mask rather than inside it',
@@ -494,7 +495,7 @@ assert(
   'delayed match modal shows delayed status',
 )
 assert(
-  !delayed2026Markup.includes('0–0'),
+  !delayed2026Markup.replace(/<[^>]*>/g, '').includes('0–0'),
   'delayed match modal does not show a score',
 )
 assert(
