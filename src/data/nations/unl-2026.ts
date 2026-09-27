@@ -1181,9 +1181,33 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-27T16:00Z",
       "home": "AUT",
       "away": "KOS",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "AUT",
+          "player": "David Affengruber",
+          "minute": "23'"
+        },
+        {
+          "team": "AUT",
+          "player": "Junior Adamu",
+          "minute": "45'+2'"
+        },
+        {
+          "team": "AUT",
+          "player": "Carney Chukwuemeka",
+          "minute": "61'"
+        },
+        {
+          "team": "KOS",
+          "player": "Edon Zhegrova",
+          "minute": "83'",
+          "penalty": true
+        }
+      ]
     },
     {
       "id": "unl-401861072",
