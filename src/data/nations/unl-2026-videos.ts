@@ -31,6 +31,7 @@ export const unl2026Videos: Record<string, HighlightVideo[]> = {
   'unl-401861065': [{ youtubeId: 'Eyb26du9l9U', kind: 'normal', durationSeconds: 914, publisher: 'tudn' }],
   'unl-401861066': [{ youtubeId: '704E4qdUcQI', kind: 'extended', durationSeconds: 1251 }, { youtubeId: 'O_84LgIyQxU', kind: 'normal', durationSeconds: 916, publisher: 'tudn' }],
   'unl-401861067': [{ youtubeId: '7aYi8m7sMas', kind: 'normal', durationSeconds: 915, publisher: 'tudn' }],
+  'unl-401861068': [{ youtubeId: '-fcyh7lx5PA', kind: 'normal', durationSeconds: 918, publisher: 'tudn' }],
   'unl-401861070': [{ youtubeId: 'OyIUz7Yhgvc', kind: 'normal', durationSeconds: 914, publisher: 'tudn' }],
   'unl-401861071': [{ youtubeId: 'lVWjkpyeKnw', kind: 'normal', durationSeconds: 915, publisher: 'tudn' }],
 }
