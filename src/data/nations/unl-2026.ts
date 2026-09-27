@@ -1247,9 +1247,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-27T18:45Z",
       "home": "NOR",
       "away": "POR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "POR",
+          "player": "João Félix",
+          "minute": "17'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "51'"
+        },
+        {
+          "team": "POR",
+          "player": "Gonçalo Ramos",
+          "minute": "54'"
+        }
+      ]
     },
     {
       "id": "unl-401861074",

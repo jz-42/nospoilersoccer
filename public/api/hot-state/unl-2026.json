@@ -713,11 +713,28 @@
       "kickoff": "2026-09-27T18:45Z"
     },
     "unl-401861073": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "POR",
+          "player": "João Félix",
+          "minute": "17'"
+        },
+        {
+          "team": "NOR",
+          "player": "Erling Haaland",
+          "minute": "51'"
+        },
+        {
+          "team": "POR",
+          "player": "Gonçalo Ramos",
+          "minute": "54'"
+        }
+      ],
       "kickoff": "2026-09-27T18:45Z"
     },
     "unl-401861074": {
