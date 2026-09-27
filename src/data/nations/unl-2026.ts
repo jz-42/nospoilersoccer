@@ -1109,7 +1109,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-27",
       "kickoff": "2026-09-27T16:00Z",
       "home": "SRB",
-      "away": "NED"
+      "away": "NED",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861069",
@@ -1127,7 +1130,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-27",
       "kickoff": "2026-09-27T16:00Z",
       "home": "DEN",
-      "away": "WAL"
+      "away": "WAL",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861071",
