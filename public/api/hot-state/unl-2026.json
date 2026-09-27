@@ -721,11 +721,18 @@
       "kickoff": "2026-09-27T18:45Z"
     },
     "unl-401861074": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "GRE",
+          "player": "Dimitrios Kourbelis",
+          "minute": "74'"
+        }
+      ],
       "kickoff": "2026-09-27T18:45Z"
     },
     "unl-401861075": {

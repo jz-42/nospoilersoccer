@@ -1259,9 +1259,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-27T18:45Z",
       "home": "GER",
       "away": "GRE",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "GRE",
+          "player": "Dimitrios Kourbelis",
+          "minute": "74'"
+        }
+      ]
     },
     {
       "id": "unl-401861075",
