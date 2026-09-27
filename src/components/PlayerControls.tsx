@@ -450,15 +450,17 @@ export function PlayerControls({
         {!settings.showChapters && <span className="yt-chapter-cover" aria-hidden="true" />}
       </div>
 
-      {!settings.showProgress && (
-        // Paint order matters: the solid line hides YouTube's red before the
-        // glass samples what is under it, so the blur can't smear it pink.
-        <div className="yt-bar-cover" aria-hidden="true">
-          <span className="yt-bar-cover-mute" />
-          <span className="yt-bar-cover-glass" />
-          <span className="yt-bar-cover-track" />
-        </div>
-      )}
+      {/* YouTube's line and playhead are covered even when the viewer keeps
+          the bar: ours is drawn on top, and YouTube's playhead only moves
+          once a seek lands, so left showing it would be a second dot that
+          stays behind while ours is dragged.
+          Paint order matters: the solid line hides YouTube's red before the
+          glass samples what is under it, so the blur can't smear it pink. */}
+      <div className="yt-bar-cover" aria-hidden="true">
+        <span className="yt-bar-cover-mute" />
+        <span className="yt-bar-cover-glass" />
+        <span className="yt-bar-cover-track" />
+      </div>
 
       {/* YouTube's "More videos": a thumbnail of another match's highlights. */}
       {!settings.showMoreVideos && <div className="yt-more-cover" aria-hidden="true" />}

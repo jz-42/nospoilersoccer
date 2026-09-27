@@ -601,8 +601,10 @@
   outline-offset: 3px;
 }
 
-/* ---- Spoiler Blur, see SpoilerBlur.tsx. A sheet over
-   the page, which blurs away behind it: the one thing on screen. */
+/* ---- Spoiler Blur, see SpoilerBlur.tsx. A sheet over the page, which
+   blurs away behind it: the one thing on screen. Watch Later's title and
+   close (one kind of layer, one way out), the live preview, the six parts as
+   two lines of switches, and a last line for Restore defaults and Skip by. */
 .bs-backdrop {
   position: fixed;
   inset: 0;
@@ -623,9 +625,14 @@
   transition: opacity 0.2s ease-in;
 }
 
+/* Blurred is lit in frost, the cool blue of the glass the covers are made
+   of: the brand green says "go", the wrong thing for a hidden part. */
 .bs-sheet {
+  --bs-on: #5f8fc9;
+  --bs-knob-eye: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238793a5' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+  --bs-knob-eye-off: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f7fb8' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M3.5 3.5l17 17' stroke='%23fff' stroke-width='5.4'/%3E%3Cpath d='M3.5 3.5l17 17'/%3E%3C/svg%3E");
   width: min(720px, 100%);
-  padding: 16px 20px 20px;
+  padding: 18px;
   border-radius: 22px;
   background: rgba(20, 26, 35, 0.92);
   box-shadow:
@@ -658,81 +665,18 @@
 .bs-head {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 -6px 14px 0;
+  gap: 12px;
+  margin: 0 0 16px;
 }
 
 .bs-title {
   flex: 1;
   margin: 0;
-  font-size: 17px;
-  font-weight: 660;
-  letter-spacing: -0.015em;
+  padding-left: 2px;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
   color: var(--text-h);
-}
-
-.bs-reset {
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text);
-  font: 560 13px/1 var(--sans);
-  cursor: pointer;
-  transition: color 0.12s ease, background 0.12s ease;
-}
-
-.bs-reset:hover {
-  color: var(--text-h);
-  background: rgba(154, 173, 203, 0.11);
-}
-
-.bs-close {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  backdrop-filter: blur(16px) saturate(1.4);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 4px 14px rgba(0, 0, 0, 0.22);
-  transition:
-    background 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease,
-    transform 120ms cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-.bs-close:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.28);
-}
-
-.bs-close:active {
-  transform: scale(0.94);
-}
-
-.bs-close svg {
-  width: 17px;
-  height: 17px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
-  stroke-linecap: round;
-}
-
-.bs-reset:focus-visible,
-.bs-close:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
 }
 
 /* ---- The preview: YouTube's player at its own size, scaled to fit. */
@@ -866,59 +810,140 @@
   left: 133px;
 }
 
-/* ---- The switches, in two cards side by side. */
-.bs-groups {
+/* ---- The switches: two lines, Timeline then On screen, three parts each,
+   no card or rules. Each switch leads its label, as macOS's and Linear's
+   settings do, so it plainly belongs to it; the eye rides in the knob
+   (Material 3's icon handle), open while the part shows, struck through
+   while it is blurred. */
+.bs-list {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 18px;
-}
-
-.bs-group-controls {
-  margin-top: 14px;
-}
-
-.bs-group-name {
-  margin: 0 0 6px 14px;
-  font-size: 11px;
-  font-weight: 640;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--muted);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0 16px;
+  margin-top: 12px;
+  padding: 0 4px;
 }
 
 .bs-card {
-  padding: 0 14px;
-  border-radius: 14px;
-  background: rgba(154, 173, 203, 0.055);
-  box-shadow: inset 0 0 0 1px rgba(154, 173, 203, 0.09);
+  display: contents;
 }
 
 .bs-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  min-height: 46px;
+  min-height: 44px;
   cursor: pointer;
 }
 
-.bs-row + .bs-row {
-  border-top: 1px solid rgba(154, 173, 203, 0.1);
-}
-
-.bs-group-controls .bs-row {
-  cursor: default;
-}
-
 .bs-row-label {
-  font-size: 14px;
-  font-weight: 520;
+  flex: 1;
+  min-width: 0;
+  order: 1;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bs-sheet .ps-switch {
+  width: 42px;
+  height: 26px;
+}
+
+.bs-sheet .ps-switch::after {
+  background: #fff var(--bs-knob-eye) center / 13px no-repeat;
+}
+
+.bs-sheet .ps-switch:checked {
+  background: var(--bs-on);
+}
+
+.bs-sheet .ps-switch:checked::after {
+  transform: translateX(16px);
+  background-image: var(--bs-knob-eye-off);
+}
+
+/* ---- The last line: Restore defaults on the left, only once something
+   differs from them, Skip by always on the right, so nothing moves when
+   Restore comes and goes. */
+.bs-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 38px;
+  margin-top: 14px;
+}
+
+.bs-skip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.bs-skip-label {
+  font-size: 14.5px;
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--text-h);
 }
 
-/* Phones: a sheet from the bottom edge, as iOS does it. */
+.bs-restore {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: -6px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
+  font: 540 13.5px/1 var(--sans);
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  animation: bs-restore-in 0.2s ease-out;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease;
+}
+
+@keyframes bs-restore-in {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+}
+
+.bs-restore svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.bs-restore-short {
+  display: none;
+}
+
+.bs-restore:hover {
+  color: var(--text-h);
+  background: rgba(154, 173, 203, 0.11);
+}
+
+.bs-restore:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Phones: a sheet from the bottom edge, as iOS does it. The parts run down
+   two columns, one per group, and the last line stays one line (Restore
+   shortens to iOS's word for it) so the sheet never grows when it arrives. */
 @media (max-width: 559px) {
   .bs-backdrop {
     place-items: end stretch;
@@ -927,7 +952,7 @@
 
   .bs-sheet {
     width: 100%;
-    padding: 14px 16px calc(18px + env(safe-area-inset-bottom));
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
     border-radius: 22px 22px 0 0;
     animation-name: bs-slide;
   }
@@ -936,18 +961,36 @@
     transform: translateY(40px);
   }
 
-  .bs-groups {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-top: 14px;
+  .bs-head {
+    margin-bottom: 14px;
   }
 
-  .bs-group-controls {
-    margin-top: 12px;
+  .bs-list {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    gap: 0 12px;
+    padding: 0 2px;
   }
 
   .bs-row {
-    min-height: 44px;
+    gap: 10px;
+  }
+
+  .bs-row-label {
+    font-size: 14px;
+  }
+
+  .bs-skip-label {
+    font-size: 14px;
+  }
+
+  .bs-restore-long {
+    display: none;
+  }
+
+  .bs-restore-short {
+    display: inline;
   }
 }
 

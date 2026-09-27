@@ -366,19 +366,22 @@
 /* No bubble. The two round buttons beside it hold state (a queue, your teams)
    and light up to show it; the menu holds none, so it is just the mark, in
    the header's text colour, closing out the row the way the logo opens it.
-   The hit area stays a full 32px square. */
+   Nothing fills in on hover either, only the ink brightens. The mark is wide
+   and airy, 18px rules 5px apart (Apple TV's and Netflix's proportions), in
+   a 52x40 target that takes its extra height back with margins, so the row
+   keeps the 34px of its pills, and overhangs the edge so the rules end on it. */
 .menu-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-right: -6px;
+  width: 52px;
+  height: 40px;
+  margin: -3px -13px -3px 0;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 12px;
   background: transparent;
-  color: var(--muted);
+  color: var(--text);
   cursor: pointer;
   transition:
     color 0.15s ease,
@@ -396,14 +399,14 @@
 .menu-mark path {
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.5;
+  stroke-width: 1.8;
   stroke-linecap: round;
 }
 
 /* The one flourish in the mark: the bottom rule sits short at rest and runs
    out to meet the other two on hover, so three lines read as drawn for this
    app rather than lifted off a sheet. `transform-box: fill-box` puts the
-   origin on the line itself instead of the whole 16px canvas. */
+   origin on the line itself instead of the whole canvas. */
 .menu-mark-short {
   transform: scaleX(0.56);
   transform-origin: left center;
@@ -425,9 +428,9 @@
 .menu-panel {
   position: absolute;
   top: calc(100% + 8px);
-  /* The button overhangs the header's edge by 6px (see .menu-btn); the panel
-     lines up with the edge itself. */
-  right: 6px;
+  /* The button overhangs the header's edge (see .menu-btn); the panel's
+     edge meets the rules' ends. */
+  right: 5px;
   z-index: 40;
   min-width: 228px;
   padding: 5px;

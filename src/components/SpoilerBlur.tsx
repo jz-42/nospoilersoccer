@@ -11,7 +11,9 @@
  * a match.
  *
  * Switches read as "blur this": on means hidden, the way people think about
- * a spoiler. Rows are grouped and ordered by how often people change them.
+ * a spoiler, and the eye in each knob is struck through while it is. Rows
+ * are grouped (Timeline, On screen) and ordered by how often people change
+ * them. The preview is live: its bar drags, with one playhead.
  */
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import {
@@ -179,6 +181,23 @@ export function SpoilerBlurSheet({ onClose }: { onClose: () => void }) {
     }
   }, [])
 
+  const skipSegment = (
+    <div className="ps-segment" role="radiogroup" aria-label="Skip by">
+      {SKIP_CHOICES.map((s) => (
+        <button
+          key={s}
+          type="button"
+          role="radio"
+          aria-checked={settings.skipSeconds === s}
+          className={settings.skipSeconds === s ? 'is-active' : ''}
+          onClick={() => setPlayerSetting('skipSeconds', s)}
+        >
+          {s}s
+        </button>
+      ))}
+    </div>
+  )
+
   // Touches and clicks inside must not reach the match sheet (drag to dismiss).
   const stop = (e: { stopPropagation: () => void }) => e.stopPropagation()
 
@@ -207,16 +226,8 @@ export function SpoilerBlurSheet({ onClose }: { onClose: () => void }) {
           <h2 id={headingId} className="bs-title">
             Spoiler Blur
           </h2>
-          <button
-            type="button"
-            className="bs-reset"
-            onClick={resetPlayerSettings}
-            style={isDefault ? { visibility: 'hidden' } : undefined}
-          >
-            Reset
-          </button>
-          <button type="button" className="bs-close" aria-label="Done" onClick={close}>
-            <svg viewBox="0 0 20 20" aria-hidden="true">
+          <button type="button" className="queue-close" aria-label="Done" onClick={close}>
+            <svg className="modal-close-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
               <path d="M5 5l10 10M15 5L5 15" />
             </svg>
           </button>
@@ -224,55 +235,46 @@ export function SpoilerBlurSheet({ onClose }: { onClose: () => void }) {
 
         <BlurPreview settings={settings} focus={focus} />
 
-        <div className="bs-groups">
+        <div className="bs-list">
           {GROUPS.map((g) => (
-            <section key={g.name} className="bs-group">
-              <h3 className="bs-group-name">{g.name}</h3>
-              <div className="bs-card">
-                {g.rows.map((r) => (
-                  <label key={r.key} className="bs-row" {...point(r.region)}>
-                    <span className="bs-row-label">{r.label}</span>
-                    <input
-                      type="checkbox"
-                      role="switch"
-                      className="ps-switch"
-                      aria-label={`Blur ${r.label.toLowerCase()}`}
-                      checked={!settings[r.key]}
-                      onChange={(e) => {
-                        setPlayerSetting(r.key, !e.target.checked)
-                        // Phones have no hover: the ring follows the last change.
-                        setFocus(r.region)
-                      }}
-                    />
-                  </label>
-                ))}
-              </div>
-            </section>
+            <div key={g.name} className="bs-card" role="group" aria-label={g.name}>
+              {g.rows.map((r) => (
+                <label key={r.key} className="bs-row" {...point(r.region)}>
+                  <span className="bs-row-label">{r.label}</span>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    className="ps-switch"
+                    aria-label={`Blur ${r.label.toLowerCase()}`}
+                    checked={!settings[r.key]}
+                    onChange={(e) => {
+                      setPlayerSetting(r.key, !e.target.checked)
+                      // Phones have no hover: the ring follows the last change.
+                      setFocus(r.region)
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
           ))}
         </div>
 
-        <section className="bs-group bs-group-controls">
-          <h3 className="bs-group-name">Controls</h3>
-          <div className="bs-card">
-            <div className="bs-row">
-              <span className="bs-row-label">Skip by</span>
-              <div className="ps-segment" role="radiogroup" aria-label="Skip by">
-                {SKIP_CHOICES.map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    role="radio"
-                    aria-checked={settings.skipSeconds === s}
-                    className={settings.skipSeconds === s ? 'is-active' : ''}
-                    onClick={() => setPlayerSetting('skipSeconds', s)}
-                  >
-                    {s}s
-                  </button>
-                ))}
-              </div>
-            </div>
+        <footer className="bs-foot">
+          {!isDefault && (
+            <button type="button" className="bs-restore" aria-label="Restore defaults" onClick={resetPlayerSettings}>
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M3.2 8a4.8 4.8 0 1 0 1.5-3.5" />
+                <path d="M4.6 2.2v2.5h2.5" />
+              </svg>
+              <span className="bs-restore-long">Restore defaults</span>
+              <span className="bs-restore-short">Reset</span>
+            </button>
+          )}
+          <div className="bs-skip">
+            <span className="bs-skip-label">Skip by</span>
+            {skipSegment}
           </div>
-        </section>
+        </footer>
       </div>
     </div>
   )

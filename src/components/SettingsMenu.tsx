@@ -135,10 +135,10 @@ export function SettingsMenu({
         title="Menu"
         onClick={toggle}
       >
-        <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" className="menu-mark">
-          <path d="M2.6 4.6h10.8" />
-          <path d="M2.6 8h10.8" />
-          <path d="M2.6 11.4h10.8" className="menu-mark-short" />
+        <svg viewBox="0 0 22 16" width="22" height="16" aria-hidden="true" className="menu-mark">
+          <path d="M2 3h18" />
+          <path d="M2 8h18" />
+          <path d="M2 13h18" className="menu-mark-short" />
         </svg>
       </button>
 
