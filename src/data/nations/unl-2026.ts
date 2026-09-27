@@ -1217,9 +1217,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-27T18:45Z",
       "home": "ISR",
       "away": "IRL",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "IRL",
+          "player": "Troy Parrott",
+          "minute": "13'"
+        },
+        {
+          "team": "IRL",
+          "player": "Adam Idah",
+          "minute": "16'"
+        },
+        {
+          "team": "IRL",
+          "player": "Jack Moylan",
+          "minute": "25'"
+        }
+      ]
     },
     {
       "id": "unl-401861073",
