@@ -4949,8 +4949,7 @@
   margin-top: 1px;
 }
 
-/* Under the video: the cut chips centred, the Spoiler Covers mark at the
-   end. */
+/* Under the video: the cut chips, centred. */
 .player-foot {
   width: 100%;
   display: grid;
@@ -4961,12 +4960,6 @@
 
 .player-foot > .kind-toggle {
   grid-column: 2;
-}
-
-.player-foot-end {
-  grid-column: 3;
-  justify-self: end;
-  margin-right: -4px;
 }
 
 .poster-list {

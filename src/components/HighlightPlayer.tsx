@@ -359,23 +359,13 @@ export function HighlightPlayer({
     </div>
   )
 
-  // The Spoiler Covers mark sits under the video, at the end of the cut
-  // chips' row. FOX's player is cross-origin and ours can't cover it, so
-  // there is nothing to set there.
+  // The Spoiler Covers mark rides the posters' corner. FOX's player is
+  // cross-origin and ours can't cover it, so there is nothing to set there.
   const covers = customControls && (active ? isYouTubeHighlight(active) : videos.some(isYouTubeHighlight))
   // One entry to the settings at a time: the mark before a video plays, the
   // player's own button during.
   const markBelow = covers && !active
-  const foot = (markBelow || kindToggle) && (
-    <div className="player-foot">
-      {kindToggle}
-      {markBelow && (
-        <span className="player-foot-end">
-          <SpoilerCoversButton />
-        </span>
-      )}
-    </div>
-  )
+  const foot = kindToggle && <div className="player-foot">{kindToggle}</div>
 
   if (!active) {
     // Each highlight cut is its own poster — extended first, then the quick

@@ -315,8 +315,10 @@ export function MatchModal({
   }
   const rolling = revealedAt > 0
   // The same player before and after the reveal, so a video, or its
-  // full-time card, carries on through it.
-  const keepPlayer = 'player'
+  // full-time card, carries on through it; but a fresh one per match, so
+  // paging to a tie's other leg doesn't carry this leg's video (and its
+  // Reveal Result) over to it.
+  const keepPlayer = `player-${m.id}`
   // On a phone the score can be above the fold when you reveal.
   const scoreRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
