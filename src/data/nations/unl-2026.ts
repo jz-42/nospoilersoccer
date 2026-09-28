@@ -1366,9 +1366,37 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-28T18:45Z",
       "home": "TUR",
       "away": "ITA",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "ITA",
+          "player": "Alessandro Bastoni",
+          "minute": "9'"
+        },
+        {
+          "team": "ITA",
+          "player": "Davide Frattesi",
+          "minute": "22'"
+        },
+        {
+          "team": "ITA",
+          "player": "Michael Kayode",
+          "minute": "27'"
+        },
+        {
+          "team": "TUR",
+          "player": "Baris Alper Yilmaz",
+          "minute": "47'"
+        },
+        {
+          "team": "ITA",
+          "player": "Pio Esposito",
+          "minute": "50'"
+        }
+      ]
     },
     {
       "id": "unl-401861078",
@@ -1423,9 +1451,11 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-28T18:45Z",
       "home": "NIR",
       "away": "HUN",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861080",
@@ -1435,9 +1465,32 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-28T18:45Z",
       "home": "SWE",
       "away": "POL",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SWE",
+          "player": "Benjamin Nygren",
+          "minute": "8'"
+        },
+        {
+          "team": "POL",
+          "player": "Sebastian Szymanski",
+          "minute": "43'"
+        },
+        {
+          "team": "SWE",
+          "player": "Yasin Ayari",
+          "minute": "63'"
+        },
+        {
+          "team": "SWE",
+          "player": "Viktor Gyökeres",
+          "minute": "72'"
+        }
+      ]
     },
     {
       "id": "unl-401861081",
