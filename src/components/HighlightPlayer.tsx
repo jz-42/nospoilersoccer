@@ -113,7 +113,7 @@ const END_BEAT_SECONDS = 0.4
  * on. Highlights mostly finish well before their video does, and where they
  * don't, a pill in the corner costs nothing.
  */
-const COUNTDOWN_SECONDS = 20
+const COUNTDOWN_SECONDS = 30
 /** Too briefly on screen to have been seen: the result doesn't follow by itself. */
 const COUNTDOWN_SEEN_MS = 1500
 

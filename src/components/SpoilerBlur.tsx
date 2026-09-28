@@ -11,7 +11,8 @@
  * a match.
  *
  * Switches read as "blur this": on means hidden, the way people think about
- * a spoiler, and the eye in each knob is struck through while it is. Rows
+ * a spoiler, and only then does the knob carry a mark, a struck-through eye,
+ * so what is hidden reads at a glance. Rows
  * are grouped (Timeline, On screen) and ordered by how often people change
  * them. The preview is live: its bar drags, with one playhead.
  */
@@ -52,6 +53,13 @@ const GROUPS: { name: string; rows: { key: ShowKey; label: string; region: Regio
 /** The two sizes YouTube lays its chrome out at, and our captures of each. */
 const WIDE = { w: 640, h: 360, src: new URL('../assets/yt-chrome-640x360.webp', import.meta.url).href }
 const COMPACT = { w: 354, h: 199, src: new URL('../assets/yt-chrome-354x199.webp', import.meta.url).href }
+
+/**
+ * What the preview plays over: a floodlit match from the main camera's angle,
+ * out of focus and dimmed (baked into the file) so it reads as football at a
+ * glance and never pulls the eye from the covers. Unsplash License.
+ */
+const PITCH = new URL('../assets/preview-night.webp', import.meta.url).href
 
 /** 5:22 of 23:21, what the capture's own time display reads. */
 const DEMO_AT = 322
@@ -109,7 +117,7 @@ function BlurPreview({ settings, focus }: { settings: PlayerSettings; focus: Reg
           className="player-wrap bp-wrap"
           style={{ width: size.w, height: size.h, transform: `scale(${fit.scale})` }}
         >
-          <span className="bp-pitch" aria-hidden="true" />
+          <img className="bp-pitch" src={PITCH} alt="" draggable={false} />
           <img className="bp-chrome" src={size.src} alt="" draggable={false} />
           <PlayerControls player={player} stateChangedAt={0} settings={settings} onToggleExpanded={() => {}} />
           <PlayerTitlebar label="Extended Highlights" />
