@@ -420,12 +420,17 @@ assert(
   !revealedExperiment.includes('modal-reveal-row') && !revealedExperiment.includes('Reveal Result'),
   'revealed match drops the Reveal Result row',
 )
+// A revealed sheet keeps both sides equal. Dimming the loser in translucent
+// white let it take on the club colour under it (a pink 2 beside a white 3 on
+// Slavia–Lens), and widening the winner's field overpowered the other side.
 {
-  const { home, away } = experimentWithEntertainment.score!
-  const won = home === away ? 'draw' : home > away ? 'home' : 'away'
+  const sheetCss = ['../App.css', './SpoilerCovers.css']
+    .map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'))
+    .join('\n')
   assert(
-    revealedExperiment.includes(`data-won="${won}"`) && !preRevealExperiment.includes('data-won'),
-    'only a revealed sheet says who won, for the field to lean to the winner',
+    !revealedExperiment.includes('data-won') &&
+      !/data-won|won-seam|\.modal-score\s*>\s*:first-child\s*>/.test(sheetCss),
+    'a revealed sheet styles the winner and the loser alike',
   )
 }
 assert(

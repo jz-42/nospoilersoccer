@@ -260,8 +260,7 @@ export function MatchModal({
     })
   }, [t.year, phase, mark, locked, ready])
 
-  // Who won, for the reveal to thaw into and the field to lean towards once
-  // it's out (`data-won`). Kept out of the page until marked.
+  // Who won, for the reveal to thaw into.
   const won: Winner | null =
     score && homeTeam && awayTeam
       ? km?.penalties
@@ -392,7 +391,6 @@ export function MatchModal({
         onTouchEnd={onModalTouchEnd}
         onTouchCancel={onModalTouchEnd}
         style={modalStyle}
-        data-won={mark ? (won ?? undefined) : undefined}
       >
         <span className="match-fabric" aria-hidden="true">
           <span />
