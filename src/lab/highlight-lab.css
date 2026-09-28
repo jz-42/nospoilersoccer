@@ -1,0 +1,30 @@
+.hl-bar {
+  position: fixed;
+  z-index: 80;
+  top: 14px;
+  left: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  transform: translateX(-50%);
+}
+
+.hl-phone {
+  position: fixed;
+  inset: 64px 0 0;
+  display: grid;
+  place-items: start center;
+  overflow: auto;
+}
+
+.hl-phone iframe {
+  width: 390px;
+  height: 844px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 44px;
+  background: #0c0f14;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}

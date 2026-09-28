@@ -3,6 +3,7 @@ import type { CSSProperties, TouchEvent as ReactTouchEvent } from 'react'
 import { analytics } from '../analytics'
 import type { Phase } from '../analytics'
 import { buildGoogleCalendarUrl } from '../calendar/google'
+import { isArchivedTournament } from '../data'
 import { matchTint } from '../data/team-colors'
 import type { Goal, GroupMatch, KnockoutMatch, TeamId, Tournament } from '../data/types'
 import { tieOf } from '../data/types'
@@ -542,6 +543,7 @@ export function MatchModal({
                   homeName={homeNameForAnalytics}
                   awayName={awayNameForAnalytics}
                   marked
+                  archive={isArchivedTournament(t.id)}
                   onReveal={() => {}}
                 />
               )}
@@ -567,6 +569,7 @@ export function MatchModal({
                   awayName={awayNameForAnalytics}
                   marked={false}
                   posterCorner={peek}
+                  archive={isArchivedTournament(t.id)}
                   onReveal={() => {
                     analytics.resultRevealed({
                       tournament_year: t.year,

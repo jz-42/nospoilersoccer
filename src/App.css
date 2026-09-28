@@ -1967,29 +1967,6 @@
   pointer-events: none;
 }
 
-/* Runtime stamp — same corner as YouTube's, but in our frosted-chip material
-   instead of an opaque black box, so it sits on the card art like the other
-   glass badges rather than punching a hole in it. */
-.preview-duration {
-  position: absolute;
-  right: 9px;
-  bottom: 9px;
-  z-index: 2;
-  font-size: 10.5px;
-  font-weight: 650;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-  background: rgba(20, 27, 34, 0.44);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  padding: 2.5px 8px;
-  -webkit-backdrop-filter: blur(8px) saturate(1.2);
-  backdrop-filter: blur(8px) saturate(1.2);
-}
-
 .preview-meta {
   display: flex;
   flex-direction: column;
@@ -4995,6 +4972,193 @@
   box-shadow: 0 8px 24px rgba(190, 40, 34, 0.30), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* The glass stays on the poster; this is the hit target for the one source it shows. */
+.poster-main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Reaching for the caption or a corner mark shouldn't also wind up the play
+   button, and nor should the open menu. */
+.player-poster.is-picking .poster-play,
+.player-poster:hover:has(.poster-caption-btn:hover, .sc-mark:hover, .poster-peek:hover) .poster-play {
+  transform: none;
+  filter: none;
+  box-shadow: 0 6px 18px rgba(190, 40, 34, 0.20), 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* With more than one source the caption is the control. A ghost of the poster's layout lays a
+   button exactly over it; the chevron sits in the button's right padding,
+   matched on the left, so the words stay centred. */
+.poster-ghost-layer {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.poster-play-ghost {
+  width: 62px;
+  height: 44px;
+}
+
+.poster-note-ghost,
+.poster-label.is-ghosted {
+  visibility: hidden;
+}
+
+.poster-caption-btn {
+  position: relative;
+  margin: -5px 0;
+  padding: 5px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background-color 0.15s ease;
+}
+
+.poster-caption-chev {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.4;
+  transform: translateY(-50%);
+  transition: opacity 0.15s ease;
+}
+
+.poster-caption-btn:hover,
+.poster-caption-btn:focus-visible,
+.poster-caption-btn[aria-expanded='true'] {
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.poster-caption-btn:hover .poster-caption-chev,
+.poster-caption-btn:focus-visible .poster-caption-chev {
+  opacity: 0.9;
+}
+
+/* Picking, the poster's own contents step back and its channels take the
+   glass: the list is made on the thing it changes, with nothing to clip. */
+.player-poster > * {
+  transition: opacity 0.16s ease;
+}
+
+.player-poster.is-picking > :not(.poster-picker) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.poster-picker {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  animation: poster-picker-in 0.18s ease both;
+}
+
+@keyframes poster-picker-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+.poster-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: min(220px, 100% - 32px);
+}
+
+.poster-pick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.poster-pick-lang {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 12px;
+  font-weight: 450;
+}
+
+.poster-pick:hover,
+.poster-pick:focus-visible {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  outline: none;
+}
+
+.poster-pick.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 760px) {
+  .poster-pick {
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .poster-caption-btn,
+  .poster-caption-chev,
+  .poster-pick,
+  .player-poster > * {
+    transition: none;
+  }
+
+  .poster-picker {
+    animation: none;
+  }
+}
+
 .poster-play {
   display: inline-flex;
   align-items: center;
@@ -5014,12 +5178,6 @@
   font-weight: 550;
 }
 
-.poster-time {
-  font-size: 13.5px;
-  color: rgba(226, 233, 242, 0.68);
-  font-weight: 450;
-}
-
 /* tiny disclaimer for fan/community re-uploads (no official cut available) */
 .poster-note {
   font-size: 10px;
@@ -5028,64 +5186,15 @@
   margin-top: 1px;
 }
 
-/* Under the video: the cut chips, centred. */
-.player-foot {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  min-height: 32px;
-}
-
-.player-foot > .kind-toggle {
-  grid-column: 2;
-}
-
 .poster-list {
   position: relative;
 }
 
 .poster-covers {
   position: absolute;
+  z-index: 2;
   right: 6px;
   bottom: 6px;
-}
-
-.kind-toggle {
-  display: flex;
-  gap: 6px;
-}
-
-.kind-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 550;
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
-}
-
-.kind-chip:hover {
-  color: var(--text-h);
-}
-
-.kind-chip.active {
-  background: var(--panel-hover);
-  border-color: var(--border-strong);
-  color: var(--text-h);
-}
-
-.kind-chip-time {
-  font-size: 12.5px;
-  opacity: 0.75;
-  font-variant-numeric: tabular-nums;
 }
 
 .player-wrap {

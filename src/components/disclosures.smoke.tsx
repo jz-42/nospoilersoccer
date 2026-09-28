@@ -175,23 +175,25 @@ assert(
 )
 const previewWithExtended = renderPreviewCard(played2026WithExtended)
 assert(
-  previewWithExtended.includes('5m · Extended'),
-  'preview card masks the extended duration with a neutral Extended label',
+  !previewWithExtended.includes('preview-duration'),
+  'preview card does not reveal how long the highlights are',
 )
 assert(
-  !previewWithExtended.includes('5m · 16m'),
-  'preview card does not expose the extended minute count',
+  !previewWithExtended.includes('5m'),
+  'preview card does not print a highlight runtime',
 )
 const modalWithExtended = renderMatch(played2026WithExtended)
 assert(
-  modalWithExtended.includes('class="poster-label">Extended Highlights</span>'),
-  'modal poster label hides the extended runtime',
+  /class="poster-label[^"]*">Extended Highlights<\/span>/.test(modalWithExtended),
+  'archive poster opens on Extended Highlights',
 )
 assert(
-  modalWithExtended.includes(
-    'class="poster-label">Quick Highlights<span class="poster-time"> · 5:00</span></span>',
-  ),
-  'modal poster label keeps the quick-highlight runtime',
+  modalWithExtended.includes('aria-haspopup="listbox"'),
+  'archive quick cut waits behind the source menu',
+)
+assert(
+  !modalWithExtended.includes('poster-time'),
+  'archive poster does not reveal a runtime',
 )
 assert(
   !renderMatch(played2026).includes('Add to Google Calendar'),
@@ -297,10 +299,6 @@ assert(
 assert(
   /\.player-poster\s*\{[\s\S]*?min-height:\s*150px;/.test(appCss),
   'highlight poster height is reduced to 150px',
-)
-assert(
-  /\.kind-chip\s*\{[\s\S]*?align-items:\s*center;/.test(appCss),
-  'highlight toggle chips center labels after extended runtimes are hidden',
 )
 
 // YouTube paints the video title over the top of the frame on hover and on
