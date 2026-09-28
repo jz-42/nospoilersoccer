@@ -8,12 +8,17 @@
  * and not an inline list, which would grow the menu with every season
  * archived. A dot on the row says when you are in one.
  *
+ * Spoiler Blur is not a page: it opens its own sheet, the one the mark beside
+ * a match's highlights opens.
+ *
  * Deliberately not a gear. A gear promises preferences; this is a guide, so
  * the mark is three rules — a list, which is what opens. The last rule is
  * short at rest and runs out to full width on hover, which is the whole
  * animation budget.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { CoversIcon } from './SpoilerCovers'
+import { openSpoilerBlur } from '../spoiler-blur'
 
 export interface ArchiveEntry {
   id: string
@@ -38,9 +43,9 @@ export function SettingsMenu({
 }) {
   const [open, setOpen] = useState(false)
   const inArchive = archive.some((a) => a.active)
-  const [page, setPage] = useState<'root' | 'archive'>('root')
-  // Set when you come back from Archive, so focus returns to the row you left by.
-  const returning = useRef(false)
+  const [page, setPage] = useState<Page>('root')
+  // The page you came back from, so focus returns to the row you left by.
+  const returning = useRef<Page | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const pagesRef = useRef<HTMLDivElement>(null)
@@ -70,18 +75,25 @@ export function SettingsMenu({
       page === 'archive'
         ? // Straight to the seasons (the one you are in, if any), past the back row.
           (scope?.querySelector('.menu-archive-row.is-active') ?? scope?.querySelector('.menu-archive-row'))
-        : scope?.querySelector(returning.current ? '.menu-archive-open' : '.menu-item')
-    returning.current = false
+        : scope?.querySelector(returning.current ? `[data-opens='${returning.current}']` : '.menu-item')
+    returning.current = null
     ;(target as HTMLButtonElement | null | undefined)?.focus()
   }, [open, page])
 
-  // The panel takes the height of the page it is showing, animated,
-  // so the second page does not sit in the first one's empty frame.
+  // The panel takes the size of the page it is showing, animated, so the
+  // second page does not sit in the first one's empty frame.
   useLayoutEffect(() => {
     const pages = pagesRef.current
     if (!open || !pages) return
     const current = pages.querySelector<HTMLElement>(`[data-page='${page}']`)
-    if (current) pages.style.height = `${current.offsetHeight}px`
+    if (!current) return
+    const from = pages.offsetWidth
+    pages.style.width = ''
+    const to = pages.offsetWidth
+    pages.style.width = `${from}px`
+    void pages.offsetWidth
+    pages.style.width = `${to}px`
+    pages.style.height = `${current.offsetHeight}px`
   }, [open, page])
 
   const toggle = () => {
@@ -101,6 +113,15 @@ export function SettingsMenu({
       <span className="menu-item-label">How this works</span>
     </button>
   )
+  const goBack = (from: Page) => {
+    returning.current = from
+    setPage('root')
+  }
+  const pageProps = (p: Page) => ({
+    className: `menu-page menu-page-${p}${page === p ? ' is-here' : ''}`,
+    'data-page': p,
+    inert: page !== p,
+  })
   const entries = archive.map((a) => <ArchiveRow key={a.id} entry={a} onSelect={() => choose(a.onSelect)} />)
 
   return (
@@ -114,25 +135,35 @@ export function SettingsMenu({
         title="Menu"
         onClick={toggle}
       >
-        <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" className="menu-mark">
-          <path d="M2.6 4.6h10.8" />
-          <path d="M2.6 8h10.8" />
-          <path d="M2.6 11.4h10.8" className="menu-mark-short" />
+        <svg viewBox="0 0 22 16" width="22" height="16" aria-hidden="true" className="menu-mark">
+          <path d="M2 3h18" />
+          <path d="M2 8h18" />
+          <path d="M2 13h18" className="menu-mark-short" />
         </svg>
       </button>
 
       {open && (
         <div className="menu-panel" role="menu" aria-label="Menu" ref={menuRef}>
-          <div className="menu-pages" ref={pagesRef} data-at={page}>
-            <div className="menu-page" data-page="root" inert={page !== 'root'}>
+          <div className="menu-pages" ref={pagesRef}>
+            <div {...pageProps('root')}>
               {howItem}
+              <button
+                type="button"
+                role="menuitem"
+                className="menu-item"
+                onClick={() => choose(openSpoilerBlur)}
+              >
+                <CoversIcon className="menu-icon" />
+                <span className="menu-item-label">Spoiler Blur</span>
+              </button>
               {archive.length > 0 && (
                 <button
                   type="button"
                   role="menuitem"
                   aria-haspopup="menu"
                   aria-label={inArchive ? 'Archive, viewing now' : 'Archive'}
-                  className="menu-item menu-archive-open"
+                  className="menu-item"
+                  data-opens="archive"
                   onClick={() => setPage('archive')}
                 >
                   <ArchiveIcon />
@@ -142,19 +173,8 @@ export function SettingsMenu({
                 </button>
               )}
             </div>
-            <div className="menu-page" data-page="archive" inert={page !== 'archive'}>
-              <button
-                type="button"
-                role="menuitem"
-                className="menu-item menu-back"
-                onClick={() => {
-                  returning.current = true
-                  setPage('root')
-                }}
-              >
-                <Chevron back />
-                <span className="menu-item-label">Archive</span>
-              </button>
+            <div {...pageProps('archive')}>
+              <BackRow label="Archive" onBack={() => goBack('archive')} />
               <div className="menu-divider" />
               {entries}
             </div>
@@ -162,6 +182,17 @@ export function SettingsMenu({
         </div>
       )}
     </div>
+  )
+}
+
+type Page = 'root' | 'archive'
+
+function BackRow({ label, onBack }: { label: string; onBack: () => void }) {
+  return (
+    <button type="button" role="menuitem" className="menu-item menu-back" onClick={onBack}>
+      <Chevron back />
+      <span className="menu-item-label">{label}</span>
+    </button>
   )
 }
 

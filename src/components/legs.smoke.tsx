@@ -49,6 +49,9 @@ const render = (match: typeof leg1, marks: Record<string, 'watched' | 'skipped'>
     />,
   )
 
+// The score's digits are separate elements, so read scores from the text.
+const text = (html: string) => html.replace(/<[^>]*>/g, '')
+
 // --- before leg 1 is marked ------------------------------------------------
 
 const sealed = render(leg1, groupMarks)
@@ -58,22 +61,22 @@ assert(
   'leg 2 explains why it is closed rather than just being dead',
 )
 assert(/Leg 2\b/.test(sealed) && sealed.includes('disabled'), 'leg 2 is disabled')
-assert(!sealed.includes('2–1'), 'leg 1 score is hidden while unmarked')
+assert(!text(sealed).includes('2–1'), 'leg 1 score is hidden while unmarked')
 
 // Opening leg 2 directly must not bypass the gate — the Today rail can link
 // straight to it, since each leg lands on its own day.
 const direct = render(leg2, groupMarks)
-assert(!direct.includes('1–1'), 'opening leg 2 directly still hides its score')
+assert(!text(direct).includes('1–1'), 'opening leg 2 directly still hides its score')
 
 // --- after leg 1 is marked -------------------------------------------------
 
 const opened = render(leg2, { ...groupMarks, 'sf-1-l1': 'watched' })
 assert(!opened.includes('Watch the first leg to open this'), 'leg 2 opens once leg 1 is marked')
-assert(!opened.includes('1–1'), 'unlocking leg 2 does not by itself reveal its score')
+assert(!text(opened).includes('1–1'), 'unlocking leg 2 does not by itself reveal its score')
 
 // Unlocking is permission to open; marking is what reveals. Both are required.
 const watched = render(leg2, { ...groupMarks, 'sf-1-l1': 'watched', 'sf-1-l2': 'watched' })
-assert(watched.includes('1–1'), 'leg 2 shows its score once it is unlocked and marked')
+assert(text(watched).includes('1–1'), 'leg 2 shows its score once it is unlocked and marked')
 
 const single = renderToStaticMarkup(
   <MatchModal

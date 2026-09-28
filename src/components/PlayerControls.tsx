@@ -80,7 +80,7 @@ function formatClock(seconds: number): string {
   return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`
 }
 
-function SkipIcon({ seconds, forward, spin }: { seconds: number; forward: boolean; spin: number }) {
+export function SkipIcon({ seconds, forward, spin }: { seconds: number; forward: boolean; spin: number }) {
   // In the manner of SF Symbols' goforward / gobackward: a ring whose open
   // chevron at the top points into the gap it is about to close, the number
   // inside. The back glyph is the same ring mirrored; the number stays
@@ -447,18 +447,20 @@ export function PlayerControls({
           )}
         </div>
         {/* YouTube writes the chapter name right after its time. */}
-        <span className="yt-chapter-cover" aria-hidden="true" />
+        {!settings.showChapters && <span className="yt-chapter-cover" aria-hidden="true" />}
       </div>
 
-      {!settings.showProgress && (
-        // Paint order matters: the solid line hides YouTube's red before the
-        // glass samples what is under it, so the blur can't smear it pink.
-        <div className="yt-bar-cover" aria-hidden="true">
-          <span className="yt-bar-cover-mute" />
-          <span className="yt-bar-cover-glass" />
-          <span className="yt-bar-cover-track" />
-        </div>
-      )}
+      {/* YouTube's line and playhead are covered even when the viewer keeps
+          the bar: ours is drawn on top, and YouTube's playhead only moves
+          once a seek lands, so left showing it would be a second dot that
+          stays behind while ours is dragged.
+          Paint order matters: the solid line hides YouTube's red before the
+          glass samples what is under it, so the blur can't smear it pink. */}
+      <div className="yt-bar-cover" aria-hidden="true">
+        <span className="yt-bar-cover-mute" />
+        <span className="yt-bar-cover-glass" />
+        <span className="yt-bar-cover-track" />
+      </div>
 
       {/* YouTube's "More videos": a thumbnail of another match's highlights. */}
       {!settings.showMoreVideos && <div className="yt-more-cover" aria-hidden="true" />}

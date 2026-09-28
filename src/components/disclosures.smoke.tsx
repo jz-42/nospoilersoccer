@@ -18,6 +18,7 @@ const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const appCss = readFileSync(new URL('../App.css', import.meta.url), 'utf8')
 const flagSource = readFileSync(new URL('./Flag.tsx', import.meta.url), 'utf8')
 const playerSource = readFileSync(new URL('./HighlightPlayer.tsx', import.meta.url), 'utf8')
+const titlebarSource = readFileSync(new URL('./PlayerTitlebar.tsx', import.meta.url), 'utf8')
 
 function googleCalendarDateTime(instant: string | Date, timeZone = localTimeZone) {
   const parts = new Intl.DateTimeFormat('en-US', {
@@ -206,32 +207,39 @@ assert(
 )
 const preRevealExperiment = renderMatch(experimentWithEntertainment)
 assert(
-  preRevealExperiment.includes('Worth Watching?'),
-  'pre-reveal experiment match includes the entertainment disclosure label',
+  preRevealExperiment.includes('class="match-peek-label">Worth watching?</span>'),
+  'pre-reveal match puts Worth watching? behind the ball',
 )
 assert(
-  !preRevealExperiment.includes('<p class="modal-disclosure-copy"><div'),
-  'entertainment disclosure content does not render invalid paragraph markup',
+  preRevealExperiment.includes('class="match-peek-label">Total goals</span>'),
+  'pre-reveal match puts the goal count behind the ball',
 )
 assert(
-  preRevealExperiment.includes('class="modal-disclosure-trigger"'),
-  'pre-reveal experiment match uses a dedicated disclosure trigger control',
+  preRevealExperiment.includes('class="match-peek is-card in-poster"') &&
+    preRevealExperiment.includes('class="poster-peek"'),
+  'with highlights, the ball rides the posters\' corner',
 )
 assert(
-  preRevealExperiment.includes('Total Goals'),
-  'pre-reveal experiment match includes the total-goals disclosure label',
+  /class="match-peek-verdict" aria-hidden="true"/.test(preRevealExperiment),
+  'pre-reveal entertainment summary stays hidden until asked for',
 )
 assert(
-  !preRevealExperiment.includes('Lively and open-feeling, with enough rhythm to sound more engaging than routine.'),
-  'pre-reveal entertainment summary copy is hidden by default',
+  !preRevealExperiment.includes('is-shown'),
+  'no peek starts shown',
 )
 assert(
-  !preRevealExperiment.includes('Entertainment rating'),
-  'pre-reveal entertainment rating content is hidden by default',
+  !preRevealExperiment.includes(hiddenGoalCountCopy) &&
+    preRevealExperiment.includes('class="match-peek-value">0</span>'),
+  'the goal count sits under a stand-in 0 until asked for',
 )
 assert(
-  !preRevealExperiment.includes(hiddenGoalCountCopy),
-  'pre-reveal total-goals disclosure content is hidden by default',
+  /class="reveal-btn is-frost modal-pre-reveal-cta"[^>]*>(?:<[^>]+>)*Reveal Result/.test(preRevealExperiment),
+  'Reveal Result is the frosted button',
+)
+assert(
+  !preRevealExperiment.includes('btn-primary modal-pre-reveal-cta') &&
+    !preRevealExperiment.includes('Reveals the score and team progression.'),
+  'the old green button and its hint are gone',
 )
 assert(
   /\.modal-close\s*\{[\s\S]*?width:\s*52px;[\s\S]*?height:\s*52px;/.test(appCss),
@@ -273,18 +281,6 @@ assert(
   /\.modal-close-compact\s*\{[\s\S]*?width:\s*44px;[\s\S]*?height:\s*44px;/.test(appCss),
   'no-highlight modals use a slightly smaller desktop close control',
 )
-assert(
-  /\.modal-pre-reveal-stack\s*\{[\s\S]*?gap:\s*10px;[\s\S]*?margin-top:\s*0;/.test(appCss),
-  'desktop pre-reveal stack uses tighter neutral spacing',
-)
-assert(
-  /\.modal-pre-reveal-cta\s*\{[\s\S]*?order:\s*2;[\s\S]*?margin-top:\s*0;/.test(appCss),
-  'desktop pre-reveal CTA returns below the disclosures',
-)
-assert(
-  /\.modal-pre-reveal-disclosures\s*\{[\s\S]*?order:\s*1;/.test(appCss),
-  'desktop disclosures sit above the pre-reveal CTA',
-)
 const noHighlightExperiment: GroupMatch = {
   ...experimentWithEntertainment,
   videos: undefined,
@@ -295,8 +291,8 @@ assert(
   'no-highlight ready modals use the compact close control',
 )
 assert(
-  /\.modal-disclosure-bar\s*\{[\s\S]*?padding:\s*9px 12px;/.test(appCss),
-  'disclosure bars use tighter vertical padding',
+  /class="modal-reveal-row"><div class="match-peek is-card"/.test(noHighlightPreReveal),
+  'without highlights, the ball sits in the sheet\'s own corner beside Reveal Result',
 )
 assert(
   /\.player-poster\s*\{[\s\S]*?min-height:\s*150px;/.test(appCss),
@@ -336,7 +332,7 @@ assert(
     /@supports\s*\(\(backdrop-filter:\s*blur\(1px\)\)\s*or\s*\(-webkit-backdrop-filter:\s*blur\(1px\)\)\)\s*\{\s*\.player-titlebar\s*\{[\s\S]*?background:\s*none;/.test(appCss) &&
     /\.player-titlebar-glass > span\s*\{[\s\S]*?backdrop-filter:\s*blur\(var\(--blur\)\);/.test(appCss) &&
     /\.player-titlebar-glass > span:nth-child\(1\)\s*\{\s*--blur:\s*24px;/.test(appCss) &&
-    /<span className="player-titlebar-glass" aria-hidden="true">\s*(<span \/>\s*){7}<\/span>/.test(playerSource),
+    /<span className="player-titlebar-glass" aria-hidden="true">\s*(<span \/>\s*){7}<\/span>/.test(titlebarSource),
   'the title shield is stepped progressive glass, strongest over the title line, with an opaque fallback',
 )
 assert(
@@ -351,7 +347,7 @@ assert(
   'the fullscreen control is a round glass disc, at least 44px, inside a larger corner hit area, with a glyph sized to the disc',
 )
 assert(
-  /<div className="player-titlebar">\s*<span[\s\S]*?<\/span>\s*<\/div>\s*<button[\s\S]*?className="player-expand"/.test(
+  /<PlayerTitlebar [^>]*\/>[\s\S]*?<button[\s\S]*?className="player-expand"/.test(
     playerSource,
   ),
   'the fullscreen control is a sibling after the title mask rather than inside it',
@@ -425,13 +421,22 @@ const revealedExperiment = renderMatch(experimentWithEntertainment, {
   marks: { [experimentWithEntertainment.id]: 'watched' },
 })
 assert(
-  !revealedExperiment.includes('Worth Watching?'),
-  'revealed experiment match hides the entertainment disclosure block',
+  !revealedExperiment.includes('modal-reveal-row') && !revealedExperiment.includes('Reveal Result'),
+  'revealed match drops the Reveal Result row',
 )
-assert(
-  !revealedExperiment.includes('Total Goals'),
-  'revealed experiment match hides the total-goals disclosure block',
-)
+// A revealed sheet keeps both sides equal. Dimming the loser in translucent
+// white let it take on the club colour under it (a pink 2 beside a white 3 on
+// Slavia–Lens), and widening the winner's field overpowered the other side.
+{
+  const sheetCss = ['../App.css', './SpoilerCovers.css']
+    .map((path) => readFileSync(new URL(path, import.meta.url), 'utf8'))
+    .join('\n')
+  assert(
+    !revealedExperiment.includes('data-won') &&
+      !/data-won|won-seam|\.modal-score\s*>\s*:first-child\s*>/.test(sheetCss),
+    'a revealed sheet styles the winner and the loser alike',
+  )
+}
 assert(
   !renderMatch(played2026, {
     ...emptyProgress,
@@ -498,7 +503,7 @@ assert(
   'delayed match modal shows delayed status',
 )
 assert(
-  !delayed2026Markup.includes('0–0'),
+  !delayed2026Markup.replace(/<[^>]*>/g, '').includes('0–0'),
   'delayed match modal does not show a score',
 )
 assert(
