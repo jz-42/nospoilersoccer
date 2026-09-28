@@ -1413,7 +1413,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-28",
       "kickoff": "2026-09-28T18:45Z",
       "home": "BEL",
-      "away": "FRA"
+      "away": "FRA",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861089",
