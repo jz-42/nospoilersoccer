@@ -938,7 +938,7 @@ function DaySwitcher({
     const el = target instanceof HTMLElement ? target : null
     return Boolean(
       el?.closest(
-        '.app-header, .day-carousel-window, .day-arrow, .day-jump-btn, .modal-backdrop, .dialog, .app-footer',
+        '.app-header, .menu-catcher, .day-carousel-window, .day-arrow, .day-jump-btn, .modal-backdrop, .dialog, .app-footer',
       ),
     )
   }
