@@ -761,19 +761,48 @@
       "kickoff": "2026-09-28T16:00Z"
     },
     "unl-401861076": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 3
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "MNE",
+          "player": "Erik Piloyan",
+          "minute": "20'",
+          "ownGoal": true
+        },
+        {
+          "team": "ARM",
+          "player": "Artur Serobyan",
+          "minute": "34'"
+        },
+        {
+          "team": "MNE",
+          "player": "Nikola Krstovic",
+          "minute": "38'"
+        },
+        {
+          "team": "ARM",
+          "player": "Eduard Spertsyan",
+          "minute": "65'"
+        },
+        {
+          "team": "MNE",
+          "player": "Aleksa Latkovic",
+          "minute": "89'"
+        }
+      ],
       "kickoff": "2026-09-28T16:00Z"
     },
     "unl-401861082": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [],
       "kickoff": "2026-09-28T16:00Z"
     },
     "unl-401861077": {

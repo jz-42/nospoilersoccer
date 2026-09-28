@@ -1309,9 +1309,38 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-28T16:00Z",
       "home": "ARM",
       "away": "MNE",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "MNE",
+          "player": "Erik Piloyan",
+          "minute": "20'",
+          "ownGoal": true
+        },
+        {
+          "team": "ARM",
+          "player": "Artur Serobyan",
+          "minute": "34'"
+        },
+        {
+          "team": "MNE",
+          "player": "Nikola Krstovic",
+          "minute": "38'"
+        },
+        {
+          "team": "ARM",
+          "player": "Eduard Spertsyan",
+          "minute": "65'"
+        },
+        {
+          "team": "MNE",
+          "player": "Aleksa Latkovic",
+          "minute": "89'"
+        }
+      ]
     },
     {
       "id": "unl-401861082",
@@ -1321,9 +1350,11 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-28T16:00Z",
       "home": "LVA",
       "away": "CYP",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861077",
