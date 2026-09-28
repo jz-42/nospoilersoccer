@@ -1025,6 +1025,8 @@
 }
 
 .modal-clock.is-compact {
+  top: 16px;
+  left: 16px;
   width: 44px;
   height: 44px;
 }
@@ -1187,9 +1189,12 @@
   }
 }
 
-@media (max-width: 640px) {
+/* The sheet's phone breakpoint, where Close grows to its phone size too. */
+@media (max-width: 760px) {
   .modal-clock,
   .modal-clock.is-compact {
+    top: 12px;
+    left: 12px;
     width: 54px;
     height: 54px;
   }

@@ -1698,8 +1698,8 @@
     linear-gradient(
       100deg in oklab,
       var(--home-1, #151c24) 0%,
-      var(--home-1, #151c24) 38%,
-      var(--away-1, #151c24) 62%,
+      var(--home-1, #151c24) 44%,
+      var(--away-1, #151c24) 56%,
       var(--away-1, #151c24) 100%
     );
 }
@@ -4234,14 +4234,39 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: var(--scrim-sheet);
-  -webkit-backdrop-filter: var(--scrim-sheet-fx);
-  backdrop-filter: var(--scrim-sheet-fx);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 28px 20px 30px;
+}
+
+/* The scrim is a layer of its own, so a swipe down on the sheet can ease it
+   off (MatchModal sets --scrim-drag) while the sheet itself stays solid. */
+.modal-backdrop::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--scrim-sheet);
+  -webkit-backdrop-filter: var(--scrim-sheet-fx);
+  backdrop-filter: var(--scrim-sheet-fx);
+  opacity: var(--scrim-drag, 1);
   transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: scrim-in 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.modal-backdrop.is-dragging::before {
+  transition: none;
+}
+
+/* The page dims and blurs in step with whatever is opening over it, rather
+   than all at once when the motion is over. */
+@keyframes scrim-in {
+  from {
+    background-color: transparent;
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
+  }
 }
 
 .modal {
@@ -4282,11 +4307,13 @@
    * deep at the foot — as an even wash that reaches the edges instead of
    * collecting in them.
    *
-   * The seam leans (98°) and sits left of centre (44%). A vertical seam
-   * reads as two flags stitched together; a leaning one reads as light
+   * The seam leans (98°) and sits just left of centre (48%). A vertical
+   * seam reads as two flags stitched together; a leaning one reads as light
    * falling across one piece of cloth. The offset keeps the away crest
    * clear of the blend at the top of a tall sheet, where the lean pushes
-   * the seam right.
+   * the seam right. The melt is narrow, 14% of the width: over 28%, two
+   * opposite colours passed through grey on the way (Greece and the
+   * Netherlands met in mauve, Lille and Betis in brown).
    *
    * Bottom of the stack upward: the wash, each side's deep pool rising from
    * its bottom corner, each side's accent cap, each side's lead behind its
@@ -4348,13 +4375,16 @@
     linear-gradient(
       98deg in oklab,
       color-mix(in srgb, var(--home-1, transparent) 94%, transparent) 0%,
-      color-mix(in srgb, var(--home-1, transparent) 80%, transparent) 30%,
-      color-mix(in srgb, var(--away-1, transparent) 80%, transparent) 58%,
+      color-mix(in srgb, var(--home-1, transparent) 80%, transparent) 41%,
+      color-mix(in srgb, var(--away-1, transparent) 80%, transparent) 55%,
       color-mix(in srgb, var(--away-1, transparent) 94%, transparent) 100%
     );
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 18px;
-  padding: 24px 28px 14px;
+  /* The top pad puts the round caption on the line through Close and the
+     Watch Later clock, like a title between a nav bar's buttons, so the
+     header reads as one row rather than two buttons above a heading. */
+  padding: 29px 28px 14px;
   box-shadow:
     var(--shadow-lg),
     inset 0 1px 0 rgba(255, 255, 255, 0.16);
@@ -4372,42 +4402,160 @@
   }
 }
 
+/* ---- Grow from the card (sheet-morph.ts)
+
+   The card's picture and then the sheet are both named `match-sheet` inside
+   a view transition, so the browser morphs one box into the other: the card
+   becomes the top of the sheet and the sheet grows down out of it. Clipped to
+   the moving box, so the sheet is revealed rather than stretched, and the
+   clip's corners turn from the picture's into the sheet's on the way.
+   Closing runs it backwards into the card. */
+:root {
+  --morph-from-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  --morph-to-radius: 18px;
+}
+
+::view-transition-group(match-sheet) {
+  animation-duration: 0.42s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-image-pair(match-sheet) {
+  overflow: clip;
+  border-radius: var(--morph-to-radius);
+  animation: morph-corners-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* No crossfade, which lets the page show through halfway and doubles the
+   crests. What's arriving sits whole underneath from the first frame; what's
+   leaving lies on top and lifts away. */
+::view-transition-old(match-sheet) {
+  z-index: 1;
+  mix-blend-mode: normal;
+  animation: morph-lift 0.16s ease-out both;
+}
+
+::view-transition-new(match-sheet) {
+  mix-blend-mode: normal;
+  animation: none;
+}
+
+html[data-morph='close']::view-transition-group(match-sheet) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+html[data-morph='close']::view-transition-image-pair(match-sheet) {
+  animation: morph-corners-out 0.34s cubic-bezier(0.3, 0.9, 0.3, 1) both;
+}
+
+html[data-morph='close']::view-transition-old(match-sheet) {
+  animation-duration: 0.12s;
+}
+
+/* Nothing to go back into (it opened from a bracket slot, or its card has
+   scrolled away): the sheet drops out the way it came in. */
+html[data-morph='drop']::view-transition-image-pair(match-sheet) {
+  overflow: visible;
+  animation: none;
+}
+
+html[data-morph='drop']::view-transition-old(match-sheet) {
+  animation: sheet-drop 0.22s cubic-bezier(0.3, 0.9, 0.3, 1) both;
+}
+
+/* The page behind. Opening, it's the live one from the first frame, so the
+   backdrop's scrim-in plays on it as the sheet grows. Closing, the old page,
+   blur and all, lies on top of the live one and fades as the sheet shrinks. */
+html[data-morph='open']::view-transition-old(root) {
+  animation: none;
+  opacity: 0;
+}
+
+html[data-morph]::view-transition-new(root) {
+  animation: none;
+}
+
+html[data-morph='close']::view-transition-old(root),
+html[data-morph='drop']::view-transition-old(root) {
+  z-index: 1;
+  mix-blend-mode: normal;
+  animation: morph-lift 0.34s cubic-bezier(0.3, 0.9, 0.3, 1) both;
+}
+
+@keyframes morph-corners-in {
+  from {
+    border-radius: var(--morph-from-radius);
+  }
+}
+
+@keyframes morph-corners-out {
+  to {
+    border-radius: var(--morph-from-radius);
+  }
+}
+
+@keyframes morph-lift {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-drop {
+  to {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+  }
+}
+
 .modal-close {
+  /* Dark neutral glass with no saturation boost, so it never turns into a
+     bright disc of the colour under it (white glass that boosted went
+     orange over the Dutch side). A size down from the Watch Later clock's
+     tap target opposite, on the same centre, so the two glyphs share a line
+     and an inset. The ring is an inset shadow, not a border: Firefox flashes
+     a cross through translucent borders on round buttons. */
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 52px;
-  height: 52px;
+  top: 15px;
+  right: 15px;
+  width: 46px;
+  height: 46px;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.85);
+  border: 0;
+  background: rgba(8, 11, 16, 0.24);
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 4px 14px rgba(0, 0, 0, 0.22);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 10px rgba(0, 0, 0, 0.14);
   transition:
     background 150ms ease,
-    border-color 150ms ease,
+    box-shadow 150ms ease,
     color 150ms ease,
     transform 120ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .modal-close-compact {
-  width: 44px;
-  height: 44px;
+  top: 18px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
 }
 
 .modal-close:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(8, 11, 16, 0.34);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 10px rgba(0, 0, 0, 0.14);
 }
 
 .modal-close:active {
@@ -4415,8 +4563,8 @@
 }
 
 .modal-close-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   stroke: currentColor;
   stroke-width: 2.2;
   stroke-linecap: round;
@@ -6238,7 +6386,8 @@
     border-left: none;
     border-right: none;
     border-bottom: none;
-    --sheet-pad-top: 52px;
+    /* Caption on the button line here too (see .modal). */
+    --sheet-pad-top: 30px;
     --sheet-pad-x: 18px;
     padding: var(--sheet-pad-top) var(--sheet-pad-x) calc(24px + env(safe-area-inset-bottom));
     box-shadow: none;
@@ -6295,42 +6444,22 @@
     background: #6fd29a;
   }
 
-  .modal-close {
-    top: 12px;
-    right: 12px;
-    width: 54px;
-    height: 54px;
-    padding: 0;
-    background: rgba(120, 120, 128, 0.32);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 50%;
-    color: rgba(235, 235, 245, 0.78);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.07),
-      0 10px 24px rgba(0, 0, 0, 0.22);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition:
-      background 150ms ease,
-      color 150ms ease,
-      transform 120ms cubic-bezier(0.32, 0.72, 0, 1);
+  .modal-close,
+  .modal-close-compact {
+    top: 15px;
+    right: 15px;
+    width: 48px;
+    height: 48px;
   }
 
   .modal-close-icon {
-    width: 22px;
-    height: 22px;
-  }
-
-  .modal-close:hover,
-  .modal-close:focus-visible {
-    background: rgba(120, 120, 128, 0.42);
-    color: #fff;
+    width: 20px;
+    height: 20px;
   }
 
   .modal-close:active {
     transform: scale(0.92);
-    background: rgba(120, 120, 128, 0.5);
+    background: rgba(8, 11, 16, 0.42);
   }
 
   .modal-hide-result {
@@ -6344,6 +6473,9 @@
 
   .modal-context {
     margin-bottom: 16px;
+    /* The date line runs level with the bottom of the two buttons; keep it
+       clear of them on a narrow phone. */
+    padding-inline: 50px;
   }
 
   .modal-hint {
@@ -6411,5 +6543,23 @@
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  /* The sheet runs to the bottom edge, so only its top corners are round. */
+  :root {
+    --morph-to-radius: 18px 18px 0 0;
+  }
+
+  html[data-morph='drop']::view-transition-old(match-sheet) {
+    animation-name: sheet-drop-mobile;
+  }
+}
+
+@keyframes sheet-drop-mobile {
+  to {
+    transform: translateY(24px);
+    opacity: 0;
   }
 }

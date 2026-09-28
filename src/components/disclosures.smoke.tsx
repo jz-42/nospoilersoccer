@@ -242,32 +242,37 @@ assert(
   'the old green button and its hint are gone',
 )
 assert(
-  /\.modal-close\s*\{[\s\S]*?width:\s*52px;[\s\S]*?height:\s*52px;/.test(appCss),
-  'desktop modal close control is substantially larger',
+  /\.modal-close\s*\{[\s\S]*?width:\s*46px;[\s\S]*?height:\s*46px;/.test(appCss),
+  'desktop modal close is a size down from the Watch Later clock opposite',
 )
 assert(
-  /\.modal\s*\{[\s\S]*?padding:\s*24px 28px 14px;/.test(appCss),
-  'desktop modal uses tighter vertical padding',
+  /\.modal-close\s*\{[^}]*?backdrop-filter:\s*blur\(14px\);/.test(appCss) &&
+    !/\.modal-close\s*\{[^}]*?saturate/.test(appCss),
+  'the close is neutral glass that never boosts the club colour under it',
+)
+assert(
+  /\.modal\s*\{[\s\S]*?padding:\s*29px 28px 14px;/.test(appCss),
+  'desktop sheet pads its top so the round caption sits on the button line',
 )
 assert(
   !preRevealExperiment.includes('class="modal-close modal-close-compact"'),
   'highlight-ready modals keep the larger desktop close control',
 )
 assert(
-  /\.modal-close-icon\s*\{[\s\S]*?width:\s*20px;[\s\S]*?height:\s*20px;/.test(appCss),
-  'desktop modal close icon scales with the larger close control',
+  /\.modal-close-icon\s*\{[\s\S]*?width:\s*18px;[\s\S]*?height:\s*18px;/.test(appCss),
+  'desktop modal close icon scales with the close control',
 )
 assert(
-  /@media \(max-width: 760px\)\s*\{[\s\S]*?\.modal-close\s*\{[\s\S]*?width:\s*54px;[\s\S]*?height:\s*54px;/.test(
+  /@media \(max-width: 760px\)\s*\{[\s\S]*?\.modal-close,\s*\.modal-close-compact\s*\{[\s\S]*?width:\s*48px;[\s\S]*?height:\s*48px;/.test(
     appCss,
   ),
-  'mobile modal close control stays larger while backing off from the oversized tap target',
+  'mobile modal close control is one size for every sheet',
 )
 assert(
-  /@media \(max-width: 760px\)\s*\{[\s\S]*?\.modal-close-icon\s*\{[\s\S]*?width:\s*22px;[\s\S]*?height:\s*22px;/.test(
+  /@media \(max-width: 760px\)\s*\{[\s\S]*?\.modal-close-icon\s*\{[\s\S]*?width:\s*20px;[\s\S]*?height:\s*20px;/.test(
     appCss,
   ),
-  'mobile modal close icon scales with the slightly reduced tap target',
+  'mobile modal close icon scales with the mobile close control',
 )
 assert(
   /\.day-rail\.is-swipe-transitioning\s+\.preview-card\s*\{[\s\S]*?transition:\s*none;/.test(appCss),
@@ -278,9 +283,40 @@ assert(
   'mobile swipe transition disables day-label animation during day changes',
 )
 assert(
-  /\.modal-close-compact\s*\{[\s\S]*?width:\s*44px;[\s\S]*?height:\s*44px;/.test(appCss),
+  /\.modal-close-compact\s*\{[\s\S]*?width:\s*40px;[\s\S]*?height:\s*40px;/.test(appCss),
   'no-highlight modals use a slightly smaller desktop close control',
 )
+// Close and the Watch Later clock sit in the two top corners of the sheet on
+// one centre, so the two glyphs share a line and an inset at every size.
+{
+  const coversCss = readFileSync(new URL('./SpoilerCovers.css', import.meta.url), 'utf8')
+  const rule = (css: string, selector: string, from = 0) =>
+    css.slice(from).match(new RegExp(`\\n\\s*${selector.replace(/\./g, '\\.')}\\s*\\{([^}]*)\\}`))?.[1] ?? ''
+  const px = (body: string, prop: string) => Number(body.match(new RegExp(`\\s${prop}:\\s*(\\d+)px`))?.[1] ?? NaN)
+  // A variant rule inherits whatever it doesn't set from the base rule.
+  const centre = (base: string, variant: string) => {
+    const top = Number.isNaN(px(variant, 'top')) ? px(base, 'top') : px(variant, 'top')
+    const width = Number.isNaN(px(variant, 'width')) ? px(base, 'width') : px(variant, 'width')
+    return top + width / 2
+  }
+  const close = rule(appCss, '.modal-close')
+  const clock = rule(coversCss, '.modal-clock')
+  const phoneClose = rule(appCss, '.modal-close,\n  .modal-close-compact')
+  const phoneClock = rule(coversCss, '.modal-clock,\n  .modal-clock.is-compact', coversCss.indexOf('@media (max-width: 760px)'))
+  assert(
+    centre(close, '') === centre(clock, '') &&
+      centre(close, rule(appCss, '.modal-close-compact')) === centre(clock, rule(coversCss, '.modal-clock.is-compact')),
+    'the close and the Watch Later clock share a centre on desktop',
+  )
+  assert(
+    centre(close, '') === centre(close, rule(appCss, '.modal-close-compact')),
+    'a sheet without highlights keeps its smaller buttons on the same line as the caption',
+  )
+  assert(
+    centre(close, phoneClose) === centre(clock, phoneClock) && !Number.isNaN(centre(close, phoneClose)),
+    'the close and the Watch Later clock share a centre on a phone',
+  )
+}
 const noHighlightExperiment: GroupMatch = {
   ...experimentWithEntertainment,
   videos: undefined,

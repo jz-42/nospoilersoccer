@@ -45,6 +45,7 @@ import {
   type View,
 } from './navigation'
 import { useProgress } from './state/progress'
+import { closeSheet, openSheet } from './sheet-morph'
 
 const TOURNAMENT_KEY = 'nss-tournament'
 const ONBOARDED_KEY = 'nss-onboarded'
@@ -437,7 +438,7 @@ function TournamentApp({
     analytics.viewChanged({ view })
   }, [view])
   const [modal, setModal] = useState<{ tournament: Tournament; target: ModalTarget } | null>(null)
-  const openCurrentMatch = (target: ModalTarget) => setModal({ tournament: t, target })
+  const openCurrentMatch = (target: ModalTarget) => openSheet(() => setModal({ tournament: t, target }))
   const [confirmReset, setConfirmReset] = useState(false)
   const [confirmCatchUp, setConfirmCatchUp] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState<boolean>(() => {
@@ -525,7 +526,7 @@ function TournamentApp({
           <WatchLater
             t={t}
             progress={progress}
-            onOpen={(tournament, target) => setModal({ tournament, target })}
+            onOpen={(tournament, target) => openSheet(() => setModal({ tournament, target }))}
             covered={modal !== null}
           />
 
@@ -556,7 +557,7 @@ function TournamentApp({
           t={modal.tournament}
           target={modal.target}
           progress={progress.forTournament(modal.tournament)}
-          onClose={() => setModal(null)}
+          onClose={() => closeSheet(() => setModal(null))}
         />
       )}
       {confirmReset && (
