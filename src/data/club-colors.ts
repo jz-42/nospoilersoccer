@@ -18,15 +18,15 @@ import type { TeamId } from './types'
  *    Real Madrid, Spurs, Fulham, Leeds, Valencia, Rayo, Racing, LASK, RB
  *    Leipzig and Stuttgart all lead with a pale platinum given a cast (cool
  *    for Spurs and Real, warm-neutral for Fulham and Valencia) and are told
- *    apart by their cap, not their field. That is the same move the national
- *    table makes with `#c0c6d2` for England's and Denmark's white.
+ *    apart by their cap, not their field. The national table does the same
+ *    for the nations that play in white, England and Germany among them.
  *
  * 3. **Pile-ups.** The Premier League has six red clubs and five blue ones;
  *    La Liga has six blue-and-white sides. Hue alone cannot separate them
  *    inside this narrow register, so separation is carried by (a) small
  *    luminance steps along a deliberate red ramp and blue ramp, (b) distinct
- *    accents, and (c) the collision rule in `matchTint`, which is exactly the
- *    Spain–Austria case at club scale. Pairwise is what the modal shows, and
+ *    accents, and (c) the clash rule in `matchTint`, the same one that sends
+ *    Austria to white against Spain. Pairwise is what the modal shows, and
  *    pairwise is what was checked: Manchester, Merseyside, North London,
  *    Tyne–Wear, El Clásico, both Madrid clubs, Seville, Basque.
  *
@@ -34,19 +34,20 @@ import type { TeamId } from './types'
  *    caps, never bands — that is the rule the national table sets, and it is
  *    why Atlético's stripes and Barcelona's stripes cannot meet and produce
  *    plaid. But which cap is which turns out to matter too, and this one is
- *    not cosmetic. `matchTint` resolves a collision by scoring every
- *    lead/accent combination on ΔE, so an accent is not decoration — it is the
- *    colour a club actually wears whenever it meets a near neighbour. A first
- *    pass gave some of the reds near-black or navy caps, and the effect was
- *    that a light-capped side meeting a dark-capped one scored best when
- *    *both* swapped: Arsenal v Bournemouth came out silver against black,
- *    Bayern v Liverpool blue against gold, Inter v Porto black against silver.
- *    Neither club was on the screen any more. The national table avoids this
- *    the same way — Germany's black is a `deep`, never an accent — so within
- *    the reds every dark second colour moved to `deep`, and the white cap is
- *    one shared `#c9cfda` so ties break cleanly to the home side rather than
- *    by hex ordering. Dark caps survive only where the club's lead is nowhere
- *    near another club's: the yellow-and-black and white-and-black sides
+ *    not cosmetic. `matchTint` resolves a clash by trying every lead, cap and
+ *    away kit and keeping the cheapest pair that reads as two colours, so an
+ *    accent is not decoration — it is the colour a club actually wears
+ *    whenever it meets a near neighbour. A first pass gave some of the reds
+ *    near-black or navy caps, and the effect was that a light-capped side
+ *    meeting a dark-capped one scored best when *both* swapped: Arsenal v
+ *    Bournemouth came out silver against black, Bayern v Liverpool blue
+ *    against gold, Inter v Porto black against silver. Neither club was on
+ *    the screen any more. The national table avoids this the same way —
+ *    Germany's black is a `deep`, never an accent — so within the reds every
+ *    dark second colour moved to `deep`, and the white cap is one shared
+ *    `#c9cfda` so ties break cleanly to the home side rather than by hex
+ *    ordering. Dark caps survive only where the club's lead is nowhere near
+ *    another club's: the yellow-and-black and white-and-black sides
  *    (Dortmund, Bodø/Glimt, Hull, AEK, LASK, Shakhtar, Fulham, Sabah), where
  *    black really is the second colour and no pile-up can reach it.
  *
@@ -149,10 +150,10 @@ export const clubColors: Record<
   psv: ['#d0402f', '#c9cfda'], // more orange than Feyenoord's red
   'rb-leipzig': ['#c9cfdc', '#cf3646'], // RB red runs crimson, not scarlet
   roma: ['#912c34', '#d8b447'], // giallorossi
-  // The Pink-Blacks. Leading pink rather than black: the badge is equally
-  // both, Newcastle already holds the one monochrome slot, and a charcoal side
-  // reads as "no team" against the panel.
-  sabah: ['#c05fae', '#23262c'],
+  // The Pink-Blacks. Leading pink, the badge's fuchsia, rather than black: the
+  // badge is equally both, Newcastle already holds the one monochrome slot,
+  // and a charcoal side reads as "no team" against the panel.
+  sabah: ['#c23a95', '#23262c'],
   shakhtar: ['#dd7a33', '#22252b'],
   'slavia-prague': ['#c93542', '#c9cfda'],
   'slovan-bratislava': ['#4f96d8', '#c9cfda'],
