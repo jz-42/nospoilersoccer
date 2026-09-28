@@ -364,16 +364,22 @@
    swallows its dismissing click. Nothing is painted: a dropdown doesn't step
    the page back (see the backdrop ladder in index.css). Driven by the
    dropdowns' own open classes, so no component has to tell the app a menu
-   is up. */
+   is up.
+   It outlives the dropdown by a beat. The season picker and the menu close
+   on pointerdown, which hides the catcher before the tap's click fires, and
+   on touch that click is hit-tested only after the finger lifts — so it
+   would land on the card after all. */
 .menu-catcher {
   position: fixed;
   inset: 0;
   z-index: 19;
-  display: none;
+  visibility: hidden;
+  transition: visibility 0s linear 0.4s;
 }
 
 .app:has(.season-picker.is-open, .fav-root.is-open, .menu-root.is-open) > .menu-catcher {
-  display: block;
+  visibility: visible;
+  transition: none;
 }
 
 /* ============ header menu ============ */
