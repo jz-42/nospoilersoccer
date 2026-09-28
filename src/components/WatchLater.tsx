@@ -105,6 +105,8 @@ export function WatchLater({
   covered: boolean
 }) {
   const [open, setOpen] = useState(false)
+  // The centre of the clock, so the queue opens out of the button you pressed.
+  const [origin, setOrigin] = useState<string | undefined>()
   const [otherTournaments, setOtherTournaments] = useState<Record<string, Tournament | null>>({})
   const ids = progress.allPinOrder
 
@@ -191,7 +193,11 @@ export function WatchLater({
         className={`clock-btn ${ids.length > 0 ? 'has-queue' : ''}`}
         aria-label={ids.length > 0 ? `Watch Later (${ids.length})` : 'Watch Later'}
         title="Watch Later"
-        onClick={() => setOpen(true)}
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect()
+          setOrigin(`${Math.round(r.left + r.width / 2)}px ${Math.round(r.top + r.height / 2)}px`)
+          setOpen(true)
+        }}
       >
         <ClockIcon size={17} />
       </button>
@@ -209,6 +215,7 @@ export function WatchLater({
             progress={progress}
             onOpen={onOpen}
             onClose={close}
+            origin={origin}
           />,
           document.body,
         )}
@@ -262,6 +269,7 @@ function QueueOverlay({
   progress,
   onOpen,
   onClose,
+  origin,
 }: {
   ids: readonly string[]
   entries: Map<string, SavedEntry>
@@ -269,6 +277,8 @@ function QueueOverlay({
   progress: Progress
   onOpen: (tournament: Tournament, target: ModalTarget) => void
   onClose: () => void
+  /** Where the queue opens out of: the clock's centre, in the viewport. */
+  origin?: string
 }) {
   const [drag, setDrag] = useState<Drag | null>(null)
   // Cards by match id, and the two headings — everything the drop and a
@@ -595,6 +605,7 @@ function QueueOverlay({
       role="dialog"
       aria-modal="true"
       aria-label="Watch Later"
+      style={origin ? { transformOrigin: origin } : undefined}
       onPointerDown={onBackdropPointerDown}
       onClick={onBackdropClick}
     >

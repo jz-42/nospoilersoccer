@@ -62,10 +62,8 @@
 }
 
 .seg-btn {
+  /* Positioned, so it paints over the thumb that slides under it. */
   position: relative;
-  /* The active thumb is a z-index:-1 pseudo-element; without a stacking
-     context here it would paint under the track's own background. */
-  isolation: isolate;
   border: none;
   background: transparent;
   color: var(--muted);
@@ -94,15 +92,27 @@
   font-weight: 600;
 }
 
-/* A pseudo-element so the label is never a child of the fill, which keeps the
-   thumb's colour transition from dragging the text with it. */
-.seg-btn.active::before {
-  content: '';
+/* One thumb for the whole control, placed over the active button by App.tsx
+   (--thumb-x, --thumb-w), so picking a view slides it across on the shared
+   spring. It's a separate element under the labels, so the fill never drags
+   the text with it. It only starts animating once it has been placed, so a
+   page load doesn't show it sliding in from the corner. */
+.seg-thumb {
   position: absolute;
-  inset: 0;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  width: var(--thumb-w, 0);
+  transform: translateX(var(--thumb-x, 0));
   border-radius: 7px;
   background: var(--control-hover);
-  z-index: -1;
+  pointer-events: none;
+}
+
+.seg.is-ready .seg-thumb {
+  transition:
+    transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.38s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ============ season picker ============ */
@@ -182,6 +192,10 @@
   top: calc(100% + 8px);
   left: 0;
   z-index: 40;
+  /* Its own width, not whatever room is left right of the trigger (on a
+     phone that squeezed the names onto two lines); SeasonPicker slides it
+     back on screen if that runs off the edge. */
+  width: max-content;
   min-width: 196px;
   padding: 5px;
   border-radius: 13px;
@@ -293,7 +307,9 @@
   background: linear-gradient(90deg, var(--accent-deep), var(--accent));
   border-radius: 999px;
   box-shadow: 0 0 8px rgba(61, 220, 132, 0.5);
-  transition: width 0.4s ease;
+  /* Eases out to its new length on the shared spring. After a catch-up it
+     runs a touch longer, alongside the scores rippling in. */
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Same flat surface as .btn-ghost — see there for why it isn't see-through.
@@ -1418,7 +1434,7 @@
  * else.
  *
  *   host background   the identity field (per-surface: .modal, .preview-media)
- *   .match-fabric     the grain — `--grain`, still
+ *   .match-fabric     the frosted grain — `--grain`, still
  *   ::before          the light — two key lobes, a shadow lobe and a sweep
  *   ::after, > span   the folds — two band sets drifting at different speeds
  *
@@ -1679,6 +1695,51 @@
   /* Brighter, and the only card whose cloth moves: it's the one inviting
      you in. */
   --fabric-strength: 0.36;
+}
+
+/* The hover light (a mouse only). A soft light leans toward the pointer over
+   the card you're on. It's faint on purpose: the lift is the thing you
+   notice, and the light is what you'd miss if it went. It's a round lobe 1.2
+   cards wide, centred on (--mx, --my), which PreviewCard sets from the
+   pointer. The cloth is left as it is: turning the fabric up on hover made
+   its grain flare. */
+@media (hover: hover) and (pointer: fine) {
+  .preview-media {
+    overflow: clip;
+  }
+
+  .preview-media::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: -60%;
+    top: -106.67%;
+    width: 120%;
+    height: 213.33%;
+    background: radial-gradient(
+      closest-side,
+      rgba(255, 255, 255, 0.2),
+      rgba(255, 255, 255, 0.075) 48%,
+      transparent
+    );
+    mix-blend-mode: soft-light;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(calc(var(--mx, 0.5) * 83.333%), calc(var(--my, 0.5) * 46.875%));
+    transition:
+      opacity 0.35s ease,
+      transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .preview-card:hover .preview-media::after {
+    opacity: 1;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
+  .preview-media::after {
+    transition: opacity 0.35s ease;
+  }
 }
 
 /* Per-team identity tint. Each club owns its half in its own colour at full
@@ -3903,6 +3964,25 @@
   border-radius: 14px;
   padding: 12px;
   box-shadow: var(--shadow-lg);
+  /* Opens from the heart, on the same spring as the other header menus. */
+  transform-origin: top right;
+  animation: picker-in 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* A long list fades into the panel at its foot instead of being cut off
+   mid-row. The fade is sticky to the bottom of the scrollport (the offset is
+   negative because sticky measures from inside the padding), and it adds a
+   little room after the last team, so scrolled to the end nothing is under
+   it. */
+.fav-panel::after {
+  content: '';
+  position: sticky;
+  bottom: -12px;
+  display: block;
+  height: 30px;
+  margin: 0 -12px -12px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--panel) 0%, transparent), var(--panel) 90%);
+  pointer-events: none;
 }
 
 /* A drag must not scroll the list under the row you are holding. */
@@ -4462,6 +4542,19 @@ html[data-morph='drop']::view-transition-image-pair(match-sheet) {
 
 html[data-morph='drop']::view-transition-old(match-sheet) {
   animation: sheet-drop 0.22s cubic-bezier(0.3, 0.9, 0.3, 1) both;
+}
+
+/* Out of a button, the label keeps its size, centred in the growing capsule,
+   and is gone in a blink, rather than stretching to the dialog's width. */
+html[data-morph-button][data-morph='open']::view-transition-old(match-sheet),
+html[data-morph-button][data-morph='close']::view-transition-new(match-sheet) {
+  width: 100%;
+  height: 100%;
+  object-fit: none;
+}
+
+html[data-morph-button][data-morph='open']::view-transition-old(match-sheet) {
+  animation-duration: 0.09s;
 }
 
 /* The page behind. Opening, it's the live one from the first frame, so the
@@ -5601,75 +5694,216 @@ html[data-morph='drop']::view-transition-old(root) {
 
 /* ============ dialogs & onboarding ============ */
 
-/* Dialogs and onboarding ride the new material language: translucent frosted
-   panels over the dimmed page instead of opaque old-pass slabs. (The tint
-   vars are unset here, so the modal's gradient stack resolves transparent —
-   only the glass shows.) */
-.modal.dialog,
-.modal.onboarding {
-  background-color: rgba(24, 31, 40, 0.68);
-  -webkit-backdrop-filter: blur(26px) saturate(1.35);
-  backdrop-filter: blur(26px) saturate(1.35);
-  border-color: rgba(255, 255, 255, 0.13);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), var(--shadow-lg);
+/*
+ * Dialogs are frosted glass over the dimmed page, drawn after iOS 26's
+ * alerts and Apple's welcome sheets: big soft corners, a light that comes
+ * from the top like the match sheet's, the sheet's frosted grain so the glass
+ * reads as a material rather than a flat tint, and capsule buttons. A
+ * dialog's tint vars are unset, so the modal's gradient stack resolves
+ * transparent and only this shows.
+ *
+ * Compact and centred everywhere. On a phone a question is still an alert,
+ * not a full-height sheet (see the responsive section).
+ */
+.dialog-backdrop {
+  align-items: center;
+  justify-content: center;
 }
 
-.dialog {
-  width: min(420px, 100%);
+.modal.dialog {
+  --dialog-light: rgba(255, 255, 255, 0.07);
+  width: min(340px, 100%);
+  padding: 26px 22px 22px;
+  border-radius: 28px;
   text-align: center;
+  background: rgba(22, 28, 37, 0.74);
+  -webkit-backdrop-filter: blur(30px) saturate(1.4);
+  backdrop-filter: blur(30px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 30px 90px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* The light and the grain, under the content. The light is the dialog's own
+   tone (green for a reveal, red for a reset, the brand green on the
+   welcome) rising from behind the glyph, so each dialog is lit by what it's
+   about. */
+.modal.dialog::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(90% 55% at 50% -8%, var(--dialog-light), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 40%);
+  pointer-events: none;
+}
+
+.modal.dialog::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--grain) 0 0 / 160px 160px repeat;
+  mix-blend-mode: soft-light;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.modal.dialog.confirm {
+  --dialog-light: rgba(61, 220, 132, 0.13);
+}
+
+.modal.dialog.confirm.is-danger {
+  --dialog-light: rgba(229, 83, 75, 0.14);
+}
+
+.dialog-icon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  color: var(--accent);
+  background: rgba(61, 220, 132, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(61, 220, 132, 0.18);
+}
+
+.dialog-icon-reset {
+  color: #f08a84;
+  background: rgba(229, 83, 75, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(229, 83, 75, 0.2);
 }
 
 .dialog-title {
   font-size: 18px;
-  letter-spacing: -0.015em;
-  margin-bottom: 10px;
+  font-weight: 680;
+  letter-spacing: -0.018em;
+  line-height: 1.25;
+  color: var(--text-h);
+  margin: 0 0 7px;
+  text-wrap: balance;
 }
 
 .dialog-body {
   font-size: 13.5px;
-  color: var(--muted);
-  line-height: 1.55;
-  margin-bottom: 20px;
+  line-height: 1.5;
+  color: rgba(226, 233, 242, 0.66);
+  margin: 0 0 22px;
+  text-wrap: pretty;
 }
 
 .dialog-actions {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
-/* onboarding has its own tighter width + extra bottom room for the corner
-   disclosure links that sit pinned to the modal's bottom edge */
-.modal.onboarding {
-  width: min(396px, 100%);
-  padding: 34px 30px 52px;
-  text-align: center;
+/* A capsule. Cancel is plain glass; the action is filled, green to reveal
+   and red to throw away. */
+.dialog-btn {
+  height: 44px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* the brand mark as an app icon: the mascot set in a soft round
-   tile with a thin ring and a faint accent glow */
+.dialog-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.dialog-btn:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.dialog-btn.is-primary {
+  background: var(--accent-deep);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.dialog-btn.is-primary:hover {
+  background: #23b268;
+}
+
+.dialog-btn.is-primary:active {
+  background: #18854c;
+}
+
+.dialog-btn.is-danger {
+  background: #c4483f;
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.dialog-btn.is-danger:hover {
+  background: #d4554d;
+}
+
+.dialog-btn.is-danger:active {
+  background: #a63a33;
+}
+
+.dialog-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 2px;
+}
+
+/* ---- The welcome */
+
+.modal.dialog.onboarding {
+  --dialog-light: rgba(61, 220, 132, 0.1);
+  width: min(404px, 100%);
+  padding: 30px 30px 18px;
+}
+
+/* The mascot stands on the glass with a soft pool of brand light behind it,
+   the way an app icon heads Apple's welcome sheets. */
 .onboarding-badge {
-  width: 68px;
-  height: 68px;
-  margin: 0 auto 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20px;
-  background: linear-gradient(160deg, var(--bg-raised), var(--panel));
-  border: 1px solid var(--border-strong);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 10px 26px rgba(0, 0, 0, 0.4),
-    0 0 22px var(--accent-soft);
+  position: relative;
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 14px;
+}
+
+.onboarding-badge::before {
+  content: '';
+  position: absolute;
+  inset: -22px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(61, 220, 132, 0.16), transparent);
+}
+
+.onboarding-badge img {
+  display: block;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45));
 }
 
 .onboarding-title {
-  font-size: 23px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 25px;
+  font-weight: 720;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
   color: var(--text-h);
-  margin-bottom: 22px;
+  margin: 0 0 24px;
 }
 
 .onboarding-list {
@@ -5678,50 +5912,102 @@ html[data-morph='drop']::view-transition-old(root) {
   margin: 0 0 26px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  font-size: 13.5px;
-  color: var(--text);
-  line-height: 1.45;
+  gap: 18px;
   text-align: left;
 }
 
 .onboarding-list li {
-  position: relative;
-  padding-left: 24px;
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 15px;
+  align-items: start;
 }
 
-.onboarding-list li::before {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 6px;
-  width: 6px;
-  height: 6px;
+.onboarding-glyph {
+  color: var(--accent);
+  margin-top: 1px;
+}
+
+.onboarding-list strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+  color: var(--text-h);
+  line-height: 1.35;
+}
+
+.onboarding-list span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(226, 233, 242, 0.64);
+}
+
+.onboarding-go {
+  width: 100%;
+  height: 48px;
+  font-size: 15px;
+}
+
+/* The small print, one quiet line under the button. */
+.onboarding-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.onboarding-links-dot {
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent-soft);
+  background: rgba(226, 233, 242, 0.3);
 }
 
-/* shared reveal for the corner disclosures — a centered card that fades up
-   into the reserved space above the pinned links */
+.onboarding-disclosure-link {
+  border: 0;
+  background: transparent;
+  padding: 4px 2px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 520;
+  color: rgba(226, 233, 242, 0.5);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.onboarding-disclosure-link:hover {
+  color: rgba(226, 233, 242, 0.85);
+}
+
+.onboarding-disclosure-link[aria-expanded='true'] {
+  color: var(--text-h);
+}
+
+.onboarding-disclosure-link:focus-visible {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
 .onboarding-disclosure-panel {
   display: flex;
   justify-content: center;
-  min-height: 0;
-  margin-top: 16px;
 }
 
 .onboarding-disclosure-content {
-  max-width: 320px;
-  padding: 10px 14px;
-  color: var(--muted);
-  font-size: 11px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  color: rgba(226, 233, 242, 0.62);
+  font-size: 11.5px;
   line-height: 1.55;
-  text-align: center;
-  background: rgba(154, 173, 203, 0.04);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  animation: onboarding-disclosure-in 0.22s ease both;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.045);
+  border-radius: 14px;
+  animation: onboarding-disclosure-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .onboarding-disclosure-content p {
@@ -5729,58 +6015,14 @@ html[data-morph='drop']::view-transition-old(root) {
 }
 
 .onboarding-disclosure-content p + p {
-  margin-top: 1em;
+  margin-top: 0.8em;
 }
 
 @keyframes onboarding-disclosure-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(-4px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* tucked into the modal's bottom corners, clear of the rounded edges */
-.onboarding-disclosure-link {
-  position: absolute;
-  bottom: 20px;
-  border: 0;
-  background: transparent;
-  padding: 4px 2px;
-  font: inherit;
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-  cursor: pointer;
-  opacity: 0.5;
-  transition: opacity 0.15s, color 0.15s;
-}
-
-.onboarding-disclosure-left {
-  left: 28px;
-}
-
-.onboarding-disclosure-right {
-  right: 28px;
-}
-
-.onboarding-disclosure-link:hover {
-  opacity: 0.9;
-}
-
-.onboarding-disclosure-link[aria-expanded='true'] {
-  opacity: 1;
-  color: var(--text);
-}
-
-.onboarding-disclosure-link:focus-visible {
-  outline: 1.5px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 3px;
 }
 
 /* ============ footer ============ */
@@ -5809,13 +6051,26 @@ html[data-morph='drop']::view-transition-old(root) {
   background: var(--scrim-page);
   -webkit-backdrop-filter: var(--scrim-page-fx);
   backdrop-filter: var(--scrim-page-fx);
-  animation: queue-in 0.24s cubic-bezier(0.32, 0.72, 0, 1);
+  /* Opens out of the clock (WatchLater sets the origin on the button's
+     centre), on the shared spring, with the blur building as it comes. */
+  /* Opaque well before it's full size, so the page under it isn't seen
+     through it twice over. */
+  animation:
+    queue-in 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    queue-fade 0.14s ease-out;
+}
+
+@keyframes queue-fade {
+  from {
+    opacity: 0;
+  }
 }
 
 @keyframes queue-in {
   from {
-    opacity: 0;
-    transform: scale(0.992);
+    transform: scale(0.94);
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
   }
 }
 
@@ -6561,5 +6816,111 @@ html[data-morph='drop']::view-transition-old(root) {
   to {
     transform: translateY(24px);
     opacity: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  /* A question is an alert, not a sheet: centred and sized to what it says,
+     with the phone sheet's full-height, square-footed layout undone. */
+  .dialog-backdrop {
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal.dialog {
+    width: min(340px, 100%);
+    min-height: 0;
+    max-height: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 28px;
+    padding: 26px 20px 20px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 30px 90px rgba(0, 0, 0, 0.6);
+    animation: modal-in 0.22s cubic-bezier(0.2, 1, 0.4, 1);
+    transition: none;
+    touch-action: auto;
+  }
+
+  .modal.dialog.onboarding {
+    width: min(404px, 100%);
+    padding: 26px 22px 14px;
+  }
+
+  .dialog-btn {
+    height: 46px;
+  }
+
+  .onboarding-go {
+    height: 50px;
+  }
+}
+
+/* On a phone the heart sits mid-row, and a panel hung from its right edge ran
+   off the left of the screen. It hangs from the end of the header's row of
+   buttons instead, which is the screen's right margin. */
+@media (max-width: 760px) {
+  .app-header-end {
+    position: relative;
+  }
+
+  .fav-root {
+    position: static;
+  }
+
+  .fav-panel {
+    top: calc(100% + 8px);
+    width: min(296px, calc(100vw - 32px));
+  }
+}
+
+/* A league table on a phone: the numbers give up their spare padding so the
+   names keep one line, and a name that still can't fit ends in an ellipsis
+   rather than breaking the row onto two. */
+@media (max-width: 480px) {
+  .group-grid-single .standings td,
+  .group-grid-single .standings th {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  .group-grid-single .standings .name {
+    width: 100%;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
+/* A narrow phone: the wordmark and the competition share one line, so the
+   spacing between them tightens, and a name too long even then (UEFA Nations
+   League) ends in an ellipsis rather than pushing the page sideways. */
+@media (max-width: 400px) {
+  .app-brand {
+    gap: 6px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .app-name {
+    font-size: 14.5px;
+  }
+
+  .season-picker {
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  .picker-trigger {
+    max-width: 100%;
+    gap: 4px;
+    padding-inline: 7px 6px;
+  }
+
+  .picker-trigger-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }

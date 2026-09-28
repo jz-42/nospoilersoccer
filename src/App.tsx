@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import './App.css'
 import './components/NationsPendingBracket.css'
@@ -45,7 +45,8 @@ import {
   type View,
 } from './navigation'
 import { useProgress } from './state/progress'
-import { closeSheet, openSheet } from './sheet-morph'
+import { rippleScores } from './score-ripple'
+import { closeDialog, closeSheet, openDialog, openSheet } from './sheet-morph'
 
 const TOURNAMENT_KEY = 'nss-tournament'
 const ONBOARDED_KEY = 'nss-onboarded'
@@ -123,6 +124,17 @@ function SeasonPicker({
       document.removeEventListener('pointerdown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
     }
+  }, [open])
+
+  // Hung from the trigger's left edge, the menu ran off the right of a phone
+  // where the trigger sits at the end of the brand line, and widened the
+  // page. Slide it back in, 12px from the edge, before it's painted.
+  useLayoutEffect(() => {
+    const menu = menuRef.current
+    if (!open || !menu) return
+    const left = menu.getBoundingClientRect().left
+    const over = left + menu.offsetWidth - (document.documentElement.clientWidth - 12)
+    if (over > 0) menu.style.translate = `${-Math.min(over, left - 12)}px 0`
   }, [open])
 
   // Opening with the keyboard should land you *in* the menu, not behind it.
@@ -450,13 +462,53 @@ function TournamentApp({
   })
 
   const dismissOnboarding = () => {
-    setShowOnboarding(false)
+    closeDialog(() => setShowOnboarding(false))
     try {
       localStorage.setItem(ONBOARDED_KEY, '1')
     } catch {
       // Fine — it'll show again next visit.
     }
   }
+
+  // The view switcher's thumb slides to the view you pick, like iOS's
+  // segmented control, rather than the old one switching off and the new one
+  // on. It's one element, placed over the active button; the first placing
+  // doesn't animate (see .seg-thumb).
+  const segRef = useRef<HTMLElement>(null)
+  useLayoutEffect(() => {
+    const seg = segRef.current
+    if (!seg) return
+    const place = () => {
+      const active = seg.querySelector<HTMLElement>('.seg-btn.active')
+      if (!active) return
+      seg.style.setProperty('--thumb-x', `${active.offsetLeft}px`)
+      seg.style.setProperty('--thumb-w', `${active.offsetWidth}px`)
+    }
+    place()
+    const ready = requestAnimationFrame(() => seg.classList.add('is-ready'))
+    const watch = new ResizeObserver(place)
+    seg.querySelectorAll('.seg-btn').forEach((b) => watch.observe(b))
+    return () => {
+      cancelAnimationFrame(ready)
+      watch.disconnect()
+    }
+  }, [view, t])
+
+  // Switching views crossfades the page in, instead of cutting.
+  const mainRef = useRef<HTMLElement>(null)
+  const shownView = useRef(view)
+  useEffect(() => {
+    if (shownView.current === view) return
+    shownView.current = view
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    mainRef.current?.animate(
+      [
+        { opacity: 0, transform: 'translateY(6px)' },
+        { opacity: 1, transform: 'none' },
+      ],
+      { duration: 280, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    )
+  }, [view])
 
   const marked = Object.keys(progress.marks).length
   const total = totalMatches(t)
@@ -474,7 +526,8 @@ function TournamentApp({
           {picker}
         </div>
 
-        <nav className="seg" aria-label="View">
+        <nav className="seg" aria-label="View" ref={segRef}>
+          <span className="seg-thumb" aria-hidden="true" />
           {availableViews(t).map((v) => (
             <button
               key={v}
@@ -509,7 +562,7 @@ function TournamentApp({
             <button
               type="button"
               className="btn-ghost btn-small btn-catch-up"
-              onClick={() => setConfirmCatchUp(true)}
+              onClick={(e) => openDialog(e.currentTarget, () => setConfirmCatchUp(true))}
             >
               Catch up
             </button>
@@ -517,7 +570,7 @@ function TournamentApp({
             <button
               type="button"
               className="btn-ghost btn-danger btn-small"
-              onClick={() => setConfirmReset(true)}
+              onClick={(e) => openDialog(e.currentTarget, () => setConfirmReset(true))}
             >
               Reset progress
             </button>
@@ -534,14 +587,16 @@ function TournamentApp({
 
           <SettingsMenu
             archive={archive}
-            onHowThisWorks={() => setShowOnboarding(true)}
+            onHowThisWorks={() =>
+              openDialog(document.querySelector<HTMLElement>('.menu-btn'), () => setShowOnboarding(true))
+            }
           />
         </div>
       </header>
 
       <div className="menu-catcher" aria-hidden="true" />
 
-      <main className={`app-main ${view === 'bracket' ? 'app-main-wide' : ''}`}>
+      <main className={`app-main ${view === 'bracket' ? 'app-main-wide' : ''}`} ref={mainRef}>
         {view === 'day' && <Rail t={t} progress={progress} onOpen={openCurrentMatch} />}
         {view === 'groups' && <GroupStage t={t} progress={progress} onOpen={openCurrentMatch} />}
         {view === 'bracket' && (
@@ -563,28 +618,34 @@ function TournamentApp({
       {confirmReset && (
         <ConfirmDialog
           title="Start over?"
-          body={`Every revealed score in ${t.name} will be hidden again. Your watch-later queue and favorite teams stay put.`}
+          body={`Every score you've revealed in ${t.name} will be hidden again. Watch Later and your teams stay as they are.`}
           confirmLabel="Hide everything"
           danger
-          onConfirm={() => {
-            progress.reset()
-            setConfirmReset(false)
-          }}
-          onCancel={() => setConfirmReset(false)}
+          onConfirm={() =>
+            closeDialog(() => {
+              progress.reset()
+              setConfirmReset(false)
+            })
+          }
+          onCancel={() => closeDialog(() => setConfirmReset(false))}
         />
       )}
       {confirmCatchUp && (
         <ConfirmDialog
-          title="Catch up?"
-          body={`This will reveal ${catchUpIds.length} match ${catchUpIds.length === 1 ? 'score' : 'scores'} through yesterday. Today's matches stay hidden.`}
+          title={`Catch up on ${catchUpIds.length} ${catchUpIds.length === 1 ? 'match' : 'matches'}?`}
+          body="Every score through yesterday will be revealed. Today's matches stay hidden."
           confirmLabel="Reveal all"
           onConfirm={() => {
             const ids = catchUpMatchIds(t, progress.marks, progress.revealed)
-            progress.catchUp(ids)
             analytics.catchUp({ tournament_year: t.year, match_count: ids.length })
-            setConfirmCatchUp(false)
+            closeDialog(() =>
+              rippleScores(() => {
+                progress.catchUp(ids)
+                setConfirmCatchUp(false)
+              }),
+            )
           }}
-          onCancel={() => setConfirmCatchUp(false)}
+          onCancel={() => closeDialog(() => setConfirmCatchUp(false))}
         />
       )}
       {showOnboarding && <Onboarding onClose={dismissOnboarding} />}

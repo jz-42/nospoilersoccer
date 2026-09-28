@@ -5,7 +5,7 @@
  * a solid green FT badge + play button means "watch this now", a quiet
  * kickoff time means "not played yet", a big score means "you've seen it".
  */
-import type { CSSProperties } from 'react'
+import type { CSSProperties, PointerEvent } from 'react'
 import { matchTint } from '../data/team-colors'
 import type { Tournament } from '../data/types'
 import type { GroupMatch, KnockoutMatch } from '../data/types'
@@ -24,6 +24,19 @@ import { FINISHED_PENDING_CARD_COPY } from './highlight-copy'
 
 /** A play triangle with softened corners, the way Apple and YouTube draw it. */
 const PLAY_PATH = 'M8 5.2v13.6c0 .8.9 1.3 1.6.9l10.8-6.8c.6-.4.6-1.4 0-1.8L9.6 4.3C8.9 3.9 8 4.4 8 5.2z'
+
+/** Leans the card's hover light toward the mouse (App.css, "The hover
+    light"): it only writes two numbers onto the card, 70% of the way from
+    the middle toward the pointer. */
+function leanLight(e: PointerEvent<HTMLElement>) {
+  if (e.pointerType !== 'mouse') return
+  const media = e.currentTarget.querySelector<HTMLElement>('.preview-media')
+  if (!media) return
+  const r = media.getBoundingClientRect()
+  const lean = 0.7
+  e.currentTarget.style.setProperty('--mx', (0.5 + ((e.clientX - r.left) / r.width - 0.5) * lean).toFixed(3))
+  e.currentTarget.style.setProperty('--my', (0.5 + ((e.clientY - r.top) / r.height - 0.5) * lean).toFixed(3))
+}
 
 export interface RailEntry {
   target: ModalTarget
@@ -139,6 +152,7 @@ export function PreviewCard({
       }`}
       style={tintStyle}
       onClick={() => onOpen(target)}
+      onPointerMove={leanLight}
     >
       <div className="preview-media">
         <span className="match-fabric" aria-hidden="true">

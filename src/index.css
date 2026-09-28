@@ -76,20 +76,22 @@
   /*
    * ---- Fabric ----------------------------------------------------------
    *
-   * `--grain` is fractal noise, laid over every identity-tinted surface
-   * (match sheet, fixture card) with its position and size. It breaks up the
-   * banding that big soft gradients get on 8-bit panels, and gives the colour
-   * a surface without drawing one. (A knit lattice used to sit under it; at
-   * thumbnail size a regular grid of lit bumps read as perforated metal, not
-   * cloth. A flag reads as cloth because of its folds and light, which live
-   * in `.match-fabric`.)
+   * `--grain` is frosted glass: fractal noise blurred soft, so the colour
+   * gets a satin mottle like the back of an iPhone rather than specks. It
+   * breaks up the banding that big soft gradients get on 8-bit panels, and
+   * gives the colour a surface without drawing one. (Sharp noise read as TV
+   * static the moment it was strong enough to see. A knit lattice at
+   * thumbnail size read as perforated metal. A flag reads as cloth because
+   * of its folds and light, which live in `.match-fabric`.)
    *
-   * Painted in white and black and composited with `soft-light`, so one token
-   * works over a pale side and a dark side of the same field. Never paint it
-   * at full strength; the strength lives with the surface, in
-   * `--fabric-strength`.
+   * A 320px tile drawn at 160px, so it is crisp on a retina screen, in sRGB
+   * so it averages to mid grey, with its contrast lifted just enough to
+   * survive the soft-light blend. Painted in white and black and composited
+   * with `soft-light`, so one token works over a pale side and a dark side
+   * of the same field. Never paint it at full strength; the strength lives
+   * with the surface, in `--fabric-strength`.
    */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.42' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeGaussianBlur stdDeviation='1.3'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='1.75' intercept='-0.375'/%3E%3CfeFuncG type='linear' slope='1.75' intercept='-0.375'/%3E%3CfeFuncB type='linear' slope='1.75' intercept='-0.375'/%3E%3CfeFuncA type='linear' slope='0' intercept='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   font: 15px/1.5 var(--sans);
   color-scheme: dark;

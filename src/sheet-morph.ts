@@ -43,6 +43,7 @@ const canMorph = () =>
   !matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const sheet = () => document.querySelector<HTMLElement>('.modal:not(.dialog)')
+const dialog = () => document.querySelector<HTMLElement>('.modal.dialog')
 
 const onScreen = (el: HTMLElement) => {
   const r = el.getBoundingClientRect()
@@ -54,6 +55,8 @@ async function morph(
   name: HTMLElement,
   update: () => void,
   done: () => void,
+  // Growing out of a button rather than a card: its corners, and the card's.
+  button?: { from: string; to: string },
 ) {
   // A second open or close mid-morph finishes the first before starting.
   if (running) {
@@ -63,6 +66,11 @@ async function morph(
   name.style.viewTransitionName = NAME
   const root = document.documentElement
   root.dataset.morph = kind
+  if (button) {
+    root.dataset.morphButton = ''
+    root.style.setProperty('--morph-from-radius', button.from)
+    root.style.setProperty('--morph-to-radius', button.to)
+  }
   const vt = document.startViewTransition(update)
   running = vt
   // A skipped transition rejects `ready`; the update still runs, so that's fine.
@@ -72,6 +80,9 @@ async function morph(
   if (running === vt) {
     running = null
     delete root.dataset.morph
+    delete root.dataset.morphButton
+    root.style.removeProperty('--morph-from-radius')
+    root.style.removeProperty('--morph-to-radius')
   }
 }
 
@@ -124,5 +135,69 @@ export function closeSheet(close: () => void) {
       if (to) to.style.viewTransitionName = NAME
     },
     () => to?.style.removeProperty('view-transition-name'),
+  )
+}
+
+/*
+ * Dialogs grow out of the button that asked for them, the way an iOS 26
+ * button turns into its alert: the same morph, from the button's capsule to
+ * the dialog's card, with the page dimming and blurring on the same curve.
+ * Cancelled, a dialog goes back into its button; once its button is gone
+ * (Catch up turns into Reset progress when it's done) it drops away.
+ */
+let dialogSource: HTMLElement | null = null
+
+/** Opens a dialog, grown from `from`, the button that asked for it. */
+export function openDialog(from: HTMLElement | null, open: () => void) {
+  if (running) return
+  if (!from || !from.isConnected || !onScreen(from) || !canMorph()) {
+    dialogSource = null
+    open()
+    return
+  }
+  dialogSource = from
+  let grown: HTMLElement | null = null
+  void morph(
+    'open',
+    from,
+    () => {
+      from.style.viewTransitionName = ''
+      flushSync(open)
+      grown = dialog()
+      if (!grown) return
+      grown.style.viewTransitionName = NAME
+      grown.style.animation = 'none'
+    },
+    () => grown?.style.removeProperty('view-transition-name'),
+    { from: getComputedStyle(from).borderRadius, to: '28px' },
+  )
+}
+
+/** Closes the open dialog, back into its button if that's still there. */
+export function closeDialog(close: () => void) {
+  if (running && document.documentElement.dataset.morph !== 'open') return
+  const leaving = dialog()
+  if (!leaving || !canMorph()) {
+    dialogSource = null
+    close()
+    return
+  }
+  const from = dialogSource
+  dialogSource = null
+  let to: HTMLElement | null = null
+  void morph(
+    'drop',
+    leaving,
+    () => {
+      flushSync(close)
+      // Only now is it known whether the button survived the answer.
+      if (from && from.isConnected && onScreen(from)) {
+        to = from
+        to.style.viewTransitionName = NAME
+        document.documentElement.dataset.morph = 'close'
+      }
+    },
+    () => to?.style.removeProperty('view-transition-name'),
+    from ? { from: getComputedStyle(from).borderRadius, to: '28px' } : undefined,
   )
 }
