@@ -921,11 +921,18 @@
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861081": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Michael Olise",
+          "minute": "88'"
+        }
+      ],
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861089": {

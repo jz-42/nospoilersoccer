@@ -1500,9 +1500,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-28T18:45Z",
       "home": "BEL",
       "away": "FRA",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Michael Olise",
+          "minute": "88'"
+        }
+      ]
     },
     {
       "id": "unl-401861089",
