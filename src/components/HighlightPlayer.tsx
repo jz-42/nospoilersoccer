@@ -27,7 +27,7 @@
  * Embed-blocked videos (error 101/150) fall back to an external link with a
  * spoiler warning.
  */
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { analytics, describeYouTubeFailure, getHighlightFallbackCopy } from '../analytics'
 import type { Phase } from '../analytics'
 import type { HighlightVideo } from '../data/types'
@@ -304,6 +304,34 @@ export function HighlightPlayer({
     }
   }, [active, analyticsContext, tournamentPhase, tournamentYear])
 
+  // The menu lays the current row over the caption, so the pointer that
+  // opened it is already resting on the choice it made, as a macOS pop-up
+  // button does; the edges of the poster keep it in.
+  useLayoutEffect(() => {
+    const list = pickerRef.current
+    const caption = captionRef.current
+    const poster = list?.closest<HTMLElement>('.player-poster')
+    if (!picking || !list || !caption || !poster) return
+    const row = list.querySelector<HTMLElement>('[aria-selected="true"]')
+    const rowMid = row ? row.offsetTop + row.offsetHeight / 2 : list.offsetHeight / 2
+    const cap = caption.getBoundingClientRect()
+    const want = cap.top + cap.height / 2 - poster.getBoundingClientRect().top - poster.clientTop - rowMid
+    const top = Math.max(8, Math.min(want, poster.clientHeight - list.offsetHeight - 8))
+    list.style.top = `${top}px`
+    list.style.transformOrigin = `50% ${rowMid}px`
+  }, [picking])
+
+  // A press anywhere off the poster puts the menu away too.
+  useEffect(() => {
+    if (!picking) return
+    const away = (e: PointerEvent) => {
+      const poster = pickerRef.current?.closest('.player-poster')
+      if (poster && !poster.contains(e.target as Node)) setPicking(false)
+    }
+    document.addEventListener('pointerdown', away)
+    return () => document.removeEventListener('pointerdown', away)
+  }, [picking])
+
   // Escape / the system fullscreen chrome can leave fullscreen without us.
   useEffect(() => {
     const sync = () => setExpanded(document.fullscreenElement === wrapRef.current)
@@ -436,8 +464,8 @@ export function HighlightPlayer({
       </div>
     )
 
-    // …and the poster turns into the list, in place: no popover to clip or
-    // stack, and the choice is made on the thing it changes.
+    // …and it opens a menu on the poster itself, over its dimmed contents:
+    // nothing to clip or stack, and plainly something to tap back out of.
     const picker = menu && picking && (
       <div
         className="poster-picker"
@@ -470,6 +498,9 @@ export function HighlightPlayer({
                   closePicker()
                 }}
               >
+                <svg className="poster-pick-check" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+                  <path d="M2.5 6.4 4.9 8.7 9.5 3.6" />
+                </svg>
                 <span className="poster-pick-name">{pickName(v)}</span>
                 {pickNote(v) && <span className="poster-pick-lang">{pickNote(v)}</span>}
               </button>
@@ -482,7 +513,10 @@ export function HighlightPlayer({
     return (
       <div className="player-block">
         <div className="poster-list">
-          <div className={`player-poster${picker ? ' is-picking' : ''}`}>
+          <div
+            className={`player-poster${picker ? ' is-picking' : ''}`}
+            style={menu ? ({ '--rows': posters.length } as CSSProperties) : undefined}
+          >
             {current && (
               <button
                 type="button"
