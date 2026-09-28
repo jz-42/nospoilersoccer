@@ -134,7 +134,7 @@ export function FavoritesPanel({ t, progress }: { t: Tournament; progress: Progr
   }, [open])
 
   return (
-    <div className="fav-root" ref={rootRef}>
+    <div className={`fav-root ${open ? 'is-open' : ''}`.trim()} ref={rootRef}>
       <button
         type="button"
         className={`fav-btn ${hasFavorites ? 'has-favs' : ''}`.trim()}

@@ -538,6 +538,8 @@ function TournamentApp({
         </div>
       </header>
 
+      <div className="menu-catcher" aria-hidden="true" />
+
       <main className={`app-main ${view === 'bracket' ? 'app-main-wide' : ''}`}>
         {view === 'day' && <Rail t={t} progress={progress} onOpen={openCurrentMatch} />}
         {view === 'groups' && <GroupStage t={t} progress={progress} onOpen={openCurrentMatch} />}

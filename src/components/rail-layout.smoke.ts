@@ -179,7 +179,7 @@ assert(
   railSource.includes("document.addEventListener('touchstart', onDocumentTouchStart") &&
     railSource.includes("document.addEventListener('touchmove', onDocumentTouchMove") &&
     railSource.includes("document.addEventListener('touchend', onDocumentTouchEnd") &&
-    railSource.includes("'.app-header, .day-carousel-window, .day-arrow, .day-jump-btn, .modal-backdrop, .dialog, .app-footer'") &&
+    railSource.includes("'.app-header, .menu-catcher, .day-carousel-window, .day-arrow, .day-jump-btn, .modal-backdrop, .dialog, .app-footer'") &&
     !railSource.includes('onTouchStart={onSectionTouchStart}'),
   'mobile Today day swipes start from the document below the header while preserving carousel and modal gestures',
 )

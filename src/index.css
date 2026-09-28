@@ -52,6 +52,25 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.22);
   --shadow-lg: 0 24px 80px rgba(0, 0, 0, 0.55);
 
+  /* Backdrops — one ladder for everything that opens over the page, set by
+     how much of your attention the layer asks for. The page behind should
+     always read as still there: its colour softens and recedes but never goes
+     black. One ink (a near-black a touch bluer than --bg) so every layer dims
+     the same way.
+       sheet: the match sheet and dialogs. The page is a soft, dim scene you
+              can still read the shapes of.
+       page:  Watch Later, whose cards sit straight on the backdrop. The blur
+              is wide enough that no shape survives (the page's cards would
+              line up behind the saved ones as a ghost second row) and the
+              shade light enough that its kit colours still glow through,
+              without boosting them so far that a bright kit flares.
+     Header dropdowns get no rung: a dropdown is a quick choice, not a place
+     you go, so the page doesn't step back for it. */
+  --scrim-sheet: rgba(4, 6, 10, 0.72);
+  --scrim-sheet-fx: blur(6px);
+  --scrim-page: rgba(4, 6, 10, 0.78);
+  --scrim-page-fx: blur(40px) saturate(1.3);
+
   --sans: 'Inter Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
 
   /*

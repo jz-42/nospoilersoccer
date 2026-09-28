@@ -356,6 +356,32 @@
   border-color: rgba(233, 184, 90, 0.38);
 }
 
+/* ============ menu tap catcher ============ */
+
+/* While a header dropdown is open (season, teams, menu), an invisible layer
+   under the header (z 20) takes the tap that closes it, so that tap can't
+   also open the match card under your finger — the way a native menu
+   swallows its dismissing click. Nothing is painted: a dropdown doesn't step
+   the page back (see the backdrop ladder in index.css). Driven by the
+   dropdowns' own open classes, so no component has to tell the app a menu
+   is up.
+   It outlives the dropdown by a beat. The season picker and the menu close
+   on pointerdown, which hides the catcher before the tap's click fires, and
+   on touch that click is hit-tested only after the finger lifts — so it
+   would land on the card after all. */
+.menu-catcher {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  visibility: hidden;
+  transition: visibility 0s linear 0.4s;
+}
+
+.app:has(.season-picker.is-open, .fav-root.is-open, .menu-root.is-open) > .menu-catcher {
+  visibility: visible;
+  transition: none;
+}
+
 /* ============ header menu ============ */
 
 .menu-root {
@@ -4246,8 +4272,9 @@
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(4, 6, 10, 0.72);
-  backdrop-filter: blur(6px);
+  background: var(--scrim-sheet);
+  -webkit-backdrop-filter: var(--scrim-sheet-fx);
+  backdrop-filter: var(--scrim-sheet-fx);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -5773,9 +5800,9 @@
   z-index: 45;
   display: flex;
   flex-direction: column;
-  background: color-mix(in srgb, var(--bg) 93%, transparent);
-  -webkit-backdrop-filter: blur(30px) saturate(1.3);
-  backdrop-filter: blur(30px) saturate(1.3);
+  background: var(--scrim-page);
+  -webkit-backdrop-filter: var(--scrim-page-fx);
+  backdrop-filter: var(--scrim-page-fx);
   animation: queue-in 0.24s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
