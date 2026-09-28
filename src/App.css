@@ -1697,51 +1697,6 @@
   --fabric-strength: 0.36;
 }
 
-/* The hover light (a mouse only). A soft light leans toward the pointer over
-   the card you're on. It's faint on purpose: the lift is the thing you
-   notice, and the light is what you'd miss if it went. It's a round lobe 1.2
-   cards wide, centred on (--mx, --my), which PreviewCard sets from the
-   pointer. The cloth is left as it is: turning the fabric up on hover made
-   its grain flare. */
-@media (hover: hover) and (pointer: fine) {
-  .preview-media {
-    overflow: clip;
-  }
-
-  .preview-media::after {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    left: -60%;
-    top: -106.67%;
-    width: 120%;
-    height: 213.33%;
-    background: radial-gradient(
-      closest-side,
-      rgba(255, 255, 255, 0.2),
-      rgba(255, 255, 255, 0.075) 48%,
-      transparent
-    );
-    mix-blend-mode: soft-light;
-    pointer-events: none;
-    opacity: 0;
-    transform: translate(calc(var(--mx, 0.5) * 83.333%), calc(var(--my, 0.5) * 46.875%));
-    transition:
-      opacity 0.35s ease,
-      transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-  }
-
-  .preview-card:hover .preview-media::after {
-    opacity: 1;
-  }
-}
-
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: reduce) {
-  .preview-media::after {
-    transition: opacity 0.35s ease;
-  }
-}
-
 /* Per-team identity tint. Each club owns its half in its own colour at full
    strength, meeting in a soft seam, instead of one colour washing into the
    other through grey — the flag-cloth look, not a gradient fill. One key light
@@ -4557,23 +4512,21 @@ html[data-morph-button][data-morph='open']::view-transition-old(match-sheet) {
   animation-duration: 0.09s;
 }
 
-/* The page behind. Opening, it's the live one from the first frame, so the
-   backdrop's scrim-in plays on it as the sheet grows. Closing, the old page,
-   blur and all, lies on top of the live one and fades as the sheet shrinks. */
-html[data-morph='open']::view-transition-old(root) {
-  animation: none;
-  opacity: 0;
+/* The page behind isn't captured at all: it stays live under the morph. A
+   snapshot drops backdrop-filter, so a captured page dims as the sheet grows
+   but stays sharp, then snaps to blurred when the transition hands back.
+   Live, the backdrop's scrim-in blurs it frame by frame. Closing, the
+   backdrop is gone with the update, so sheet-morph.ts leaves a live copy of
+   its scrim (.morph-scrim) that fades as the sheet shrinks. */
+html[data-morph] {
+  view-transition-name: none;
 }
 
-html[data-morph]::view-transition-new(root) {
-  animation: none;
-}
-
-html[data-morph='close']::view-transition-old(root),
-html[data-morph='drop']::view-transition-old(root) {
-  z-index: 1;
-  mix-blend-mode: normal;
-  animation: morph-lift 0.34s cubic-bezier(0.3, 0.9, 0.3, 1) both;
+.morph-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
 }
 
 @keyframes morph-corners-in {

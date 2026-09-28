@@ -7,10 +7,11 @@ import { flushSync } from 'react-dom'
  * named `match-sheet`, and the browser animates one box into the other
  * (App.css, "Grow from the card").
  *
- * The page behind has to move with it. Opening, it's shown live, so the
- * backdrop's own scrim-in blurs and dims it in step with the grow; closing,
- * the old page (backdrop and all) lies on top and fades away as the sheet
- * shrinks, so the blur lifts rather than snapping off.
+ * The page behind has to move with it, and it's never captured: a snapshot
+ * drops backdrop-filter, so the blur would snap on or off at the end.
+ * Opening, the live backdrop's own scrim-in blurs and dims it in step with
+ * the grow; closing, a live copy of the scrim stays behind and fades as the
+ * sheet shrinks, so the blur lifts rather than snapping off.
  *
  * With no card to grow from (a bracket slot, a table row) the sheet opens as
  * it always has, and closes by dropping away. Without view transitions, or
@@ -24,6 +25,8 @@ let pressed: HTMLElement | null = null
 /** The picture the open sheet grew from, for the close to return to. */
 let source: HTMLElement | null = null
 let running: ViewTransition | null = null
+/** The scrim a closing sheet or dialog leaves behind while it goes. */
+let lingering: HTMLElement | null = null
 
 if (typeof window !== 'undefined') {
   // Capture, so this runs before the card's own onClick opens the sheet.
@@ -44,6 +47,37 @@ const canMorph = () =>
 
 const sheet = () => document.querySelector<HTMLElement>('.modal:not(.dialog)')
 const dialog = () => document.querySelector<HTMLElement>('.modal.dialog')
+
+/**
+ * Reads the scrim off the backdrop about to be closed, and once it's gone
+ * puts back a live copy that fades out over the close, blur and all.
+ */
+function leaveScrim(leaving: HTMLElement) {
+  const backdrop = leaving.closest('.modal-backdrop')
+  if (!backdrop) return () => {}
+  // Read now: a computed style is live, and blank once the backdrop is gone.
+  const cs = getComputedStyle(backdrop, '::before')
+  const color = cs.backgroundColor
+  const fx = cs.backdropFilter || cs.getPropertyValue('-webkit-backdrop-filter')
+  const opacity = Number(cs.opacity)
+  return () => {
+    lingering?.remove()
+    const scrim = document.createElement('div')
+    scrim.className = 'morph-scrim'
+    scrim.style.background = color
+    scrim.style.setProperty('backdrop-filter', fx)
+    scrim.style.setProperty('-webkit-backdrop-filter', fx)
+    document.body.append(scrim)
+    lingering = scrim
+    const done = () => {
+      scrim.remove()
+      if (lingering === scrim) lingering = null
+    }
+    scrim
+      .animate([{ opacity }, { opacity: 0 }], { duration: 340, easing: 'cubic-bezier(0.3, 0.9, 0.3, 1)', fill: 'forwards' })
+      .finished.then(done, done)
+  }
+}
 
 const onScreen = (el: HTMLElement) => {
   const r = el.getBoundingClientRect()
@@ -127,11 +161,13 @@ export function closeSheet(close: () => void) {
   }
   const to = source && source.isConnected && onScreen(source) ? source : null
   source = null
+  const scrim = leaveScrim(leaving)
   void morph(
     to ? 'close' : 'drop',
     leaving,
     () => {
       flushSync(close)
+      scrim()
       if (to) to.style.viewTransitionName = NAME
     },
     () => to?.style.removeProperty('view-transition-name'),
@@ -185,11 +221,13 @@ export function closeDialog(close: () => void) {
   const from = dialogSource
   dialogSource = null
   let to: HTMLElement | null = null
+  const scrim = leaveScrim(leaving)
   void morph(
     'drop',
     leaving,
     () => {
       flushSync(close)
+      scrim()
       // Only now is it known whether the button survived the answer.
       if (from && from.isConnected && onScreen(from)) {
         to = from
