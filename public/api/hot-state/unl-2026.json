@@ -815,11 +815,43 @@
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861078": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 4
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "BIH",
+          "player": "Armin Gigovic",
+          "minute": "12'"
+        },
+        {
+          "team": "BIH",
+          "player": "Tarik Muharemovic",
+          "minute": "19'"
+        },
+        {
+          "team": "ROU",
+          "player": "Daniel Birligea",
+          "minute": "28'"
+        },
+        {
+          "team": "BIH",
+          "player": "Haris Tabakovic",
+          "minute": "40'"
+        },
+        {
+          "team": "BIH",
+          "player": "Ermin Mahmic",
+          "minute": "55'"
+        },
+        {
+          "team": "ROU",
+          "player": "Alexandru Cicaldau",
+          "minute": "62'"
+        }
+      ],
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861079": {

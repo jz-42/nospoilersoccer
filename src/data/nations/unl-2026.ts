@@ -1378,9 +1378,42 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-28T18:45Z",
       "home": "ROU",
       "away": "BIH",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "BIH",
+          "player": "Armin Gigovic",
+          "minute": "12'"
+        },
+        {
+          "team": "BIH",
+          "player": "Tarik Muharemovic",
+          "minute": "19'"
+        },
+        {
+          "team": "ROU",
+          "player": "Daniel Birligea",
+          "minute": "28'"
+        },
+        {
+          "team": "BIH",
+          "player": "Haris Tabakovic",
+          "minute": "40'"
+        },
+        {
+          "team": "BIH",
+          "player": "Ermin Mahmic",
+          "minute": "55'"
+        },
+        {
+          "team": "ROU",
+          "player": "Alexandru Cicaldau",
+          "minute": "62'"
+        }
+      ]
     },
     {
       "id": "unl-401861079",
