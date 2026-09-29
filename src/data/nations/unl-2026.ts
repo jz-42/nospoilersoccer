@@ -1559,7 +1559,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-29",
       "kickoff": "2026-09-29T18:45Z",
       "home": "BUL",
-      "away": "EST"
+      "away": "EST",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861084",
@@ -1568,7 +1571,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-29",
       "kickoff": "2026-09-29T18:45Z",
       "home": "ESP",
-      "away": "CRO"
+      "away": "CRO",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861085",
@@ -1577,7 +1583,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-29",
       "kickoff": "2026-09-29T18:45Z",
       "home": "SVK",
-      "away": "KAZ"
+      "away": "KAZ",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861086",
@@ -1586,7 +1595,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-29",
       "kickoff": "2026-09-29T18:45Z",
       "home": "LUX",
-      "away": "ISL"
+      "away": "ISL",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861087",
@@ -1595,7 +1607,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-29",
       "kickoff": "2026-09-29T18:45Z",
       "home": "SVN",
-      "away": "MKD"
+      "away": "MKD",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861088",
@@ -1604,7 +1619,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-29",
       "kickoff": "2026-09-29T18:45Z",
       "home": "SMR",
-      "away": "ALB"
+      "away": "ALB",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861091",
@@ -1613,7 +1631,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-29",
       "kickoff": "2026-09-29T18:45Z",
       "home": "SCO",
-      "away": "SUI"
+      "away": "SUI",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861092",
@@ -1622,7 +1643,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-09-29",
       "kickoff": "2026-09-29T18:45Z",
       "home": "CZE",
-      "away": "ENG"
+      "away": "ENG",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861093",
