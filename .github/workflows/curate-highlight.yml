@@ -107,37 +107,77 @@ jobs:
         id: persist
         env:
           VIDEO_ID: ${{ inputs.video_id }}
+          SOURCE_ID: ${{ inputs.source_id }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          HIGHLIGHT_CANDIDATE_CHANNEL_ID: ${{ inputs.channel_id }}
+          HIGHLIGHT_CANDIDATE_TITLE: ${{ inputs.candidate_title }}
+          HIGHLIGHT_CANDIDATE_PUBLISHED_AT: ${{ inputs.published_at }}
           HIGHLIGHT_RESULT_FILE: /tmp/highlight-result
         run: |
           git config user.name "highlight-bot"
           git config user.email "actions@github.com"
-          git add src/data/wc2026-videos.ts src/data/club/*-videos.ts src/data/nations/unl-2026-videos.ts public/api/highlights scripts/curate-skip.json
-          if git diff --cached --quiet; then
-            if grep -Rqs --fixed-strings "youtubeId: '$VIDEO_ID'" src/data/wc2026-videos.ts src/data/club/*-videos.ts src/data/nations/unl-2026-videos.ts; then
-              echo "candidate was already persisted; acknowledging the lost callback"
-              echo "status=accepted" >> "$GITHUB_OUTPUT"
-            elif [ -f "$HIGHLIGHT_RESULT_FILE" ]; then
-              status="$(cat "$HIGHLIGHT_RESULT_FILE")"
-              case "$status" in
-                accepted|retry|quarantined)
-                  echo "candidate produced no change; curator disposition: $status"
-                  echo "status=$status" >> "$GITHUB_OUTPUT"
-                  ;;
-                *)
-                  echo "invalid curator disposition; retrying"
-                  echo "status=retry" >> "$GITHUB_OUTPUT"
-                  ;;
-              esac
-            else
-              echo "candidate produced no accepted change"
-              echo "status=retry" >> "$GITHUB_OUTPUT"
+          source scripts/ci-publish.sh
+
+          # Re-run only this notified video after a collision. Supplied metadata
+          # avoids another YouTube search or playlist scan, and the usual
+          # validation still gates every attempt before it can reach main.
+          curate_targeted() {
+            rm -f "$HIGHLIGHT_RESULT_FILE"
+            case "$SOURCE_ID" in
+              fox) npx tsx scripts/curate-videos.ts --video-id "$VIDEO_ID" ;;
+              foxnations|foxsoccer|tudn) npx tsx scripts/curate-nations-videos.ts --video-id "$VIDEO_ID" ;;
+              golazo) npx tsx scripts/curate-club-videos.ts --competition ucl --video-id "$VIDEO_ID" ;;
+              nbc) npx tsx scripts/curate-club-videos.ts --competition eng1 --video-id "$VIDEO_ID" ;;
+              espnfc|espndeportes) npx tsx scripts/curate-club-videos.ts --competition esp1 --video-id "$VIDEO_ID" ;;
+              *) echo "unknown source id" >&2; exit 2 ;;
+            esac
+            npm run validate:data
+            npx tsx src/data/videos.smoke.ts
+            npx tsx scripts/curate-videos.smoke.ts
+            npx tsx scripts/curate-club-videos.smoke.ts
+            npx tsx scripts/curate-nations-videos.smoke.ts
+            npx tsc -b
+            npm run build:highlight-state
+          }
+
+          for attempt in $(seq 1 5); do
+            git add src/data/wc2026-videos.ts src/data/club/*-videos.ts src/data/nations/unl-2026-videos.ts public/api/highlights scripts/curate-skip.json
+            if git diff --cached --quiet; then
+              if grep -Rqs --fixed-strings "youtubeId: '$VIDEO_ID'" src/data/wc2026-videos.ts src/data/club/*-videos.ts src/data/nations/unl-2026-videos.ts; then
+                echo "candidate was already persisted; acknowledging the lost callback"
+                echo "status=accepted" >> "$GITHUB_OUTPUT"
+              elif [ -f "$HIGHLIGHT_RESULT_FILE" ]; then
+                status="$(cat "$HIGHLIGHT_RESULT_FILE")"
+                case "$status" in
+                  accepted|retry|quarantined)
+                    echo "candidate produced no change; curator disposition: $status"
+                    echo "status=$status" >> "$GITHUB_OUTPUT"
+                    ;;
+                  *)
+                    echo "invalid curator disposition; retrying"
+                    echo "status=retry" >> "$GITHUB_OUTPUT"
+                    ;;
+                esac
+              else
+                echo "candidate produced no accepted change"
+                echo "status=retry" >> "$GITHUB_OUTPUT"
+              fi
+              exit 0
             fi
-            exit 0
-          fi
-          git commit -m "Auto-curate highlight ${VIDEO_ID}"
-          git pull --rebase --autostash origin main
-          git push origin HEAD:main
-          echo "status=accepted" >> "$GITHUB_OUTPUT"
+            git commit -m "Auto-curate highlight ${VIDEO_ID}"
+            if publish_main; then
+              echo "status=accepted" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::Could not publish highlight after five collisions; Worker will retry"
+              exit 1
+            fi
+            git fetch origin main
+            git reset --hard origin/main
+            sleep "$attempt"
+            curate_targeted
+          done
 
       - name: Report candidate result
         if: always()

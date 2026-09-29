@@ -754,60 +754,199 @@
     },
     "unl-401861075": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": [],
       "kickoff": "2026-09-28T16:00Z"
     },
     "unl-401861076": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "MNE",
+          "player": "Erik Piloyan",
+          "minute": "20'",
+          "ownGoal": true
+        },
+        {
+          "team": "ARM",
+          "player": "Artur Serobyan",
+          "minute": "34'"
+        },
+        {
+          "team": "MNE",
+          "player": "Nikola Krstovic",
+          "minute": "38'"
+        },
+        {
+          "team": "ARM",
+          "player": "Eduard Spertsyan",
+          "minute": "65'"
+        },
+        {
+          "team": "MNE",
+          "player": "Aleksa Latkovic",
+          "minute": "89'"
+        }
+      ],
       "kickoff": "2026-09-28T16:00Z"
     },
     "unl-401861082": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": [],
       "kickoff": "2026-09-28T16:00Z"
     },
     "unl-401861077": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 1,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "ITA",
+          "player": "Alessandro Bastoni",
+          "minute": "9'"
+        },
+        {
+          "team": "ITA",
+          "player": "Davide Frattesi",
+          "minute": "22'"
+        },
+        {
+          "team": "ITA",
+          "player": "Michael Kayode",
+          "minute": "27'"
+        },
+        {
+          "team": "TUR",
+          "player": "Baris Alper Yilmaz",
+          "minute": "47'"
+        },
+        {
+          "team": "ITA",
+          "player": "Pio Esposito",
+          "minute": "50'"
+        }
+      ],
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861078": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 2,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "BIH",
+          "player": "Armin Gigovic",
+          "minute": "12'"
+        },
+        {
+          "team": "BIH",
+          "player": "Tarik Muharemovic",
+          "minute": "19'"
+        },
+        {
+          "team": "ROU",
+          "player": "Daniel Birligea",
+          "minute": "28'"
+        },
+        {
+          "team": "BIH",
+          "player": "Haris Tabakovic",
+          "minute": "40'"
+        },
+        {
+          "team": "BIH",
+          "player": "Ermin Mahmic",
+          "minute": "55'"
+        },
+        {
+          "team": "ROU",
+          "player": "Alexandru Cicaldau",
+          "minute": "62'"
+        }
+      ],
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861079": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": [],
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861080": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SWE",
+          "player": "Benjamin Nygren",
+          "minute": "8'"
+        },
+        {
+          "team": "POL",
+          "player": "Sebastian Szymanski",
+          "minute": "43'"
+        },
+        {
+          "team": "SWE",
+          "player": "Yasin Ayari",
+          "minute": "63'"
+        },
+        {
+          "team": "SWE",
+          "player": "Viktor Gyökeres",
+          "minute": "72'"
+        }
+      ],
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861081": {
       "liveStatus": null,
-      "score": null,
-      "goals": null,
+      "score": {
+        "home": 0,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Michael Olise",
+          "minute": "88'"
+        }
+      ],
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861089": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-29T16:00Z"
     },
     "unl-401861090": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-09-29T16:00Z"

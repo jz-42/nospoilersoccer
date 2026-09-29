@@ -29,8 +29,8 @@ jobs:
       - run: npm ci
 
       # Poll every 5 minutes for ~53 minutes. Each cycle pulls results + odds;
-      # the broad YouTube recovery scan runs only on cycle 1 because the Worker
-      # handles new uploads through WebSub plus quota-free one-minute feeds.
+      # the broad YouTube recovery scan runs once after a successful publish
+      # because the Worker handles new uploads through WebSub and minute feeds.
       # Cloudflare decides when to start each run and checks every minute.
       - name: Update loop (every 5 min)
         env:
@@ -51,6 +51,7 @@ jobs:
         run: |
           git config user.name "results-bot"
           git config user.email "actions@github.com"
+          source scripts/ci-publish.sh
 
           # Club competitions, in the order they are updated each cycle:
           #   <season id> <competition id> <ESPN league slug>
@@ -100,6 +101,23 @@ jobs:
               club_restore "$season" "$backup_dir"
             fi
             return 0
+          }
+
+          # A highlight may land on main while this cycle is generating data.
+          # Discard only this disposable runner's unpublished work, then rebuild
+          # the cycle from the new base. Published commits remain on main.
+          restart_cycle_after_publish_collision() {
+            publish_retries=$((publish_retries + 1))
+            if [ "$publish_retries" -gt 3 ] ||
+               [ $(( $(date +%s) + longest_cycle + 30 )) -ge "$deadline" ]; then
+              echo "::error::Could not publish after bounded retries; watchdog will restart the updater"
+              exit 1
+            fi
+            git fetch origin main
+            git reset --hard origin/main
+            echo "::warning::Recomputing update cycle after main changed (retry $publish_retries/3)"
+            echo "::endgroup::"
+            sleep "$publish_retries"
           }
 
           nations_restore() {
@@ -161,6 +179,10 @@ jobs:
           deadline=$(( loop_start + LOOP_BUDGET_SECONDS ))
           longest_cycle=0
           cycle=0
+          publish_retries=0
+          core_scan_pending=1
+          nations_scan_pending=1
+          club_scan_pending=1
           while : ; do
             cycle=$((cycle + 1))
             cycle_start=$(date +%s)
@@ -227,7 +249,7 @@ jobs:
               cp "$BACKFILL_BACKUP_FILE" src/data/wc2026.ts
             fi
 
-            if [ "$cycle" -eq 1 ]; then
+            if [ "$core_scan_pending" -eq 1 ]; then
               rm -rf "$VIDEOS_BACKUP_DIR"
               mkdir -p "$VIDEOS_BACKUP_DIR"
               cp src/data/wc2026-videos.ts "$VIDEOS_BACKUP_DIR/wc2026-videos.ts"
@@ -256,19 +278,20 @@ jobs:
               git add src/data/wc2026.ts src/data/wc2026-videos.ts public/api/hot-state/wc2026.json public/api/highlights/wc2026.json scripts/curate-skip.json
               if git diff --cached --quiet; then
                 echo "no core changes this cycle"
+                core_scan_pending=0
               else
                 git commit -m "Auto-update: World Cup 2026 data ($(date -u '+%F %H:%MZ'))"
-                git pull --rebase --autostash origin main || true
-                if git push origin HEAD:main; then
-                  :
-                else
-                  echo "::warning::push to main failed; will retry next cycle"
+                if ! publish_main; then
+                  restart_cycle_after_publish_collision
+                  continue
                 fi
+                core_scan_pending=0
                 git push origin HEAD:dev  || echo "dev has diverged; skipping"
               fi
             else
               echo "::error::validation failed — not committing this cycle"
               touch "$CURATOR_ERROR_FLAG"
+              core_scan_pending=0
             fi
 
             # --- UEFA Nations League --------------------------------------
@@ -276,9 +299,10 @@ jobs:
             # discovery opportunity in selected UTC hours also finds new draws
             # before those fixtures exist in the checked-in schedule. The TUDN
             # playlist catch-up is the same once-per-hour cadence.
-            nations_highlight_scan=0
-            if [ "$cycle" -eq 1 ]; then nations_highlight_scan=1; fi
-            if npx tsx scripts/nations-ingest-gate.ts "$cycle"; then
+            nations_highlight_scan=$nations_scan_pending
+            nations_gate_cycle=$cycle
+            if [ "$nations_scan_pending" -eq 1 ]; then nations_gate_cycle=1; fi
+            if npx tsx scripts/nations-ingest-gate.ts "$nations_gate_cycle"; then
               if nations_step; then
                 if [ -f "$NATIONS_AUDIT_FILE" ]; then
                   {
@@ -293,15 +317,18 @@ jobs:
                   public/api/highlights/unl-2026.json
                 if git diff --cached --quiet; then
                   echo "no Nations League changes this cycle"
+                  nations_scan_pending=0
                 else
                   git commit -m "Auto-update: Nations League data ($(date -u '+%F %H:%MZ'))"
-                  git pull --rebase --autostash origin main || true
-                  if git push origin HEAD:main; then
-                    git push origin HEAD:dev || echo "dev has diverged; skipping"
-                  else
-                    echo "::warning::Nations League push to main failed; will retry next cycle"
+                  if ! publish_main; then
+                    restart_cycle_after_publish_collision
+                    continue
                   fi
+                  nations_scan_pending=0
+                  git push origin HEAD:dev || echo "dev has diverged; skipping"
                 fi
+              else
+                nations_scan_pending=0
               fi
             else
               echo "Nations League has no result window or pending-draw discovery opportunity"
@@ -331,7 +358,7 @@ jobs:
               # expensive half of that.
               club_step "$season results" "$season" "$CLUB_BACKUP_ROOT/$season-results" \
                 npx tsx scripts/espn-club.ts --competition "$competition"
-              if [ "$cycle" -eq 1 ]; then
+              if [ "$club_scan_pending" -eq 1 ]; then
                 club_step "$season videos" "$season" "$CLUB_BACKUP_ROOT/$season-videos" \
                   npx tsx scripts/curate-club-videos.ts --competition "$competition"
               elif [ "$competition" = "esp1" ]; then
@@ -365,18 +392,15 @@ jobs:
                 public/api/highlights/ucl-2026.json
               if git diff --cached --quiet; then
                 echo "no club changes this cycle"
+                club_scan_pending=0
               else
                 git commit -m "Auto-update: club football data ($(date -u '+%F %H:%MZ'))"
-                git pull --rebase --autostash origin main || true
-                if git push origin HEAD:main; then
-                  git push origin HEAD:dev || echo "dev has diverged; skipping"
-                else
-                  # Warn and retry next cycle, exactly like the World Cup push
-                  # above. Deliberately NOT `reset --hard origin/main`: if the
-                  # World Cup's own push failed earlier this cycle, its commit is
-                  # sitting unpushed on HEAD and resetting would discard it.
-                  echo "::warning::club push to main failed; will retry next cycle"
+                if ! publish_main; then
+                  restart_cycle_after_publish_collision
+                  continue
                 fi
+                club_scan_pending=0
+                git push origin HEAD:dev || echo "dev has diverged; skipping"
               fi
             else
               # A warning, not CURATOR_ERROR_FLAG: club is best-effort and must
@@ -389,8 +413,11 @@ jobs:
                 echo "- action: skipped the club commit for this cycle"
                 echo
               } >> "$GITHUB_STEP_SUMMARY"
+              club_scan_pending=0
             fi
             echo "::endgroup::"
+
+            publish_retries=0
 
             cycle_end=$(date +%s)
             cycle_seconds=$(( cycle_end - cycle_start ))

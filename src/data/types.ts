@@ -36,7 +36,10 @@ export type YouTubeHighlightPublisher = 'espn-fc' | 'espn-deportes' | 'tudn'
 
 interface HighlightVideoBase {
   kind: VideoKind
-  /** Shown on the match card so viewers can pick a length. */
+  /**
+   * Runtime of this cut. Kept for curation and ordering. Match cards never
+   * show it: a long highlight can give away that the match went long.
+   */
   durationSeconds?: number
   /**
    * Fan/community upload rather than an official broadcaster cut. Some 2022

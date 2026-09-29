@@ -2150,7 +2150,7 @@
 
 /* ---- The sheet's ink, tuned to how light the team colours are: the vars
    come from src/ink.ts on the sheet. */
-html .modal :is(.modal-context-date, .poster-time, .oddsbar-keys, .oddsbar-key b, .modal-hint) {
+html .modal :is(.modal-context-date, .oddsbar-keys, .oddsbar-key b, .modal-hint) {
   color: var(--ink-soft, inherit);
   text-shadow: var(--ink-shadow, none);
 }
