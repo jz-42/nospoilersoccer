@@ -4294,6 +4294,15 @@
   transition: none;
 }
 
+/* A closed dialog's stand-in, fading out where it stood (sheet-morph.ts):
+   it's already in, so nothing plays its entrance again. */
+.modal-backdrop.is-leaving,
+.modal-backdrop.is-leaving::before,
+.modal-backdrop.is-leaving > .modal {
+  animation: none;
+  pointer-events: none;
+}
+
 /* The page dims and blurs in step with whatever is opening over it, rather
    than all at once when the motion is over. */
 @keyframes scrim-in {
@@ -4448,6 +4457,9 @@
 :root {
   --morph-from-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
   --morph-to-radius: 18px;
+  /* The sheet's shadow, which the clip would cut off: it gathers as the
+     sheet grows, so there's none to snap on when the real sheet takes over. */
+  --morph-to-shadow: var(--shadow-lg);
 }
 
 ::view-transition-group(match-sheet) {
@@ -4458,6 +4470,7 @@
 ::view-transition-image-pair(match-sheet) {
   overflow: clip;
   border-radius: var(--morph-to-radius);
+  box-shadow: var(--morph-to-shadow);
   animation: morph-corners-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -4467,7 +4480,7 @@
 ::view-transition-old(match-sheet) {
   z-index: 1;
   mix-blend-mode: normal;
-  animation: morph-lift 0.16s ease-out both;
+  animation: morph-lift 0.12s ease-out both;
 }
 
 ::view-transition-new(match-sheet) {
@@ -4484,14 +4497,26 @@ html[data-morph='close']::view-transition-image-pair(match-sheet) {
   animation: morph-corners-out 0.34s cubic-bezier(0.3, 0.9, 0.3, 1) both;
 }
 
+/* Mirrored: the sheet stays whole underneath as it shrinks, and the card's
+   picture settles in over it, so the box is solid all the way down (the
+   picture alone doesn't reach the foot of the sheet). */
 html[data-morph='close']::view-transition-old(match-sheet) {
-  animation-duration: 0.12s;
+  z-index: 0;
+  /* Out once the picture is in, or its foot shows under the picture while
+     the box settles. */
+  animation: morph-lift 0.14s 0.12s ease-in-out both;
+}
+
+html[data-morph='close']::view-transition-new(match-sheet) {
+  z-index: 1;
+  animation: morph-settle 0.22s ease-out both;
 }
 
 /* Nothing to go back into (it opened from a bracket slot, or its card has
    scrolled away): the sheet drops out the way it came in. */
 html[data-morph='drop']::view-transition-image-pair(match-sheet) {
   overflow: visible;
+  box-shadow: none;
   animation: none;
 }
 
@@ -4499,17 +4524,31 @@ html[data-morph='drop']::view-transition-old(match-sheet) {
   animation: sheet-drop 0.22s cubic-bezier(0.3, 0.9, 0.3, 1) both;
 }
 
-/* Out of a button, the label keeps its size, centred in the growing capsule,
-   and is gone in a blink, rather than stretching to the dialog's width. */
-html[data-morph-button][data-morph='open']::view-transition-old(match-sheet),
-html[data-morph-button][data-morph='close']::view-transition-new(match-sheet) {
-  width: 100%;
-  height: 100%;
-  object-fit: none;
+/* The crests fly on their own (sheet-morph.ts), on the sheet's curve. */
+::view-transition-group(match-crest-home),
+::view-transition-group(match-crest-away) {
+  animation-duration: 0.42s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-html[data-morph-button][data-morph='open']::view-transition-old(match-sheet) {
-  animation-duration: 0.09s;
+html[data-morph='close']::view-transition-group(match-crest-home),
+html[data-morph='close']::view-transition-group(match-crest-away) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+/* The names under the crests are part of the growing sheet, and the crests
+   cross them on the way in: they come up once the crests have landed. The
+   sheet's picture is live, so this plays inside the morph. */
+html[data-morph='open'] .modal-team-name,
+html[data-morph='open'] .modal-mid {
+  animation: morph-names-in 0.2s 0.2s ease-out both;
+}
+
+@keyframes morph-names-in {
+  from {
+    opacity: 0;
+  }
 }
 
 /* The page behind isn't captured at all: it stays live under the morph. A
@@ -4532,12 +4571,20 @@ html[data-morph] {
 @keyframes morph-corners-in {
   from {
     border-radius: var(--morph-from-radius);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
 }
 
 @keyframes morph-corners-out {
   to {
     border-radius: var(--morph-from-radius);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+@keyframes morph-settle {
+  from {
+    opacity: 0;
   }
 }
 
@@ -6758,6 +6805,7 @@ html[data-morph] {
   /* The sheet runs to the bottom edge, so only its top corners are round. */
   :root {
     --morph-to-radius: 18px 18px 0 0;
+    --morph-to-shadow: 0 0 0 rgba(0, 0, 0, 0);
   }
 
   html[data-morph='drop']::view-transition-old(match-sheet) {

@@ -25,7 +25,7 @@ let pressed: HTMLElement | null = null
 /** The picture the open sheet grew from, for the close to return to. */
 let source: HTMLElement | null = null
 let running: ViewTransition | null = null
-/** The scrim a closing sheet or dialog leaves behind while it goes. */
+/** The scrim a closing sheet leaves behind while it goes. */
 let lingering: HTMLElement | null = null
 
 if (typeof window !== 'undefined') {
@@ -45,8 +45,9 @@ const canMorph = () =>
   typeof document.startViewTransition === 'function' &&
   !matchMedia('(prefers-reduced-motion: reduce)').matches
 
+const noop = () => {}
 const sheet = () => document.querySelector<HTMLElement>('.modal:not(.dialog)')
-const dialog = () => document.querySelector<HTMLElement>('.modal.dialog')
+const dialog = () => document.querySelector<HTMLElement>('.modal-backdrop:not(.is-leaving) > .modal.dialog')
 
 /**
  * Reads the scrim off the backdrop about to be closed, and once it's gone
@@ -84,14 +85,7 @@ const onScreen = (el: HTMLElement) => {
   return r.width > 0 && r.bottom > 0 && r.right > 0 && r.top < innerHeight && r.left < innerWidth
 }
 
-async function morph(
-  kind: 'open' | 'close' | 'drop',
-  name: HTMLElement,
-  update: () => void,
-  done: () => void,
-  // Growing out of a button rather than a card: its corners, and the card's.
-  button?: { from: string; to: string },
-) {
+async function morph(kind: 'open' | 'close' | 'drop', name: HTMLElement, update: () => void, done: () => void) {
   // A second open or close mid-morph finishes the first before starting.
   if (running) {
     running.skipTransition()
@@ -100,11 +94,6 @@ async function morph(
   name.style.viewTransitionName = NAME
   const root = document.documentElement
   root.dataset.morph = kind
-  if (button) {
-    root.dataset.morphButton = ''
-    root.style.setProperty('--morph-from-radius', button.from)
-    root.style.setProperty('--morph-to-radius', button.to)
-  }
   const vt = document.startViewTransition(update)
   running = vt
   // A skipped transition rejects `ready`; the update still runs, so that's fine.
@@ -114,10 +103,35 @@ async function morph(
   if (running === vt) {
     running = null
     delete root.dataset.morph
-    delete root.dataset.morphButton
-    root.style.removeProperty('--morph-from-radius')
-    root.style.removeProperty('--morph-to-radius')
   }
+}
+
+/*
+ * The crests travel on their own, from the card to their places in the
+ * sheet and back, so they stay one crest the whole way: left inside the
+ * picture they'd be scaled with it, and doubled while the card and the sheet
+ * overlap. Only a crest that can be seen gets a name, since a named element
+ * is drawn unclipped (a crest scrolled out of the sheet would fly in from
+ * outside it).
+ */
+const CRESTS = ['match-crest-home', 'match-crest-away']
+
+function crests(within: HTMLElement): HTMLElement[] {
+  const found = within.matches('.preview-media')
+    ? [...within.querySelectorAll<HTMLElement>('.preview-matchup > .preview-flag')]
+    : [...within.querySelectorAll<HTMLElement>('.modal-teams > .modal-team > .modal-flag')]
+  if (found.length !== 2) return []
+  const box = within.getBoundingClientRect()
+  const seen = found.every((el) => {
+    const r = el.getBoundingClientRect()
+    return r.width > 0 && r.top >= box.top && r.bottom <= box.bottom && r.top >= 0 && r.bottom <= innerHeight
+  })
+  return seen ? found : []
+}
+
+function nameCrests(els: HTMLElement[]) {
+  els.forEach((el, i) => (el.style.viewTransitionName = CRESTS[i]))
+  return () => els.forEach((el) => el.style.removeProperty('view-transition-name'))
 }
 
 /** Opens a sheet, grown from the card that was just clicked if there is one. */
@@ -132,11 +146,14 @@ export function openSheet(open: () => void) {
   }
   source = from
   let grown: HTMLElement | null = null
+  let unname = nameCrests(crests(from))
   void morph(
     'open',
     from,
     () => {
       from.style.viewTransitionName = ''
+      const had = unname !== noop
+      unname()
       flushSync(open)
       grown = sheet()
       if (!grown) return
@@ -144,8 +161,13 @@ export function openSheet(open: () => void) {
       // The sheet's own entrance would otherwise play inside the morph, and
       // again once it ends.
       grown.style.animation = 'none'
+      // Both ends need their crests, or they'd have nowhere to fly to.
+      unname = had ? nameCrests(crests(grown)) : noop
     },
-    () => grown?.style.removeProperty('view-transition-name'),
+    () => {
+      grown?.style.removeProperty('view-transition-name')
+      unname()
+    },
   )
 }
 
@@ -162,80 +184,57 @@ export function closeSheet(close: () => void) {
   const to = source && source.isConnected && onScreen(source) ? source : null
   source = null
   const scrim = leaveScrim(leaving)
+  let unname = to ? nameCrests(crests(leaving)) : noop
   void morph(
     to ? 'close' : 'drop',
     leaving,
     () => {
+      const had = unname !== noop
+      unname()
       flushSync(close)
       scrim()
-      if (to) to.style.viewTransitionName = NAME
+      if (!to) return
+      to.style.viewTransitionName = NAME
+      unname = had ? nameCrests(crests(to)) : noop
     },
-    () => to?.style.removeProperty('view-transition-name'),
-  )
-}
-
-/*
- * Dialogs grow out of the button that asked for them, the way an iOS 26
- * button turns into its alert: the same morph, from the button's capsule to
- * the dialog's card, with the page dimming and blurring on the same curve.
- * Cancelled, a dialog goes back into its button; once its button is gone
- * (Catch up turns into Reset progress when it's done) it drops away.
- */
-let dialogSource: HTMLElement | null = null
-
-/** Opens a dialog, grown from `from`, the button that asked for it. */
-export function openDialog(from: HTMLElement | null, open: () => void) {
-  if (running) return
-  if (!from || !from.isConnected || !onScreen(from) || !canMorph()) {
-    dialogSource = null
-    open()
-    return
-  }
-  dialogSource = from
-  let grown: HTMLElement | null = null
-  void morph(
-    'open',
-    from,
     () => {
-      from.style.viewTransitionName = ''
-      flushSync(open)
-      grown = dialog()
-      if (!grown) return
-      grown.style.viewTransitionName = NAME
-      grown.style.animation = 'none'
+      to?.style.removeProperty('view-transition-name')
+      unname()
     },
-    () => grown?.style.removeProperty('view-transition-name'),
-    { from: getComputedStyle(from).borderRadius, to: '28px' },
   )
 }
 
-/** Closes the open dialog, back into its button if that's still there. */
+/**
+ * Closes the open dialog where it stands, the way an iOS alert goes: the
+ * answer takes effect at once (a reveal's ripple of scores starts under it)
+ * while a copy of the dialog and its scrim fades out on top. The copy keeps
+ * a live backdrop-filter, so the blur lifts with the dim instead of
+ * snapping off.
+ */
 export function closeDialog(close: () => void) {
-  if (running && document.documentElement.dataset.morph !== 'open') return
-  const leaving = dialog()
-  if (!leaving || !canMorph()) {
-    dialogSource = null
+  const leaving = dialog()?.parentElement
+  if (!leaving || matchMedia('(prefers-reduced-motion: reduce)').matches) {
     close()
     return
   }
-  const from = dialogSource
-  dialogSource = null
-  let to: HTMLElement | null = null
-  const scrim = leaveScrim(leaving)
-  void morph(
-    'drop',
-    leaving,
-    () => {
-      flushSync(close)
-      scrim()
-      // Only now is it known whether the button survived the answer.
-      if (from && from.isConnected && onScreen(from)) {
-        to = from
-        to.style.viewTransitionName = NAME
-        document.documentElement.dataset.morph = 'close'
-      }
-    },
-    () => to?.style.removeProperty('view-transition-name'),
-    from ? { from: getComputedStyle(from).borderRadius, to: '28px' } : undefined,
-  )
+  const parent = leaving.parentElement
+  const ghost = leaving.cloneNode(true) as HTMLElement
+  ghost.classList.add('is-leaving')
+  ghost.inert = true
+  ghost.setAttribute('aria-hidden', 'true')
+  ghost.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'))
+  // The scrim's opacity may be part way through a swipe or its own entrance.
+  const scrimFrom = Number(getComputedStyle(leaving, '::before').opacity)
+  flushSync(close)
+  ;(parent?.isConnected ? parent : document.body).append(ghost)
+  const card = ghost.querySelector('.modal')
+  const ease = { duration: 200, easing: 'cubic-bezier(0.3, 0.9, 0.3, 1)', fill: 'forwards' } as const
+  // Not the ghost as a whole: an opacity there would cut the scrim's blur
+  // off from the page behind.
+  const fades = [
+    ghost.animate([{ opacity: scrimFrom }, { opacity: 0 }], { ...ease, duration: 260, pseudoElement: '::before' }),
+    card?.animate([{ opacity: 1 }, { opacity: 0, transform: 'scale(0.96)' }], ease),
+  ]
+  const done = () => ghost.remove()
+  Promise.all(fades.map((a) => a?.finished)).then(done, done)
 }

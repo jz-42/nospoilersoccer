@@ -46,7 +46,7 @@ import {
 } from './navigation'
 import { useProgress } from './state/progress'
 import { rippleScores } from './score-ripple'
-import { closeDialog, closeSheet, openDialog, openSheet } from './sheet-morph'
+import { closeDialog, closeSheet, openSheet } from './sheet-morph'
 
 const TOURNAMENT_KEY = 'nss-tournament'
 const ONBOARDED_KEY = 'nss-onboarded'
@@ -562,7 +562,7 @@ function TournamentApp({
             <button
               type="button"
               className="btn-ghost btn-small btn-catch-up"
-              onClick={(e) => openDialog(e.currentTarget, () => setConfirmCatchUp(true))}
+              onClick={() => setConfirmCatchUp(true)}
             >
               Catch up
             </button>
@@ -570,7 +570,7 @@ function TournamentApp({
             <button
               type="button"
               className="btn-ghost btn-danger btn-small"
-              onClick={(e) => openDialog(e.currentTarget, () => setConfirmReset(true))}
+              onClick={() => setConfirmReset(true)}
             >
               Reset progress
             </button>
@@ -587,9 +587,7 @@ function TournamentApp({
 
           <SettingsMenu
             archive={archive}
-            onHowThisWorks={() =>
-              openDialog(document.querySelector<HTMLElement>('.menu-btn'), () => setShowOnboarding(true))
-            }
+            onHowThisWorks={() => setShowOnboarding(true)}
           />
         </div>
       </header>
