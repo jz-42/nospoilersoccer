@@ -1520,9 +1520,11 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T16:00Z",
       "home": "FIN",
       "away": "BLR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861090",
@@ -1532,9 +1534,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T16:00Z",
       "home": "MDA",
       "away": "FRO",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRO",
+          "player": "Viljormur Davidsen",
+          "minute": "26'",
+          "penalty": true
+        },
+        {
+          "team": "MDA",
+          "player": "Sergiu Perciun",
+          "minute": "66'"
+        }
+      ]
     },
     {
       "id": "unl-401861083",
