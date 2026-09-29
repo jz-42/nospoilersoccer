@@ -936,19 +936,33 @@
       "kickoff": "2026-09-28T18:45Z"
     },
     "unl-401861089": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [],
       "kickoff": "2026-09-29T16:00Z"
     },
     "unl-401861090": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "FRO",
+          "player": "Viljormur Davidsen",
+          "minute": "26'",
+          "penalty": true
+        },
+        {
+          "team": "MDA",
+          "player": "Sergiu Perciun",
+          "minute": "66'"
+        }
+      ],
       "kickoff": "2026-09-29T16:00Z"
     },
     "unl-401861083": {
