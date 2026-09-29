@@ -63,5 +63,10 @@
     "source": "tudn",
     "reason": "accepted cut already exists",
     "at": "2026-09-25T21:48:24.129Z"
+  },
+  "tRpYKhB0G4E": {
+    "source": "tudn",
+    "reason": "TUDN cuts outside the 15-minute range are rejected",
+    "at": "2026-09-29T18:45:26.985Z"
   }
 }
