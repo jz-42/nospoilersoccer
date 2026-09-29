@@ -975,11 +975,38 @@
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861084": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 4,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Lamine Yamal",
+          "minute": "2'"
+        },
+        {
+          "team": "CRO",
+          "player": "Dion Drena Beljo",
+          "minute": "28'"
+        },
+        {
+          "team": "ESP",
+          "player": "Marc Pubill",
+          "minute": "31'"
+        },
+        {
+          "team": "ESP",
+          "player": "Lamine Yamal",
+          "minute": "63'"
+        },
+        {
+          "team": "ESP",
+          "player": "Nico Williams",
+          "minute": "89'"
+        }
+      ],
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861085": {
@@ -1008,43 +1035,118 @@
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861086": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 3
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ISL",
+          "player": "Andri Gudjohnsen",
+          "minute": "13'"
+        },
+        {
+          "team": "ISL",
+          "player": "Orri Óskarsson",
+          "minute": "39'"
+        },
+        {
+          "team": "ISL",
+          "player": "Victor Palsson",
+          "minute": "73'"
+        }
+      ],
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861087": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "SVN",
+          "player": "Sandi Lovric",
+          "minute": "55'"
+        },
+        {
+          "team": "SVN",
+          "player": "Aljosa Matko",
+          "minute": "82'"
+        }
+      ],
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861088": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 3
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ALB",
+          "player": "Anis Mehmeti",
+          "minute": "21'"
+        },
+        {
+          "team": "ALB",
+          "player": "Myrto Uzuni",
+          "minute": "27'"
+        },
+        {
+          "team": "ALB",
+          "player": "Rey Manaj",
+          "minute": "65'"
+        }
+      ],
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861091": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 3
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "SUI",
+          "player": "Ricardo Rodríguez",
+          "minute": "12'"
+        },
+        {
+          "team": "SUI",
+          "player": "Nico Elvedi",
+          "minute": "55'"
+        },
+        {
+          "team": "SUI",
+          "player": "Zeki Amdouni",
+          "minute": "82'"
+        }
+      ],
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861092": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Anthony Gordon",
+          "minute": "47'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "69'"
+        }
+      ],
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861093": {

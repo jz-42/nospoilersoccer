@@ -1574,9 +1574,37 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T18:45Z",
       "home": "ESP",
       "away": "CRO",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 4,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Lamine Yamal",
+          "minute": "2'"
+        },
+        {
+          "team": "CRO",
+          "player": "Dion Drena Beljo",
+          "minute": "28'"
+        },
+        {
+          "team": "ESP",
+          "player": "Marc Pubill",
+          "minute": "31'"
+        },
+        {
+          "team": "ESP",
+          "player": "Lamine Yamal",
+          "minute": "63'"
+        },
+        {
+          "team": "ESP",
+          "player": "Nico Williams",
+          "minute": "89'"
+        }
+      ]
     },
     {
       "id": "unl-401861085",
@@ -1616,9 +1644,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T18:45Z",
       "home": "LUX",
       "away": "ISL",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "ISL",
+          "player": "Andri Gudjohnsen",
+          "minute": "13'"
+        },
+        {
+          "team": "ISL",
+          "player": "Orri Óskarsson",
+          "minute": "39'"
+        },
+        {
+          "team": "ISL",
+          "player": "Victor Palsson",
+          "minute": "73'"
+        }
+      ]
     },
     {
       "id": "unl-401861087",
@@ -1628,9 +1674,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T18:45Z",
       "home": "SVN",
       "away": "MKD",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "SVN",
+          "player": "Sandi Lovric",
+          "minute": "55'"
+        },
+        {
+          "team": "SVN",
+          "player": "Aljosa Matko",
+          "minute": "82'"
+        }
+      ]
     },
     {
       "id": "unl-401861088",
@@ -1640,9 +1699,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T18:45Z",
       "home": "SMR",
       "away": "ALB",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "ALB",
+          "player": "Anis Mehmeti",
+          "minute": "21'"
+        },
+        {
+          "team": "ALB",
+          "player": "Myrto Uzuni",
+          "minute": "27'"
+        },
+        {
+          "team": "ALB",
+          "player": "Rey Manaj",
+          "minute": "65'"
+        }
+      ]
     },
     {
       "id": "unl-401861091",
@@ -1652,9 +1729,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T18:45Z",
       "home": "SCO",
       "away": "SUI",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "SUI",
+          "player": "Ricardo Rodríguez",
+          "minute": "12'"
+        },
+        {
+          "team": "SUI",
+          "player": "Nico Elvedi",
+          "minute": "55'"
+        },
+        {
+          "team": "SUI",
+          "player": "Zeki Amdouni",
+          "minute": "82'"
+        }
+      ]
     },
     {
       "id": "unl-401861092",
@@ -1664,9 +1759,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T18:45Z",
       "home": "CZE",
       "away": "ENG",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Anthony Gordon",
+          "minute": "47'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "69'"
+        }
+      ]
     },
     {
       "id": "unl-401861093",
