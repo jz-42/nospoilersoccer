@@ -209,6 +209,13 @@ export function pickerCompetitionsAt(now: Date = new Date()): Competition[] {
 /** What Archive in the header menu lists. */
 export const archivedCompetitions = competitions.filter((c) => c.archived)
 
+/** World Cup archive keeps Quick / Extended. Everything else is named by source. */
+export function isArchivedTournament(tournamentId: string): boolean {
+  return archivedCompetitions.some((competition) =>
+    competition.seasons.some((season) => season.id === tournamentId || season.tournament?.id === tournamentId),
+  )
+}
+
 /**
  * The competition the app opens on for a first-time visitor. It is the one
  * people follow week to week, and the one bundled eagerly above so it paints

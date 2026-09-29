@@ -27,7 +27,7 @@
  * Embed-blocked videos (error 101/150) fall back to an external link with a
  * spoiler warning.
  */
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { analytics, describeYouTubeFailure, getHighlightFallbackCopy } from '../analytics'
 import type { Phase } from '../analytics'
 import type { HighlightVideo } from '../data/types'
@@ -36,10 +36,10 @@ import {
   highlightExternalUrl,
   highlightKey,
   isFoxHighlight,
+  isNonEnglishHighlight,
   isYouTubeHighlight,
   orderHighlightVideos,
 } from '../data/videos'
-import { formatHighlightDuration } from './format'
 import { usePlayerSettings } from '../player-settings'
 import { PlayerControls, type ControlledPlayer } from './PlayerControls'
 import { PlayerTitlebar } from './PlayerTitlebar'
@@ -135,13 +135,44 @@ const PUBLISHER_LABEL = {
   tudn: 'TUDN',
 } as const
 
-function highlightLabel(matchId: string, video: HighlightVideo): string {
-  if ('publisher' in video && video.publisher) {
-    return `Highlights (${PUBLISHER_LABEL[video.publisher]})`
+/** One poster, however many feeds. Four rows is as many as its menu holds. */
+const SOURCE_CAP = 4
+
+function clubProvider(matchId: string): string | undefined {
+  return Object.entries(CLUB_PROVIDER_BY_MATCH_PREFIX).find(([prefix]) => matchId.startsWith(prefix))?.[1]
+}
+
+/**
+ * English national-team cuts with no publisher are FOX, the English
+ * broadcaster. A named publisher or a club deal wins when one is set.
+ */
+function channelName(matchId: string, video: HighlightVideo): string {
+  if (isFoxHighlight(video)) return 'FOX'
+  if (isYouTubeHighlight(video) && video.publisher) return PUBLISHER_LABEL[video.publisher]
+  return clubProvider(matchId) ?? 'FOX'
+}
+
+function sourceLabel(matchId: string, video: HighlightVideo): string {
+  return `Highlights (${channelName(matchId, video)})`
+}
+
+/** The commentary language, in its own name, as a language picker lists it. */
+function languageWord(video: HighlightVideo): string {
+  return isNonEnglishHighlight(video) ? 'Español' : 'English'
+}
+
+/** One cut per channel, English first. A second length from the same channel stays off the poster. */
+function sourcePosters(matchId: string, videos: HighlightVideo[]): HighlightVideo[] {
+  const seen = new Set<string>()
+  const picked: HighlightVideo[] = []
+  for (const video of orderHighlightVideos(videos)) {
+    const channel = channelName(matchId, video)
+    if (seen.has(channel)) continue
+    seen.add(channel)
+    picked.push(video)
+    if (picked.length === SOURCE_CAP) break
   }
-  const provider = Object.entries(CLUB_PROVIDER_BY_MATCH_PREFIX)
-    .find(([prefix]) => matchId.startsWith(prefix))?.[1]
-  return provider ? `Highlights (${provider})` : KIND_LABEL[video.kind]
+  return picked
 }
 
 export function HighlightPlayer({
@@ -155,6 +186,7 @@ export function HighlightPlayer({
   awayName,
   customControls = true,
   posterCorner,
+  archive = false,
 }: {
   videos: HighlightVideo[]
   tournamentYear: number
@@ -168,10 +200,13 @@ export function HighlightPlayer({
   customControls?: boolean
   /** Rides the posters' bottom-left corner, opposite the Spoiler Covers mark. */
   posterCorner?: ReactNode
+  /** World Cup archive still says Quick / Extended. Everywhere else is the source. */
+  archive?: boolean
 }) {
   // English cuts lead; extended is preferred within a language.
   const orderedVideos = orderHighlightVideos(videos)
-  const defaultVideo = orderedVideos[0]
+  const posters = archive ? orderedVideos.slice(0, SOURCE_CAP) : sourcePosters(matchId, videos)
+  const defaultVideo = posters[0] ?? orderedVideos[0]
   const [selected, setSelected] = useState<HighlightVideo>(defaultVideo)
   const [active, setActive] = useState<HighlightVideo | null>(null)
   const [atEnd, setAtEnd] = useState(false)
@@ -181,11 +216,15 @@ export function HighlightPlayer({
   const [closing, setClosing] = useState(false)
   const [failedCode, setFailedCode] = useState<number | null>(null)
   const [expanded, setExpanded] = useState(false)
+  // The poster has turned into its list of sources.
+  const [picking, setPicking] = useState(false)
   const [ytPlayer, setYtPlayer] = useState<YTPlayer | null>(null)
   const [stateChangedAt, setStateChangedAt] = useState(0)
   const playerSettings = usePlayerSettings()
   const hostRef = useRef<HTMLDivElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const pickerRef = useRef<HTMLDivElement>(null)
+  const captionRef = useRef<HTMLButtonElement>(null)
   const revealing = useRef(false)
 
   const analyticsContext = useCallback(
@@ -265,6 +304,17 @@ export function HighlightPlayer({
     }
   }, [active, analyticsContext, tournamentPhase, tournamentYear])
 
+  // A press anywhere off the poster puts the menu away too.
+  useEffect(() => {
+    if (!picking) return
+    const away = (e: PointerEvent) => {
+      const poster = pickerRef.current?.closest('.player-poster')
+      if (poster && !poster.contains(e.target as Node)) setPicking(false)
+    }
+    document.addEventListener('pointerdown', away)
+    return () => document.removeEventListener('pointerdown', away)
+  }, [picking])
+
   // Escape / the system fullscreen chrome can leave fullscreen without us.
   useEffect(() => {
     const sync = () => setExpanded(document.fullscreenElement === wrapRef.current)
@@ -343,24 +393,13 @@ export function HighlightPlayer({
     analytics.trackHighlightEvent('highlight_play_clicked', analyticsContext(v))
   }
 
-  const kindToggle = orderedVideos.length > 1 && (
-    <div className="kind-toggle" role="tablist">
-      {orderedVideos.map((v) => {
-        const dur = formatHighlightDuration(v.durationSeconds, v.kind)
-        return (
-          <button
-            key={highlightKey(v)}
-            type="button"
-            className={`kind-chip ${highlightKey(selected) === highlightKey(v) ? 'active' : ''}`}
-            onClick={() => play(v)}
-          >
-            {highlightLabel(matchId, v)}
-            {dur && <span className="kind-chip-time">{dur}</span>}
-          </button>
-        )
-      })}
-    </div>
-  )
+  const labelFor = (video: HighlightVideo) => (archive ? KIND_LABEL[video.kind] : sourceLabel(matchId, video))
+
+  // A row in the source menu: the channel and its language, or in the archive,
+  // where every cut is FOX in English, just the length.
+  const pickName = (video: HighlightVideo) =>
+    archive ? (video.kind === 'extended' ? 'Extended' : 'Quick') : channelName(matchId, video)
+  const pickNote = (video: HighlightVideo) => (archive ? null : languageWord(video))
 
   // The Spoiler Covers mark rides the posters' corner. FOX's player is
   // cross-origin and ours can't cover it, so there is nothing to set there.
@@ -368,44 +407,127 @@ export function HighlightPlayer({
   // One entry to the settings at a time: the mark before a video plays, the
   // player's own button during.
   const markBelow = covers && !active
-  const foot = kindToggle && <div className="player-foot">{kindToggle}</div>
 
   if (!active) {
-    // Each highlight cut is its own poster, with English first.
-    const posters = orderedVideos
-    return (
-      <div className="player-block">
-        <div className="poster-list">
+    const current = posters.find((v) => highlightKey(v) === highlightKey(selected)) ?? posters[0]
+    // More than one source: the caption is the control.
+    const menu = posters.length > 1 && current !== undefined
+
+    const closePicker = () => {
+      setPicking(false)
+      captionRef.current?.focus()
+    }
+
+    const openPicker = () => {
+      setPicking(true)
+      requestAnimationFrame(() =>
+        pickerRef.current?.querySelector<HTMLButtonElement>('[aria-selected="true"]')?.focus(),
+      )
+    }
+
+    // A ghost of the poster's layout puts a button exactly over the caption,
+    // the chevron hanging in the button's own padding so the words stay centred.
+    const captionControl = menu && (
+      <div className="poster-ghost-layer">
+        <span className="poster-play-ghost" />
+        <button
+          ref={captionRef}
+          type="button"
+          className="poster-caption-btn"
+          aria-haspopup="listbox"
+          aria-expanded={picking}
+          onClick={openPicker}
+        >
+          {labelFor(current)}
+          <svg className="poster-caption-chev" viewBox="0 0 10 10" width="9" height="9" aria-hidden="true">
+            <path d="M2.5 3.75 5 6.25l2.5-2.5" />
+          </svg>
+        </button>
+        {current.community && <span className="poster-note poster-note-ghost">Community upload</span>}
+      </div>
+    )
+
+    // …and it opens a menu on the poster itself, over its dimmed contents:
+    // nothing to clip or stack, and plainly something to tap back out of.
+    const picker = menu && picking && (
+      <div
+        className="poster-picker"
+        onClick={closePicker}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.stopPropagation()
+            closePicker()
+          } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault()
+            const items = [...(pickerRef.current?.querySelectorAll<HTMLButtonElement>('.poster-pick') ?? [])]
+            const at = items.indexOf(document.activeElement as HTMLButtonElement)
+            items[(at + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus()
+          }
+        }}
+      >
+        <div ref={pickerRef} className="poster-picker-list" role="listbox" aria-label="Highlight source">
           {posters.map((v) => {
-            const dur = formatHighlightDuration(v.durationSeconds, v.kind)
+            const on = highlightKey(v) === highlightKey(current)
             return (
               <button
                 key={highlightKey(v)}
                 type="button"
-                className="player-poster"
-                onClick={() => play(v)}
+                role="option"
+                aria-selected={on}
+                className={`poster-pick${on ? ' is-active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelected(v)
+                  closePicker()
+                }}
+              >
+                <svg className="poster-pick-check" viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+                  <path d="M2.5 6.4 4.9 8.7 9.5 3.6" />
+                </svg>
+                <span className="poster-pick-name">{pickName(v)}</span>
+                {pickNote(v) && <span className="poster-pick-lang">{pickNote(v)}</span>}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+
+    return (
+      <div className="player-block">
+        <div className="poster-list">
+          <div
+            className={`player-poster${picker ? ' is-picking' : ''}`}
+            style={menu ? ({ '--rows': posters.length } as CSSProperties) : undefined}
+          >
+            {current && (
+              <button
+                type="button"
+                className="poster-main"
+                data-highlight={highlightKey(current)}
+                tabIndex={picker ? -1 : undefined}
+                onClick={() => play(current)}
               >
                 <span className="poster-play" aria-hidden="true">
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                     <path d="M8.3 5.5v13l11-6.5z" />
                   </svg>
                 </span>
-                <span className="poster-label">
-                  {highlightLabel(matchId, v)}
-                  {dur && <span className="poster-time"> · {dur}</span>}
-                </span>
-                {v.community && <span className="poster-note">Community upload</span>}
+                <span className={`poster-label${menu ? ' is-ghosted' : ''}`}>{labelFor(current)}</span>
+                {current.community && <span className="poster-note">Community upload</span>}
               </button>
-            )
-          })}
-          {/* Before anything plays, the mark rides the posters' last corner
-              rather than taking a row of its own. */}
-          {markBelow && (
-            <span className="poster-covers">
-              <SpoilerCoversButton />
-            </span>
-          )}
-          {posterCorner && <span className="poster-peek">{posterCorner}</span>}
+            )}
+            {captionControl}
+            {/* Before anything plays, the mark rides the poster's corner
+                rather than taking a row of its own. */}
+            {markBelow && (
+              <span className="poster-covers">
+                <SpoilerCoversButton />
+              </span>
+            )}
+            {posterCorner && <span className="poster-peek">{posterCorner}</span>}
+            {picker}
+          </div>
         </div>
       </div>
     )
@@ -450,7 +572,7 @@ export function HighlightPlayer({
           <iframe
             className="player-host player-host-fox"
             src={highlightEmbedUrl(active)}
-            title={highlightLabel(matchId, active)}
+            title={labelFor(active)}
             scrolling="no"
             allow="autoplay; fullscreen; picture-in-picture"
             allowFullScreen
@@ -469,7 +591,7 @@ export function HighlightPlayer({
             {/* Spoiler-safe frosted glass over YouTube's title line — see the file
                 header. It stops before the player's top-right control cluster
                 and stays out of the pointer path. */}
-            <PlayerTitlebar label={highlightLabel(matchId, active)} />
+            <PlayerTitlebar label={labelFor(active)} />
             {covers && <SpoilerCoversButton inPlayer />}
             <button
               type="button"
@@ -533,7 +655,6 @@ export function HighlightPlayer({
           />
         )}
       </div>
-      {foot}
     </div>
   )
 }

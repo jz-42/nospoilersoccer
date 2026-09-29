@@ -18,7 +18,6 @@ import { Heart } from './Heart'
 import { LiveStatusBadge } from './live-status'
 import type { ModalTarget } from './MatchModal'
 import { matchLiveStatus, matchState } from './status'
-import { formatRuntimeBadge } from './format'
 import { KickoffTime } from './KickoffTime'
 import { FINISHED_PENDING_CARD_COPY } from './highlight-copy'
 
@@ -84,8 +83,6 @@ export function PreviewCard({
         : state === 'locked'
           ? 'Locked'
           : null
-
-  const runtimeBadge = formatRuntimeBadge(m.videos)
 
   /**
    * The caption's second line, and only when the card cannot say it in
@@ -178,9 +175,6 @@ export function PreviewCard({
             <span className="preview-flag preview-flag-tbd">?</span>
           )}
         </div>
-        {!liveStatus && state === 'watch' && runtimeBadge && (
-          <span className="preview-duration">{runtimeBadge}</span>
-        )}
         {pinned && (
           <span className="preview-saved" aria-label="Watch Later" title="Watch Later">
             <ClockIcon />

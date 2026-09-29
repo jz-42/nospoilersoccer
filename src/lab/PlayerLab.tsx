@@ -83,6 +83,7 @@ export function PlayerLab() {
             homeName="Home"
             awayName="Away"
             customControls={custom}
+            archive
           />
         </div>
         <div className="lab-covers">
