@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { clubColors } from './club-colors'
 import { clubs } from './club/clubs'
-import { matchTint } from './team-colors'
+import { matchTint, separation } from './team-colors'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -48,27 +48,29 @@ for (const [id, palette] of Object.entries(clubColors)) {
   }
 }
 
-// No two clubs may resolve to the same field, anywhere. The registry is small
-// enough to check exhaustively, and this is the one property the whole palette
-// exists to have: whatever pair the modal draws, it draws two colours.
+// No two clubs may resolve to fields that read as one colour, anywhere, in
+// either order. The registry is small enough to check exhaustively, and this
+// is the one property the whole palette exists to have: whatever pair the
+// modal draws, it draws two colours.
 let same = 0
-for (let i = 0; i < ids.length; i += 1) {
-  for (let j = i + 1; j < ids.length; j += 1) {
-    const tint = matchTint(ids[i], ids[j])
-    if (tint['--home-1'] === tint['--away-1']) {
-      console.error(`  ${ids[i]} v ${ids[j]} -> ${tint['--home-1']}`)
+for (const home of ids) {
+  for (const away of ids) {
+    if (home === away) continue
+    const tint = matchTint(home, away)
+    if (separation(tint['--home-1'], tint['--away-1']) < 1) {
+      console.error(`  ${home} v ${away} -> ${tint['--home-1']} / ${tint['--away-1']}`)
       same += 1
     }
   }
 }
-assert(same === 0, `all ${(ids.length * (ids.length - 1)) / 2} club pairings resolve to two fields`)
+assert(same === 0, `all ${ids.length * (ids.length - 1)} club pairings resolve to two colours`)
 
-// The reds are the crowded end of the table, and the collision rule scores on
-// ΔE alone — so a red club with a dark cap meeting a red club with a light one
-// scores best when *both* sides swap, and neither club is on the screen any
-// more. That is why every red's cap sits in the same light band and the dark
-// tones live in `deep` (see the header of club-colors.ts). These are the pairs
-// that were broken by the first pass.
+// The reds are the crowded end of the table. The first clash rule scored on
+// ΔE alone, so a red club with a dark cap meeting a red club with a light one
+// scored best when *both* sides swapped, and neither club was on the screen
+// any more. That is why every red's cap sits in the same light band and the
+// dark tones live in `deep` (see the header of club-colors.ts). These are the
+// pairs that were broken by the first pass.
 const reds: [string, string][] = [
   ['arsenal', 'bournemouth'],
   ['bayern-munich', 'liverpool'],
@@ -149,7 +151,7 @@ for (const [home, away, name] of derbies) {
 }
 
 // The clubs whose one colour is the whole point keep it when they meet their
-// rival, rather than being the side the collision rule moves.
+// rival, rather than being the side the clash rule moves.
 const merseyside = matchTint('liverpool', 'everton')
 assert(merseyside['--home-1'] === clubColors.liverpool[0], 'Liverpool stays red on Merseyside')
 
@@ -176,6 +178,16 @@ assert(
     stripes['--away-1'] === clubColors['atletico-madrid'][2],
   'Athletic v Atlético resolves to red against navy',
 )
+
+// Spurs' cockerel is drawn in navy, so a navy field swallows it: whoever they
+// meet, home or away, their side is never the crest's own ink.
+let spursOnNavy = 0
+for (const other of ids) {
+  if (other === 'tottenham') continue
+  const fields = [matchTint('tottenham', other)['--home-1'], matchTint(other, 'tottenham')['--away-1']]
+  for (const field of fields) if (separation(field, clubColors.tottenham[1]) < 1) spursOnNavy += 1
+}
+assert(spursOnNavy === 0, 'Spurs never sit on the navy of their own crest')
 
 // A curated deep only survives while the side still leads with its curated
 // lead, so a swapped club must not pool into the wrong hue underneath.

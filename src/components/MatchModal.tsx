@@ -375,11 +375,11 @@ export function MatchModal({
 
   return (
     <div
-      className="modal-backdrop"
+      className={`modal-backdrop${dragging ? ' is-dragging' : ''}`}
       onClick={onClose}
       style={
         dragging
-          ? { opacity: Math.max(0.35, 1 - dragProgress * 0.55), transition: 'none' }
+          ? ({ '--scrim-drag': Math.max(0.35, 1 - dragProgress * 0.55) } as CSSProperties)
           : undefined
       }
     >
