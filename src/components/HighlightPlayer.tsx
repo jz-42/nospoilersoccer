@@ -27,7 +27,7 @@
  * Embed-blocked videos (error 101/150) fall back to an external link with a
  * spoiler warning.
  */
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { analytics, describeYouTubeFailure, getHighlightFallbackCopy } from '../analytics'
 import type { Phase } from '../analytics'
 import type { HighlightVideo } from '../data/types'
@@ -303,23 +303,6 @@ export function HighlightPlayer({
       mount.remove()
     }
   }, [active, analyticsContext, tournamentPhase, tournamentYear])
-
-  // The menu lays the current row over the caption, so the pointer that
-  // opened it is already resting on the choice it made, as a macOS pop-up
-  // button does; the edges of the poster keep it in.
-  useLayoutEffect(() => {
-    const list = pickerRef.current
-    const caption = captionRef.current
-    const poster = list?.closest<HTMLElement>('.player-poster')
-    if (!picking || !list || !caption || !poster) return
-    const row = list.querySelector<HTMLElement>('[aria-selected="true"]')
-    const rowMid = row ? row.offsetTop + row.offsetHeight / 2 : list.offsetHeight / 2
-    const cap = caption.getBoundingClientRect()
-    const want = cap.top + cap.height / 2 - poster.getBoundingClientRect().top - poster.clientTop - rowMid
-    const top = Math.max(8, Math.min(want, poster.clientHeight - list.offsetHeight - 8))
-    list.style.top = `${top}px`
-    list.style.transformOrigin = `50% ${rowMid}px`
-  }, [picking])
 
   // A press anywhere off the poster puts the menu away too.
   useEffect(() => {

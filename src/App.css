@@ -5093,8 +5093,8 @@
 }
 
 /* Picking, the poster stays and steps back, and a menu of its sources opens
-   on the caption: the current row lands where the caption was, as a macOS
-   pop-up button does, and anywhere past its edge is plainly "away". */
+   in its middle, however many there are; anywhere past the menu's edge is
+   plainly "away". */
 .player-poster > * {
   transition: opacity 0.16s ease;
 }
@@ -5108,8 +5108,10 @@
   pointer-events: none;
 }
 
-/* Words don't show through words: the caption under the menu goes. */
-.player-poster.is-picking :is(.poster-label, .poster-note, .poster-ghost-layer) {
+/* Words don't show through words: the caption under the menu goes. So does
+   the play button, which the menu's top edge would otherwise slice just
+   above its base. */
+.player-poster.is-picking :is(.poster-play, .poster-label, .poster-note, .poster-ghost-layer) {
   opacity: 0;
 }
 
@@ -5119,21 +5121,23 @@
   inset: 0;
 }
 
-/* The poster's own glass, lifted: a menu on it, not a hole in it. */
+/* The poster's own glass, lifted: a menu on it, not a hole in it. Its edge is
+   a half-pixel hairline, not a border, so the lit row inside is the only
+   hard shape and the two don't stack into a double line along the top. */
 .poster-picker-list {
   position: absolute;
+  top: 50%;
   left: 50%;
   display: flex;
   flex-direction: column;
   width: min(212px, 100% - 32px);
-  padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 5px;
   border-radius: 12px;
   background:
     linear-gradient(168deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.07)),
     rgba(22, 25, 33, 0.22);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 10px 26px rgba(0, 0, 0, 0.2);
-  translate: -50% 0;
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.14), 0 10px 26px rgba(0, 0, 0, 0.24);
+  translate: -50% -50%;
   -webkit-backdrop-filter: blur(22px) saturate(1.5);
   backdrop-filter: blur(22px) saturate(1.5);
   animation: poster-picker-in 0.16s cubic-bezier(0.2, 0.9, 0.3, 1) both;
@@ -5146,8 +5150,8 @@
   }
 }
 
-/* The current row is ticked and lit: a raised fill with the panel's own top
-   light, concentric with the panel's corners. Hover is a much fainter wash
+/* The current row is ticked and lit: a flat fill, concentric with the
+   panel's corners. Hover is a much fainter wash
    and keyboard focus a hairline, so neither can pass for the selection. */
 .poster-pick {
   display: grid;
@@ -5157,7 +5161,7 @@
   height: var(--pick-h);
   padding: 0 11px 0 9px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 7px;
   background: transparent;
   color: rgba(255, 255, 255, 0.86);
   font: inherit;
@@ -5201,18 +5205,13 @@
 
 .poster-pick.is-active {
   color: #fff;
-  background: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 @media (hover: hover) {
   .poster-pick.is-active:hover {
     background: rgba(255, 255, 255, 0.2);
   }
-}
-
-.poster-pick.is-active:focus-visible {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
 }
 
 .poster-pick.is-active .poster-pick-check {
