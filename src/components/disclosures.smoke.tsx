@@ -372,7 +372,7 @@ assert(
   'knockout unknown-team placeholder uses the faint dashed flag-frame treatment',
 )
 assert(
-  /\.modal-flag-unknown\s*\{[\s\S]*?width:\s*calc\(56px \* 4 \/ 3\);[\s\S]*?height:\s*56px;[\s\S]*?border-radius:\s*5px;[\s\S]*?border:\s*2px dashed rgba\(154, 173, 203, 0\.24\);/.test(
+  /\.modal-flag-unknown\s*\{[\s\S]*?width:\s*calc\(63px \* 4 \/ 3\);[\s\S]*?height:\s*63px;[\s\S]*?border-radius:\s*5px;[\s\S]*?border:\s*2px dashed rgba\(154, 173, 203, 0\.24\);/.test(
     appCss,
   ),
   'modal unknown-team placeholder uses the faint dashed flag-frame treatment',
