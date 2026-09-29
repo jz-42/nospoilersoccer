@@ -1611,9 +1611,9 @@
   text-align: left;
   color: var(--text);
   transition:
-    border-color 0.15s,
-    transform 0.22s cubic-bezier(0.32, 0.72, 0, 1),
-    box-shadow 0.15s,
+    border-color 0.2s,
+    transform 0.32s cubic-bezier(0.3, 0.9, 0.3, 1),
+    box-shadow 0.32s cubic-bezier(0.3, 0.9, 0.3, 1),
     opacity 0.15s;
   box-shadow: var(--shadow);
   /* Keep the card on its own compositor layer at rest, so the hover lift
@@ -1624,13 +1624,55 @@
 
 .preview-card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35), 0 14px 36px rgba(0, 0, 0, 0.35);
 }
 
+/* Hover is the focus of an Apple TV poster, without the pointer tilt: the
+   card comes towards you a little and the picture inside comes further, so
+   the crests sit on the cloth like the front layer of a parallax poster. A
+   mouse only; a phone never hovers, so there it's the press alone. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .preview-card:hover {
+    z-index: 1;
+    transform: scale(1.025);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0), 0 22px 48px rgba(0, 0, 0, 0.5);
+    transition:
+      border-color 0.2s,
+      transform 0.42s cubic-bezier(0.2, 0.9, 0.25, 1),
+      box-shadow 0.42s cubic-bezier(0.2, 0.9, 0.25, 1),
+      opacity 0.15s;
+  }
+
+  .preview-card:hover .preview-media :is(.match-fabric),
+  .preview-card:hover .preview-media::before {
+    transform: scale(1.05);
+    transition: transform 0.42s cubic-bezier(0.2, 0.9, 0.25, 1);
+  }
+}
+
+/* The picture grows inside its own box, not over the caption. */
+.preview-media {
+  overflow: clip;
+}
+
+.preview-media .match-fabric,
+.preview-media::before {
+  transition: transform 0.4s cubic-bezier(0.3, 0.9, 0.3, 1);
+}
+
+/* The press sets it down, quickly, from wherever the hover had it. */
 .preview-card:active {
   transform: scale(0.985);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.24);
   transition-duration: 0.12s;
+  transition-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .preview-card:active .preview-media .match-fabric,
+  .preview-card:active .preview-media::before {
+    transform: scale(1.02);
+    transition-duration: 0.12s;
+  }
 }
 
 /* Watched cards recede, but by quieting the tint art itself rather than
@@ -6330,6 +6372,11 @@ html[data-morph] {
 .queue-grid.is-dragging .queue-item:not(.is-lifted) .preview-card:hover {
   transform: none;
   box-shadow: var(--shadow);
+}
+
+.queue-grid.is-dragging .queue-item:not(.is-lifted) .preview-card:hover .match-fabric,
+.queue-grid.is-dragging .queue-item:not(.is-lifted) .preview-card:hover .preview-media::before {
+  transform: none;
 }
 
 /* Watched, and on its way out — see the header note. Dimmed rather than moved
