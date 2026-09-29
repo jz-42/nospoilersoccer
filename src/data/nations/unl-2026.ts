@@ -1560,9 +1560,11 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T18:45Z",
       "home": "BUL",
       "away": "EST",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861084",
@@ -1584,9 +1586,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-09-29T18:45Z",
       "home": "SVK",
       "away": "KAZ",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SVK",
+          "player": "Leo Sauer",
+          "minute": "26'"
+        },
+        {
+          "team": "KAZ",
+          "player": "Ramazan Karimov",
+          "minute": "35'"
+        },
+        {
+          "team": "SVK",
+          "player": "Dávid Hancko",
+          "minute": "82'"
+        }
+      ]
     },
     {
       "id": "unl-401861086",

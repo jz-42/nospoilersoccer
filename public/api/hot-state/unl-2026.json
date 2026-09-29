@@ -966,11 +966,12 @@
       "kickoff": "2026-09-29T16:00Z"
     },
     "unl-401861083": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [],
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861084": {
@@ -982,11 +983,28 @@
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861085": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "SVK",
+          "player": "Leo Sauer",
+          "minute": "26'"
+        },
+        {
+          "team": "KAZ",
+          "player": "Ramazan Karimov",
+          "minute": "35'"
+        },
+        {
+          "team": "SVK",
+          "player": "Dávid Hancko",
+          "minute": "82'"
+        }
+      ],
       "kickoff": "2026-09-29T18:45Z"
     },
     "unl-401861086": {
