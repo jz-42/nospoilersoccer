@@ -1159,13 +1159,17 @@
       "kickoff": "2026-10-01T16:00Z"
     },
     "unl-401861094": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861095": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-10-01T18:45Z"
@@ -1177,25 +1181,33 @@
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861097": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861098": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861099": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861100": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-10-01T18:45Z"
