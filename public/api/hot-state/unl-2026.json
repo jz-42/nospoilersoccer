@@ -1183,11 +1183,23 @@
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861097": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "GER",
+          "player": "Tom Bischof",
+          "minute": "39'"
+        },
+        {
+          "team": "GER",
+          "player": "Florian Wirtz",
+          "minute": "61'"
+        }
+      ],
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861098": {
@@ -1199,19 +1211,48 @@
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861099": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "MLT",
+          "player": "Joseph Mbong",
+          "minute": "53'"
+        },
+        {
+          "team": "GIB",
+          "player": "James Scanlon",
+          "minute": "61'"
+        }
+      ],
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861100": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Oscar Bobb",
+          "minute": "11'"
+        },
+        {
+          "team": "WAL",
+          "player": "Daniel James",
+          "minute": "38'"
+        },
+        {
+          "team": "WAL",
+          "player": "Neco Williams",
+          "minute": "48'"
+        }
+      ],
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861101": {

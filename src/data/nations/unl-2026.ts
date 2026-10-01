@@ -1834,9 +1834,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-01T18:45Z",
       "home": "GER",
       "away": "SRB",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "GER",
+          "player": "Tom Bischof",
+          "minute": "39'"
+        },
+        {
+          "team": "GER",
+          "player": "Florian Wirtz",
+          "minute": "61'"
+        }
+      ]
     },
     {
       "id": "unl-401861098",
@@ -1858,9 +1871,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-01T18:45Z",
       "home": "MLT",
       "away": "GIB",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "MLT",
+          "player": "Joseph Mbong",
+          "minute": "53'"
+        },
+        {
+          "team": "GIB",
+          "player": "James Scanlon",
+          "minute": "61'"
+        }
+      ]
     },
     {
       "id": "unl-401861100",
@@ -1870,9 +1896,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-01T18:45Z",
       "home": "WAL",
       "away": "NOR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Oscar Bobb",
+          "minute": "11'"
+        },
+        {
+          "team": "WAL",
+          "player": "Daniel James",
+          "minute": "38'"
+        },
+        {
+          "team": "WAL",
+          "player": "Neco Williams",
+          "minute": "48'"
+        }
+      ]
     },
     {
       "id": "unl-401861101",
