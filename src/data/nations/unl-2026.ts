@@ -1798,9 +1798,33 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-01T18:45Z",
       "home": "IRL",
       "away": "AUT",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "IRL",
+          "player": "Troy Parrott",
+          "minute": "12'"
+        },
+        {
+          "team": "IRL",
+          "player": "Troy Parrott",
+          "minute": "45'",
+          "penalty": true
+        },
+        {
+          "team": "AUT",
+          "player": "Alexander Prass",
+          "minute": "71'"
+        },
+        {
+          "team": "AUT",
+          "player": "Michael Gregoritsch",
+          "minute": "77'"
+        }
+      ]
     },
     {
       "id": "unl-401861095",
@@ -1810,9 +1834,11 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-01T18:45Z",
       "home": "ISR",
       "away": "KOS",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861096",
@@ -1822,9 +1848,42 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-01T18:45Z",
       "home": "DEN",
       "away": "POR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "POR",
+          "player": "João Cancelo",
+          "minute": "13'"
+        },
+        {
+          "team": "DEN",
+          "player": "Mikkel Damsgaard",
+          "minute": "23'"
+        },
+        {
+          "team": "POR",
+          "player": "Gonçalo Ramos",
+          "minute": "25'"
+        },
+        {
+          "team": "DEN",
+          "player": "Rasmus Højlund",
+          "minute": "53'"
+        },
+        {
+          "team": "POR",
+          "player": "Vitinha",
+          "minute": "67'"
+        },
+        {
+          "team": "POR",
+          "player": "João Félix",
+          "minute": "87'"
+        }
+      ]
     },
     {
       "id": "unl-401861097",
@@ -1859,9 +1918,32 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-01T18:45Z",
       "home": "GRE",
       "away": "NED",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "GRE",
+          "player": "Fotis Ioannidis",
+          "minute": "23'"
+        },
+        {
+          "team": "GRE",
+          "player": "Georgios Masouras",
+          "minute": "45'+2'"
+        },
+        {
+          "team": "NED",
+          "player": "Virgil van Dijk",
+          "minute": "59'"
+        },
+        {
+          "team": "NED",
+          "player": "Tijjani Reijnders",
+          "minute": "89'"
+        }
+      ]
     },
     {
       "id": "unl-401861099",

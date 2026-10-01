@@ -1159,27 +1159,83 @@
       "kickoff": "2026-10-01T16:00Z"
     },
     "unl-401861094": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "IRL",
+          "player": "Troy Parrott",
+          "minute": "12'"
+        },
+        {
+          "team": "IRL",
+          "player": "Troy Parrott",
+          "minute": "45'",
+          "penalty": true
+        },
+        {
+          "team": "AUT",
+          "player": "Alexander Prass",
+          "minute": "71'"
+        },
+        {
+          "team": "AUT",
+          "player": "Michael Gregoritsch",
+          "minute": "77'"
+        }
+      ],
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861095": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 0,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [],
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861096": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 4
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "POR",
+          "player": "João Cancelo",
+          "minute": "13'"
+        },
+        {
+          "team": "DEN",
+          "player": "Mikkel Damsgaard",
+          "minute": "23'"
+        },
+        {
+          "team": "POR",
+          "player": "Gonçalo Ramos",
+          "minute": "25'"
+        },
+        {
+          "team": "DEN",
+          "player": "Rasmus Højlund",
+          "minute": "53'"
+        },
+        {
+          "team": "POR",
+          "player": "Vitinha",
+          "minute": "67'"
+        },
+        {
+          "team": "POR",
+          "player": "João Félix",
+          "minute": "87'"
+        }
+      ],
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861097": {
@@ -1203,11 +1259,33 @@
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861098": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "GRE",
+          "player": "Fotis Ioannidis",
+          "minute": "23'"
+        },
+        {
+          "team": "GRE",
+          "player": "Georgios Masouras",
+          "minute": "45'+2'"
+        },
+        {
+          "team": "NED",
+          "player": "Virgil van Dijk",
+          "minute": "59'"
+        },
+        {
+          "team": "NED",
+          "player": "Tijjani Reijnders",
+          "minute": "89'"
+        }
+      ],
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861099": {
