@@ -1784,9 +1784,11 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-01T16:00Z",
       "home": "AZE",
       "away": "LIE",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861094",
