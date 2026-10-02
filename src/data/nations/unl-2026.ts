@@ -2092,7 +2092,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "HUN",
-      "away": "GEO"
+      "away": "GEO",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861103",
@@ -2101,7 +2104,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "FRA",
-      "away": "ITA"
+      "away": "ITA",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861106",
@@ -2110,7 +2116,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "UKR",
-      "away": "NIR"
+      "away": "NIR",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861107",
@@ -2119,7 +2128,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "BIH",
-      "away": "SWE"
+      "away": "SWE",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861108",
@@ -2128,7 +2140,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "POL",
-      "away": "ROU"
+      "away": "ROU",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861109",
@@ -2137,7 +2152,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "BEL",
-      "away": "TUR"
+      "away": "TUR",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861110",
@@ -2146,7 +2164,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "FRO",
-      "away": "SVK"
+      "away": "SVK",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861111",
