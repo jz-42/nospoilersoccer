@@ -2113,9 +2113,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T18:45Z",
       "home": "FRA",
       "away": "ITA",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Michael Olise",
+          "minute": "55'"
+        },
+        {
+          "team": "ITA",
+          "player": "Alessandro Bastoni",
+          "minute": "68'"
+        }
+      ]
     },
     {
       "id": "unl-401861106",

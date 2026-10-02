@@ -1419,11 +1419,23 @@
       "kickoff": "2026-10-02T18:45Z"
     },
     "unl-401861103": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Michael Olise",
+          "minute": "55'"
+        },
+        {
+          "team": "ITA",
+          "player": "Alessandro Bastoni",
+          "minute": "68'"
+        }
+      ],
       "kickoff": "2026-10-02T18:45Z"
     },
     "unl-401861106": {
