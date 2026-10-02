@@ -1334,11 +1334,28 @@
       "kickoff": "2026-10-01T18:45Z"
     },
     "unl-401861101": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 1,
+        "away": 2
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "MDA",
+          "player": "Nicky Clescenco",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "MDA",
+          "player": "Petru Popescu",
+          "minute": "50'"
+        },
+        {
+          "team": "KAZ",
+          "player": "Nuraly Alip",
+          "minute": "64'"
+        }
+      ],
       "kickoff": "2026-10-02T14:00Z"
     },
     "unl-401861104": {

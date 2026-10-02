@@ -2008,9 +2008,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T14:00Z",
       "home": "KAZ",
       "away": "MDA",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "MDA",
+          "player": "Nicky Clescenco",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "MDA",
+          "player": "Petru Popescu",
+          "minute": "50'"
+        },
+        {
+          "team": "KAZ",
+          "player": "Nuraly Alip",
+          "minute": "64'"
+        }
+      ]
     },
     {
       "id": "unl-401861104",
