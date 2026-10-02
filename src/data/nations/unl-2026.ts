@@ -2093,9 +2093,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T18:45Z",
       "home": "HUN",
       "away": "GEO",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "HUN",
+          "player": "Milos Kerkez",
+          "minute": "35'"
+        }
+      ]
     },
     {
       "id": "unl-401861103",
@@ -2117,9 +2125,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T18:45Z",
       "home": "UKR",
       "away": "NIR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "NIR",
+          "player": "Ciaron Brown",
+          "minute": "9'"
+        },
+        {
+          "team": "NIR",
+          "player": "Isaac Price",
+          "minute": "22'"
+        },
+        {
+          "team": "NIR",
+          "player": "Ciaron Brown",
+          "minute": "61'"
+        }
+      ]
     },
     {
       "id": "unl-401861107",
@@ -2129,9 +2155,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T18:45Z",
       "home": "BIH",
       "away": "SWE",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SWE",
+          "player": "Viktor Gyökeres",
+          "minute": "61'"
+        },
+        {
+          "team": "BIH",
+          "player": "Kerim Alajbegovic",
+          "minute": "80'"
+        }
+      ]
     },
     {
       "id": "unl-401861108",
@@ -2141,9 +2180,44 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T18:45Z",
       "home": "POL",
       "away": "ROU",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 6,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "POL",
+          "player": "Robert Lewandowski",
+          "minute": "24'",
+          "penalty": true
+        },
+        {
+          "team": "POL",
+          "player": "Robert Lewandowski",
+          "minute": "47'"
+        },
+        {
+          "team": "POL",
+          "player": "Virgil Ghita",
+          "minute": "49'",
+          "ownGoal": true
+        },
+        {
+          "team": "POL",
+          "player": "Piotr Zielinski",
+          "minute": "62'"
+        },
+        {
+          "team": "POL",
+          "player": "Jan Bednarek",
+          "minute": "66'"
+        },
+        {
+          "team": "POL",
+          "player": "Robert Lewandowski",
+          "minute": "86'"
+        }
+      ]
     },
     {
       "id": "unl-401861109",
@@ -2153,9 +2227,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T18:45Z",
       "home": "BEL",
       "away": "TUR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "BEL",
+          "player": "Kevin De Bruyne",
+          "minute": "10'"
+        },
+        {
+          "team": "BEL",
+          "player": "Kevin De Bruyne",
+          "minute": "59'"
+        },
+        {
+          "team": "BEL",
+          "player": "Romelu Lukaku",
+          "minute": "76'"
+        }
+      ]
     },
     {
       "id": "unl-401861110",
@@ -2165,9 +2257,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T18:45Z",
       "home": "FRO",
       "away": "SVK",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SVK",
+          "player": "Gunnar Vatnhamar",
+          "minute": "38'",
+          "ownGoal": true
+        },
+        {
+          "team": "FRO",
+          "player": "Adrian Justinussen",
+          "minute": "66'"
+        }
+      ]
     },
     {
       "id": "unl-401861111",
