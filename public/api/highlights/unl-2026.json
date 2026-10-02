@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "tournamentId": "unl-2026",
-  "version": 45143322418126,
-  "generatedAt": "2026-10-02T21:15:38.405Z",
+  "version": 50115195738207,
+  "generatedAt": "2026-10-02T21:15:52.530Z",
   "matches": {
     "unl-401861047": [
       {
@@ -518,6 +518,14 @@
         "youtubeId": "j4mvPt5EjCw",
         "kind": "normal",
         "durationSeconds": 917,
+        "publisher": "tudn"
+      }
+    ],
+    "unl-401861109": [
+      {
+        "youtubeId": "xosWtNS7mBs",
+        "kind": "normal",
+        "durationSeconds": 904,
         "publisher": "tudn"
       }
     ]
