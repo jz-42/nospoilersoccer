@@ -2007,7 +2007,10 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T14:00Z",
       "home": "KAZ",
-      "away": "MDA"
+      "away": "MDA",
+      "liveStatus": {
+        "kind": "live"
+      }
     },
     {
       "id": "unl-401861104",
