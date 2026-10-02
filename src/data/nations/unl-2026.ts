@@ -2038,9 +2038,22 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T16:00Z",
       "home": "CYP",
       "away": "ARM",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "CYP",
+          "player": "Leonidas Konomis",
+          "minute": "19'"
+        },
+        {
+          "team": "CYP",
+          "player": "Andronikos Kakoulis",
+          "minute": "31'"
+        }
+      ]
     },
     {
       "id": "unl-401861105",
@@ -2050,9 +2063,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-02T16:00Z",
       "home": "LVA",
       "away": "MNE",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "MNE",
+          "player": "Vasilije Adzic",
+          "minute": "3'"
+        },
+        {
+          "team": "MNE",
+          "player": "Vasilije Adzic",
+          "minute": "56'"
+        },
+        {
+          "team": "LVA",
+          "player": "Markuss Strods",
+          "minute": "82'"
+        }
+      ]
     },
     {
       "id": "unl-401861102",
