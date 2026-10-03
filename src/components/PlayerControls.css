@@ -14,6 +14,9 @@
    Each cover hugs one of these, and is up only while YouTube's chrome may be
    ("is-guarded"): no cover ever sits over bare video. */
 .yt-controls {
+  /* Center buttons: bigger play/pause than YouTube's, skip either side. */
+  --yt-play: clamp(56px, 12.5cqi, 96px);
+  --yt-skip: clamp(44px, 8.5cqi, 68px);
   --yt-pill-left: 28px;
   --yt-pill-bottom: 92px;
   --yt-bar-inset: 30px;
@@ -32,6 +35,7 @@
     --yt-pill-bottom: 68px;
     --yt-bar-inset: 12px;
     --yt-bar-bottom: 54px;
+    --yt-play: 68px;
   }
 }
 
@@ -100,14 +104,12 @@
   height: 26px;
   padding: 0 7px;
   box-sizing: border-box;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.7);
+  border-radius: 13px;
+  /* Quieter than the buttons: smoked glass with no sheen or lift, a readout
+     rather than a control. */
+  background: rgba(10, 11, 14, 0.66);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
   color: #fff;
-  font-family: Roboto, Arial, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: normal;
-  text-shadow: 0 0 2px #000;
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.3s ease-out;
@@ -115,27 +117,33 @@
 
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .yt-time {
-    background: rgba(0, 0, 0, 0.4);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
+    background: rgba(10, 11, 14, 0.34);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3) brightness(0.85);
+    backdrop-filter: blur(14px) saturate(1.3) brightness(0.85);
   }
 }
 
-/* Sized like YouTube's `elapsed / total`, drawn with only what the viewer
-   wants: no redaction marks. The pill's glass is enough to wash out YouTube's
-   own text beneath it. */
+/* Sized like YouTube's `elapsed / total` (so in YouTube's own type), drawn
+   with only what the viewer wants: no redaction marks. The pill's glass is
+   enough to wash out YouTube's own text beneath it. */
 .yt-time-size,
 .yt-time-text {
   grid-area: 1 / 1;
   display: flex;
+  align-items: baseline;
 }
 
 .yt-time-size {
   visibility: hidden;
+  font: 500 14px / normal Roboto, Arial, sans-serif;
 }
 
 .yt-time-text {
   justify-self: center;
+  font: 500 12.5px / 1 'Inter Variable', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .yt-time-sep {
@@ -143,13 +151,24 @@
   opacity: 0.7;
 }
 
-.yt-time-total {
-  display: flex;
-  opacity: 0.7;
+.yt-time-text .yt-time-sep {
+  margin: 0 5px;
+  font-weight: 300;
+  opacity: 0.35;
 }
 
-.yt-time-text > .yt-time-total:first-child .yt-time-sep {
-  margin-left: 0;
+.yt-time-total {
+  display: flex;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Total alone: no slash, and it is the reading, so full strength. */
+.yt-time-text.is-total-only .yt-time-total {
+  color: inherit;
+}
+
+.yt-time-text.is-total-only .yt-time-sep {
+  display: none;
 }
 
 .yt-controls.is-shown .yt-time:not(.is-empty),
@@ -360,35 +379,47 @@
   white-space: nowrap;
 }
 
-/* ---- Center: bigger play/pause than YouTube's, skip either side. */
+/* ---- Center: bigger play/pause than YouTube's, skip either side, centred
+   on the frame like YouTube's own disc, so the play button covers it. */
 
 .yt-center {
-  --yt-play: clamp(56px, 12.5cqi, 96px);
-  --yt-skip: clamp(44px, 8.5cqi, 68px);
   position: absolute;
-  inset: var(--yt-top-strip) 0 calc(var(--yt-pill-bottom) - 2px) 0;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: clamp(16px, 6.5cqi, 72px);
-  opacity: 0;
-  transition: opacity 0.3s ease-out;
 }
 
-/* On phones there is no room above the time row; center on the frame, a
-   little high, so a skip label beside the back button clears the time pill. */
+/* On phones there is no room beside the time row; a little high, so a skip
+   label beside the back button clears the time pill. (Still over YouTube's
+   disc: 68px against its 56px, 11px up, its last sliver under our shadow.) */
 @container (max-width: 395px) {
   .yt-center {
     inset: 0 0 22px;
     gap: 22px;
-    --yt-play: 68px;
   }
 }
 
+.yt-skip-slot,
+.yt-play {
+  opacity: 0;
+}
+
+.yt-skip-slot {
+  transition: opacity 0.3s ease-out;
+}
+
 .yt-controls.is-active .yt-bar,
-.yt-controls.is-center .yt-center,
-.yt-center:focus-within {
+.yt-controls.is-center .yt-skip-slot,
+.yt-controls.is-center .yt-play,
+.yt-center:focus-within .yt-skip-slot,
+.yt-center:focus-within .yt-play {
   opacity: 1;
+}
+
+.yt-controls.is-active .yt-bar,
+.yt-controls.is-center .yt-skip-slot {
   transition-duration: 0.12s;
 }
 
@@ -452,11 +483,21 @@
 .yt-play {
   width: var(--yt-play);
   height: var(--yt-play);
-  /* YouTube flashes its own center glyph under ours. An opaque center disc
-     hides it, especially at the compact embedded size. */
-  background: #20232a;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 0.2s ease-out;
+}
+
+.yt-controls.is-center .yt-play {
+  transition:
+    opacity 0.12s ease-out,
+    transform 0.2s cubic-bezier(0.25, 1, 0.5, 1),
+    background-color 0.2s ease-out;
+}
+
+.yt-play:active {
+  transition-duration: 0.12s, 0.08s, 0.2s;
 }
 
 .yt-play svg {
@@ -477,6 +518,46 @@
   font-family: 'Inter Variable', system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+/* ---- Our center disc: the blink for a pause that brings up nothing of
+   YouTube's, and (with `ownDisc`) a stand-in for YouTube's own. Just over its
+   56px at every size, exactly on it (the frame's centre). Quieter than the
+   buttons: the time pill's smoke, not their glass. */
+.yt-disc {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  margin: -30px 0 0 -30px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(10, 11, 14, 0.66);
+  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .yt-disc {
+    background: rgba(10, 11, 14, 0.42);
+    -webkit-backdrop-filter: blur(14px) saturate(1.3) brightness(0.85);
+    backdrop-filter: blur(14px) saturate(1.3) brightness(0.85);
+  }
+}
+
+.yt-disc svg {
+  width: 40%;
+  height: 40%;
+}
+
+.yt-controls.is-disc .yt-disc {
+  opacity: 1;
+  transition: none;
 }
 
 /* ---- Skip feedback. The ring winds a little in its direction, and the
