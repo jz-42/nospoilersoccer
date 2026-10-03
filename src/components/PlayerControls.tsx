@@ -17,8 +17,10 @@
  * changes do not show it, but while paused nothing hides it again. So the
  * covers are up ("guarded") whenever it might be:
  *   - for GUARD_MS after every YouTube state change and every seek we make
- *   - before playback starts, while paused (once up, YouTube's chrome
- *     stays up until playback resumes) and after it ends
+ *   - before playback starts and after it ends
+ *   - while paused, if the pause began (or was joined) with YouTube's chrome
+ *     up: once up, it stays until playback resumes. A pause made while it
+ *     is down brings up nothing, so that one idles out like playback
  *   - the whole time the pointer may be over the part of the iframe we leave
  *     uncovered (the top strip, where YouTube's cluster lives), and for
  *     GUARD_MS after it comes back. Chrome sends the page no event at all
@@ -78,6 +80,9 @@ const GUARD_MS = 5000
 /** YouTube's chrome flash after a play: measured gone (abruptly, no fade)
  *  4.3s after the play call. */
 const CHROME_MS = 4400
+/** How long past our model of that flash a pause still counts as made with
+ *  YouTube's chrome up: the guard's own margin, plus one poll. */
+const STUCK_SLACK_MS = GUARD_MS - CHROME_MS + 200
 /** YouTube's own idle-hide delay for pointer movement. */
 const IDLE_MS = 3000
 const DOUBLE_TAP_MS = 300
@@ -198,6 +203,7 @@ export function PlayerControls({
   const flashUntilRef = useRef(flashUntil)
   const playingRef = useRef(false)
   const inFrameRef = useRef(false)
+  const frameFocusedRef = useRef(false)
   const [touchControlsUntil, setTouchControlsUntil] = useState(0)
   const [frameFocused, setFrameFocused] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -241,6 +247,11 @@ export function PlayerControls({
     chromeFlash()
     setHoverUntil(Date.now() + IDLE_MS)
   }, [guard, chromeFlash])
+  // Whether YouTube's chrome may be up as a pause lands, keeping it up.
+  const chromeMayBeUp = useCallback(
+    (t: number) => t < flashUntilRef.current + STUCK_SLACK_MS || inFrameRef.current || frameFocusedRef.current,
+    [],
+  )
 
   // Poll the playhead; YouTube's API has no timeupdate event.
   useEffect(() => {
@@ -254,7 +265,7 @@ export function PlayerControls({
           const t = Date.now()
           if (state === PAUSED) {
             // Whatever was up when it paused stays up.
-            if (t < flashUntilRef.current || inFrameRef.current) setStuck(true)
+            if (chromeMayBeUp(t)) setStuck(true)
           } else if (state === PLAYING || state === BUFFERING) {
             setStuck(false)
             flashUntilRef.current = Math.max(flashUntilRef.current, t + CHROME_MS)
@@ -280,7 +291,7 @@ export function PlayerControls({
     tick()
     const id = setInterval(tick, 200)
     return () => clearInterval(id)
-  }, [player])
+  }, [player, chromeMayBeUp])
 
   // Pointer over the uncovered top strip means pointer inside YouTube's
   // iframe: its chrome is up the whole time, and for a while after. Every
@@ -289,6 +300,14 @@ export function PlayerControls({
   useEffect(() => {
     inFrameRef.current = pointerInFrame
   }, [pointerInFrame])
+  useEffect(() => {
+    frameFocusedRef.current = frameFocused
+  }, [frameFocused])
+  // Handing the stage back after YouTube's menus: its chrome was up in there.
+  const unfocusFrame = useCallback(() => {
+    if (frameFocusedRef.current) leftFrame()
+    setFrameFocused(false)
+  }, [leftFrame])
 
   useEffect(() => {
     const wrap = rootRef.current?.parentElement
@@ -303,25 +322,48 @@ export function PlayerControls({
       setNearCenter(false)
       // Done with YouTube's menus: take the stage back, or our controls would
       // stay away until the viewer happened to click elsewhere on the page.
-      setFrameFocused(false)
+      unfocusFrame()
+    }
+    // Over anything of ours in the player (our layer, full screen, the Blur
+    // button) means not inside YouTube's iframe, which sends us nothing.
+    const over = (e: PointerEvent) => {
+      if (inFrameRef.current) leftFrame()
+      setStageHover(true)
+      if (e.pointerType !== 'mouse') activate()
+    }
+    const out = (e: PointerEvent) => {
+      const to = e.relatedTarget as Node | null
+      if (!to || !wrap.contains(to) || to instanceof HTMLIFrameElement) setStageHover(false)
     }
     wrap.addEventListener('pointerenter', enter)
     wrap.addEventListener('pointerleave', leave)
+    wrap.addEventListener('pointerover', over)
+    wrap.addEventListener('pointerout', out)
     return () => {
       wrap.removeEventListener('pointerenter', enter)
       wrap.removeEventListener('pointerleave', leave)
+      wrap.removeEventListener('pointerover', over)
+      wrap.removeEventListener('pointerout', out)
     }
-  }, [activate, leftFrame])
+  }, [activate, leftFrame, unfocusFrame])
 
   // Where the pointer was last seen, from every move on the page: over our
-  // layer below the strip, or outside the player above or beside it.
+  // layer below the strip, or outside the player above or beside it. Only
+  // real moves count: the browser also sends a move, at the same spot, when
+  // what is under a resting pointer changes (our buttons fading out, say),
+  // which would wake the controls it just idled out.
   useEffect(() => {
     const wrap = rootRef.current?.parentElement
     if (!wrap) return
     let near = false
     let center = false
+    let lastX = NaN
+    let lastY = NaN
     const onMove = (e: PointerEvent) => {
       if (e.pointerType !== 'mouse') return
+      if (e.clientX === lastX && e.clientY === lastY) return
+      lastX = e.clientX
+      lastY = e.clientY
       const r = wrap.getBoundingClientRect()
       const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
       // Measured from the buttons themselves (back skip to forward skip), so
@@ -369,14 +411,14 @@ export function PlayerControls({
         }
       }, 0)
     }
-    const onFocus = () => setFrameFocused(false)
+    const onFocus = () => unfocusFrame()
     window.addEventListener('blur', onBlur)
     window.addEventListener('focus', onFocus)
     return () => {
       window.removeEventListener('blur', onBlur)
       window.removeEventListener('focus', onFocus)
     }
-  }, [player, guard])
+  }, [player, guard, unfocusFrame])
 
   const duration = time.duration
   const reportedPlaying = time.state === PLAYING || time.state === BUFFERING
@@ -397,7 +439,7 @@ export function PlayerControls({
       player.pauseVideo()
       // With YouTube's chrome up, its disc stays for the whole pause and so
       // does ours; with it down, ours just blinks.
-      if (at < flashUntilRef.current || inFrameRef.current) setStuck(true)
+      if (chromeMayBeUp(at)) setStuck(true)
       else setBlink(at)
     } else {
       player.playVideo()
@@ -406,7 +448,7 @@ export function PlayerControls({
       flashUntilRef.current = at + CHROME_MS
       setFlashUntil(flashUntilRef.current)
     }
-  }, [player, playing, guard, activate])
+  }, [player, playing, guard, activate, chromeMayBeUp])
 
   // Go with YouTube's disc to the frame, not on the next 200ms poll.
   useEffect(() => {
@@ -473,12 +515,13 @@ export function PlayerControls({
     return () => window.removeEventListener('keydown', onKey)
   }, [player, skip, togglePlay])
 
-  // Every YouTube state change (play, pause, buffering, end) may flash its
-  // chrome, and it stays up before the first frame and on the end screen.
-  // While paused YouTube never hides it again once it is up, however it got
-  // there (a quick pause after play, a pass through the top strip), so a
-  // paused player stays guarded until it plays.
-  const chromeState = time.state === UNSTARTED || time.state === ENDED || time.state === CUED || time.state === PAUSED
+  // Every YouTube state change (play, buffering, end) may flash its chrome,
+  // and it stays up before the first frame and on the end screen. While
+  // paused YouTube never hides it again once it is up, however it got there
+  // (a quick pause after play, a pass through the top strip), so such a pause
+  // stays guarded until it plays.
+  const chromeState =
+    time.state === UNSTARTED || time.state === ENDED || time.state === CUED || (time.state === PAUSED && stuck)
   const guarded =
     chromeState || now < Math.max(guardUntil, stateChangedAt + GUARD_MS) || pointerInFrame || frameFocused
   const wanted = now < activeUntil || dragging
@@ -487,7 +530,7 @@ export function PlayerControls({
   const shown = guarded || wanted
   const centerUp =
     ((nearCenter && now < activeUntil) ||
-      overButton ||
+      (overButton && now < activeUntil) ||
       now < touchControlsUntil ||
       flash !== null ||
       dragging ||
@@ -570,29 +613,9 @@ export function PlayerControls({
       ]
         .filter(Boolean)
         .join(' ')}
-      // Hover anywhere on our layer (stage, buttons, bar) means the pointer is
-      // not inside YouTube's iframe.
-      onPointerEnter={() => {
-        if (pointerInFrame) guard()
-        setStageHover(true)
-        activate()
-      }}
-      onPointerLeave={() => setStageHover(false)}
     >
-      <div
-        className="yt-title-stage"
-        onPointerMove={(e) => { if (e.pointerType === 'mouse') activate() }}
-        onPointerUp={onStageUp}
-      />
-      <div
-        className="yt-stage"
-        tabIndex={-1}
-        onPointerMove={(e) => {
-          if (e.pointerType !== 'mouse') return
-          activate()
-        }}
-        onPointerUp={onStageUp}
-      />
+      <div className="yt-title-stage" onPointerUp={onStageUp} />
+      <div className="yt-stage" tabIndex={-1} onPointerUp={onStageUp} />
 
       <div className="yt-time-row">
         {/* The pill spans YouTube's (an invisible `elapsed / total`, the
@@ -648,8 +671,9 @@ export function PlayerControls({
             seekFromPointer(e.clientX, false)
           }}
           onPointerMove={(e) => {
-            activate()
-            if (e.pointerType === 'mouse') {
+            // A mouse is already seen by the page-wide listener above.
+            if (e.pointerType !== 'mouse') activate()
+            else {
               const r = e.currentTarget.getBoundingClientRect()
               setHover({ left: e.clientX - r.left, fraction: Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1) })
             }
