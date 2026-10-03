@@ -2326,9 +2326,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-03T16:00Z",
       "home": "ISL",
       "away": "BUL",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "ISL",
+          "player": "Orri Óskarsson",
+          "minute": "37'"
+        },
+        {
+          "team": "ISL",
+          "player": "Orri Óskarsson",
+          "minute": "60'"
+        },
+        {
+          "team": "ISL",
+          "player": "Mikael Ellertsson",
+          "minute": "90'"
+        }
+      ]
     },
     {
       "id": "unl-401861113",

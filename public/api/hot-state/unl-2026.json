@@ -1597,11 +1597,28 @@
       "kickoff": "2026-10-03T13:00Z"
     },
     "unl-401861112": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 3,
+        "away": 0
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ISL",
+          "player": "Orri Óskarsson",
+          "minute": "37'"
+        },
+        {
+          "team": "ISL",
+          "player": "Orri Óskarsson",
+          "minute": "60'"
+        },
+        {
+          "team": "ISL",
+          "player": "Mikael Ellertsson",
+          "minute": "90'"
+        }
+      ],
       "kickoff": "2026-10-03T16:00Z"
     },
     "unl-401861113": {
