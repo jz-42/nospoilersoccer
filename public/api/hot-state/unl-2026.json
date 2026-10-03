@@ -1720,13 +1720,17 @@
       "kickoff": "2026-10-03T18:45Z"
     },
     "unl-401861117": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-10-03T18:45Z"
     },
     "unl-401861118": {
-      "liveStatus": null,
+      "liveStatus": {
+        "kind": "live"
+      },
       "score": null,
       "goals": null,
       "kickoff": "2026-10-03T18:45Z"
