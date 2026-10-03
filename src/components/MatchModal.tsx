@@ -27,6 +27,13 @@ import { FINISHED_PENDING_MODAL_COPY } from './highlight-copy'
 import { MatchPeek, RevealResultButton, RollingScore, WatchLaterClock } from './MatchActions'
 import { inkVars } from '../ink'
 import type { Winner } from '../reveal-fx'
+import {
+  matchesToRevealOnClose,
+  pendingRevealStorage,
+  readPendingReveal,
+  takePendingReveal,
+  writePendingReveal,
+} from './player-reveal'
 
 export type ModalTarget =
   | { kind: 'group'; match: GroupMatch }
@@ -128,7 +135,7 @@ export function MatchModal({
   t: Tournament
   target: ModalTarget
   progress: Progress
-  onClose: () => void
+  onClose: (afterClose?: () => void) => void
 }) {
   // A two-legged tie opens as one modal with two slides. Which leg you came in
   // on is where you land; from there the pager moves between them, and leg 2
@@ -146,15 +153,9 @@ export function MatchModal({
       .find((x) => x.id === wanted)
     return found ? { kind: 'knockout', match: found, roundName: openedTarget.roundName } : openedTarget
   }, [t, openedTarget, openedTie, leg])
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
-
   const modalRef = useRef<HTMLDivElement>(null)
+  const reachedNearEnd = useRef(new Set<string>())
+  const hiddenResults = useRef(new Set<string>())
   const dragStart = useRef<{ y: number; time: number } | null>(null)
   const [dragOffset, setDragOffset] = useState(0)
   const [dragging, setDragging] = useState(false)
@@ -166,7 +167,7 @@ export function MatchModal({
   const onModalTouchStart = (e: ReactTouchEvent<HTMLDivElement>) => {
     const el = modalRef.current
     if (!el || el.scrollTop > 0) return
-    dragStart.current = { y: e.touches[0].clientY, time: Date.now() }
+    dragStart.current = { y: e.touches[0].clientY, time: e.timeStamp }
   }
   const onModalTouchMove = (e: ReactTouchEvent<HTMLDivElement>) => {
     const start = dragStart.current
@@ -187,12 +188,12 @@ export function MatchModal({
       return
     }
     const dy = e.changedTouches[0].clientY - start.y
-    const dt = Math.max(1, Date.now() - start.time)
+    const dt = Math.max(1, e.timeStamp - start.time)
     const velocity = dy / dt
     setDragging(false)
     const isFlick = dy > FLICK_MIN_DISTANCE && velocity > FLICK_VELOCITY
     if (dy > DISMISS_DISTANCE || isFlick) {
-      onClose()
+      closeMatch()
     } else {
       setDragOffset(0)
     }
@@ -232,6 +233,27 @@ export function MatchModal({
   const homeNameForAnalytics = homeTeam ? t.teams[homeTeam].name : homePlaceholder || 'Home'
   const awayNameForAnalytics = awayTeam ? t.teams[awayTeam].name : awayPlaceholder || 'Away'
   const phase: Phase = target.kind === 'group' ? 'group' : knockoutPhase(t, m.id)
+  const closeMatch = () => {
+    const watched = matchesToRevealOnClose(reachedNearEnd.current, progress.marks, hiddenResults.current)
+    onClose(watched.length ? () => {
+      for (const id of watched) {
+        writePendingReveal(pendingRevealStorage(), t.id, id)
+        analytics.resultRevealed({
+          tournament_year: t.year,
+          tournament_phase: target.kind === 'group' ? 'group' : knockoutPhase(t, id),
+          reveal_source: 'video_near_end',
+        })
+        progress.setMark(id, 'watched')
+      }
+    } : undefined)
+  }
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !document.fullscreenElement) closeMatch()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
   const totalGoals = score ? score.home + score.away : null
   const calendarUrl =
     !played && !liveStatus && m.kickoff
@@ -304,17 +326,33 @@ export function MatchModal({
   )
 
   // A reveal made in this sheet, so the score can arrive rather than appear.
-  const [revealedAt, setRevealedAt] = useState(0)
+  const [revealAnimation, setRevealAnimation] = useState<{ id: string; at: number } | null>(() =>
+    mark && readPendingReveal(pendingRevealStorage(), t.id, m.id)
+      ? { id: m.id, at: Date.now() }
+      : null,
+  )
+  useEffect(() => {
+    const storage = pendingRevealStorage()
+    if (!mark) {
+      takePendingReveal(storage, t.id, m.id)
+      return
+    }
+    if (!takePendingReveal(storage, t.id, m.id)) return
+    queueMicrotask(() => {
+      setRevealAnimation((current) => current?.id === m.id ? current : { id: m.id, at: Date.now() })
+    })
+  }, [mark, m.id, t.id])
   const revealResult = () => {
     analytics.resultRevealed({
       tournament_year: t.year,
       tournament_phase: phase,
       reveal_source: 'manual',
     })
-    setRevealedAt(Date.now())
+    setRevealAnimation({ id: m.id, at: Date.now() })
     progress.setMark(m.id, 'watched')
   }
-  const rolling = revealedAt > 0
+  const rolling = revealAnimation?.id === m.id
+  const revealedAt = rolling ? revealAnimation.at : 0
   // The same player before and after the reveal, so a video, or its
   // full-time card, carries on through it; but a fresh one per match, so
   // paging to a tie's other leg doesn't carry this leg's video (and its
@@ -323,8 +361,8 @@ export function MatchModal({
   // On a phone the score can be above the fold when you reveal.
   const scoreRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (revealedAt) scoreRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-  }, [revealedAt])
+    if (rolling) scoreRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [rolling, revealedAt])
 
   const pinned = progress.pins.has(m.id)
 
@@ -376,7 +414,7 @@ export function MatchModal({
   return (
     <div
       className={`modal-backdrop${dragging ? ' is-dragging' : ''}`}
-      onClick={onClose}
+      onClick={closeMatch}
       style={
         dragging
           ? ({ '--scrim-drag': Math.max(0.35, 1 - dragProgress * 0.55) } as CSSProperties)
@@ -403,7 +441,7 @@ export function MatchModal({
           type="button"
           className={`modal-close ${hasHighlights ? '' : 'modal-close-compact'}`.trim()}
           aria-label="Close"
-          onClick={onClose}
+          onClick={closeMatch}
         >
           <svg
             className="modal-close-icon"
@@ -550,7 +588,10 @@ export function MatchModal({
               <button
                 type="button"
                 className="btn-ghost btn-subtle modal-hide-result"
-                onClick={() => progress.unmark(m.id)}
+                onClick={() => {
+                  hiddenResults.current.add(m.id)
+                  progress.unmark(m.id)
+                }}
                 title="Anything that depended on this result will be hidden again too"
               >
                 Hide Result
@@ -568,17 +609,10 @@ export function MatchModal({
                   homeName={homeNameForAnalytics}
                   awayName={awayNameForAnalytics}
                   marked={false}
+                  onNearEnd={() => reachedNearEnd.current.add(m.id)}
                   posterCorner={peek}
                   archive={isArchivedTournament(t.id)}
-                  onReveal={() => {
-                    analytics.resultRevealed({
-                      tournament_year: t.year,
-                      tournament_phase: phase,
-                      reveal_source: 'video_end',
-                    })
-                    setRevealedAt(Date.now())
-                    progress.setMark(m.id, 'watched')
-                  }}
+                  onReveal={revealResult}
                 />
               ) : (
                 <div className="modal-video-placeholder">

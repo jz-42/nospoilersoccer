@@ -605,7 +605,10 @@ function TournamentApp({
           t={modal.tournament}
           target={modal.target}
           progress={progress.forTournament(modal.tournament)}
-          onClose={() => closeSheet(() => setModal(null))}
+          onClose={(afterClose) => closeSheet(() => {
+            setModal(null)
+            afterClose?.()
+          })}
         />
       )}
       {confirmReset && (

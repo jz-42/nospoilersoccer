@@ -47,7 +47,26 @@
   outline: none;
 }
 
-.yt-controls:not(.is-up):not(.is-shown) .yt-stage {
+/* Own the masked part of YouTube's top strip too, so double click works there
+   while its uncovered settings cluster remains directly clickable. */
+.yt-title-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: calc(var(--player-youtube-controls-width) - 8px);
+  height: var(--yt-top-strip);
+  pointer-events: auto;
+}
+
+@container (max-width: 395px) {
+  .yt-title-stage { --player-youtube-controls-width: 144px; }
+}
+
+@container (max-width: 359px) {
+  .yt-title-stage { --player-youtube-controls-width: 96px; }
+}
+
+.yt-controls:not(.is-active):not(.is-shown) .yt-stage {
   cursor: none;
 }
 
@@ -362,17 +381,20 @@
   .yt-center {
     inset: 0 0 22px;
     gap: 22px;
+    --yt-play: 68px;
   }
 }
 
-.yt-controls.is-shown .yt-bar,
-.yt-controls.is-up .yt-center {
+.yt-controls.is-active .yt-bar,
+.yt-controls.is-center .yt-center,
+.yt-center:focus-within {
   opacity: 1;
   transition-duration: 0.12s;
 }
 
-.yt-controls.is-shown:not(.is-frame-focused) .yt-bar,
-.yt-controls.is-up .yt-btn {
+.yt-controls.is-active:not(.is-frame-focused) .yt-bar,
+.yt-controls.is-center .yt-btn,
+.yt-center:focus-within .yt-btn {
   pointer-events: auto;
 }
 
@@ -430,6 +452,11 @@
 .yt-play {
   width: var(--yt-play);
   height: var(--yt-play);
+  /* YouTube flashes its own center glyph under ours. An opaque center disc
+     hides it, especially at the compact embedded size. */
+  background: #20232a;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .yt-play svg {

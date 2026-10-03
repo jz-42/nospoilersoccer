@@ -21,7 +21,7 @@ export type Phase = 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'third-place' | 'fin
 export type HighlightProvider = 'fox_youtube' | 'fox_site'
 
 type MatchState = 'upcoming' | 'ready' | 'locked' | 'revealed'
-type RevealSource = 'manual' | 'video_end'
+type RevealSource = 'manual' | 'video_near_end'
 type HighlightKind = 'quick' | 'extended'
 
 export type HighlightEventName =
