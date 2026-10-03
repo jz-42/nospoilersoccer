@@ -2461,9 +2461,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-03T18:45Z",
       "home": "MKD",
       "away": "SCO",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "SCO",
+          "player": "Kieron Bowie",
+          "minute": "7'"
+        },
+        {
+          "team": "SCO",
+          "player": "John McGinn",
+          "minute": "69'",
+          "penalty": true
+        }
+      ]
     },
     {
       "id": "unl-401861117",
@@ -2504,9 +2518,32 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-03T18:45Z",
       "home": "ESP",
       "away": "CZE",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Lamine Yamal",
+          "minute": "6'"
+        },
+        {
+          "team": "ESP",
+          "player": "Rodri",
+          "minute": "35'"
+        },
+        {
+          "team": "CZE",
+          "player": "Jiri Sláma",
+          "minute": "69'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Merino",
+          "minute": "89'"
+        }
+      ]
     },
     {
       "id": "unl-401861119",
