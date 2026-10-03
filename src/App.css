@@ -5581,6 +5581,16 @@
   white-space: nowrap;
 }
 
+.player-wrap:has(> .yt-controls) .player-titlebar-label {
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.player-wrap:has(> .yt-controls.is-active) .player-titlebar-label {
+  opacity: 1;
+  transition-duration: 0.12s;
+}
+
 /* A round glass button in the manner of Apple's player controls. The whole
    corner is the hit area; the disc floats inside it and grows with the player,
    44px (Apple's minimum touch size) up to 52px on large and fullscreen
@@ -5605,6 +5615,19 @@
   color: #fff;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+.player-wrap:has(> .yt-controls) > .player-expand {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-out;
+}
+
+.player-wrap:has(> .yt-controls.is-active) > .player-expand,
+.player-wrap:has(> .yt-controls) > .player-expand:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transition-duration: 0.12s;
 }
 
 .player-expand::before {

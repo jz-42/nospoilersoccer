@@ -7,6 +7,7 @@ import type { Progress } from '../state/progress'
 import { DisclosureContent, Onboarding } from './Dialogs'
 import { MatchModal } from './MatchModal'
 import { PreviewCard } from './PreviewCard'
+import { writePendingReveal } from './player-reveal'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -454,6 +455,28 @@ const revealedExperiment = renderMatch(experimentWithEntertainment, {
   ...emptyProgress,
   marks: { [experimentWithEntertainment.id]: 'watched' },
 })
+assert(!revealedExperiment.includes('score-rolling'), 'an ordinarily reopened result does not replay its score animation')
+{
+  const values = new Map<string, string>()
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => { values.set(key, value) },
+    removeItem: (key: string) => { values.delete(key) },
+  }
+  const previousWindow = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: { localStorage: storage } })
+  try {
+    writePendingReveal(storage, wc2026.id, experimentWithEntertainment.id)
+    const reopened = renderMatch(experimentWithEntertainment, {
+      ...emptyProgress,
+      marks: { [experimentWithEntertainment.id]: 'watched' },
+    })
+    assert(reopened.includes('score-rolling'), 'auto-revealed score animates when the match is reopened')
+  } finally {
+    if (previousWindow) Object.defineProperty(globalThis, 'window', previousWindow)
+    else Reflect.deleteProperty(globalThis, 'window')
+  }
+}
 assert(
   !revealedExperiment.includes('modal-reveal-row') && !revealedExperiment.includes('Reveal Result'),
   'revealed match drops the Reveal Result row',
