@@ -206,6 +206,31 @@ storage.set('nss-progress', JSON.stringify({
 }))
 assert(readStored()!.pinOrder.join() === 'wc2026/B1',
   'an old tab addition made after baseline seeding is imported without restoring stale saves')
+const intact = JSON.stringify({
+  version: 6, revision: 12,
+  tournaments: { wc2026: { marks: { A1: 'watched' }, revealed: ['B1'], pins: ['C1'] } },
+  pinOrder: ['wc2026/C1'], favorites: ['MEX'], favAuto: false, spotlight: true,
+})
+for (const unreadable of ['nss-progress', 'nss-progress-last-good', 'nss-progress-legacy-base']) {
+  storage.clear()
+  storage.set('nss-progress', intact)
+  storage.set('nss-progress-last-good', intact)
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem: (key: string) => {
+        if (key === unreadable) throw new Error('read unavailable')
+        return storage.get(key) ?? null
+      },
+      setItem: (key: string, value: string) => { storage.set(key, value) },
+    },
+  })
+  const recovered = readStored()
+  assert(recovered?.pinOrder.includes('wc2026/C1') ?? false,
+    `an unreadable ${unreadable} cannot hide saved matches in the surviving copy`)
+  assert(recovered?.tournaments.wc2026.marks.A1 === 'watched' && recovered.spotlight,
+    `an unreadable ${unreadable} cannot reset viewing progress or preferences`)
+}
 delete (globalThis as { localStorage?: unknown }).localStorage
 
 console.log('ALL PASS')

@@ -15,7 +15,15 @@ The drama is still intact when you come back.
   the app also polls a small runtime JSON feed for live badges and fresh
   results, so those updates do not wait for a full Render redeploy.
 - **Your progress stays in your browser.** Watched/skipped games, followed teams,
-  and settings live in `localStorage` — deploys never reset them.
+  Watch Later, and settings live in `localStorage` — deploys never reset them.
+  Changes are read back from storage before the UI confirms them; progress and
+  player preferences keep independently recoverable copies. Failed saves leave
+  the previous state visible and report an error so you can retry. The welcome
+  dialog remains dismissible if its preference cannot be saved, but may reappear
+  next visit. Browsers with
+  Web Locks serialize edits across tabs and warn before refreshing while a save
+  is queued. Clearing site data or using another browser still loses local saves;
+  there are no accounts or external backups.
 - **Spoiler-proof by design.** Scores, standings, and bracket progression are
   hidden until you reveal them. Highlight videos are shown behind neutral cards
   (no YouTube thumbnails or titles) and play in an embedded player.
@@ -27,6 +35,7 @@ npm install
 npm run dev      # local dev server
 npm run build    # type-check + production build to dist/
 npm run lint
+npm run test:persistence # reloads, storage failures, and competing tab saves
 ```
 
 ### Testing local times

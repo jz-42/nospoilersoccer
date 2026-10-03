@@ -1,4 +1,4 @@
-import { setPlayerSetting } from './player-settings'
+import { resetPlayerSettings, setPlayerSetting } from './player-settings'
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(`FAIL: ${message}`)
@@ -7,12 +7,14 @@ function assert(condition: boolean, message: string) {
 
 const storage = new Map<string, string>()
 let failBackup = false
+let failPrimary = false
 Object.defineProperty(globalThis, 'localStorage', {
   configurable: true,
   value: {
     getItem: (key: string) => storage.get(key) ?? null,
     setItem: (key: string, value: string) => {
       if (failBackup && key === 'nss-player-settings-last-good') throw new Error('backup full')
+      if (failPrimary && key === 'nss-player-settings') throw new Error('primary full')
       storage.set(key, value)
     },
   },
@@ -76,6 +78,28 @@ assert(afterBaseline.showMoreVideos === true,
   'a later old-tab edit to an unchanged choice is recognized after baseline seeding')
 assert(afterBaseline.skipSeconds === 5,
   'a choice already divergent before baseline seeding stays with the newer backup')
+storage.clear()
+setPlayerSetting('showTitle', true)
+failBackup = true
+setPlayerSetting('showTitle', false)
+assert(JSON.parse(storage.get('nss-player-settings')!).showTitle === false,
+  'a preference can save to the primary when the backup is unavailable')
+setPlayerSetting('showElapsed', false)
+assert(JSON.parse(storage.get('nss-player-settings')!).showTitle === false,
+  'a newer primary-only preference cannot be reverted by an older backup')
+failBackup = false
+setPlayerSetting('showTitle', true)
+failPrimary = true
+setPlayerSetting('showTitle', false)
+setPlayerSetting('showProgress', true)
+assert(JSON.parse(storage.get('nss-player-settings-last-good')!).showTitle === false,
+  'a newer backup-only preference cannot be reverted by an older primary')
+failPrimary = false
+storage.clear()
+storage.set('nss-player-settings', JSON.stringify({ showTitle: true, futureSetting: true }))
+resetPlayerSettings()
+assert(JSON.parse(storage.get('nss-player-settings')!).futureSetting === true,
+  'resetting known player settings preserves fields owned by a newer build')
 delete (globalThis as { localStorage?: unknown }).localStorage
 
 console.log('ALL PLAYER SETTINGS TESTS PASS')

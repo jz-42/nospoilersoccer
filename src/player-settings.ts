@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react'
+import { readStorage, reportSaveFailure, runStorageMutation, writeStorage, writeStorageCopies } from './state/storage'
 
 /**
  * Viewer preferences for our own player controls, drawn over YouTube's bottom
@@ -32,11 +33,19 @@ const BACKUP_KEY = 'nss-player-settings-last-good'
 const BASE_KEY = 'nss-player-settings-legacy-base'
 const listeners = new Set<() => void>()
 
-function readKey(key: string): PlayerSettings | null {
+type StoredPlayerSettings = PlayerSettings & { __nssRevision?: number }
+
+function revision(settings: StoredPlayerSettings): number {
+  return Number.isSafeInteger(settings.__nssRevision) && settings.__nssRevision! > 0
+    ? settings.__nssRevision!
+    : 0
+}
+
+function readKey(key: string): StoredPlayerSettings | null {
   try {
-    const raw = localStorage.getItem(key)
+    const raw = readStorage(key)
     if (raw === null) return null
-    const saved = JSON.parse(raw) as Partial<PlayerSettings>
+    const saved = JSON.parse(raw) as Partial<StoredPlayerSettings>
     if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return null
     const merged = { ...DEFAULT_PLAYER_SETTINGS, ...saved }
     if (!(SKIP_CHOICES as readonly number[]).includes(merged.skipSeconds)) {
@@ -48,35 +57,31 @@ function readKey(key: string): PlayerSettings | null {
   }
 }
 
-function readStored(): PlayerSettings | null {
+export function readPlayerSettings(repair = false): StoredPlayerSettings | null {
   const primary = readKey(KEY)
   const backup = readKey(BACKUP_KEY)
   if (!backup) {
-    if (primary) {
-      try {
-        const value = JSON.stringify(primary)
-        localStorage.setItem(BASE_KEY, value)
-        localStorage.setItem(BACKUP_KEY, value)
-      } catch {
-        // Keep the original save when browser storage cannot hold extra copies.
-      }
-    } else if (!readKey(BASE_KEY)) {
+    if (primary && repair) {
+      const value = JSON.stringify(primary)
+      writeStorage(BASE_KEY, value)
+      writeStorage(BACKUP_KEY, value)
+    } else if (repair && !primary && !readKey(BASE_KEY)) {
       // The first setting must have a before-state to compare an older tab to.
-      try { localStorage.setItem(BASE_KEY, JSON.stringify(DEFAULT_PLAYER_SETTINGS)) } catch { /* storage unavailable */ }
+      writeStorage(BASE_KEY, JSON.stringify(DEFAULT_PLAYER_SETTINGS))
     }
     return primary
   }
   if (!primary) return backup
+  const primaryRevision = revision(primary)
+  const backupRevision = revision(backup)
+  if (primaryRevision > backupRevision) return primary
+  if (primaryRevision > 0 && backupRevision > primaryRevision) return backup
   let baseline = readKey(BASE_KEY)
   if (!baseline) {
     // Existing copies disagree, but without a baseline neither one proves
     // that the primary's differences are fresh old-tab edits. Keep the backup.
     baseline = primary
-    try {
-      localStorage.setItem(BASE_KEY, JSON.stringify(baseline))
-    } catch {
-      // The backup still protects the most recent known preferences.
-    }
+    if (repair) writeStorage(BASE_KEY, JSON.stringify(baseline))
     return backup
   }
   if (JSON.stringify(primary) === JSON.stringify(backup)) return backup
@@ -99,6 +104,7 @@ function readStored(): PlayerSettings | null {
   const mergedFields = merged as unknown as Record<string, unknown>
   const observedFields = observed as unknown as Record<string, unknown>
   for (const key of Object.keys(primaryFields)) {
+    if (key === '__nssRevision') continue
     if (key in DEFAULT_PLAYER_SETTINGS || primaryFields[key] === baselineFields[key]) continue
     observedFields[key] = primaryFields[key]
     observedChange = true
@@ -106,62 +112,57 @@ function readStored(): PlayerSettings | null {
   }
   const value = JSON.stringify(merged)
   let durable = value === JSON.stringify(backup)
-  if (value !== JSON.stringify(primary) || !durable) {
-    try { localStorage.setItem(KEY, value) } catch { /* backup can still hold it */ }
-    if (!durable) {
-      try {
-        localStorage.setItem(BACKUP_KEY, value)
-        durable = true
-      } catch {
-        // Keep the old baseline so this change can be retried later.
-      }
-    }
+  if (repair && (value !== JSON.stringify(primary) || !durable)) {
+    writeStorage(KEY, value)
+    if (!durable) durable = writeStorage(BACKUP_KEY, value)
   }
-  if (observedChange && durable) {
-    try { localStorage.setItem(BASE_KEY, JSON.stringify(observed)) } catch { /* backup still protects the save */ }
+  if (repair && observedChange && durable) {
+    writeStorage(BASE_KEY, JSON.stringify(observed))
   }
   return merged
 }
 
-// readStored() falls back to the defaults wherever storage is missing (Node) or
+// readPlayerSettings() falls back to the defaults wherever storage is missing (Node) or
 // throws on access (site data blocked, sandboxed frames).
-let current: PlayerSettings = readStored() ?? DEFAULT_PLAYER_SETTINGS
-let warned = false
+let current: StoredPlayerSettings = readPlayerSettings() ?? DEFAULT_PLAYER_SETTINGS
 
 if (typeof window !== 'undefined') {
+  const refresh = () => runStorageMutation(KEY, () => {
+    const latest = readPlayerSettings(true)
+    if (!latest) return
+    if (revision(latest) > 0 && revision(latest) < revision(current)) return
+    current = latest
+    listeners.forEach((listener) => listener())
+  })
+  refresh()
   window.addEventListener('storage', (event) => {
     if (event.key !== KEY && event.key !== BACKUP_KEY) return
-    current = readStored() ?? DEFAULT_PLAYER_SETTINGS
-    listeners.forEach((listener) => listener())
+    refresh()
   })
 }
 
-function commit(next: PlayerSettings) {
-  current = next
-  let saved = false
-  for (const key of [KEY, BACKUP_KEY]) {
-    try {
-      localStorage.setItem(key, JSON.stringify(next))
-      saved = true
-    } catch {
-      // One surviving copy still protects these preferences.
-    }
+function commit(next: StoredPlayerSettings) {
+  const revised = { ...next, __nssRevision: Math.max(revision(next), revision(current)) + 1 }
+  if (!writeStorageCopies([BACKUP_KEY, KEY], JSON.stringify(revised))) {
+    reportSaveFailure('This player preference was not saved. Your previous settings are unchanged. Check browser storage and try again.')
+    return
   }
-  if (!saved) {
-    if (!warned && typeof window !== 'undefined') {
-      warned = true
-      window.alert('Your player preferences cannot be saved in this browser right now. Check browser storage before closing this tab.')
-    }
-  }
+  current = revised
   listeners.forEach((l) => l())
 }
 
+function latestSettings(): StoredPlayerSettings {
+  const stored = readPlayerSettings(true)
+  if (stored && revision(stored) > 0 && revision(stored) < revision(current)) return current
+  return { ...current, ...stored }
+}
+
 export function setPlayerSetting<K extends keyof PlayerSettings>(key: K, value: PlayerSettings[K]) {
-  commit({ ...current, ...readStored(), [key]: value })
+  runStorageMutation(KEY, () => commit({ ...latestSettings(), [key]: value }))
 }
 
 export function resetPlayerSettings() {
-  commit(DEFAULT_PLAYER_SETTINGS)
+  runStorageMutation(KEY, () => commit({ ...latestSettings(), ...DEFAULT_PLAYER_SETTINGS }))
 }
 
 export function usePlayerSettings(): PlayerSettings {
