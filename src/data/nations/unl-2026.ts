@@ -2338,9 +2338,47 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-03T16:00Z",
       "home": "CRO",
       "away": "ENG",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 0,
+        "away": 7
+      },
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "8'"
+        },
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "21'"
+        },
+        {
+          "team": "ENG",
+          "player": "Anthony Gordon",
+          "minute": "39'"
+        },
+        {
+          "team": "ENG",
+          "player": "Bukayo Saka",
+          "minute": "45'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "53'"
+        },
+        {
+          "team": "ENG",
+          "player": "Bukayo Saka",
+          "minute": "68'"
+        },
+        {
+          "team": "ENG",
+          "player": "Morgan Rogers",
+          "minute": "87'"
+        }
+      ]
     },
     {
       "id": "unl-401861114",
@@ -2350,9 +2388,32 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-03T16:00Z",
       "home": "BLR",
       "away": "SMR",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 4,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "BLR",
+          "player": "Artem Kontsevoy",
+          "minute": "46'"
+        },
+        {
+          "team": "BLR",
+          "player": "Artem Shumanskiy",
+          "minute": "65'"
+        },
+        {
+          "team": "BLR",
+          "player": "Max Ebong",
+          "minute": "68'"
+        },
+        {
+          "team": "BLR",
+          "player": "Artem Kontsevoy",
+          "minute": "88'"
+        }
+      ]
     },
     {
       "id": "unl-401861115",
@@ -2362,9 +2423,17 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-03T16:00Z",
       "home": "EST",
       "away": "LUX",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "EST",
+          "player": "Rasmus Peetson",
+          "minute": "5'"
+        }
+      ]
     },
     {
       "id": "unl-401861116",
