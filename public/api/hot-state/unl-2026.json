@@ -1572,11 +1572,28 @@
       "kickoff": "2026-10-02T18:45Z"
     },
     "unl-401861111": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "ALB",
+          "player": "Rey Manaj",
+          "minute": "4'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "26'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "71'"
+        }
+      ],
       "kickoff": "2026-10-03T13:00Z"
     },
     "unl-401861112": {

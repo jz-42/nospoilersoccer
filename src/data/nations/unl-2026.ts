@@ -2296,9 +2296,27 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-03T13:00Z",
       "home": "FIN",
       "away": "ALB",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ALB",
+          "player": "Rey Manaj",
+          "minute": "4'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "26'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "71'"
+        }
+      ]
     },
     {
       "id": "unl-401861112",
