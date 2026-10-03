@@ -36,3 +36,69 @@
   background: #0c0f14;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
 }
+
+.nl-panel {
+  position: fixed;
+  z-index: 1000;
+  right: 14px;
+  bottom: 14px;
+  width: 260px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: rgba(12, 15, 20, 0.9);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-size: 12px;
+}
+.nl-panel.closed {
+  width: auto;
+}
+.nl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 4px;
+}
+.nl-panel button {
+  border: 0;
+  background: none;
+  color: #f3f6fa;
+  font: inherit;
+  cursor: pointer;
+}
+.nl-title {
+  font-weight: 650;
+}
+.nl-all button {
+  color: #8d99ab;
+  padding: 2px 6px;
+}
+.nl-all button:hover {
+  color: #f3f6fa;
+}
+.nl-row {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding: 6px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.nl-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.nl-row input {
+  margin-top: 2px;
+  accent-color: #3ddc84;
+}
+.nl-row b {
+  display: block;
+  color: #f3f6fa;
+  font-weight: 600;
+}
+.nl-row small {
+  color: #8d99ab;
+  font-size: 11px;
+}

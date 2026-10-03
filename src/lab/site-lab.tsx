@@ -24,11 +24,17 @@ import { ucl_2026 } from '../data/club/ucl-2026'
 import { unl2026 } from '../data/nations/unl-2026'
 import type { HighlightVideo, Tournament } from '../data/types'
 import './site-lab.css'
+import './new-look.css'
+import { applyLook } from './new-look'
 import { SiteLab } from './SiteLab'
 
 const initial = new URLSearchParams(window.location.search)
 /** The phone view is this same page in an iframe, so the app's own breakpoints apply. */
 const framed = initial.has('frame')
+applyLook()
+window.addEventListener('message', (e) => {
+  if (e.data === 'nl-look') applyLook()
+})
 const sourceCount = Math.min(4, Math.max(1, Number(initial.get('sources')) || 2))
 // 1 = the real data, untouched.
 

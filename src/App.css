@@ -14,11 +14,10 @@
   align-items: center;
   gap: 22px;
   flex-wrap: wrap;
-  padding: 13px 28px;
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  padding: 16px 28px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   backdrop-filter: blur(14px) saturate(1.4);
-  border-bottom: 1px solid var(--border);
 }
 
 .app-brand {
@@ -54,8 +53,8 @@
 .seg {
   display: flex;
   position: relative;
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -105,7 +104,7 @@
   width: var(--thumb-w, 0);
   transform: translateX(var(--thumb-x, 0));
   border-radius: 7px;
-  background: var(--control-hover);
+  background: rgba(255, 255, 255, 0.08);
   pointer-events: none;
 }
 
@@ -327,7 +326,7 @@
   height: 34px;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   background: var(--control);
   color: var(--text);
   font-size: 15px;
@@ -354,7 +353,6 @@
 
 .clock-btn:hover {
   color: var(--text-h);
-  border-color: var(--border-strong);
   background: var(--control-hover);
 }
 
@@ -752,6 +750,12 @@
   background: var(--control-press);
 }
 
+/* In the header the ghost drops its outline at rest, like the round buttons
+   beside it; the tinted hover hairline below still draws in. */
+.app-header .btn-ghost {
+  border-color: transparent;
+}
+
 /* Quiet at rest — same ghost as every other secondary control. Colour
    only arrives on hover: a dusty green or red of the same weight, text
    and hairline, never a wash. Lives after .btn-ghost so the tint wins. */
@@ -931,7 +935,7 @@
      day nav jump between days) so sparse late-tournament days sit balanced in
      the viewport instead of hugging the header over a void. */
   margin-top: min(5vh, 64px);
-  margin-bottom: 30px;
+  margin-bottom: 22px;
 }
 
 .day-rail.is-swipe-transitioning .preview-card {
@@ -1602,7 +1606,10 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
+  /* No outline: the art is the edge. The border stays (transparent) so the
+     saved and favourite states can still colour it; a faint inset ring in the
+     shadow keeps a dark kit from melting into the page. */
+  border: 1px solid transparent;
   border-radius: var(--radius-lg);
   background: var(--panel);
   padding: 0;
@@ -1615,15 +1622,11 @@
     transform 0.32s cubic-bezier(0.3, 0.9, 0.3, 1),
     box-shadow 0.32s cubic-bezier(0.3, 0.9, 0.3, 1),
     opacity 0.15s;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   /* Keep the card on its own compositor layer at rest, so the hover lift
      doesn't promote it mid-interaction — that re-layering is what made the
      frosted chips inside re-sample their backdrop and flash. */
   will-change: transform;
-}
-
-.preview-card:hover {
-  border-color: var(--border-strong);
 }
 
 /* Hover is the focus of an Apple TV poster, without the pointer tilt: the
@@ -1634,7 +1637,10 @@
   .preview-card:hover {
     z-index: 1;
     transform: scale(1.025);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0), 0 22px 48px rgba(0, 0, 0, 0.5);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0),
+      0 22px 48px rgba(0, 0, 0, 0.5),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
     transition:
       border-color 0.2s,
       transform 0.42s cubic-bezier(0.2, 0.9, 0.25, 1),
@@ -1662,7 +1668,10 @@
 /* The press sets it down, quickly, from wherever the hover had it. */
 .preview-card:active {
   transform: scale(0.985);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 16px rgba(0, 0, 0, 0.24);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 6px 16px rgba(0, 0, 0, 0.24),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
   transition-duration: 0.12s;
   transition-timing-function: ease-out;
 }
@@ -1808,18 +1817,18 @@
 
 .preview-tag {
   position: absolute;
-  top: 9px;
-  left: 10px;
+  top: 12px;
+  left: 12px;
   z-index: 2;
   font-size: 9.5px;
-  font-weight: 700;
+  font-weight: 650;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: var(--text);
-  background: rgba(7, 10, 14, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 6px;
-  padding: 2.5px 7px;
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 3px 9px;
   backdrop-filter: blur(6px);
   max-width: calc(100% - 88px);
   overflow: hidden;
@@ -1829,8 +1838,8 @@
 
 .preview-badge {
   position: absolute;
-  top: 9px;
-  right: 10px;
+  top: 12px;
+  right: 12px;
   z-index: 2;
   font-size: 10px;
   font-weight: 750;
@@ -1854,9 +1863,12 @@
 }
 
 .badge-upcoming {
-  color: var(--text);
-  background: rgba(7, 10, 14, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-weight: 650;
   backdrop-filter: blur(6px);
 }
 
@@ -1898,6 +1910,16 @@
   border: 1px solid rgba(255, 255, 255, 0.07);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
+}
+
+/* On a card, the same frosted pill as the kickoff chip it replaces. */
+.preview-card .live-status-badge {
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(0, 0, 0, 0.28);
+  border-color: transparent;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-weight: 650;
 }
 
 /*
@@ -2081,8 +2103,9 @@
  */
 
 .preview-teams {
-  font-size: 12.5px;
-  font-weight: 620;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
   color: var(--text-h);
   white-space: nowrap;
   overflow: hidden;
@@ -2111,8 +2134,9 @@
 }
 
 .preview-vs-text {
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.42);
   font-weight: 450;
+  margin-inline: 1px;
 }
 
 .preview-sub {
@@ -3916,7 +3940,7 @@
 
 .fav-btn:hover {
   color: var(--pink);
-  border-color: var(--border-strong);
+  background: var(--control-hover);
 }
 
 .fav-btn.has-favs {
