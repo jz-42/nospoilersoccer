@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import App from '../App.tsx'
+import { LOOK_FEATURES, applyLook, readLook, type LookId } from './new-look'
 
 const initial = new URLSearchParams(window.location.search)
 
@@ -34,6 +35,20 @@ function Seg<T extends string | number>({
 
 export function SiteLab({ sources }: { sources: number }) {
   const [phone, setPhone] = useState(initial.get('view') === 'phone')
+  const [look, setLook] = useState(readLook)
+  const [lookOpen, setLookOpen] = useState(true)
+  useEffect(() => {
+    applyLook(look)
+    // Tell the phone iframe too; it reads the same storage on reload.
+    document.querySelector<HTMLIFrameElement>('.sl-phone iframe')?.contentWindow?.postMessage('nl-look', '*')
+  }, [look])
+  const toggle = (id: LookId) =>
+    setLook((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
 
   // The extra sources are added as the page loads, so a new count is a reload.
   const setSources = (n: number) => {
@@ -52,6 +67,33 @@ export function SiteLab({ sources }: { sources: number }) {
       ) : (
         <App />
       )}
+      <div className={`nl-panel${lookOpen ? '' : ' closed'}`}>
+        <div className="nl-head">
+          <button type="button" className="nl-title" onClick={() => setLookOpen((o) => !o)}>
+            New look {look.size}/{LOOK_FEATURES.length} {lookOpen ? '▾' : '▸'}
+          </button>
+          {lookOpen && (
+            <span className="nl-all">
+              <button type="button" onClick={() => setLook(new Set(LOOK_FEATURES.map((f) => f.id)))}>
+                All
+              </button>
+              <button type="button" onClick={() => setLook(new Set())}>
+                None
+              </button>
+            </span>
+          )}
+        </div>
+        {lookOpen &&
+          LOOK_FEATURES.map((f) => (
+            <label key={f.id} className="nl-row">
+              <input type="checkbox" checked={look.has(f.id)} onChange={() => toggle(f.id)} />
+              <span>
+                <b>{f.label}</b>
+                <small>{f.note}</small>
+              </span>
+            </label>
+          ))}
+      </div>
       <div className="sl-bar">
         <Seg
           label="Sources per match"
