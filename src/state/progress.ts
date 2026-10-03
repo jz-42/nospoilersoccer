@@ -28,6 +28,7 @@ import {
   resetTournamentProgressForViewing,
   type TournamentProgress,
 } from './reset'
+import { readStorage, reportSaveFailure, runStorageMutation, writeStorage, writeStorageCopies } from './storage'
 
 const STORAGE_KEY = 'nss-progress'
 const BACKUP_KEY = 'nss-progress-last-good'
@@ -241,22 +242,18 @@ function mergeLegacy(newer: ProgressState, legacy: ProgressState, baseline: Prog
 }
 
 /** Reconcile old-tab edits with the newest intact copy after a deploy. */
-export function readStored(): ProgressState | null {
+export function readStored(repair = true): ProgressState | null {
   try {
-    const primaryRaw = localStorage.getItem(STORAGE_KEY)
+    const primaryRaw = readStorage(STORAGE_KEY)
     const primary = decode(primaryRaw)
-    const backup = decode(localStorage.getItem(BACKUP_KEY))
-    let baseline = decode(localStorage.getItem(LEGACY_BASE_KEY))
+    const backup = decode(readStorage(BACKUP_KEY))
+    let baseline = decode(readStorage(LEGACY_BASE_KEY))
     if (primary && primary.sourceVersion < CURRENT_VERSION && !baseline) {
       // With no earlier baseline, a difference from the backup is ambiguous:
       // it may be a new old-tab edit or a save deliberately removed in v6.
       // Record the old snapshot as the starting point for future edits.
       baseline = primary
-      try {
-        localStorage.setItem(LEGACY_BASE_KEY, JSON.stringify(baseline.state))
-      } catch {
-        // The two main copies still work when an extra recovery key cannot be written.
-      }
+      if (repair) writeStorage(LEGACY_BASE_KEY, JSON.stringify(baseline.state))
     }
     if (!primary) return backup?.state ?? null
     if (!backup) return primary.state
@@ -266,22 +263,11 @@ export function readStored(): ProgressState | null {
       const before = baseline?.state ?? backup.state
       const merged = mergeLegacy(backup.state, primary.state, before)
       let durable = merged === backup.state
-      if (!durable) {
-        try {
-          localStorage.setItem(BACKUP_KEY, JSON.stringify(merged))
-          durable = true
-        } catch {
-          // Keep the old baseline so this edit is retried on the next read.
-        }
-      }
-      if (durable) {
+      if (!durable && repair) durable = writeStorage(BACKUP_KEY, JSON.stringify(merged))
+      if (durable && repair) {
         const nextBaseline = mergeLegacy(before, primary.state, before)
         if (nextBaseline !== before) {
-          try {
-            localStorage.setItem(LEGACY_BASE_KEY, JSON.stringify(nextBaseline))
-          } catch {
-            // The durable backup still holds the merged save.
-          }
+          writeStorage(LEGACY_BASE_KEY, JSON.stringify(nextBaseline))
         }
       }
       return merged
@@ -297,32 +283,11 @@ export function readStored(): ProgressState | null {
 }
 
 function load(): ProgressState {
-  const state = readStored() ?? emptyState()
-  try {
-    const backup = decode(localStorage.getItem(BACKUP_KEY))
-    if (state.version <= CURRENT_VERSION && (!backup || backup.state.revision < state.revision)) {
-      localStorage.setItem(BACKUP_KEY, JSON.stringify(state))
-    }
-  } catch {
-    // The viewer can still use the in-memory state if storage is blocked.
-  }
-  return state
+  return readStored(false) ?? emptyState()
 }
 
 function save(state: ProgressState): boolean {
-  const value = JSON.stringify(state)
-  let saved = false
-  // Keep an independent last-good copy. Older deployed tabs only know the
-  // legacy key and cannot erase this one when they write a stale v4 save.
-  for (const key of [BACKUP_KEY, STORAGE_KEY]) {
-    try {
-      localStorage.setItem(key, value)
-      saved = true
-    } catch {
-      // One key can still succeed if a single write was interrupted.
-    }
-  }
-  return saved
+  return writeStorageCopies([BACKUP_KEY, STORAGE_KEY], JSON.stringify(state))
 }
 
 const EMPTY = emptyTournamentProgress()
@@ -377,43 +342,55 @@ export function useProgress(t: Tournament): Progress {
   const warnedRef = useRef(false)
 
   useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY && event.key !== BACKUP_KEY) return
+    const refresh = () => runStorageMutation(STORAGE_KEY, () => {
       const latest = readStored()
       if (!latest) return
+      const backup = decode(readStorage(BACKUP_KEY))
+      if (latest.version <= CURRENT_VERSION && (!backup || backup.state.revision < latest.revision)) {
+        writeStorage(BACKUP_KEY, JSON.stringify(latest))
+      }
       if (stateRef.current.version > CURRENT_VERSION && latest.version <= CURRENT_VERSION) return
       if (latest.version <= CURRENT_VERSION && latest.revision < stateRef.current.revision) return
       stateRef.current = latest
       setState(latest)
+    })
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== STORAGE_KEY && event.key !== BACKUP_KEY) return
+      refresh()
     }
+    refresh()
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
   const updateState = useCallback((updater: (prev: ProgressState) => ProgressState) => {
-    const persisted = readStored()
-    const base = persisted && (persisted.version > CURRENT_VERSION ||
-      (stateRef.current.version <= CURRENT_VERSION && persisted.revision >= stateRef.current.revision))
-      ? persisted
-      : stateRef.current
-    if (base.version > CURRENT_VERSION) {
-      if (!warnedRef.current) {
-        warnedRef.current = true
-        window.alert('This tab is running an older version. Reload before changing saved matches or preferences.')
+    runStorageMutation(STORAGE_KEY, () => {
+      const persisted = readStored()
+      const base = persisted && (persisted.version > CURRENT_VERSION ||
+        (stateRef.current.version <= CURRENT_VERSION && persisted.revision >= stateRef.current.revision))
+        ? persisted
+        : stateRef.current
+      if (base.version > CURRENT_VERSION) {
+        if (!warnedRef.current) {
+          warnedRef.current = true
+          window.alert('This tab is running an older version. Reload before changing saved matches or preferences.')
+        }
+        stateRef.current = base
+        setState(base)
+        return
       }
-      stateRef.current = base
-      setState(base)
-      return
-    }
-    const next = updater(base)
-    if (next === base) return
-    const revised = { ...next, revision: base.revision + 1 }
-    if (!save(revised) && !warnedRef.current) {
-      warnedRef.current = true
-      window.alert('Your changes cannot be saved in this browser right now. Check browser storage before closing this tab.')
-    }
-    stateRef.current = revised
-    setState(revised)
+      const next = updater(base)
+      if (next === base) return
+      const revised = { ...next, revision: base.revision + 1 }
+      if (!save(revised)) {
+        reportSaveFailure('This change was not saved. Your previous progress is unchanged. Check browser storage and try again.')
+        stateRef.current = base
+        setState(base)
+        return
+      }
+      stateRef.current = revised
+      setState(revised)
+    })
   }, [])
 
   const updateTournament = useCallback(
