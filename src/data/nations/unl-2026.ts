@@ -2473,9 +2473,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "kickoff": "2026-10-03T18:45Z",
       "home": "SUI",
       "away": "SVN",
-      "liveStatus": {
-        "kind": "live"
-      }
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SVN",
+          "player": "Zan Vipotnik",
+          "minute": "2'"
+        },
+        {
+          "team": "SUI",
+          "player": "Erik Janza",
+          "minute": "10'",
+          "ownGoal": true
+        },
+        {
+          "team": "SUI",
+          "player": "Dan Ndoye",
+          "minute": "38'"
+        }
+      ]
     },
     {
       "id": "unl-401861118",

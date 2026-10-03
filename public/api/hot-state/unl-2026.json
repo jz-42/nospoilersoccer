@@ -1720,11 +1720,29 @@
       "kickoff": "2026-10-03T18:45Z"
     },
     "unl-401861117": {
-      "liveStatus": {
-        "kind": "live"
+      "liveStatus": null,
+      "score": {
+        "home": 2,
+        "away": 1
       },
-      "score": null,
-      "goals": null,
+      "goals": [
+        {
+          "team": "SVN",
+          "player": "Zan Vipotnik",
+          "minute": "2'"
+        },
+        {
+          "team": "SUI",
+          "player": "Erik Janza",
+          "minute": "10'",
+          "ownGoal": true
+        },
+        {
+          "team": "SUI",
+          "player": "Dan Ndoye",
+          "minute": "38'"
+        }
+      ],
       "kickoff": "2026-10-03T18:45Z"
     },
     "unl-401861118": {
