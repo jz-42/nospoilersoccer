@@ -27,9 +27,10 @@
  *     when the pointer slides into a cross-origin iframe, whether from our
  *     layer or straight in from the page around the player, so "may be"
  *     means: last seen anywhere on the page close to that strip
- * The bottom row follows pointer activity; the center buttons come up only
- * while the pointer moves close to them (or briefly after a skip), and both
- * idle out alike. Dismissing them cannot unmask YouTube's own chrome.
+ * Everything we draw (time, bar, buttons, covers) goes together: once the
+ * pointer has rested IDLE_MS and nothing is guarded any more. The center
+ * buttons come up only while the pointer moves close to them (or briefly
+ * after a skip), and go with the rest.
  *
  * YouTube draws a 56px play/pause disc of its own in the middle of the frame
  * whenever its chrome is up: the flash after a play or a seek, a pointer in
@@ -198,7 +199,8 @@ export function PlayerControls({
   const [flashUntil, setFlashUntil] = useState(() => Date.now() + CHROME_MS)
   const [stuck, setStuck] = useState(false)
   // Hovered, YouTube's chrome adds seek buttons beside its disc, where our
-  // skips sit; they linger a little after the pointer leaves.
+  // skips sit; they linger a little after the pointer leaves (ours, as long
+  // as the guard leaving sets).
   const [hoverUntil, setHoverUntil] = useState(0)
   const flashUntilRef = useRef(flashUntil)
   const playingRef = useRef(false)
@@ -245,7 +247,7 @@ export function PlayerControls({
   const leftFrame = useCallback(() => {
     guard()
     chromeFlash()
-    setHoverUntil(Date.now() + IDLE_MS)
+    setHoverUntil(Date.now() + GUARD_MS)
   }, [guard, chromeFlash])
   // Whether YouTube's chrome may be up as a pause lands, keeping it up.
   const chromeMayBeUp = useCallback(
@@ -524,13 +526,12 @@ export function PlayerControls({
     time.state === UNSTARTED || time.state === ENDED || time.state === CUED || (time.state === PAUSED && stuck)
   const guarded =
     chromeState || now < Math.max(guardUntil, stateChangedAt + GUARD_MS) || pointerInFrame || frameFocused
-  const wanted = now < activeUntil || dragging
-  // Guarded covers stay over YouTube's spoiler-bearing chrome even after our
-  // progress bar and controls fade. Buttons stay away while its menu is open.
-  const shown = guarded || wanted
+  // The covers must stay while guarded, so the rest stays with them and it
+  // all fades at once. Buttons stay away while YouTube's menu is open.
+  const awake = now < activeUntil || dragging || guarded
   const centerUp =
-    ((nearCenter && now < activeUntil) ||
-      (overButton && now < activeUntil) ||
+    ((nearCenter && awake) ||
+      (overButton && awake) ||
       now < touchControlsUntil ||
       flash !== null ||
       dragging ||
@@ -604,8 +605,8 @@ export function PlayerControls({
       className={[
         'yt-controls',
         guarded && 'is-guarded',
-        shown && 'is-shown',
-        wanted && 'is-active',
+        awake && 'is-shown',
+        awake && 'is-active',
         centerUp && 'is-center',
         discShown && 'is-disc',
         frameFocused && 'is-frame-focused',
