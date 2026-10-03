@@ -177,6 +177,7 @@ export function HighlightPlayer({
   homeName,
   awayName,
   customControls = true,
+  ownDisc = false,
   posterCorner,
   archive = false,
 }: {
@@ -191,6 +192,8 @@ export function HighlightPlayer({
   awayName: string
   /** Our own controls over YouTube's bottom row; the player lab can turn them off to compare. */
   customControls?: boolean
+  /** Lab only: our center disc in place of YouTube's (see PlayerControls). */
+  ownDisc?: boolean
   /** Rides the posters' bottom-left corner, opposite the Spoiler Covers mark. */
   posterCorner?: ReactNode
   /** World Cup archive still says Quick / Extended. Everywhere else is the source. */
@@ -559,6 +562,7 @@ export function HighlightPlayer({
                 player={ytPlayer}
                 stateChangedAt={stateChangedAt}
                 settings={playerSettings}
+                ownDisc={ownDisc}
               />
             )}
             {/* Spoiler-safe frosted glass over YouTube's title line — see the file

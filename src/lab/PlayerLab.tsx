@@ -31,6 +31,7 @@ export function PlayerLab() {
   const [clip, setClip] = useState(0)
   const [width, setWidth] = useState(640)
   const [custom, setCustom] = useState(true)
+  const [ownDisc, setOwnDisc] = useState(false)
   const c = CLIPS[clip]
 
   return (
@@ -68,6 +69,14 @@ export function PlayerLab() {
             Today's player
           </button>
         </div>
+        <div className="ps-segment" role="radiogroup" aria-label="Center disc">
+          <button type="button" role="radio" aria-checked={!ownDisc} className={!ownDisc ? 'is-active' : ''} onClick={() => setOwnDisc(false)}>
+            YouTube's disc
+          </button>
+          <button type="button" role="radio" aria-checked={ownDisc} className={ownDisc ? 'is-active' : ''} onClick={() => setOwnDisc(true)}>
+            Our disc
+          </button>
+        </div>
       </div>
 
       <div className="lab-body">
@@ -83,6 +92,7 @@ export function PlayerLab() {
             homeName="Home"
             awayName="Away"
             customControls={custom}
+            ownDisc={ownDisc}
             archive
           />
         </div>

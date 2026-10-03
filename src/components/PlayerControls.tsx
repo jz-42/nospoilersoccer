@@ -25,9 +25,25 @@
  *     when the pointer slides into a cross-origin iframe, whether from our
  *     layer or straight in from the page around the player, so "may be"
  *     means: last seen anywhere on the page close to that strip
- * The bottom row follows pointer activity, while the center buttons appear
- * only near the middle or briefly after a skip. Dismissing them cannot
- * unmask YouTube's own chrome.
+ * The bottom row follows pointer activity; the center buttons come up only
+ * while the pointer moves close to them (or briefly after a skip), and both
+ * idle out alike. Dismissing them cannot unmask YouTube's own chrome.
+ *
+ * YouTube draws a 56px play/pause disc of its own in the middle of the frame
+ * whenever its chrome is up: the flash after a play or a seek, a pointer in
+ * the frame, and the whole of any pause that began with the chrome up. That
+ * one is left to acknowledge a toggle. A pause made from our layer while
+ * YouTube's chrome is hidden brings up nothing of theirs (measured Oct 2026),
+ * so ours (a quiet disc in the time pill's smoke) just blinks.
+ *
+ * `ownDisc` (off; the player lab can turn it on) also stands ours on
+ * YouTube's for as long as it predicts theirs is up. Only a prediction: we
+ * cannot see YouTube's chrome, so ours can outstay or undershoot it (the
+ * pointer leaving the frame, a rebuffer, YouTube changing its timings).
+ *
+ * A click toggles at once, like YouTube's (a double click therefore pauses
+ * and resumes on its way to fullscreen, as YouTube's does too), and the icon
+ * flips before YouTube confirms.
  *
  * A transparent stage catches pointer input over the rest of the frame. That
  * gives us idle-hide, click to play/pause and double-click to fullscreen, and
@@ -59,9 +75,18 @@ const CUED = 5
 
 /** Longer than YouTube's measured 4.2s chrome flash after a play or seek. */
 const GUARD_MS = 5000
+/** YouTube's chrome flash after a play: measured gone (abruptly, no fade)
+ *  4.3s after the play call. */
+const CHROME_MS = 4400
 /** YouTube's own idle-hide delay for pointer movement. */
 const IDLE_MS = 3000
 const DOUBLE_TAP_MS = 300
+/** Pointer this close to the center buttons (px past their group's box)
+ *  brings them up; once up, they stay until it is LEAVE_PX away. */
+const NEAR_PX = 36
+const LEAVE_PX = 72
+/** How long the icon trusts a toggle before YouTube's state confirms it. */
+const PENDING_MS = 1200
 /** Presses closer together than this add up in one "+15s" label. */
 const FLASH_MS = 900
 /** Must match --yt-top-strip in PlayerControls.css. */
@@ -128,15 +153,27 @@ function SkipLabel({ flash }: { flash: { side: 'back' | 'fwd'; seconds: number; 
   )
 }
 
+/** Pause bars while playing, the play triangle while not. */
+function PlayGlyph({ playing }: { playing: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      {playing ? <path d="M7 4.5h3.2v15H7zM13.8 4.5H17v15h-3.2z" /> : <path d="M8.3 4.8v14.4l11.2-7.2z" />}
+    </svg>
+  )
+}
+
 export function PlayerControls({
   player,
   stateChangedAt,
   settings,
+  ownDisc = false,
 }: {
   player: ControlledPlayer | null
   /** Date.now() of YouTube's latest onStateChange (0 before the first). */
   stateChangedAt: number
   settings: PlayerSettings
+  /** Stand our disc on YouTube's while it may be up (see the header). */
+  ownDisc?: boolean
 }) {
   const [now, setNow] = useState(() => Date.now())
   const [time, setTime] = useState({ current: 0, duration: 0, loaded: 0, state: -1 })
@@ -144,6 +181,23 @@ export function PlayerControls({
   const [wrapHover, setWrapHover] = useState(false)
   const [nearStrip, setNearStrip] = useState(false)
   const [nearCenter, setNearCenter] = useState(false)
+  const [overButton, setOverButton] = useState(false)
+  // A toggle not yet reflected in YouTube's polled state, and the glyph that
+  // acknowledges it (a new `at` remounts it, restarting its animation).
+  const [pending, setPending] = useState<{ playing: boolean; at: number } | null>(null)
+  // A pause that brings up nothing of YouTube's: our disc just blinks.
+  const [blink, setBlink] = useState<number | null>(null)
+  // Our model of YouTube's chrome: when its flash after a play or seek ends,
+  // and whether a pause began (or was joined) with it up, which keeps it up
+  // until playback resumes.
+  const [flashUntil, setFlashUntil] = useState(() => Date.now() + CHROME_MS)
+  const [stuck, setStuck] = useState(false)
+  // Hovered, YouTube's chrome adds seek buttons beside its disc, where our
+  // skips sit; they linger a little after the pointer leaves.
+  const [hoverUntil, setHoverUntil] = useState(0)
+  const flashUntilRef = useRef(flashUntil)
+  const playingRef = useRef(false)
+  const inFrameRef = useRef(false)
   const [touchControlsUntil, setTouchControlsUntil] = useState(0)
   const [frameFocused, setFrameFocused] = useState(false)
   const [dragging, setDragging] = useState(false)
@@ -161,12 +215,9 @@ export function PlayerControls({
   // active = our controls are wanted (dismissable).
   const [guardUntil, setGuardUntil] = useState(() => Date.now() + GUARD_MS)
   const [activeUntil, setActiveUntil] = useState(() => Date.now() + IDLE_MS)
+  const centerRef = useRef<HTMLDivElement>(null)
   const lastTap = useRef<{ at: number; side: 'back' | 'mid' | 'fwd' } | null>(null)
-  const singleClick = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => () => {
-    if (singleClick.current) clearTimeout(singleClick.current)
-  }, [])
+  const lastClick = useRef(0)
 
   const guard = useCallback((ms = GUARD_MS) => {
     const t = Date.now()
@@ -178,18 +229,49 @@ export function PlayerControls({
     setActiveUntil(t + ms)
     setNow(t)
   }, [])
+  // YouTube's chrome just came up (or was last seen up).
+  const chromeFlash = useCallback(() => {
+    const until = Date.now() + CHROME_MS
+    flashUntilRef.current = until
+    setFlashUntil(until)
+    if (!playingRef.current) setStuck(true)
+  }, [])
+  const leftFrame = useCallback(() => {
+    guard()
+    chromeFlash()
+    setHoverUntil(Date.now() + IDLE_MS)
+  }, [guard, chromeFlash])
 
   // Poll the playhead; YouTube's API has no timeupdate event.
   useEffect(() => {
     if (!player) return
+    let last = UNSTARTED
     const tick = () => {
       try {
+        const state = player.getPlayerState()
+        if (state !== last) {
+          last = state
+          const t = Date.now()
+          if (state === PAUSED) {
+            // Whatever was up when it paused stays up.
+            if (t < flashUntilRef.current || inFrameRef.current) setStuck(true)
+          } else if (state === PLAYING || state === BUFFERING) {
+            setStuck(false)
+            flashUntilRef.current = Math.max(flashUntilRef.current, t + CHROME_MS)
+            setFlashUntil(flashUntilRef.current)
+          } else {
+            setStuck(true)
+          }
+        }
         setTime({
           current: player.getCurrentTime(),
           duration: player.getDuration(),
           loaded: player.getVideoLoadedFraction(),
-          state: player.getPlayerState(),
+          state,
         })
+        // YouTube caught up with a toggle.
+        const isPlaying = state === PLAYING || state === BUFFERING
+        setPending((p) => (p && p.playing === isPlaying ? null : p))
       } catch {
         // Player torn down between ticks.
       }
@@ -204,7 +286,6 @@ export function PlayerControls({
   // iframe: its chrome is up the whole time, and for a while after. Every
   // way out of that state guards.
   const pointerInFrame = (wrapHover && !stageHover) || nearStrip
-  const inFrameRef = useRef(false)
   useEffect(() => {
     inFrameRef.current = pointerInFrame
   }, [pointerInFrame])
@@ -217,7 +298,7 @@ export function PlayerControls({
       activate()
     }
     const leave = () => {
-      if (inFrameRef.current) guard()
+      if (inFrameRef.current) leftFrame()
       setWrapHover(false)
       setNearCenter(false)
       // Done with YouTube's menus: take the stage back, or our controls would
@@ -230,7 +311,7 @@ export function PlayerControls({
       wrap.removeEventListener('pointerenter', enter)
       wrap.removeEventListener('pointerleave', leave)
     }
-  }, [guard, activate])
+  }, [activate, leftFrame])
 
   // Where the pointer was last seen, from every move on the page: over our
   // layer below the strip, or outside the player above or beside it.
@@ -242,27 +323,38 @@ export function PlayerControls({
     const onMove = (e: PointerEvent) => {
       if (e.pointerType !== 'mouse') return
       const r = wrap.getBoundingClientRect()
-      const x = (e.clientX - r.left) / r.width
-      const y = (e.clientY - r.top) / r.height
-      const c = x >= 0.15 && x <= 0.85 && y >= 0.24 && y <= 0.76
+      const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom
+      // Measured from the buttons themselves (back skip to forward skip), so
+      // the reach follows them at any player size.
+      const first = centerRef.current?.firstElementChild?.getBoundingClientRect()
+      const last = centerRef.current?.lastElementChild?.getBoundingClientRect()
+      const reach = center ? LEAVE_PX : NEAR_PX
+      const c =
+        inside &&
+        !!first &&
+        !!last &&
+        e.clientX > first.left - reach &&
+        e.clientX < last.right + reach &&
+        e.clientY > first.top - reach &&
+        e.clientY < first.bottom + reach
       if (c !== center) {
         center = c
         setNearCenter(c)
       }
-      if (x >= 0 && x <= 1 && y >= 0 && y <= 1) activate()
+      if (inside) activate()
       const n =
         e.clientX > r.left - APPROACH_PX &&
         e.clientX < r.right + APPROACH_PX &&
         e.clientY > r.top - APPROACH_PX &&
         e.clientY < r.top + TOP_STRIP_PX + NEAR_STRIP_PX
       if (n === near) return
-      if (near) guard()
+      if (near) leftFrame()
       near = n
       setNearStrip(n)
     }
     document.addEventListener('pointermove', onMove)
     return () => document.removeEventListener('pointermove', onMove)
-  }, [guard, activate])
+  }, [activate, leftFrame])
 
   // A click inside YouTube's cluster moves focus into the iframe. Let pointer
   // input through until focus comes back to our page, so its menus work.
@@ -287,16 +379,48 @@ export function PlayerControls({
   }, [player, guard])
 
   const duration = time.duration
-  const playing = time.state === PLAYING || time.state === BUFFERING
+  const reportedPlaying = time.state === PLAYING || time.state === BUFFERING
+  const playing = pending && now - pending.at < PENDING_MS ? pending.playing : reportedPlaying
   const current = scrub ?? time.current
+
+  useEffect(() => {
+    playingRef.current = playing
+  }, [playing])
 
   const togglePlay = useCallback(() => {
     if (!player) return
     guard()
     activate()
-    if (playing) player.pauseVideo()
-    else player.playVideo()
+    const at = Date.now()
+    setPending({ playing: !playing, at })
+    if (playing) {
+      player.pauseVideo()
+      // With YouTube's chrome up, its disc stays for the whole pause and so
+      // does ours; with it down, ours just blinks.
+      if (at < flashUntilRef.current || inFrameRef.current) setStuck(true)
+      else setBlink(at)
+    } else {
+      player.playVideo()
+      setBlink(null)
+      setStuck(false)
+      flashUntilRef.current = at + CHROME_MS
+      setFlashUntil(flashUntilRef.current)
+    }
   }, [player, playing, guard, activate])
+
+  // Go with YouTube's disc to the frame, not on the next 200ms poll.
+  useEffect(() => {
+    const wait = flashUntil - Date.now()
+    if (wait <= 0) return
+    const id = setTimeout(() => setNow(Date.now()), wait + 1)
+    return () => clearTimeout(id)
+  }, [flashUntil])
+
+  useEffect(() => {
+    if (!blink) return
+    const id = setTimeout(() => setBlink(null), 450)
+    return () => clearTimeout(id)
+  }, [blink])
 
   const skip = useCallback(
     (dir: 1 | -1) => {
@@ -306,6 +430,7 @@ export function PlayerControls({
       const d = player.getDuration()
       const target = Math.min(Math.max(player.getCurrentTime() + dir * settings.skipSeconds, 0), Math.max(d - 0.25, 0))
       player.seekTo(target, true)
+      if (playingRef.current) chromeFlash()
       setTime((t) => ({ ...t, current: target }))
       const side = dir > 0 ? 'fwd' : 'back'
       const at = Date.now()
@@ -316,7 +441,7 @@ export function PlayerControls({
         leaving: false,
       }))
     },
-    [player, settings.skipSeconds, guard, activate],
+    [player, settings.skipSeconds, guard, activate, chromeFlash],
   )
 
   // The label holds while presses keep coming, then fades out and goes.
@@ -360,7 +485,20 @@ export function PlayerControls({
   // Guarded covers stay over YouTube's spoiler-bearing chrome even after our
   // progress bar and controls fade. Buttons stay away while its menu is open.
   const shown = guarded || wanted
-  const centerUp = (nearCenter || now < touchControlsUntil || flash !== null || dragging) && !frameFocused
+  const centerUp =
+    ((nearCenter && now < activeUntil) ||
+      overButton ||
+      now < touchControlsUntil ||
+      flash !== null ||
+      dragging ||
+      pointerInFrame ||
+      now < hoverUntil) &&
+    !frameFocused
+  // YouTube's own center disc may be up (not under its settings sheet), or
+  // ours is blinking. The center buttons cover both.
+  const discUp =
+    (ownDisc && (now < flashUntil || (stuck && !playing) || pointerInFrame) && !frameFocused) || blink !== null
+  const discShown = discUp && !centerUp
 
   const seekFromPointer = (clientX: number, commit: boolean) => {
     const bar = barRef.current
@@ -370,6 +508,7 @@ export function PlayerControls({
     if (commit) {
       guard()
       player.seekTo(t, true)
+      if (playing) chromeFlash()
       setTime((s) => ({ ...s, current: t }))
       setScrub(null)
     } else {
@@ -385,13 +524,14 @@ export function PlayerControls({
 
   const onStageUp = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') {
-      if (e.button === 0) {
-        if (singleClick.current) clearTimeout(singleClick.current)
-        singleClick.current = setTimeout(() => {
-          singleClick.current = null
-          togglePlay()
-        }, DOUBLE_TAP_MS)
-      }
+      if (e.button !== 0) return
+      // The second click of a double click resumes on its way to fullscreen,
+      // and takes the first one's glyph with it, so it reads as one gesture.
+      const t = Date.now()
+      const second = t - lastClick.current < DOUBLE_TAP_MS
+      lastClick.current = second ? 0 : t
+      togglePlay()
+      if (second) setBlink(null)
       return
     }
     // Touch: tap shows or hides our controls (never below the guard); a
@@ -424,6 +564,7 @@ export function PlayerControls({
         shown && 'is-shown',
         wanted && 'is-active',
         centerUp && 'is-center',
+        discShown && 'is-disc',
         frameFocused && 'is-frame-focused',
         settings.showTitle && 'is-title-shown',
       ]
@@ -437,10 +578,6 @@ export function PlayerControls({
         activate()
       }}
       onPointerLeave={() => setStageHover(false)}
-      onDoubleClickCapture={() => {
-        if (singleClick.current) clearTimeout(singleClick.current)
-        singleClick.current = null
-      }}
     >
       <div
         className="yt-title-stage"
@@ -471,7 +608,7 @@ export function PlayerControls({
             {settings.showTotal && duration > 0 ? formatClock(duration) : '00:00'}
           </span>
           {(settings.showElapsed || settings.showTotal) && (
-            <span className="yt-time-text">
+            <span className={`yt-time-text${settings.showElapsed ? '' : ' is-total-only'}`}>
               {settings.showElapsed && formatClock(current)}
               {settings.showTotal && (
                 <span className="yt-time-total">
@@ -542,7 +679,18 @@ export function PlayerControls({
         </div>
       )}
 
-      <div className="yt-center">
+      <div className="yt-disc" aria-hidden="true">
+        <PlayGlyph playing={playing} />
+      </div>
+
+      <div
+        ref={centerRef}
+        className="yt-center"
+        onPointerEnter={(e) => {
+          if (e.pointerType === 'mouse') setOverButton(true)
+        }}
+        onPointerLeave={() => setOverButton(false)}
+      >
         <span className="yt-skip-slot">
           <button type="button" className="yt-btn yt-skip" onClick={() => skip(-1)} aria-label={`Back ${settings.skipSeconds} seconds`}>
             <SkipIcon seconds={settings.skipSeconds} forward={false} spin={flash?.side === 'back' ? flash.at : 0} />
@@ -550,13 +698,7 @@ export function PlayerControls({
           {flash?.side === 'back' && <SkipLabel key={flash.at} flash={flash} />}
         </span>
         <button type="button" className="yt-btn yt-play" onClick={togglePlay} aria-label={playing ? 'Pause' : 'Play'}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-            {playing ? (
-              <path d="M7 4.5h3.2v15H7zM13.8 4.5H17v15h-3.2z" />
-            ) : (
-              <path d="M8.3 4.8v14.4l11.2-7.2z" />
-            )}
-          </svg>
+          <PlayGlyph playing={playing} />
         </button>
         <span className="yt-skip-slot">
           <button type="button" className="yt-btn yt-skip" onClick={() => skip(1)} aria-label={`Forward ${settings.skipSeconds} seconds`}>
