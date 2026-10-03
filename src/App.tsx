@@ -45,11 +45,12 @@ import {
   type View,
 } from './navigation'
 import { useProgress } from './state/progress'
+import { completeOnboarding, ONBOARDED_KEY } from './state/onboarding'
+import { reportSaveFailure, writeStorage } from './state/storage'
 import { rippleScores } from './score-ripple'
 import { closeDialog, closeSheet, openSheet } from './sheet-morph'
 
 const TOURNAMENT_KEY = 'nss-tournament'
-const ONBOARDED_KEY = 'nss-onboarded'
 const HOT_STATE_BASE_URL =
   import.meta.env.VITE_HOT_STATE_BASE_URL ??
   (import.meta.env.PROD
@@ -290,12 +291,11 @@ function App() {
   }, [season])
 
   const selectSeason = (id: string) => {
-    setSeasonId(id)
-    try {
-      localStorage.setItem(TOURNAMENT_KEY, id)
-    } catch {
-      // Private browsing: selection just won't persist.
+    if (!writeStorage(TOURNAMENT_KEY, id)) {
+      reportSaveFailure('This competition selection was not saved. Check browser storage and try again.')
+      return
     }
+    setSeasonId(id)
   }
 
   const picker = (
@@ -462,12 +462,7 @@ function TournamentApp({
   })
 
   const dismissOnboarding = () => {
-    closeDialog(() => setShowOnboarding(false))
-    try {
-      localStorage.setItem(ONBOARDED_KEY, '1')
-    } catch {
-      // Fine — it'll show again next visit.
-    }
+    completeOnboarding(() => closeDialog(() => setShowOnboarding(false)))
   }
 
   // The view switcher's thumb slides to the view you pick, like iOS's
@@ -610,7 +605,10 @@ function TournamentApp({
           t={modal.tournament}
           target={modal.target}
           progress={progress.forTournament(modal.tournament)}
-          onClose={() => closeSheet(() => setModal(null))}
+          onClose={(afterClose) => closeSheet(() => {
+            setModal(null)
+            afterClose?.()
+          })}
         />
       )}
       {confirmReset && (

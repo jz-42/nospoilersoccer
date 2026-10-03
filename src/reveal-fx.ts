@@ -22,7 +22,16 @@ export function playRevealFx(button: HTMLElement, point: Point, reveal: () => vo
   // Only the sheet's own button has a Hide Result to become. Anywhere else
   // (the full-time pill in the player) the button just clears away.
   if (button.classList.contains('modal-pre-reveal-cta')) thaw(button, point, reveal, winner)
-  else melt(button, point, () => glide(button, reveal))
+  else melt(button, point, () => {
+    try {
+      glide(button, reveal)
+    } finally {
+      for (const property of ['mask-image', '-webkit-mask-image', 'mask-size', 'mask-repeat', 'mask-composite']) {
+        button.style.removeProperty(property)
+      }
+      delete button.dataset.baked
+    }
+  })
 }
 
 const SPRING = 'cubic-bezier(0.32, 0.72, 0, 1)'

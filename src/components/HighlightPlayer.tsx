@@ -16,9 +16,9 @@
  *    cannot paint over.
  *  - end-screen suggestion grid (often shows *later* matches): YouTube uses
  *    the IFrame API playhead so we can cover the final beat with our own
- *    full-time card. Before it, Reveal Result counts down in the corner, so
- *    no play is lost, and reveals by itself unless you stop it. FOX embeds
- *    are cross-origin and ad-enabled, so there is no reliable playhead;
+ *    full-time card. Entering the final 30 seconds is remembered so closing
+ *    the match sheet can mark it watched without revealing during playback.
+ *    FOX embeds are cross-origin and ad-enabled, so there is no reliable playhead;
  *    users reveal manually after watching.
  *  - annotations/cards: iv_load_policy=3
  *  - related videos: rel=0 (restricts them to the same channel)
@@ -44,7 +44,7 @@ import { usePlayerSettings } from '../player-settings'
 import { PlayerControls, type ControlledPlayer } from './PlayerControls'
 import { PlayerTitlebar } from './PlayerTitlebar'
 import { SpoilerCoversButton } from './SpoilerCovers'
-import { playRevealFx } from '../reveal-fx'
+import { reachedFinalThirty } from './player-reveal'
 
 interface YTPlayer extends ControlledPlayer {
   destroy(): void
@@ -109,15 +109,6 @@ function sealFrame(frame: HTMLIFrameElement | null | undefined) {
  * closing fade, just soon enough to beat YouTube's suggestion grid.
  */
 const END_BEAT_SECONDS = 0.4
-/**
- * The countdown runs over the video's last this-many seconds, while it plays
- * on. Highlights mostly finish well before their video does, and where they
- * don't, a pill in the corner costs nothing.
- */
-const COUNTDOWN_SECONDS = 30
-/** Too briefly on screen to have been seen: the result doesn't follow by itself. */
-const COUNTDOWN_SEEN_MS = 1500
-
 const KIND_LABEL: Record<HighlightVideo['kind'], string> = {
   normal: 'Quick Highlights',
   extended: 'Extended Highlights',
@@ -181,6 +172,7 @@ export function HighlightPlayer({
   tournamentPhase,
   marked,
   onReveal,
+  onNearEnd,
   matchId,
   homeName,
   awayName,
@@ -193,6 +185,7 @@ export function HighlightPlayer({
   tournamentPhase: Phase
   marked: boolean
   onReveal: () => void
+  onNearEnd?: () => void
   matchId: string
   homeName: string
   awayName: string
@@ -210,10 +203,6 @@ export function HighlightPlayer({
   const [selected, setSelected] = useState<HighlightVideo>(defaultVideo)
   const [active, setActive] = useState<HighlightVideo | null>(null)
   const [atEnd, setAtEnd] = useState(false)
-  // The full-time countdown is running, and the video is into the seconds
-  // it runs over.
-  const [counting, setCounting] = useState(true)
-  const [closing, setClosing] = useState(false)
   const [failedCode, setFailedCode] = useState<number | null>(null)
   const [expanded, setExpanded] = useState(false)
   // The poster has turned into its list of sources.
@@ -225,7 +214,10 @@ export function HighlightPlayer({
   const wrapRef = useRef<HTMLDivElement>(null)
   const pickerRef = useRef<HTMLDivElement>(null)
   const captionRef = useRef<HTMLButtonElement>(null)
-  const revealing = useRef(false)
+  const nearEndRef = useRef(onNearEnd)
+  useEffect(() => {
+    nearEndRef.current = onNearEnd
+  }, [onNearEnd])
 
   const analyticsContext = useCallback(
     (v: HighlightVideo, errorCode?: number) => ({
@@ -273,7 +265,10 @@ export function HighlightPlayer({
           },
           onStateChange: (e) => {
             setStateChangedAt(Date.now())
-            if (e.data === YT.PlayerState.ENDED) setAtEnd(true)
+            if (e.data === YT.PlayerState.ENDED) {
+              nearEndRef.current?.()
+              setAtEnd(true)
+            }
           },
         },
       })
@@ -283,8 +278,8 @@ export function HighlightPlayer({
         try {
           const duration = player.getDuration()
           const current = player.getCurrentTime()
+          if (reachedFinalThirty(duration, current)) nearEndRef.current?.()
           if (duration > 0 && duration - current <= END_BEAT_SECONDS) setAtEnd(true)
-          setClosing(duration > 0 && duration - current <= END_BEAT_SECONDS + COUNTDOWN_SECONDS)
         } catch {
           // Player not ready yet.
         }
@@ -382,8 +377,6 @@ export function HighlightPlayer({
     setSelected(v)
     setActive(v)
     setAtEnd(false)
-    setCounting(true)
-    setClosing(false)
     setFailedCode(null)
     analytics.highlightStarted({
       tournament_year: tournamentYear,
@@ -533,41 +526,22 @@ export function HighlightPlayer({
     )
   }
 
-  // The countdown doesn't start over if the result is hidden again.
-  const reveal = () => {
-    revealing.current = false
-    setCounting(false)
-    onReveal()
-  }
-  // Back in the sheet first, so the score arrives where you can see it. In
-  // the sheet, the pill goes the way Reveal Result does (src/reveal-fx.ts).
-  const revealFromPlayer = (pill: HTMLElement | null, point?: { x: number; y: number }) => {
-    if (revealing.current) return
-    revealing.current = true
-    if (document.fullscreenElement) {
-      void document.exitFullscreen().finally(reveal)
-      return
-    }
-    if (expanded || !pill) {
-      setExpanded(false)
-      reveal()
-      return
-    }
-    const r = pill.getBoundingClientRect()
-    playRevealFx(pill, point ?? { x: r.left + r.width / 2, y: r.top + r.height / 2 }, reveal)
-  }
   const watchAgain = () => {
     ytPlayer?.seekTo(0, true)
     ytPlayer?.playVideo()
     setAtEnd(false)
-    setCounting(true)
-    setClosing(false)
   }
-  const cornerCountdown = counting && !marked && (closing || atEnd)
 
   return (
     <div className="player-block">
-      <div ref={wrapRef} className={`player-wrap${expanded ? ' is-expanded' : ''}`}>
+      <div
+        ref={wrapRef}
+        className={`player-wrap${expanded ? ' is-expanded' : ''}`}
+        onDoubleClick={(e) => {
+          if ((e.target as Element).closest('button, a, [role="button"], .yt-bar')) return
+          toggleExpanded()
+        }}
+      >
         {isFoxHighlight(active) ? (
           <iframe
             className="player-host player-host-fox"
@@ -585,7 +559,6 @@ export function HighlightPlayer({
                 player={ytPlayer}
                 stateChangedAt={stateChangedAt}
                 settings={playerSettings}
-                onToggleExpanded={toggleExpanded}
               />
             )}
             {/* Spoiler-safe frosted glass over YouTube's title line — see the file
@@ -624,122 +597,16 @@ export function HighlightPlayer({
           </>
         )}
         {atEnd && (
-          /* Full time. Only now does
-             anything cover the player, opaque, over YouTube's end screen,
-             and it stays after the reveal too, since that screen can show
-             later matches; the sheet keeps the player through the reveal.
-             If the countdown was stopped, or never seen, the result waits
-             for a tap here. */
+          /* Cover YouTube's suggestions at the end; the sheet remains
+             spoiler-safe until the viewer closes it or reveals manually. */
           <div className="player-overlay player-fulltime">
             <span className="fulltime-eyebrow">Full time</span>
-            {!marked && !counting && (
-              <button
-                type="button"
-                className="fulltime-reveal"
-                onClick={(e) => revealFromPlayer(e.currentTarget, e.detail ? { x: e.clientX, y: e.clientY } : undefined)}
-              >
-                <span className="reveal-btn-label">Reveal Result</span>
-              </button>
-            )}
             <button type="button" className="fulltime-quiet" onClick={watchAgain}>
               Watch again
             </button>
           </div>
         )}
-        {cornerCountdown && (
-          <FullTimeCountdown
-            player={ytPlayer}
-            atEnd={atEnd}
-            onReveal={revealFromPlayer}
-            onStop={() => setCounting(false)}
-          />
-        )}
       </div>
-    </div>
-  )
-}
-
-/**
- * Over the video's last seconds, Reveal
- * Result counts down in the corner while the video plays on, the way
- * Netflix's next episode does, and × stops it. The ring runs on the video's
- * own clock, so it waits while the video is paused. At the whistle the
- * result follows by itself, but only from a countdown that was on screen long
- * enough to be seen: skip straight to the end and it stands down.
- */
-function FullTimeCountdown({
-  player,
-  atEnd,
-  onReveal,
-  onStop,
-}: {
-  player: ControlledPlayer | null
-  atEnd: boolean
-  onReveal: (pill: HTMLElement | null, point?: { x: number; y: number }) => void
-  onStop: () => void
-}) {
-  const pill = useRef<HTMLButtonElement>(null)
-  const ring = useRef<SVGCircleElement>(null)
-  const since = useRef(0)
-  const done = useRef(false)
-  // Revealing: × goes with the pill instead of staying on alone.
-  const [going, setGoing] = useState(false)
-  const latest = useRef({ onReveal, onStop })
-  useEffect(() => {
-    latest.current = { onReveal, onStop }
-  })
-
-  useEffect(() => {
-    since.current = performance.now()
-  }, [])
-
-  useEffect(() => {
-    let frame = 0
-    const tick = () => {
-      try {
-        const duration = player?.getDuration() ?? 0
-        const left = (duration - END_BEAT_SECONDS - (player?.getCurrentTime() ?? 0)) / COUNTDOWN_SECONDS
-        if (duration > 0 && ring.current) ring.current.style.strokeDashoffset = String(Math.min(1, Math.max(0, left)))
-      } catch {
-        // Closed since.
-      }
-      frame = requestAnimationFrame(tick)
-    }
-    tick()
-    return () => cancelAnimationFrame(frame)
-  }, [player])
-
-  useEffect(() => {
-    if (!atEnd || done.current) return
-    done.current = true
-    if (performance.now() - since.current >= COUNTDOWN_SEEN_MS) {
-      setGoing(true)
-      latest.current.onReveal(pill.current)
-    } else latest.current.onStop()
-  }, [atEnd])
-
-  return (
-    <div className={`fulltime-corner${going ? ' is-going' : ''}`}>
-      <button type="button" className="fulltime-stop" onClick={onStop} aria-label="Not now" title="Not now">
-        <svg viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" />
-        </svg>
-      </button>
-      <button
-        ref={pill}
-        type="button"
-        className="fulltime-reveal is-corner"
-        onClick={(e) => {
-          setGoing(true)
-          onReveal(e.currentTarget, e.detail ? { x: e.clientX, y: e.clientY } : undefined)
-        }}
-      >
-        <svg className="fulltime-ring" viewBox="0 0 20 20" aria-hidden="true">
-          <circle cx="10" cy="10" r="7.5" />
-          <circle ref={ring} cx="10" cy="10" r="7.5" pathLength="1" />
-        </svg>
-        <span className="reveal-btn-label">Reveal Result</span>
-      </button>
     </div>
   )
 }

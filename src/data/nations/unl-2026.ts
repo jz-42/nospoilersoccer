@@ -1783,7 +1783,12 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-01",
       "kickoff": "2026-10-01T16:00Z",
       "home": "AZE",
-      "away": "LIE"
+      "away": "LIE",
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861094",
@@ -1792,7 +1797,34 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-01",
       "kickoff": "2026-10-01T18:45Z",
       "home": "IRL",
-      "away": "AUT"
+      "away": "AUT",
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "IRL",
+          "player": "Troy Parrott",
+          "minute": "12'"
+        },
+        {
+          "team": "IRL",
+          "player": "Troy Parrott",
+          "minute": "45'",
+          "penalty": true
+        },
+        {
+          "team": "AUT",
+          "player": "Alexander Prass",
+          "minute": "71'"
+        },
+        {
+          "team": "AUT",
+          "player": "Michael Gregoritsch",
+          "minute": "77'"
+        }
+      ]
     },
     {
       "id": "unl-401861095",
@@ -1801,7 +1833,12 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-01",
       "kickoff": "2026-10-01T18:45Z",
       "home": "ISR",
-      "away": "KOS"
+      "away": "KOS",
+      "score": {
+        "home": 0,
+        "away": 0
+      },
+      "goals": []
     },
     {
       "id": "unl-401861096",
@@ -1810,7 +1847,43 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-01",
       "kickoff": "2026-10-01T18:45Z",
       "home": "DEN",
-      "away": "POR"
+      "away": "POR",
+      "score": {
+        "home": 2,
+        "away": 4
+      },
+      "goals": [
+        {
+          "team": "POR",
+          "player": "João Cancelo",
+          "minute": "13'"
+        },
+        {
+          "team": "DEN",
+          "player": "Mikkel Damsgaard",
+          "minute": "23'"
+        },
+        {
+          "team": "POR",
+          "player": "Gonçalo Ramos",
+          "minute": "25'"
+        },
+        {
+          "team": "DEN",
+          "player": "Rasmus Højlund",
+          "minute": "53'"
+        },
+        {
+          "team": "POR",
+          "player": "Vitinha",
+          "minute": "67'"
+        },
+        {
+          "team": "POR",
+          "player": "João Félix",
+          "minute": "87'"
+        }
+      ]
     },
     {
       "id": "unl-401861097",
@@ -1819,7 +1892,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-01",
       "kickoff": "2026-10-01T18:45Z",
       "home": "GER",
-      "away": "SRB"
+      "away": "SRB",
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "GER",
+          "player": "Tom Bischof",
+          "minute": "39'"
+        },
+        {
+          "team": "GER",
+          "player": "Florian Wirtz",
+          "minute": "61'"
+        }
+      ]
     },
     {
       "id": "unl-401861098",
@@ -1828,7 +1917,33 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-01",
       "kickoff": "2026-10-01T18:45Z",
       "home": "GRE",
-      "away": "NED"
+      "away": "NED",
+      "score": {
+        "home": 2,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "GRE",
+          "player": "Fotis Ioannidis",
+          "minute": "23'"
+        },
+        {
+          "team": "GRE",
+          "player": "Georgios Masouras",
+          "minute": "45'+2'"
+        },
+        {
+          "team": "NED",
+          "player": "Virgil van Dijk",
+          "minute": "59'"
+        },
+        {
+          "team": "NED",
+          "player": "Tijjani Reijnders",
+          "minute": "89'"
+        }
+      ]
     },
     {
       "id": "unl-401861099",
@@ -1837,7 +1952,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-01",
       "kickoff": "2026-10-01T18:45Z",
       "home": "MLT",
-      "away": "GIB"
+      "away": "GIB",
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "MLT",
+          "player": "Joseph Mbong",
+          "minute": "53'"
+        },
+        {
+          "team": "GIB",
+          "player": "James Scanlon",
+          "minute": "61'"
+        }
+      ]
     },
     {
       "id": "unl-401861100",
@@ -1846,7 +1977,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-01",
       "kickoff": "2026-10-01T18:45Z",
       "home": "WAL",
-      "away": "NOR"
+      "away": "NOR",
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "NOR",
+          "player": "Oscar Bobb",
+          "minute": "11'"
+        },
+        {
+          "team": "WAL",
+          "player": "Daniel James",
+          "minute": "38'"
+        },
+        {
+          "team": "WAL",
+          "player": "Neco Williams",
+          "minute": "48'"
+        }
+      ]
     },
     {
       "id": "unl-401861101",
@@ -1855,7 +2007,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T14:00Z",
       "home": "KAZ",
-      "away": "MDA"
+      "away": "MDA",
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "MDA",
+          "player": "Nicky Clescenco",
+          "minute": "45'+1'"
+        },
+        {
+          "team": "MDA",
+          "player": "Petru Popescu",
+          "minute": "50'"
+        },
+        {
+          "team": "KAZ",
+          "player": "Nuraly Alip",
+          "minute": "64'"
+        }
+      ]
     },
     {
       "id": "unl-401861104",
@@ -1864,7 +2037,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T16:00Z",
       "home": "CYP",
-      "away": "ARM"
+      "away": "ARM",
+      "score": {
+        "home": 2,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "CYP",
+          "player": "Leonidas Konomis",
+          "minute": "19'"
+        },
+        {
+          "team": "CYP",
+          "player": "Andronikos Kakoulis",
+          "minute": "31'"
+        }
+      ]
     },
     {
       "id": "unl-401861105",
@@ -1873,7 +2062,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T16:00Z",
       "home": "LVA",
-      "away": "MNE"
+      "away": "MNE",
+      "score": {
+        "home": 1,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "MNE",
+          "player": "Vasilije Adzic",
+          "minute": "3'"
+        },
+        {
+          "team": "MNE",
+          "player": "Vasilije Adzic",
+          "minute": "56'"
+        },
+        {
+          "team": "LVA",
+          "player": "Markuss Strods",
+          "minute": "82'"
+        }
+      ]
     },
     {
       "id": "unl-401861102",
@@ -1882,7 +2092,18 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "HUN",
-      "away": "GEO"
+      "away": "GEO",
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "HUN",
+          "player": "Milos Kerkez",
+          "minute": "35'"
+        }
+      ]
     },
     {
       "id": "unl-401861103",
@@ -1891,7 +2112,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "FRA",
-      "away": "ITA"
+      "away": "ITA",
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "FRA",
+          "player": "Michael Olise",
+          "minute": "55'"
+        },
+        {
+          "team": "ITA",
+          "player": "Alessandro Bastoni",
+          "minute": "68'"
+        }
+      ]
     },
     {
       "id": "unl-401861106",
@@ -1900,7 +2137,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "UKR",
-      "away": "NIR"
+      "away": "NIR",
+      "score": {
+        "home": 0,
+        "away": 3
+      },
+      "goals": [
+        {
+          "team": "NIR",
+          "player": "Ciaron Brown",
+          "minute": "9'"
+        },
+        {
+          "team": "NIR",
+          "player": "Isaac Price",
+          "minute": "22'"
+        },
+        {
+          "team": "NIR",
+          "player": "Ciaron Brown",
+          "minute": "61'"
+        }
+      ]
     },
     {
       "id": "unl-401861107",
@@ -1909,7 +2167,23 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "BIH",
-      "away": "SWE"
+      "away": "SWE",
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SWE",
+          "player": "Viktor Gyökeres",
+          "minute": "61'"
+        },
+        {
+          "team": "BIH",
+          "player": "Kerim Alajbegovic",
+          "minute": "80'"
+        }
+      ]
     },
     {
       "id": "unl-401861108",
@@ -1918,7 +2192,45 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "POL",
-      "away": "ROU"
+      "away": "ROU",
+      "score": {
+        "home": 6,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "POL",
+          "player": "Robert Lewandowski",
+          "minute": "24'",
+          "penalty": true
+        },
+        {
+          "team": "POL",
+          "player": "Robert Lewandowski",
+          "minute": "47'"
+        },
+        {
+          "team": "POL",
+          "player": "Virgil Ghita",
+          "minute": "49'",
+          "ownGoal": true
+        },
+        {
+          "team": "POL",
+          "player": "Piotr Zielinski",
+          "minute": "62'"
+        },
+        {
+          "team": "POL",
+          "player": "Jan Bednarek",
+          "minute": "66'"
+        },
+        {
+          "team": "POL",
+          "player": "Robert Lewandowski",
+          "minute": "86'"
+        }
+      ]
     },
     {
       "id": "unl-401861109",
@@ -1927,7 +2239,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "BEL",
-      "away": "TUR"
+      "away": "TUR",
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "BEL",
+          "player": "Kevin De Bruyne",
+          "minute": "10'"
+        },
+        {
+          "team": "BEL",
+          "player": "Kevin De Bruyne",
+          "minute": "59'"
+        },
+        {
+          "team": "BEL",
+          "player": "Romelu Lukaku",
+          "minute": "76'"
+        }
+      ]
     },
     {
       "id": "unl-401861110",
@@ -1936,7 +2269,24 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-02",
       "kickoff": "2026-10-02T18:45Z",
       "home": "FRO",
-      "away": "SVK"
+      "away": "SVK",
+      "score": {
+        "home": 1,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SVK",
+          "player": "Gunnar Vatnhamar",
+          "minute": "38'",
+          "ownGoal": true
+        },
+        {
+          "team": "FRO",
+          "player": "Adrian Justinussen",
+          "minute": "66'"
+        }
+      ]
     },
     {
       "id": "unl-401861111",
@@ -1945,7 +2295,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-03",
       "kickoff": "2026-10-03T13:00Z",
       "home": "FIN",
-      "away": "ALB"
+      "away": "ALB",
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ALB",
+          "player": "Rey Manaj",
+          "minute": "4'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "26'"
+        },
+        {
+          "team": "FIN",
+          "player": "Leo Walta",
+          "minute": "71'"
+        }
+      ]
     },
     {
       "id": "unl-401861112",
@@ -1954,7 +2325,28 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-03",
       "kickoff": "2026-10-03T16:00Z",
       "home": "ISL",
-      "away": "BUL"
+      "away": "BUL",
+      "score": {
+        "home": 3,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "ISL",
+          "player": "Orri Óskarsson",
+          "minute": "37'"
+        },
+        {
+          "team": "ISL",
+          "player": "Orri Óskarsson",
+          "minute": "60'"
+        },
+        {
+          "team": "ISL",
+          "player": "Mikael Ellertsson",
+          "minute": "90'"
+        }
+      ]
     },
     {
       "id": "unl-401861113",
@@ -1963,7 +2355,48 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-03",
       "kickoff": "2026-10-03T16:00Z",
       "home": "CRO",
-      "away": "ENG"
+      "away": "ENG",
+      "score": {
+        "home": 0,
+        "away": 7
+      },
+      "goals": [
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "8'"
+        },
+        {
+          "team": "ENG",
+          "player": "Jude Bellingham",
+          "minute": "21'"
+        },
+        {
+          "team": "ENG",
+          "player": "Anthony Gordon",
+          "minute": "39'"
+        },
+        {
+          "team": "ENG",
+          "player": "Bukayo Saka",
+          "minute": "45'"
+        },
+        {
+          "team": "ENG",
+          "player": "Harry Kane",
+          "minute": "53'"
+        },
+        {
+          "team": "ENG",
+          "player": "Bukayo Saka",
+          "minute": "68'"
+        },
+        {
+          "team": "ENG",
+          "player": "Morgan Rogers",
+          "minute": "87'"
+        }
+      ]
     },
     {
       "id": "unl-401861114",
@@ -1972,7 +2405,33 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-03",
       "kickoff": "2026-10-03T16:00Z",
       "home": "BLR",
-      "away": "SMR"
+      "away": "SMR",
+      "score": {
+        "home": 4,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "BLR",
+          "player": "Artem Kontsevoy",
+          "minute": "46'"
+        },
+        {
+          "team": "BLR",
+          "player": "Artem Shumanskiy",
+          "minute": "65'"
+        },
+        {
+          "team": "BLR",
+          "player": "Max Ebong",
+          "minute": "68'"
+        },
+        {
+          "team": "BLR",
+          "player": "Artem Kontsevoy",
+          "minute": "88'"
+        }
+      ]
     },
     {
       "id": "unl-401861115",
@@ -1981,7 +2440,18 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-03",
       "kickoff": "2026-10-03T16:00Z",
       "home": "EST",
-      "away": "LUX"
+      "away": "LUX",
+      "score": {
+        "home": 1,
+        "away": 0
+      },
+      "goals": [
+        {
+          "team": "EST",
+          "player": "Rasmus Peetson",
+          "minute": "5'"
+        }
+      ]
     },
     {
       "id": "unl-401861116",
@@ -1990,7 +2460,24 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-03",
       "kickoff": "2026-10-03T18:45Z",
       "home": "MKD",
-      "away": "SCO"
+      "away": "SCO",
+      "score": {
+        "home": 0,
+        "away": 2
+      },
+      "goals": [
+        {
+          "team": "SCO",
+          "player": "Kieron Bowie",
+          "minute": "7'"
+        },
+        {
+          "team": "SCO",
+          "player": "John McGinn",
+          "minute": "69'",
+          "penalty": true
+        }
+      ]
     },
     {
       "id": "unl-401861117",
@@ -1999,7 +2486,29 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-03",
       "kickoff": "2026-10-03T18:45Z",
       "home": "SUI",
-      "away": "SVN"
+      "away": "SVN",
+      "score": {
+        "home": 2,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "SVN",
+          "player": "Zan Vipotnik",
+          "minute": "2'"
+        },
+        {
+          "team": "SUI",
+          "player": "Erik Janza",
+          "minute": "10'",
+          "ownGoal": true
+        },
+        {
+          "team": "SUI",
+          "player": "Dan Ndoye",
+          "minute": "38'"
+        }
+      ]
     },
     {
       "id": "unl-401861118",
@@ -2008,7 +2517,33 @@ const generated: Omit<Tournament, 'teams'> = {
       "date": "2026-10-03",
       "kickoff": "2026-10-03T18:45Z",
       "home": "ESP",
-      "away": "CZE"
+      "away": "CZE",
+      "score": {
+        "home": 3,
+        "away": 1
+      },
+      "goals": [
+        {
+          "team": "ESP",
+          "player": "Lamine Yamal",
+          "minute": "6'"
+        },
+        {
+          "team": "ESP",
+          "player": "Rodri",
+          "minute": "35'"
+        },
+        {
+          "team": "CZE",
+          "player": "Jiri Sláma",
+          "minute": "69'"
+        },
+        {
+          "team": "ESP",
+          "player": "Mikel Merino",
+          "minute": "89'"
+        }
+      ]
     },
     {
       "id": "unl-401861119",

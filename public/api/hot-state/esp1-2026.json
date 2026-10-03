@@ -1851,37 +1851,12 @@
       "score": null,
       "goals": null
     },
-    "esp1-athletic-club-real-sociedad": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "esp1-barcelona-alaves": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "esp1-deportivo-osasuna": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "esp1-elche-valencia": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "esp1-getafe-sevilla": {
+    "esp1-villarreal-espanyol": {
       "liveStatus": null,
       "score": null,
       "goals": null
     },
     "esp1-levante-atletico-madrid": {
-      "liveStatus": null,
-      "score": null,
-      "goals": null
-    },
-    "esp1-racing-santander-real-madrid": {
       "liveStatus": null,
       "score": null,
       "goals": null
@@ -1896,7 +1871,32 @@
       "score": null,
       "goals": null
     },
-    "esp1-villarreal-espanyol": {
+    "esp1-barcelona-alaves": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-getafe-sevilla": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-racing-santander-real-madrid": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-elche-valencia": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-athletic-club-real-sociedad": {
+      "liveStatus": null,
+      "score": null,
+      "goals": null
+    },
+    "esp1-deportivo-osasuna": {
       "liveStatus": null,
       "score": null,
       "goals": null

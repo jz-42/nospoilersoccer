@@ -119,7 +119,7 @@ function BlurPreview({ settings, focus }: { settings: PlayerSettings; focus: Reg
         >
           <img className="bp-pitch" src={PITCH} alt="" draggable={false} />
           <img className="bp-chrome" src={size.src} alt="" draggable={false} />
-          <PlayerControls player={player} stateChangedAt={0} settings={settings} onToggleExpanded={() => {}} />
+          <PlayerControls player={player} stateChangedAt={0} settings={settings} />
           <PlayerTitlebar label="Extended Highlights" />
           <span className={ring('title')} aria-hidden="true" />
           <span className={ring('time')} aria-hidden="true" />

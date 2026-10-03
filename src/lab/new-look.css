@@ -1,0 +1,42 @@
+/*
+ * New look (site lab only): the switches still on trial. SiteLab sets
+ * html[data-nl-<id>] for each one that's on; with both off the lab is the
+ * app as it ships. The rest of the pass (palette, header, tabs, header
+ * buttons, day nav, cards, names, corner tags) is in index.css / App.css.
+ *
+ * Known kinks before these can ship: names-on-art pulls the crests off
+ * centre (the caption overlaps the art), clashes with the Watch Later mark
+ * and the favourite plate, and changes card height, which the 4/8/10-match
+ * grid layouts were sized around.
+ */
+
+/* ---- caption on the art: no strip, names set over a bottom fade ---- */
+html[data-nl-caption] .preview-media {
+  border-bottom: 0;
+}
+html[data-nl-caption] .preview-meta {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 3;
+  margin: 0;
+  padding: 30px 16px 13px;
+  background: linear-gradient(to bottom, transparent, rgba(4, 6, 9, 0.62));
+  box-shadow: none;
+  pointer-events: none;
+}
+html[data-nl-caption] .preview-teams {
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+/* ---- flags: rounder corners, lifted off the field, softer "vs" ---- */
+html[data-nl-flags] .preview-flag {
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow:
+    0 6px 18px -4px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+html[data-nl-flags] .preview-vs {
+  opacity: 0.55;
+  letter-spacing: 0.06em;
+}

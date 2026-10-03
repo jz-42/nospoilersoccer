@@ -24,12 +24,13 @@ export function WatchLaterClock({
   onToggle: () => void
 }) {
   // Only a change made here animates, not a sheet that opens already saved.
-  const [fx, setFx] = useState<{ kind: 'save' | 'unsave'; at: number } | null>(null)
+  const [feedback, setFeedback] = useState<{ kind: 'save' | 'unsave'; at: number } | null>(null)
+  const fx = feedback && saved === (feedback.kind === 'save') ? feedback : null
   useEffect(() => {
-    if (!fx) return
-    const id = setTimeout(() => setFx(null), 2600)
+    if (!feedback) return
+    const id = setTimeout(() => setFeedback(null), 2600)
     return () => clearTimeout(id)
-  }, [fx])
+  }, [feedback])
 
   return (
     <>
@@ -40,7 +41,7 @@ export function WatchLaterClock({
         aria-pressed={saved}
         data-tip={saved ? 'In Watch Later' : 'Watch Later'}
         onClick={() => {
-          setFx({ kind: saved ? 'unsave' : 'save', at: Date.now() })
+          setFeedback({ kind: saved ? 'unsave' : 'save', at: Date.now() })
           onToggle()
         }}
       >
@@ -87,7 +88,11 @@ export function RevealResultButton({
         const r = button.getBoundingClientRect()
         const point = e.detail ? { x: e.clientX, y: e.clientY } : { x: r.left + r.width / 2, y: r.top + r.height / 2 }
         setGoing(true)
-        playRevealFx(button, point, onReveal, winner)
+        playRevealFx(button, point, () => {
+          button.style.visibility = ''
+          setGoing(false)
+          onReveal()
+        }, winner)
       }}
     >
       <span className="reveal-btn-label">Reveal Result</span>

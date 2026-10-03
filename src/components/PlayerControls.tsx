@@ -25,8 +25,9 @@
  *     when the pointer slides into a cross-origin iframe, whether from our
  *     layer or straight in from the page around the player, so "may be"
  *     means: last seen anywhere on the page close to that strip
- * Our own controls come and go separately (pointer activity, pause), so
- * dismissing them can never unmask YouTube's.
+ * The bottom row follows pointer activity, while the center buttons appear
+ * only near the middle or briefly after a skip. Dismissing them cannot
+ * unmask YouTube's own chrome.
  *
  * A transparent stage catches pointer input over the rest of the frame. That
  * gives us idle-hide, click to play/pause and double-click to fullscreen, and
@@ -131,19 +132,19 @@ export function PlayerControls({
   player,
   stateChangedAt,
   settings,
-  onToggleExpanded,
 }: {
   player: ControlledPlayer | null
   /** Date.now() of YouTube's latest onStateChange (0 before the first). */
   stateChangedAt: number
   settings: PlayerSettings
-  onToggleExpanded: () => void
 }) {
   const [now, setNow] = useState(() => Date.now())
   const [time, setTime] = useState({ current: 0, duration: 0, loaded: 0, state: -1 })
   const [stageHover, setStageHover] = useState(false)
   const [wrapHover, setWrapHover] = useState(false)
   const [nearStrip, setNearStrip] = useState(false)
+  const [nearCenter, setNearCenter] = useState(false)
+  const [touchControlsUntil, setTouchControlsUntil] = useState(0)
   const [frameFocused, setFrameFocused] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [scrub, setScrub] = useState<number | null>(null)
@@ -161,6 +162,11 @@ export function PlayerControls({
   const [guardUntil, setGuardUntil] = useState(() => Date.now() + GUARD_MS)
   const [activeUntil, setActiveUntil] = useState(() => Date.now() + IDLE_MS)
   const lastTap = useRef<{ at: number; side: 'back' | 'mid' | 'fwd' } | null>(null)
+  const singleClick = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => () => {
+    if (singleClick.current) clearTimeout(singleClick.current)
+  }, [])
 
   const guard = useCallback((ms = GUARD_MS) => {
     const t = Date.now()
@@ -206,10 +212,14 @@ export function PlayerControls({
   useEffect(() => {
     const wrap = rootRef.current?.parentElement
     if (!wrap) return
-    const enter = () => setWrapHover(true)
+    const enter = () => {
+      setWrapHover(true)
+      activate()
+    }
     const leave = () => {
       if (inFrameRef.current) guard()
       setWrapHover(false)
+      setNearCenter(false)
       // Done with YouTube's menus: take the stage back, or our controls would
       // stay away until the viewer happened to click elsewhere on the page.
       setFrameFocused(false)
@@ -220,7 +230,7 @@ export function PlayerControls({
       wrap.removeEventListener('pointerenter', enter)
       wrap.removeEventListener('pointerleave', leave)
     }
-  }, [guard])
+  }, [guard, activate])
 
   // Where the pointer was last seen, from every move on the page: over our
   // layer below the strip, or outside the player above or beside it.
@@ -228,9 +238,18 @@ export function PlayerControls({
     const wrap = rootRef.current?.parentElement
     if (!wrap) return
     let near = false
+    let center = false
     const onMove = (e: PointerEvent) => {
       if (e.pointerType !== 'mouse') return
       const r = wrap.getBoundingClientRect()
+      const x = (e.clientX - r.left) / r.width
+      const y = (e.clientY - r.top) / r.height
+      const c = x >= 0.15 && x <= 0.85 && y >= 0.24 && y <= 0.76
+      if (c !== center) {
+        center = c
+        setNearCenter(c)
+      }
+      if (x >= 0 && x <= 1 && y >= 0 && y <= 1) activate()
       const n =
         e.clientX > r.left - APPROACH_PX &&
         e.clientX < r.right + APPROACH_PX &&
@@ -243,7 +262,7 @@ export function PlayerControls({
     }
     document.addEventListener('pointermove', onMove)
     return () => document.removeEventListener('pointermove', onMove)
-  }, [guard])
+  }, [guard, activate])
 
   // A click inside YouTube's cluster moves focus into the iframe. Let pointer
   // input through until focus comes back to our page, so its menus work.
@@ -337,11 +356,11 @@ export function PlayerControls({
   const chromeState = time.state === UNSTARTED || time.state === ENDED || time.state === CUED || time.state === PAUSED
   const guarded =
     chromeState || now < Math.max(guardUntil, stateChangedAt + GUARD_MS) || pointerInFrame || frameFocused
-  const wanted = now < activeUntil || !playing || dragging
-  // Our time and bar show when wanted, and always along with the covers (the
-  // time pill is one of them). Our buttons never while YouTube's menu may be open.
+  const wanted = now < activeUntil || dragging
+  // Guarded covers stay over YouTube's spoiler-bearing chrome even after our
+  // progress bar and controls fade. Buttons stay away while its menu is open.
   const shown = guarded || wanted
-  const controlsUp = wanted && !frameFocused
+  const centerUp = (nearCenter || now < touchControlsUntil || flash !== null || dragging) && !frameFocused
 
   const seekFromPointer = (clientX: number, commit: boolean) => {
     const bar = barRef.current
@@ -366,7 +385,13 @@ export function PlayerControls({
 
   const onStageUp = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse') {
-      if (e.button === 0) togglePlay()
+      if (e.button === 0) {
+        if (singleClick.current) clearTimeout(singleClick.current)
+        singleClick.current = setTimeout(() => {
+          singleClick.current = null
+          togglePlay()
+        }, DOUBLE_TAP_MS)
+      }
       return
     }
     // Touch: tap shows or hides our controls (never below the guard); a
@@ -381,8 +406,10 @@ export function PlayerControls({
     lastTap.current = { at: Date.now(), side }
     if (now < activeUntil) {
       setActiveUntil(0)
+      setTouchControlsUntil(0)
     } else {
       activate(IDLE_MS + 1000)
+      setTouchControlsUntil(Date.now() + IDLE_MS + 1000)
     }
   }
 
@@ -395,7 +422,8 @@ export function PlayerControls({
         'yt-controls',
         guarded && 'is-guarded',
         shown && 'is-shown',
-        controlsUp && 'is-up',
+        wanted && 'is-active',
+        centerUp && 'is-center',
         frameFocused && 'is-frame-focused',
         settings.showTitle && 'is-title-shown',
       ]
@@ -409,7 +437,16 @@ export function PlayerControls({
         activate()
       }}
       onPointerLeave={() => setStageHover(false)}
+      onDoubleClickCapture={() => {
+        if (singleClick.current) clearTimeout(singleClick.current)
+        singleClick.current = null
+      }}
     >
+      <div
+        className="yt-title-stage"
+        onPointerMove={(e) => { if (e.pointerType === 'mouse') activate() }}
+        onPointerUp={onStageUp}
+      />
       <div
         className="yt-stage"
         tabIndex={-1}
@@ -418,7 +455,6 @@ export function PlayerControls({
           activate()
         }}
         onPointerUp={onStageUp}
-        onDoubleClick={onToggleExpanded}
       />
 
       <div className="yt-time-row">
