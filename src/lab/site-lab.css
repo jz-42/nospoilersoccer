@@ -78,15 +78,32 @@
 .nl-all button:hover {
   color: #f3f6fa;
 }
+.nl-list {
+  max-height: calc(100vh - 90px);
+  overflow-y: auto;
+}
+.nl-group {
+  margin: 8px 4px 2px;
+  color: #6b7686;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 .nl-row {
   display: flex;
-  gap: 9px;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 6px;
   padding: 6px 4px;
   border-radius: 8px;
+}
+.nl-check {
+  flex-direction: row;
+  gap: 9px;
+  align-items: flex-start;
   cursor: pointer;
 }
-.nl-row:hover {
+.nl-check:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 .nl-row input {
@@ -97,6 +114,26 @@
   display: block;
   color: #f3f6fa;
   font-weight: 600;
+}
+.nl-seg {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.nl-panel .nl-seg button {
+  flex: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: #8d99ab;
+}
+.nl-panel .nl-seg button:hover {
+  color: #f3f6fa;
+}
+.nl-panel .nl-seg button.on {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f3f6fa;
 }
 .nl-row small {
   color: #8d99ab;

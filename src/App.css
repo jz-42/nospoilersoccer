@@ -791,7 +791,9 @@
    context's existing flag class keeps controlling scale via font-size. The
    shading stays a whisper — hairline ring, faint top sheen — enough to seat
    the flag on any tint without tipping into gloss. Radius/shadows are in em
-   so the treatment scales with the badge. */
+   so the treatment scales with the badge: one corner shape at every size,
+   about 8px on a big Today card, 6px on the match sheet, 2px on a table row,
+   where a fixed radius read round on a phone card and square on a wide one. */
 .flag-badge {
   position: relative;
   display: inline-block;
@@ -807,7 +809,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 0.05em;
+  border-radius: 0.1em;
   /* Loading placeholder: a whisper of frost, not a black slab — if a flag
      ever paints late (see the flag preloads in Flag.tsx) it reads as an
      empty glass chip, not a jarring dark hole. */
@@ -818,7 +820,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 0.05em;
+  border-radius: 0.1em;
   pointer-events: none;
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.14),
@@ -879,6 +881,13 @@
 .crest-badge.tile-thumb-flag {
   width: 1.34em;
   height: 1.34em;
+}
+
+/* On the card the flag is the picture, so it sits at the match sheet's depth.
+   A drop-shadow follows what's painted, so a crest gets a shadow the shape of
+   its shield, never a box behind it. */
+.preview-flag:is(.flag-badge, .crest-badge) {
+  filter: drop-shadow(0 0.05em 0.13em rgba(0, 0, 0, 0.35));
 }
 
 .crest-badge.preview-flag .crest-monogram,
@@ -1819,7 +1828,9 @@
 .preview-vs {
   font-size: 12px;
   font-weight: 650;
+  letter-spacing: 0.06em;
   color: var(--text);
+  opacity: 0.55;
   min-width: 18px;
   text-align: center;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
@@ -2063,6 +2074,19 @@
   color: var(--saved-ink);
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
   pointer-events: none;
+}
+
+/* Hooks for the site lab's caption trials (src/lab/new-look.css): a name
+   under each crest, and the clock at the end of the caption line. Neutral
+   here — the wrappers don't box and the extras don't draw. */
+.preview-side,
+.preview-line {
+  display: contents;
+}
+
+.preview-side-name,
+.preview-saved-cap {
+  display: none;
 }
 
 .preview-meta {
@@ -2534,15 +2558,22 @@
 
 /* ============ match tiles ============ */
 
+/*
+ * A group's matches are a list, as in Apple Sports and the iOS grouped list:
+ * the group card is the one container, rows have no box of their own, inset
+ * hairlines part them, and the thumb's art is the only frame in a row. The
+ * border stays (transparent) so a favourite's edge doesn't change the size.
+ */
 .tile {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 11px;
   width: 100%;
   padding: 5px 8px 5px 5px;
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  background: rgba(154, 173, 203, 0.025);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: none;
   color: var(--text);
   font-size: 13px;
   cursor: pointer;
@@ -2550,43 +2581,59 @@
   transition:
     border-color 0.15s,
     background 0.15s,
-    opacity 0.15s,
-    transform 0.18s cubic-bezier(0.32, 0.72, 0, 1);
+    opacity 0.15s;
 }
 
+/* A list row lights up in place, as an iOS row does; it doesn't lift off
+   the list or shrink under the finger. */
 .tile:hover {
-  border-color: var(--border-strong);
   background: var(--panel-hover);
-  transform: translateY(-1px);
 }
 
-.tile:active {
-  transform: scale(0.985);
-  transition-duration: 0.12s;
+/* The inset separator: from the names to the row's end, as iOS insets past
+   the icon (5px padding + 100px thumb + 11px gap). It's the lower row's,
+   centred in the 5px gap above it (the 1px border, then 2px of gap). */
+.tile + .tile::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 116px;
+  right: 8px;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
 }
 
-.tile.state-watch {
-  border-color: var(--border-strong);
-  background: rgba(255, 255, 255, 0.02);
+/* A lit row (hover, or a favourite) hides the hairlines either side of it,
+   so its rounded fill never crosses a line. */
+.tile:is(:hover, .is-fav)::before,
+.tile:is(:hover, .is-fav) + .tile::before {
+  opacity: 0;
 }
 
-.tile.state-watch:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-}
-
-.tile.state-upcoming {
+/* A row dims its contents, not itself, so its hairline stays the same weight
+   as every other one in the list. A favourite dims whole, edge and all. */
+.tile.state-upcoming:not(.is-fav) > *,
+.tile.is-fav.state-upcoming {
   opacity: 0.92;
 }
 
-.tile.state-upcoming:hover {
-  opacity: 1;
-}
-
-.tile.state-seen {
+.tile.state-seen:not(.is-fav) > *,
+.tile.is-fav.state-seen {
   opacity: 0.55;
 }
 
-.tile.state-seen:hover {
+.tile:not(.is-fav) > * {
+  transition: opacity 0.15s;
+}
+
+.tile.state-upcoming:not(.is-fav):hover > *,
+.tile.is-fav.state-upcoming:hover {
+  opacity: 1;
+}
+
+.tile.state-seen:not(.is-fav):hover > *,
+.tile.is-fav.state-seen:hover {
   opacity: 0.85;
 }
 
@@ -2621,6 +2668,9 @@
   pointer-events: none;
 }
 
+/* The Today card's art turned sideways: home colour into away colour with
+   the card's split, key light and foot shade (MatchTile passes the same
+   matchTint vars, through the same clash rule, so two reds never meet). */
 .tile-thumb {
   position: relative;
   display: flex;
@@ -2631,28 +2681,30 @@
   padding: 0 11px;
   flex-shrink: 0;
   border-radius: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   background:
-    radial-gradient(ellipse 130% 100% at 50% -30%, rgba(255, 255, 255, 0.05), transparent 62%),
-    linear-gradient(168deg, #141a21, #0b0f14);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 42%, rgba(4, 6, 10, 0.3) 100%),
+    linear-gradient(
+      100deg in oklab,
+      var(--home-1, #151c24) 0%,
+      var(--home-1, #151c24) 42%,
+      var(--away-1, #151c24) 58%,
+      var(--away-1, #151c24) 100%
+    );
+  /* The colour is the edge. A gradient is sized to the padding box and
+     repeats under the border, so the border showed a sliver of the home
+     colour down the right edge and the away colour down the left. Sized to
+     the border box, it runs edge to edge in one piece. (After the shorthand,
+     which resets it.) */
+  background-origin: border-box;
   font-size: 20px;
   line-height: 1;
   overflow: hidden;
+  transition: filter 0.18s ease;
 }
 
-/* Same soft off-white "screen is live" wash as the preview card and the
-   knockout watch thumb, so watch reads the same in every view. */
-.tile.state-watch .tile-thumb {
-  background:
-    radial-gradient(ellipse 140% 125% at 50% -18%, rgba(255, 255, 255, 0.07), transparent 80%),
-    linear-gradient(168deg, #141a21, #0b0f14);
-  transition: background 0.18s ease;
-}
-
-.tile.state-watch:hover .tile-thumb {
-  background:
-    radial-gradient(ellipse 140% 125% at 50% -18%, rgba(255, 255, 255, 0.11), transparent 82%),
-    linear-gradient(168deg, #171e26, #0c1117);
+.tile:hover .tile-thumb {
+  filter: brightness(1.08);
 }
 
 .tile-thumb-flag {
@@ -2689,15 +2741,24 @@
   transform: translate(-50%, -50%) scale(1.12);
 }
 
+/* The scoreboard row (Apple Sports, FotMob): home over away, so a name is
+   cut only when it alone is too long for the row, where one line showed
+   "Mexico v Sout…" on a phone. The winner reads as the bright line. Two
+   lines fit inside the thumb's height, so the row is no taller. */
 .tile-teams {
   flex: 1;
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
 }
 
 .tile-team {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.32;
   color: var(--text);
 }
 
@@ -2706,10 +2767,15 @@
   font-weight: 650;
 }
 
+/* The stacked lines say "versus" by themselves; the "v" stays for screen
+   readers, so the row still reads "Mexico v South Africa". */
 .tile-sep {
-  color: var(--muted);
-  font-size: 11px;
-  margin: 0 5px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Right-hand state badge — reuses the preview badge colour treatments
@@ -3086,6 +3152,8 @@
 
 .b-col {
   --bgap: 12px;
+  --b-line: rgba(255, 255, 255, 0.11);
+  --b-flow: rgba(255, 255, 255, 0.36);
   position: relative;
   z-index: 1;
   display: flex;
@@ -3111,6 +3179,10 @@
 .bracket-deep .ko-meta {
   font-size: 9.5px;
   margin-bottom: 2px;
+}
+
+.bracket-deep :is(.ko-saved, .ko-fav) {
+  margin-right: 3px;
 }
 
 .bracket-deep .ko-pill {
@@ -3156,6 +3228,74 @@
   white-space: nowrap;
 }
 
+/* The watchable card's flag–play–flag row is 107px wide at full size, and a
+   deep-bracket card only gets room for it from ~1240px: below it the
+   flags hung out past the card's edges. The row steps down with the column,
+   so the card always holds it. */
+@media (max-width: 1239px) {
+  .bracket-deep .ko-watch {
+    gap: 4px;
+    font-size: 20px;
+  }
+
+  .bracket-deep .ko-play {
+    width: 22px;
+    height: 22px;
+  }
+
+  .bracket-deep .ko-play svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+/* At the column floor (a 78px card, phones and tablets). The card's own
+   inset and the meta row close up too, so a pinned card's clock, date and
+   FT pill share one line (they need 62px; the old inset left 58). */
+@media (max-width: 999px) {
+  .bracket-deep .ko-card {
+    padding-inline: 7px;
+  }
+
+  .bracket-deep .ko-meta {
+    gap: 3px;
+  }
+
+  .bracket-deep .ko-pill {
+    padding-inline: 5px;
+  }
+
+  .bracket-deep .ko-watch {
+    gap: 3px;
+    font-size: 16px;
+  }
+
+  .bracket-deep .ko-play {
+    width: 19px;
+    height: 19px;
+  }
+
+  .bracket-deep .ko-play svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Below 1024px the deep bracket's columns sit at their floor and
+   "Quarter-finals" is wider than one (96px in 78), so it ran into
+   "Semi-finals". It breaks at its hyphen instead, and every title keeps two
+   lines' room, set on the bottom one, so the cards under them stay level. */
+@media (max-width: 1023px) {
+  .bracket-deep .b-round-name {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    min-height: 2.4em;
+    line-height: 1.2;
+    white-space: normal;
+  }
+}
+
 .b-col-body {
   display: flex;
   flex-direction: column;
@@ -3185,7 +3325,9 @@
   gap: 6px;
 }
 
-/* connector lines — state-aware: marked games "flow" green toward the final */
+/* Connector lines, as Apple Sports and the FIFA app draw a bracket: one
+   neutral hairline. Green is the "watched" ✓ on a card and nowhere else; the
+   path your results have filled in shows as brighter lines toward the final. */
 .side-left .b-slot.has-out::after,
 .b-center .b-slot.has-in-right::after {
   content: '';
@@ -3194,8 +3336,8 @@
   top: 50%;
   transform: translateY(-50%);
   width: var(--bgap);
-  height: 2px;
-  background: var(--border-strong);
+  height: 1px;
+  background: var(--b-line);
   transition: background 0.35s ease;
 }
 
@@ -3206,8 +3348,8 @@
   top: 50%;
   transform: translateY(-50%);
   width: var(--bgap);
-  height: 2px;
-  background: var(--border-strong);
+  height: 1px;
+  background: var(--b-line);
   transition: background 0.35s ease;
 }
 
@@ -3218,8 +3360,8 @@
   top: 50%;
   transform: translateY(-50%);
   width: var(--bgap);
-  height: 2px;
-  background: var(--border-strong);
+  height: 1px;
+  background: var(--b-line);
   transition: background 0.35s ease;
 }
 
@@ -3229,9 +3371,9 @@
   content: '';
   position: absolute;
   right: calc(-1 * var(--bgap));
-  width: 2px;
-  height: calc(25% + 1px);
-  background: var(--border-strong);
+  width: 1px;
+  height: calc(25% + 0.5px);
+  background: var(--b-line);
   transition: background 0.35s ease;
 }
 
@@ -3250,8 +3392,8 @@
   top: 50%;
   transform: translateY(-50%);
   width: var(--bgap);
-  height: 2px;
-  background: var(--border-strong);
+  height: 1px;
+  background: var(--b-line);
   transition: background 0.35s ease;
 }
 
@@ -3262,8 +3404,8 @@
   top: 50%;
   transform: translateY(-50%);
   width: var(--bgap);
-  height: 2px;
-  background: var(--border-strong);
+  height: 1px;
+  background: var(--b-line);
   transition: background 0.35s ease;
 }
 
@@ -3272,9 +3414,9 @@
   content: '';
   position: absolute;
   left: calc(-1 * var(--bgap));
-  width: 2px;
-  height: calc(25% + 1px);
-  background: var(--border-strong);
+  width: 1px;
+  height: calc(25% + 0.5px);
+  background: var(--b-line);
   transition: background 0.35s ease;
 }
 
@@ -3286,9 +3428,9 @@
   top: 50%;
 }
 
-/* the green flow — each selector is qualified to match the specificity of the
-   base connector rule it overrides (those carry a .side-left/.side-right/
-   .b-center prefix), otherwise the grey base wins and the leg never lights up. */
+/* the filled path — each selector is qualified to match the specificity of
+   the base connector rule it overrides (those carry a .side-left/.side-right/
+   .b-center prefix), otherwise the base wins and the leg never lights up. */
 .side-left .b-slot.flow-out::after,
 .side-right .b-slot.flow-out::after,
 .b-center .b-slot.flow-in-right::after,
@@ -3299,7 +3441,7 @@
 .side-right .b-pair.flow-top::before,
 .side-left .b-pair.flow-bottom::after,
 .side-right .b-pair.flow-bottom::after {
-  background: var(--accent-deep);
+  background: var(--b-flow);
 }
 
 .b-pair-feeds::before,
@@ -3606,7 +3748,7 @@
 }
 
 .ko-card.state-seen {
-  border-color: color-mix(in srgb, var(--accent-deep) 35%, var(--border));
+  border-color: rgba(154, 173, 203, 0.19);
   opacity: 0.82;
 }
 
@@ -3655,10 +3797,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 4px;
   font-size: 10.5px;
   color: var(--muted);
   margin-bottom: 4px;
   min-height: 17px;
+}
+
+/* The date never wraps: in a narrow column with the Watch Later clock in
+   front, "Jul 5" broke onto two lines and made the card a row taller than
+   its neighbours. Tighter still, it ends in an ellipsis. */
+.ko-meta > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ko-pill {
@@ -6660,8 +6813,30 @@
     max-width: 104px;
   }
 
-  .btn-catch-up {
+  /* Catch up or Reset progress, whichever is showing: min-width: auto
+     wasn't holding it, so it shrank under its own label and the meter ran
+     in beneath it. */
+  .app-header-end > .btn-ghost {
+    flex-shrink: 0;
     white-space: nowrap;
+  }
+}
+
+/* Below 401px even a 24px bar doesn't fit beside the four buttons (369px of
+   row against 343–368), so the meter keeps its count and drops the bar, and
+   the row closes up a little so the count still fits on a 360px Android.
+   (.app-header for weight: the 760px block below sets the gap too.) */
+@media (max-width: 400px) {
+  .app-progress-bar {
+    display: none;
+  }
+
+  .app-header .app-header-end {
+    gap: 8px;
+  }
+
+  .app-header-end > .btn-ghost {
+    padding-inline: 12px;
   }
 }
 
