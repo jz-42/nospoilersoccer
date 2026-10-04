@@ -1,11 +1,14 @@
 /**
  * Compact match row for the group stage — a horizontal echo of the Today-tab
- * preview card so the two views share one visual language. A pitch thumb holds
- * the two flags; a watchable match gets the same white play button (no "Watch"
- * label — the button says it), sitting right on the thumb next to the flags.
+ * preview card so the two views share one visual language. A thumb in the two
+ * team colours holds the two flags; a watchable match gets the same white play
+ * button (no "Watch" label — the button says it), sitting between the flags.
+ * The names stack, home over away.
  * The right-hand badge carries state: FT, kickoff time, or the revealed score.
  */
+import type { CSSProperties } from 'react'
 import type { GroupMatch, Tournament } from '../data/types'
+import { matchTint } from '../data/team-colors'
 import type { Progress } from '../state/progress'
 import { Flag } from './Flag'
 import { ClockIcon } from './ClockIcon'
@@ -59,6 +62,8 @@ export function MatchTile({
     <button
       type="button"
       className={`tile state-${state} ${fav ? 'is-fav' : ''}`}
+      // The two team colours, as on the preview card: the thumb's art.
+      style={matchTint(m.home, m.away) as CSSProperties}
       onClick={() => onOpen({ kind: 'group', match: m })}
     >
       <span className="tile-thumb" aria-hidden="true">

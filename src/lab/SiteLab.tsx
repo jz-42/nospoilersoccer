@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import App from '../App.tsx'
-import { LOOK_FEATURES, applyLook, readLook, type LookId } from './new-look'
+import { LOOK_FEATURES, applyLook, readLook, type Look } from './new-look'
 
 const initial = new URLSearchParams(window.location.search)
 
@@ -42,13 +42,16 @@ export function SiteLab({ sources }: { sources: number }) {
     // Tell the phone iframe too; it reads the same storage on reload.
     document.querySelector<HTMLIFrameElement>('.sl-phone iframe')?.contentWindow?.postMessage('nl-look', '*')
   }, [look])
-  const toggle = (id: LookId) =>
+  const pick = (id: string, value: string) =>
     setLook((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      const next: Look = { ...prev }
+      if (value) next[id] = value
+      else delete next[id]
       return next
     })
+  const onCount = LOOK_FEATURES.filter((f) => look[f.id] !== 'off').length
+  const allOn = () => setLook(Object.fromEntries(LOOK_FEATURES.map((f) => [f.id, f.options?.[0].id ?? 'on'])))
+  const allOff = () => setLook(Object.fromEntries(LOOK_FEATURES.map((f) => [f.id, 'off'])))
 
   // The extra sources are added as the page loads, so a new count is a reload.
   const setSources = (n: number) => {
@@ -70,29 +73,60 @@ export function SiteLab({ sources }: { sources: number }) {
       <div className={`nl-panel${lookOpen ? '' : ' closed'}`}>
         <div className="nl-head">
           <button type="button" className="nl-title" onClick={() => setLookOpen((o) => !o)}>
-            New look {look.size}/{LOOK_FEATURES.length} {lookOpen ? '▾' : '▸'}
+            New look {onCount}/{LOOK_FEATURES.length} {lookOpen ? '▾' : '▸'}
           </button>
           {lookOpen && (
             <span className="nl-all">
-              <button type="button" onClick={() => setLook(new Set(LOOK_FEATURES.map((f) => f.id)))}>
-                All
+              <button type="button" onClick={allOn}>
+                New
               </button>
-              <button type="button" onClick={() => setLook(new Set())}>
-                None
+              <button type="button" onClick={allOff}>
+                Old
               </button>
             </span>
           )}
         </div>
-        {lookOpen &&
-          LOOK_FEATURES.map((f) => (
-            <label key={f.id} className="nl-row">
-              <input type="checkbox" checked={look.has(f.id)} onChange={() => toggle(f.id)} />
-              <span>
-                <b>{f.label}</b>
-                <small>{f.note}</small>
-              </span>
-            </label>
-          ))}
+        {lookOpen && (
+          <div className="nl-list">
+            {LOOK_FEATURES.map((f, i) => {
+              const value = look[f.id] ?? f.options?.[0].id ?? ''
+              const option = f.options?.find((o) => o.id === value)
+              return (
+                <div key={f.id}>
+                  {f.group !== LOOK_FEATURES[i - 1]?.group && <div className="nl-group">{f.group}</div>}
+                  {f.options ? (
+                    <div className="nl-row">
+                      <span>
+                        <b>{f.label}</b>
+                        <small>{option?.note ?? f.note}</small>
+                      </span>
+                      <span className="nl-seg">
+                        {f.options.map((o) => (
+                          <button
+                            key={o.id}
+                            type="button"
+                            className={o.id === value ? 'on' : ''}
+                            onClick={() => pick(f.id, o.id)}
+                          >
+                            {o.label}
+                          </button>
+                        ))}
+                      </span>
+                    </div>
+                  ) : (
+                    <label className="nl-row nl-check">
+                      <input type="checkbox" checked={!!value} onChange={() => pick(f.id, value ? '' : 'on')} />
+                      <span>
+                        <b>{f.label}</b>
+                        <small>{f.note}</small>
+                      </span>
+                    </label>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
       <div className="sl-bar">
         <Seg

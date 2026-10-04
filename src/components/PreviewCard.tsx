@@ -151,11 +151,19 @@ export function PreviewCard({
           </span>
         )}
         <div className="preview-matchup">
-          {homeId !== null ? (
-            <Flag team={t.teams[homeId]} className="preview-flag" />
-          ) : (
-            <span className="preview-flag preview-flag-tbd">?</span>
-          )}
+          <span className="preview-side">
+            {homeId !== null ? (
+              <Flag team={t.teams[homeId]} className="preview-flag" />
+            ) : (
+              <span className="preview-flag preview-flag-tbd">?</span>
+            )}
+            <span className="preview-side-name">
+              <span className={`preview-side-label ${favHome ? 'is-fav' : ''}`.trim()}>
+                {favHome && <Heart size={12} className="preview-team-heart" />}
+                {homeLabel}
+              </span>
+            </span>
+          </span>
           {state === 'seen' && m.score ? (
             <span className="preview-score">
               {m.score.home}–{m.score.away}
@@ -169,11 +177,19 @@ export function PreviewCard({
           ) : (
             <span className="preview-vs">vs</span>
           )}
-          {awayId !== null ? (
-            <Flag team={t.teams[awayId]} className="preview-flag" />
-          ) : (
-            <span className="preview-flag preview-flag-tbd">?</span>
-          )}
+          <span className="preview-side">
+            {awayId !== null ? (
+              <Flag team={t.teams[awayId]} className="preview-flag" />
+            ) : (
+              <span className="preview-flag preview-flag-tbd">?</span>
+            )}
+            <span className="preview-side-name">
+              <span className={`preview-side-label ${favAway ? 'is-fav' : ''}`.trim()}>
+                {awayLabel}
+                {favAway && <Heart size={12} className="preview-team-heart is-trailing" />}
+              </span>
+            </span>
+          </span>
         </div>
         {pinned && (
           <span className="preview-saved" aria-label="Watch Later" title="Watch Later">
@@ -183,16 +199,23 @@ export function PreviewCard({
       </div>
       <div className="preview-meta">
         {sourceLabel && <span className="preview-source">{sourceLabel}</span>}
-        <span className="preview-teams">
-          <span className={`preview-team ${favHome ? 'is-fav' : ''}`.trim()}>
-            {favHome && <Heart size={14} className="preview-team-heart" />}
-            {homeLabel}
-          </span>{' '}
-          <span className="preview-vs-text">v</span>{' '}
-          <span className={`preview-team ${favAway ? 'is-fav' : ''}`.trim()}>
-            {awayLabel}
-            {favAway && <Heart size={14} className="preview-team-heart is-trailing" />}
+        <span className="preview-line">
+          <span className="preview-teams">
+            <span className={`preview-team ${favHome ? 'is-fav' : ''}`.trim()}>
+              {favHome && <Heart size={14} className="preview-team-heart" />}
+              {homeLabel}
+            </span>{' '}
+            <span className="preview-vs-text">v</span>{' '}
+            <span className={`preview-team ${favAway ? 'is-fav' : ''}`.trim()}>
+              {awayLabel}
+              {favAway && <Heart size={14} className="preview-team-heart is-trailing" />}
+            </span>
           </span>
+          {pinned && (
+            <span className="preview-saved-cap" aria-hidden="true">
+              <ClockIcon />
+            </span>
+          )}
         </span>
         {sub && <span className="preview-sub">{sub}</span>}
       </div>
