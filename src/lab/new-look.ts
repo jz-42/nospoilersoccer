@@ -1,7 +1,6 @@
 /**
- * The site lab's "new look" switches still on trial. Each one maps to
- * html[data-nl-<id>="<option>"] in new-look.css ("on" for a plain switch);
- * with everything off the lab is the app as it ships.
+ * The production app uses the selected designs. The site lab's Old choice
+ * maps to html[data-nl-<id>="off"] in new-look.css for side-by-side review.
  */
 export interface LookOption {
   id: string
@@ -23,10 +22,10 @@ export const LOOK_FEATURES: readonly LookFeature[] = [
     id: 'caption',
     group: 'Today cards',
     label: 'Names on art',
-    note: 'No caption strip; same card size',
+    note: 'One continuous poster; the card size stays the same',
     options: [
-      { id: 'poster', label: 'Poster', note: 'Apple TV tile: names stay bottom-left on the art, clock at the line end' },
-      { id: 'scoreboard', label: 'Scoreboard', note: 'Apple Sports tile: each name under its crest, like the match sheet' },
+      { id: 'poster', label: 'Poster', note: 'Names stay bottom-left on the art; the clock sits at the line end' },
+      { id: 'off', label: 'Old', note: 'Caption strip, with the clock in the lower-left of the art' },
     ],
   },
   {
@@ -34,12 +33,20 @@ export const LOOK_FEATURES: readonly LookFeature[] = [
     group: 'Across the site',
     label: 'Dusk favourites',
     note: 'The Today band’s solid rose plate on rows and bracket cards, not a pink edge',
+    options: [
+      { id: 'on', label: 'Dusk', note: 'Solid rose plate across rows and bracket cards' },
+      { id: 'off', label: 'Old', note: 'Pink edge and wash on rows and bracket cards' },
+    ],
   },
   {
     id: 'badges',
     group: 'Across the site',
     label: 'Quiet badges',
     note: 'Apple Sports: no FT beside a play button anywhere, row states as plain text, every chip left a capsule',
+    options: [
+      { id: 'on', label: 'Quiet', note: 'No FT beside a play button; row states are plain text' },
+      { id: 'off', label: 'Old', note: 'Status chips and FT beside a play button' },
+    ],
   },
 ]
 
@@ -50,7 +57,10 @@ const KEY = 'nss-lab-look-v4'
 export function readLook(): Look {
   try {
     const v = JSON.parse(localStorage.getItem(KEY) || '{}')
-    return v && typeof v === 'object' && !Array.isArray(v) ? v : {}
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return {}
+    // The previous lab exposed a second layout that is no longer shipped.
+    if (v.caption === 'scoreboard') v.caption = 'poster'
+    return v
   } catch {
     return {}
   }

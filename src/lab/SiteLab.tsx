@@ -49,8 +49,9 @@ export function SiteLab({ sources }: { sources: number }) {
       else delete next[id]
       return next
     })
-  const onCount = LOOK_FEATURES.filter((f) => look[f.id]).length
+  const onCount = LOOK_FEATURES.filter((f) => look[f.id] !== 'off').length
   const allOn = () => setLook(Object.fromEntries(LOOK_FEATURES.map((f) => [f.id, f.options?.[0].id ?? 'on'])))
+  const allOff = () => setLook(Object.fromEntries(LOOK_FEATURES.map((f) => [f.id, 'off'])))
 
   // The extra sources are added as the page loads, so a new count is a reload.
   const setSources = (n: number) => {
@@ -77,10 +78,10 @@ export function SiteLab({ sources }: { sources: number }) {
           {lookOpen && (
             <span className="nl-all">
               <button type="button" onClick={allOn}>
-                All
+                New
               </button>
-              <button type="button" onClick={() => setLook({})}>
-                None
+              <button type="button" onClick={allOff}>
+                Old
               </button>
             </span>
           )}
@@ -88,7 +89,7 @@ export function SiteLab({ sources }: { sources: number }) {
         {lookOpen && (
           <div className="nl-list">
             {LOOK_FEATURES.map((f, i) => {
-              const value = look[f.id] ?? ''
+              const value = look[f.id] ?? f.options?.[0].id ?? ''
               const option = f.options?.find((o) => o.id === value)
               return (
                 <div key={f.id}>
@@ -100,7 +101,7 @@ export function SiteLab({ sources }: { sources: number }) {
                         <small>{option?.note ?? f.note}</small>
                       </span>
                       <span className="nl-seg">
-                        {[{ id: '', label: 'Off' }, ...f.options].map((o) => (
+                        {f.options.map((o) => (
                           <button
                             key={o.id}
                             type="button"
